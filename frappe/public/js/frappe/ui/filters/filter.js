@@ -17,7 +17,8 @@ frappe.ui.Filter = class {
 			["<", "<"],
 			[">=", ">="],
 			["<=", "<="],
-			["Between", __("Between")]
+			["Between", __("Between")],
+			["dynamic", __("Dynamic")]
 		];
 		this.invalid_condition_map = {
 			Date: ['like', 'not like'],
@@ -222,7 +223,8 @@ frappe.ui.Filter = class {
 	}
 
 	get_condition() {
-		return this.filter_edit_area.find('.condition').val();
+		let condition = this.filter_edit_area.find('.condition').val();
+		return condition
 	}
 
 	set_condition(condition, trigger_change=false) {
@@ -382,6 +384,8 @@ frappe.ui.filter_utils = {
 		}
 		if(condition == "Between" && (df.fieldtype == 'Date' || df.fieldtype == 'Datetime')){
 			df.fieldtype = 'DateRange';
+		} if(condition == "dynamic" && (df.fieldtype == 'Date' || df.fieldtype == 'Datetime')){
+			df.fieldtype = 'DynamicDate';
 		}
 	}
 };

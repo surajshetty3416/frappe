@@ -311,7 +311,14 @@ frappe.views.BaseList = class BaseList {
 		// filters might have a fifth param called hidden,
 		// we don't want to pass that server side
 		return this.filter_area
-			? this.filter_area.get().map(filter => filter.slice(0, 4))
+			? this.filter_area.get().map(filter => {
+				if(filter.includes('dynamic')){
+					const dynamic_condition_index = filter.indexOf('dynamic');
+					filter.splice(dynamic_condition_index, 1, '=')
+					filter.splice(dynamic_condition_index+1, 1, "2018-05-10")
+				}
+				return filter.slice(0, 4)
+			})
 			: [];
 	}
 

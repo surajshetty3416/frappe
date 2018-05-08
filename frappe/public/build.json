@@ -37,6 +37,7 @@
 		"public/js/frappe/form/controls/time.js",
 		"public/js/frappe/form/controls/datetime.js",
 		"public/js/frappe/form/controls/date_range.js",
+		"public/js/frappe/form/controls/dynamic.js",
 		"public/js/frappe/form/controls/select.js",
 		"public/js/frappe/form/controls/link.js",
 		"public/js/frappe/form/controls/dynamic_link.js",
