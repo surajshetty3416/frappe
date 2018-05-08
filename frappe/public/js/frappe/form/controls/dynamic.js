@@ -1,19 +1,19 @@
 frappe.ui.form.ControlDynamicDate = frappe.ui.form.ControlInput.extend({
 	html_element: "input",
 	input_type: "text",
-	make_input: function() {
-		this.$input = $("<"+ this.html_element +">")
+	make_input: function () {
+		this.$input = $("<" + this.html_element + ">")
 			.attr("type", this.input_type)
 			.addClass("input-with-feedback form-control")
 			.prependTo(this.input_area);
 	},
-	set_input: function(value){
-		console.log('in', value)
+	set_input: function (value) {
+		this.$input && this.$input.val(value);
 	},
-	get_input_value: function() {
+	get_input_value: function () {
 		return this.$input ? this.$input.val() : undefined;
 	},
-	validate: function(value){
+	validate: function (value) {
 		debugger
 		const allowed_values = [
 			'Today',
