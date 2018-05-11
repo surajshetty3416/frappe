@@ -315,7 +315,7 @@ frappe.views.BaseList = class BaseList {
 				if(filter.includes('dynamic')){
 					const dynamic_condition_index = filter.indexOf('dynamic');
 					filter.splice(dynamic_condition_index, 1, '=')
-					filter.splice(dynamic_condition_index+1, 1, "2018-05-10")
+					filter.splice(dynamic_condition_index+1, 1, frappe.datetime.now_date())
 				}
 				return filter.slice(0, 4)
 			})
