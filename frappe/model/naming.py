@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _
-from frappe.utils import now_datetime, cint
+from frappe.utils import now_datetime, cint, cstr
 import re
 from six import string_types
 
@@ -70,9 +70,9 @@ def set_name_from_naming_options(autoname, doc):
 	elif _autoname.startswith('naming_series:'):
 		set_name_by_naming_series(doc)
 	elif _autoname.startswith('prompt'):
-		doc.name = _prompt_autoname(autoname, doc)
-	elif _autoname.startswith('concatenate:'):
-		doc.name = _concatenate_autoname(autoname, doc)
+		_prompt_autoname(autoname, doc)
+	elif _autoname.startswith('format:'):
+		doc.name = _format_autoname(autoname, doc)
 	elif '#' in autoname:
 		doc.name = make_autoname(autoname, doc=doc)
 
@@ -223,7 +223,7 @@ def append_number_if_name_exists(doctype, value, fieldname='name', separator='-'
 	filters.update({fieldname: value})
 	exists = frappe.db.exists(doctype, filters)
 
-	regex = '^{value}{separator}[[:digit:]]$'.format(value=re.escape(value), separator=separator)
+	regex = '^{value}{separator}\d+$'.format(value=re.escape(value), separator=separator)
 
 	if exists:
 		last = frappe.db.sql("""select {fieldname} from `tab{doctype}`
@@ -258,7 +258,7 @@ def _field_autoname(autoname, doc, skip_slicing=None):
 	`autoname` field starts with 'field:'
 	"""
 	fieldname = autoname if skip_slicing else autoname[6:]
-	name = (doc.get(fieldname) or '').strip()
+	name = (cstr(doc.get(fieldname)) or '').strip()
 	return name
 
 
@@ -271,22 +271,24 @@ def _prompt_autoname(autoname, doc):
 	if not doc.name:
 		frappe.throw(_("Name not set via prompt"))
 
-
-def _concatenate_autoname(autoname, doc):
+def _format_autoname(autoname, doc):
 	"""
-	Generate a name by concatenating as many fields as required. This is
-	called when the doctype's `autoname` field starts with 'concatenate:'. The
-	field names are separated by a comma. It is also aware of autoname '.####'
-	format.
+	Generate autoname by replacing all instances of braced params (fields, date params ('DD', 'MM', 'YY'), series)
+	Independent of remaining string or separators.
+
+	Example pattern: 'format:LOG-{MM}-{fieldname1}-{fieldname2}-{#####}'
 	"""
 
-	fieldname = autoname[12:]
-	fieldnames = []
+	first_colon_index = autoname.find(':')
+	autoname_value = autoname[first_colon_index + 1:]
 
-	for part in fieldname.split(','):
-		if '.#' in part:
-			fieldnames.append(make_autoname(part, doc))
-		else:
-			fieldnames.append(_field_autoname(part, doc, skip_slicing=True))
-	name = '-'.join(fieldnames)
+	def get_param_value_for_match(match):
+		param = match.group()
+		# trim braces
+		trimmed_param = param[1:-1]
+		return parse_naming_series([trimmed_param], doc=doc)
+
+	# Replace braced params with their parsed value
+	name = re.sub(r'(\{[\w | #]+\})', get_param_value_for_match, autoname_value)
+
 	return name

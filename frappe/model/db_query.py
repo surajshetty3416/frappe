@@ -139,7 +139,7 @@ class DatabaseQuery(object):
 
 		if self.or_conditions:
 			args.conditions += (' or ' if args.conditions else "") + \
-				 ' or '.join(self.or_conditions)
+				' or '.join(self.or_conditions)
 
 		self.set_field_tables()
 
@@ -189,7 +189,8 @@ class DatabaseQuery(object):
 			As field contains `,` and mysql function `version()`, with the help of regex
 			the system will filter out this field.
 		'''
-		regex = re.compile('^.*[,();].*')
+
+		sub_query_regex = re.compile("^.*[,();].*")
 		blacklisted_keywords = ['select', 'create', 'insert', 'delete', 'drop', 'update', 'case']
 		blacklisted_functions = ['concat', 'concat_ws', 'if', 'ifnull', 'nullif', 'coalesce',
 			'connection_id', 'current_user', 'database', 'last_insert_id', 'session_user',
@@ -199,7 +200,7 @@ class DatabaseQuery(object):
 			frappe.throw(_('Cannot use sub-query or function in fields'), frappe.DataError)
 
 		for field in self.fields:
-			if regex.match(field):
+			if sub_query_regex.match(field):
 				if any(keyword in field.lower().split() for keyword in blacklisted_keywords):
 					_raise_exception()
 
@@ -208,6 +209,12 @@ class DatabaseQuery(object):
 
 				if any("{0}(".format(keyword) in field.lower() for keyword in blacklisted_functions):
 					_raise_exception()
+
+			if re.compile("[a-zA-Z]+\s*'").match(field):
+				_raise_exception()
+
+			if re.compile('[a-zA-Z]+\s*,').match(field):
+				_raise_exception()
 
 	def extract_tables(self):
 		"""extract tables from fields"""
@@ -321,7 +328,39 @@ class DatabaseQuery(object):
 		can_be_null = True
 
 		# prepare in condition
-		if f.operator.lower() in ('in', 'not in'):
+		if f.operator.lower() in ('ancestors of', 'descendants of', 'not ancestors of', 'not descendants of'):
+			values = f.value or ''
+
+			# TODO: handle list and tuple
+			# if not isinstance(values, (list, tuple)):
+			# 	values = values.split(",")
+
+			ref_doctype = f.doctype
+
+			if frappe.get_meta(f.doctype).get_field(f.fieldname) is not None :
+				ref_doctype = frappe.get_meta(f.doctype).get_field(f.fieldname).options
+
+			result=[]
+			lft, rgt = frappe.db.get_value(ref_doctype, f.value, ["lft", "rgt"])
+
+			# Get descendants elements of a DocType with a tree structure
+			if f.operator.lower() in ('descendants of', 'not descendants of') :
+				result = frappe.db.sql_list("""select name from `tab{0}`
+					where lft>%s and rgt<%s order by lft asc""".format(ref_doctype), (lft, rgt))
+			else :
+				# Get ancestor elements of a DocType with a tree structure
+				result = frappe.db.sql_list("""select name from `tab{0}`
+					where lft<%s and rgt>%s order by lft desc""".format(ref_doctype), (lft, rgt))
+
+			fallback = "''"
+			value = (frappe.db.escape((v or '').strip(), percent=False) for v in result)
+			value = '("{0}")'.format('", "'.join(value))
+			# changing operator to IN as the above code fetches all the parent / child values and convert into tuple
+			# which can be directly used with IN operator to query.
+			f.operator = 'not in' if f.operator.lower() in ('not ancestors of', 'not descendants of') else 'in'
+
+
+		elif f.operator.lower() in ('in', 'not in'):
 			values = f.value or ''
 			if not isinstance(values, (list, tuple)):
 				values = values.split(",")

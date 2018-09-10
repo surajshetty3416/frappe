@@ -118,6 +118,12 @@ class TestReportview(unittest.TestCase):
 			fields=["name", "issingle, IF(issingle=1, (SELECT name from tabUser), count(*))"],
 			limit_start=0, limit_page_length=1)
 
+		self.assertRaises(frappe.DataError, DatabaseQuery("DocType").execute,
+			fields=["name", "issingle ''"],limit_start=0, limit_page_length=1)
+
+		self.assertRaises(frappe.DataError, DatabaseQuery("DocType").execute,
+			fields=["name", "issingle,'"],limit_start=0, limit_page_length=1)
+
 		data = DatabaseQuery("DocType").execute(fields=["name", "issingle", "count(name)"],
 			limit_start=0, limit_page_length=1)
 		self.assertTrue('count(name)' in data[0])
@@ -167,6 +173,127 @@ class TestReportview(unittest.TestCase):
 		self.assertFalse({"name": "Home/level1-B/level2-B"} in data)
 		update('File', 'All', 0, 'if_owner', 1)
 		frappe.set_user('Administrator')
+
+	def test_filter_sanitizer(self):
+		self.assertRaises(frappe.DataError, DatabaseQuery("DocType").execute,
+				fields=["name"], filters={'istable,': 1}, limit_start=0, limit_page_length=1)
+
+		self.assertRaises(frappe.DataError, DatabaseQuery("DocType").execute,
+				fields=["name"], filters={'editable_grid,': 1}, or_filters={'istable,': 1},
+				limit_start=0, limit_page_length=1)
+
+		self.assertRaises(frappe.DataError, DatabaseQuery("DocType").execute,
+				fields=["name"], filters={'editable_grid,': 1},
+				or_filters=[['DocType', 'istable,', '=', 1]],
+				limit_start=0, limit_page_length=1)
+
+		self.assertRaises(frappe.DataError, DatabaseQuery("DocType").execute,
+				fields=["name"], filters={'editable_grid,': 1},
+				or_filters=[['DocType', 'istable', '=', 1], ['DocType', 'beta and 1=1', '=', 0]],
+				limit_start=0, limit_page_length=1)
+
+		out = DatabaseQuery("DocType").execute(fields=["name"],
+				filters={'editable_grid': 1, 'module': 'Core'},
+				or_filters=[['DocType', 'istable', '=', 1]], order_by='creation')
+		self.assertTrue('DocField' in [d['name'] for d in out])
+
+		out = DatabaseQuery("DocType").execute(fields=["name"],
+				filters={'issingle': 1}, or_filters=[['DocType', 'module', '=', 'Core']],
+				order_by='creation')
+		self.assertTrue('User Permission for Page and Report' in [d['name'] for d in out])
+
+		out = DatabaseQuery("DocType").execute(fields=["name"],
+				filters={'track_changes': 1, 'module': 'Core'},
+				order_by='creation')
+		self.assertTrue('File' in [d['name'] for d in out])
+
+		out = DatabaseQuery("DocType").execute(fields=["name"],
+				filters=[
+					['DocType', 'ifnull(track_changes, 0)', '=', 0],
+					['DocType', 'module', '=', 'Core']
+				], order_by='creation')
+		self.assertTrue('DefaultValue' in [d['name'] for d in out])
+
+	def test_of_not_of_descendant_ancestors(self):
+		clear_user_permissions_for_doctype("File")
+		delete_test_file_hierarchy() # delete already existing folders
+		from frappe.core.doctype.file.file import create_new_folder
+
+		create_new_folder('level1-A', 'Home')
+		create_new_folder('level2-A', 'Home/level1-A')
+		create_new_folder('level2-B', 'Home/level1-A')
+		create_new_folder('level3-A', 'Home/level1-A/level2-A')
+
+		create_new_folder('level1-B', 'Home')
+		create_new_folder('level2-A', 'Home/level1-B')
+
+		# in descendants filter
+		data = frappe.get_all('File', {'name': ('descendants of', 'Home/level1-A/level2-A')})
+		self.assertTrue({"name": "Home/level1-A/level2-A/level3-A"} in data)
+
+		data = frappe.get_all('File', {'name': ('descendants of', 'Home/level1-A')})
+		self.assertTrue({"name": "Home/level1-A/level2-A/level3-A"} in data)
+		self.assertTrue({"name": "Home/level1-A/level2-A"} in data)
+		self.assertTrue({"name": "Home/level1-A/level2-B"} in data)
+		self.assertFalse({"name": "Home/level1-B"} in data)
+		self.assertFalse({"name": "Home/level1-A"} in data)
+		self.assertFalse({"name": "Home"} in data)
+
+		# in ancestors of filter
+		data = frappe.get_all('File', {'name': ('ancestors of', 'Home/level1-A/level2-A')})
+		self.assertFalse({"name": "Home/level1-A/level2-A/level3-A"} in data)
+		self.assertFalse({"name": "Home/level1-A/level2-A"} in data)
+		self.assertFalse({"name": "Home/level1-A/level2-B"} in data)
+		self.assertFalse({"name": "Home/level1-B"} in data)
+		self.assertTrue({"name": "Home/level1-A"} in data)
+		self.assertTrue({"name": "Home"} in data)
+
+		data = frappe.get_all('File', {'name': ('ancestors of', 'Home/level1-A')})
+		self.assertFalse({"name": "Home/level1-A/level2-A/level3-A"} in data)
+		self.assertFalse({"name": "Home/level1-A/level2-A"} in data)
+		self.assertFalse({"name": "Home/level1-A/level2-B"} in data)
+		self.assertFalse({"name": "Home/level1-B"} in data)
+		self.assertFalse({"name": "Home/level1-A"} in data)
+		self.assertTrue({"name": "Home"} in data)
+
+		# not descendants filter
+		data = frappe.get_all('File', {'name': ('not descendants of', 'Home/level1-A/level2-A')})
+		self.assertFalse({"name": "Home/level1-A/level2-A/level3-A"} in data)
+		self.assertTrue({"name": "Home/level1-A/level2-A"} in data)
+		self.assertTrue({"name": "Home/level1-A/level2-B"} in data)
+		self.assertTrue({"name": "Home/level1-A"} in data)
+		self.assertTrue({"name": "Home"} in data)
+
+		data = frappe.get_all('File', {'name': ('not descendants of', 'Home/level1-A')})
+		self.assertFalse({"name": "Home/level1-A/level2-A/level3-A"} in data)
+		self.assertFalse({"name": "Home/level1-A/level2-A"} in data)
+		self.assertFalse({"name": "Home/level1-A/level2-B"} in data)
+		self.assertTrue({"name": "Home/level1-B"} in data)
+		self.assertTrue({"name": "Home/level1-A"} in data)
+		self.assertTrue({"name": "Home"} in data)
+
+		# not ancestors of filter
+		data = frappe.get_all('File', {'name': ('not ancestors of', 'Home/level1-A/level2-A')})
+		self.assertTrue({"name": "Home/level1-A/level2-A/level3-A"} in data)
+		self.assertTrue({"name": "Home/level1-A/level2-A"} in data)
+		self.assertTrue({"name": "Home/level1-A/level2-B"} in data)
+		self.assertTrue({"name": "Home/level1-B"} in data)
+		self.assertTrue({"name": "Home/level1-A"} not in data)
+		self.assertTrue({"name": "Home"} not in data)
+
+		data = frappe.get_all('File', {'name': ('not ancestors of', 'Home/level1-A')})
+		self.assertTrue({"name": "Home/level1-A/level2-A/level3-A"} in data)
+		self.assertTrue({"name": "Home/level1-A/level2-A"} in data)
+		self.assertTrue({"name": "Home/level1-A/level2-B"} in data)
+		self.assertTrue({"name": "Home/level1-B"} in data)
+		self.assertTrue({"name": "Home/level1-A"} in data)
+		self.assertFalse({"name": "Home"} in data)
+
+		data = frappe.get_all('File', {'name': ('ancestors of', 'Home')})
+		self.assertTrue(len(data) == 0)
+		self.assertTrue(len(frappe.get_all('File', {'name': ('not ancestors of', 'Home')})) == len(frappe.get_all('File')))
+
+
 
 def create_event(subject="_Test Event", starts_on=None):
 	""" create a test event """

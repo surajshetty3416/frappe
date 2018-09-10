@@ -9,7 +9,6 @@ import warnings
 import datetime
 import frappe
 import frappe.defaults
-import frappe.async
 from time import time
 import re
 import frappe.model.meta
@@ -135,7 +134,7 @@ class Database:
 			frappe.throw(_("Not permitted"), frappe.PermissionError)
 
 	def sql(self, query, values=(), as_dict = 0, as_list = 0, formatted = 0,
-		debug=0, ignore_ddl=0, as_utf8=0, auto_commit=0, update=None):
+		debug=0, ignore_ddl=0, as_utf8=0, auto_commit=0, update=None, explain=False):
 		"""Execute a SQL query and fetch all rows.
 
 		:param query: SQL query.
@@ -184,9 +183,10 @@ class Database:
 				if not isinstance(values, (dict, tuple, list)):
 					values = (values,)
 
-				if debug:
+				if debug and query.lower().startswith('select'):
 					try:
-						self.explain_query(query, values)
+						if explain:
+							self.explain_query(query, values)
 						frappe.errprint(query % values)
 					except TypeError:
 						frappe.errprint([query, values])
@@ -199,7 +199,8 @@ class Database:
 				self._cursor.execute(query, values)
 			else:
 				if debug:
-					self.explain_query(query)
+					if explain:
+						self.explain_query(query)
 					frappe.errprint(query)
 				if (frappe.conf.get("logging") or False)==2:
 					frappe.log("<<<< query")
@@ -209,10 +210,8 @@ class Database:
 				self._cursor.execute(query)
 
 			if debug:
-				frappe.errprint("\n--- query stats start ---\n")
 				time_end = time()
 				frappe.errprint(("Execution time: {0} sec").format(round(time_end - time_start, 2)))
-				frappe.errprint("\n--- query stats end ---\n")
 
 		except Exception as e:
 			if ignore_ddl and e.args[0] in (ER.BAD_FIELD_ERROR, ER.NO_SUCH_TABLE,
@@ -300,9 +299,11 @@ class Database:
 		result = self._cursor.fetchall()
 		ret = []
 		needs_formatting = self.needs_formatting(result, formatted)
+		if result:
+			keys = [column[0] for column in self._cursor.description]
 
 		for r in result:
-			row_dict = frappe._dict({})
+			values = []
 			for i in range(len(r)):
 				if needs_formatting:
 					val = self.convert_to_simple_type(r[i], formatted)
@@ -311,8 +312,9 @@ class Database:
 
 				if as_utf8 and type(val) is text_type:
 					val = val.encode('utf-8')
-				row_dict[self._cursor.description[i][0]] = val
-			ret.append(row_dict)
+				values.append(val)
+
+			ret.append(frappe._dict(zip(keys, values)))
 		return ret
 
 	def needs_formatting(self, result, formatted):
@@ -623,9 +625,11 @@ class Database:
 			company = frappe.db.get_single_value('Global Defaults', 'default_company')
 		"""
 
-		value = self.value_cache.setdefault(doctype, {}).get(fieldname)
-		if value is not None:
-			return value
+		if not doctype in self.value_cache:
+			self.value_cache = self.value_cache[doctype] = {}
+
+		if fieldname in self.value_cache[doctype]:
+			return self.value_cache[doctype][fieldname]
 
 		val = self.sql("""select value from
 			tabSingles where doctype=%s and field=%s""", (doctype, fieldname))
@@ -739,6 +743,8 @@ class Database:
 		if dt in self.value_cache:
 			del self.value_cache[dt]
 
+		frappe.clear_document_cache(dt, dn)
+
 	def set(self, doc, field, val):
 		"""Set value in document. **Avoid**"""
 		doc.db_set(field, val)
@@ -806,7 +812,7 @@ class Database:
 
 	def flush_realtime_log(self):
 		for args in frappe.local.realtime_log:
-			frappe.async.emit_via_redis(*args)
+			frappe.realtime.emit_via_redis(*args)
 
 		frappe.local.realtime_log = []
 
@@ -834,7 +840,7 @@ class Database:
 		"""Returns True if atleast one row exists."""
 		return self.sql("select name from `tab{doctype}` limit 1".format(doctype=doctype))
 
-	def exists(self, dt, dn=None):
+	def exists(self, dt, dn=None, cache=False):
 		"""Returns true if document exists.
 
 		:param dt: DocType name.
@@ -843,9 +849,10 @@ class Database:
 			if dt!="DocType" and dt==dn:
 				return True # single always exists (!)
 			try:
-				return self.get_value(dt, dn, "name")
+				return self.get_value(dt, dn, "name", cache=cache)
 			except:
 				return None
+
 		elif isinstance(dt, dict) and dt.get('doctype'):
 			try:
 				conditions = []
@@ -967,7 +974,7 @@ class Database:
 def enqueue_jobs_after_commit():
 	if frappe.flags.enqueue_after_commit and len(frappe.flags.enqueue_after_commit) > 0:
 		for job in frappe.flags.enqueue_after_commit:
-			q = get_queue(job.get("queue"), async=job.get("async"))
+			q = get_queue(job.get("queue"), is_async=job.get("is_async"))
 			q.enqueue_call(execute_job, timeout=job.get("timeout"),
 							kwargs=job.get("queue_args"))
 		frappe.flags.enqueue_after_commit = []

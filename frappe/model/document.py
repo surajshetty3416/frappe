@@ -289,6 +289,8 @@ class Document(BaseDocument):
 		self.set_docstatus()
 		self.check_if_latest()
 		self.set_parent_in_children()
+		self.set_name_in_children()
+
 		self.validate_higher_perm_levels()
 		self._validate_links()
 		self.run_before_save_methods()
@@ -681,6 +683,12 @@ class Document(BaseDocument):
 			d.parent = self.name
 			d.parenttype = self.doctype
 
+	def set_name_in_children(self):
+		# Set name for any new children
+		for d in self.get_all_children():
+			if not d.name:
+				set_new_name(d)
+
 	def validate_update_after_submit(self):
 		if self.flags.ignore_validate_update_after_submit:
 			return
@@ -922,7 +930,7 @@ class Document(BaseDocument):
 		self.latest = None
 
 	def clear_cache(self):
-		frappe.cache().hdel("last_modified", self.doctype)
+		frappe.clear_document_cache(self.doctype, self.name)
 
 	def reset_seen(self):
 		'''Clear _seen property and set current user as seen'''
@@ -977,6 +985,7 @@ class Document(BaseDocument):
 		if notify:
 			self.notify_update()
 
+		self.clear_cache()
 		if commit:
 			frappe.db.commit()
 

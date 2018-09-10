@@ -45,8 +45,8 @@ def get_bootinfo():
 	bootinfo.all_domains = [d.get("name") for d in frappe.get_all("Domain")]
 
 	bootinfo.module_app = frappe.local.module_app
-	bootinfo.single_types = frappe.db.sql_list("""select name from tabDocType
-		where issingle=1""")
+	bootinfo.single_types = [d.name for d in frappe.get_all('DocType', {'issingle': 1})]
+	bootinfo.nested_set_doctypes = [d.parent for d in frappe.get_all('DocField', {'fieldname': 'lft'}, ['parent'])]
 	add_home_page(bootinfo, doclist)
 	bootinfo.page_info = get_allowed_pages()
 	load_translations(bootinfo)
@@ -194,7 +194,7 @@ def load_translations(bootinfo):
 def get_fullnames():
 	"""map of user fullnames"""
 	ret = frappe.db.sql("""select name, full_name as fullname,
-			user_image as image, gender, email, username
+			user_image as image, gender, email, username, energy_point
 		from tabUser where enabled=1 and user_type!="Website User" """, as_dict=1)
 
 	d = {}

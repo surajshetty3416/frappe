@@ -98,6 +98,10 @@ frappe.Application = Class.extend({
 			});
 			dialog.get_close_btn().toggle(false);
 		});
+
+		// listen to build errors
+		this.setup_build_error_listener();
+
 		if (frappe.sys_defaults.email_user_password){
 			var email_list =  frappe.sys_defaults.email_user_password.split(',');
 			for (var u in email_list) {
@@ -519,6 +523,14 @@ frappe.Application = Class.extend({
 			});
 		}
 	},
+
+	setup_build_error_listener() {
+		if (frappe.boot.developer_mode) {
+			frappe.realtime.on('build_error', (data) => {
+				console.log(data);
+			});
+		}
+	}
 });
 
 frappe.get_module = function(m, default_module) {
@@ -584,6 +596,8 @@ frappe.get_desktop_icons = function(show_hidden, show_global) {
 		var out = true;
 		if(m.type==="page") {
 			out = m.link in frappe.boot.page_info;
+		} else if(m.force_show) {
+			out = true;
 		} else if(m._report) {
 			out = m._report in frappe.boot.user.all_reports;
 		} else if(m._doctype) {

@@ -11,7 +11,6 @@ from frappe.core.doctype.role.role import get_emails_from_role
 from frappe.utils import validate_email_add, nowdate, parse_val, is_html
 from frappe.utils.jinja import validate_template
 from frappe.modules.utils import export_module_json, get_doc_module
-from markdown2 import markdown
 from six import string_types
 from frappe.integrations.doctype.slack_webhook_url.slack_webhook_url import send_slack_message
 
@@ -128,14 +127,19 @@ def get_context(context):
 			doc.set(self.set_property_after_alert, self.property_value)
 
 	def send_an_email(self, doc, context):
+		from email.utils import formataddr
 		subject = self.subject
 		if "{" in subject:
 			subject = frappe.render_template(self.subject, context)
 
 		attachments = self.get_attachment(doc)
 		recipients = self.get_list_of_recipients(doc, context)
+		sender = None
+		if self.sender and self.sender_email:
+			sender = formataddr((self.sender, self.sender_email))
 
 		frappe.sendmail(recipients=recipients, subject=subject,
+			sender=sender,
 			message= frappe.render_template(self.message, context),
 			reference_doctype = doc.doctype,
 			reference_name = doc.name,
@@ -225,7 +229,7 @@ def get_context(context):
 		self.message = self.get_template()
 
 		if not is_html(self.message):
-			self.message = markdown(self.message)
+			self.message = frappe.utils.md_to_html(self.message)
 
 @frappe.whitelist()
 def get_documents_for_today(notification):

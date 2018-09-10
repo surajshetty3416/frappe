@@ -223,13 +223,12 @@ def get_page_info(path, app, start, basepath=None, app_path=None, fname=None):
 
 def setup_source(page_info):
 	'''Get the HTML source of the template'''
-	from markdown2 import markdown
 	jenv = frappe.get_jenv()
 	source = jenv.loader.get_source(jenv, page_info.template)[0]
 	html = ''
 
 	if page_info.template.endswith('.md'):
-		source = markdown(source, extras=["fenced-code-blocks"])
+		source = frappe.utils.md_to_html(source)
 
 		if not page_info.show_sidebar:
 			source = '<div class="from-markdown">' + source + '</div>'
@@ -278,10 +277,6 @@ def load_properties(page_info):
 	if not page_info.title:
 		page_info.title = extract_title(page_info.source, page_info.route)
 
-	# if page_info.title and not '{% block title %}' in page_info.source:
-	# 	if not page_info.only_content:
-	# 		page_info.source += '\n{% block title %}{{ title }}{% endblock %}'
-
 	if "<!-- no-breadcrumbs -->" in page_info.source:
 		page_info.no_breadcrumbs = 1
 
@@ -296,15 +291,6 @@ def load_properties(page_info):
 
 	if "<!-- add-next-prev-links -->" in page_info.source:
 		page_info.add_next_prev_links = 1
-
-	# else:
-	# 	# every page needs a header
-	# 	# add missing header if there is no <h1> tag
-	# 	if (not '{% block header %}' in page_info.source) and (not '<h1' in page_info.source):
-	# 		if page_info.only_content:
-	# 			page_info.source = '<h1>{{ title }}</h1>\n' + page_info.source
-	# 		else:
-	# 			page_info.source += '\n{% block header %}<h1>{{ title }}</h1>{% endblock %}'
 
 	if "<!-- no-cache -->" in page_info.source:
 		page_info.no_cache = 1

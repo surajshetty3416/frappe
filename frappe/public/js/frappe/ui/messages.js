@@ -1,7 +1,9 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-frappe.provide("frappe.messages")
+frappe.provide("frappe.messages");
+
+import './dialog';
 
 frappe.messages.waiting = function(parent, msg) {
 	return $(frappe.messages.get_waiting_message(msg))
@@ -138,7 +140,7 @@ frappe.msgprint = function(msg, title) {
 	}
 
 	if(data.message.search(/<br>|<p>|<li>/)==-1) {
-		msg = replace_newlines(data.message);
+		msg = frappe.utils.replace_newlines(data.message);
 	}
 
 	var msg_exists = false;
@@ -180,13 +182,7 @@ frappe.msgprint = function(msg, title) {
 	return msg_dialog;
 }
 
-// Proxy for frappe.msgprint
-Object.defineProperty(window, 'msgprint', {
-	get: function() {
-		console.warn('Please use `frappe.msgprint` instead of `msgprint`. It will be deprecated soon.');
-		return frappe.msgprint;
-	}
-});
+window.msgprint = frappe.msgprint;
 
 frappe.hide_msgprint = function(instant) {
 	// clear msgprint
@@ -269,7 +265,7 @@ frappe.hide_progress = function() {
 }
 
 // Floating Message
-frappe.show_alert = function(message, seconds=7) {
+frappe.show_alert = function(message, seconds=7, actions={}) {
 	if(typeof message==='string') {
 		message = {
 			message: message
@@ -308,6 +304,10 @@ frappe.show_alert = function(message, seconds=7) {
 	div.find('.close, button').click(function() {
 		div.remove();
 		return false;
+	});
+
+	Object.keys(actions).map(key => {
+		div.find(`[data-action=${key}]`).on('click', actions[key]);
 	});
 
 	div.delay(seconds * 1000).fadeOut(300);

@@ -64,6 +64,9 @@ def take_backup_to_dropbox(retry_count=0, upload_db_backup=True):
 
 def send_email(success, service_name, error_status=None):
 	if success:
+		if frappe.db.get_value("Dropbox Settings", None, "send_email_for_successful_backup") == '0':
+			return
+
 		subject = "Backup Upload Successful"
 		message ="""<h3>Backup Uploaded Successfully</h3><p>Hi there, this is just to inform you
 		that your backup was successfully uploaded to your %s account. So relax!</p>
@@ -103,7 +106,7 @@ def backup_to_dropbox(upload_db_backup=True):
 
 	dropbox_client = dropbox.Dropbox(dropbox_settings['access_token'])
 
-	if not upload_db_backup:
+	if upload_db_backup:
 		backup = new_backup(ignore_files=True)
 		filename = os.path.join(get_backups_path(), os.path.basename(backup.backup_path_db))
 		upload_file_to_dropbox(filename, "/database", dropbox_client)
@@ -112,8 +115,9 @@ def backup_to_dropbox(upload_db_backup=True):
 	did_not_upload = []
 	error_log = []
 
-	upload_from_folder(get_files_path(), 0, "/files", dropbox_client, did_not_upload, error_log)
-	upload_from_folder(get_files_path(is_private=1), 1, "/private/files", dropbox_client, did_not_upload, error_log)
+	if dropbox_settings['file_backup']:
+		upload_from_folder(get_files_path(), 0, "/files", dropbox_client, did_not_upload, error_log)
+		upload_from_folder(get_files_path(is_private=1), 1, "/private/files", dropbox_client, did_not_upload, error_log)
 
 	return did_not_upload, list(set(error_log))
 
@@ -129,9 +133,13 @@ def upload_from_folder(path, is_private, dropbox_folder, dropbox_client, did_not
 	path = text_type(path)
 
 	for f in frappe.get_all("File", filters={"is_folder": 0, "is_private": is_private,
-		"uploaded_to_dropbox": 0}, fields=['file_url', 'name']):
-
-		filename = f.file_url.replace('/files/', '')
+		"uploaded_to_dropbox": 0}, fields=['file_url', 'name', 'file_name']):
+		if is_private:
+			filename = f.file_url.replace('/private/files/', '')
+		else:
+			if not f.file_url:
+				f.file_url = '/files/' + f.file_name;
+			filename = f.file_url.replace('/files/', '')
 		filepath = os.path.join(path, filename)
 
 		if filename in ignore_list:
@@ -155,14 +163,13 @@ def upload_from_folder(path, is_private, dropbox_folder, dropbox_client, did_not
 
 def upload_file_to_dropbox(filename, folder, dropbox_client):
 	"""upload files with chunk of 15 mb to reduce session append calls"""
+	if not os.path.exists(filename):
+		return
 
 	create_folder_if_not_exists(folder, dropbox_client)
 	chunk_size = 15 * 1024 * 1024
 	file_size = os.path.getsize(encode(filename))
 	mode = (dropbox.files.WriteMode.overwrite)
-
-	if not os.path.exists(filename):
-		return
 
 	f = open(encode(filename), 'rb')
 	path = "{0}/{1}".format(folder, os.path.basename(filename))
@@ -203,7 +210,7 @@ def update_file_dropbox_status(file_name):
 	frappe.db.set_value("File", file_name, 'uploaded_to_dropbox', 1, update_modified=False)
 
 def is_fresh_upload():
-	file_name = frappe.db.get_value("File", filters={'uploaded_to_dropbox': 1}, field='name')
+	file_name = frappe.db.get_value("File", {'uploaded_to_dropbox': 1}, 'name')
 	return not file_name
 
 def get_uploaded_files_meta(dropbox_folder, dropbox_client):
@@ -214,9 +221,11 @@ def get_uploaded_files_meta(dropbox_folder, dropbox_client):
 		if isinstance(e.error, dropbox.files.ListFolderError):
 			return frappe._dict({"entries": []})
 		else:
-			raise 
+			raise
 
 def get_dropbox_settings(redirect_uri=False):
+	if not frappe.conf.dropbox_broker_site:
+		frappe.conf.dropbox_broker_site = 'https://dropbox.erpnext.com'
 	settings = frappe.get_doc("Dropbox Settings")
 	app_details = {
 		"app_key": settings.app_access_key or frappe.conf.dropbox_access_key,
@@ -225,7 +234,8 @@ def get_dropbox_settings(redirect_uri=False):
 		'access_token': settings.get_password('dropbox_access_token', raise_exception=False)
 			if settings.dropbox_access_token else '',
 		'access_key': settings.get_password('dropbox_access_key', raise_exception=False),
-		'access_secret': settings.get_password('dropbox_access_secret', raise_exception=False)
+		'access_secret': settings.get_password('dropbox_access_secret', raise_exception=False),
+		'file_backup':settings.file_backup
 	}
 
 	if redirect_uri:
@@ -243,6 +253,8 @@ def get_dropbox_settings(redirect_uri=False):
 
 @frappe.whitelist()
 def get_redirect_url():
+	if not frappe.conf.dropbox_broker_site:
+		frappe.conf.dropbox_broker_site = 'https://dropbox.erpnext.com'
 	url = "{0}/api/method/dropbox_erpnext_broker.www.setup_dropbox.get_authotize_url".format(frappe.conf.dropbox_broker_site)
 
 	try:

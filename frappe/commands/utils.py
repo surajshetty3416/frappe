@@ -300,26 +300,59 @@ def mariadb(context):
 		Enter into mariadb console for a given site.
 	"""
 	import os
-	import os.path as osp
 
 	site  = get_site(context)
 	frappe.init(site=site)
 
 	# This is assuming you're within the bench instance.
-	path  = os.getcwd()
-	mysql = osp.join(path, '..', 'env', 'bin', 'mycli')
-	args  = [
+	mysql = find_executable('mysql')
+	os.execv(mysql, [
 		mysql,
 		'-u', frappe.conf.db_name,
-		'-p', frappe.conf.db_password,
+		'-p'+frappe.conf.db_password,
+		frappe.conf.db_name,
 		'-h', frappe.conf.db_host or "localhost",
-		'-D', frappe.conf.db_name,
-		'-R', '{site}> '.format(site = site),
-		'--auto-vertical-output',
-		'--warn'
-	]
+		'--pager=less -SFX',
+		"-A"])
 
-	os.execv(mysql, args)
+@click.command('jupyter')
+@pass_context
+def jupyter(context):
+	try:
+		from pip import main
+	except ImportError:
+		from pip._internal import main
+
+	reqs = subprocess.check_output([sys.executable, '-m', 'pip', 'freeze'])
+	installed_packages = [r.decode().split('==')[0] for r in reqs.split()]
+	if 'jupyter' not in installed_packages:
+		main(['install', 'jupyter'])
+	site = get_site(context)
+	frappe.init(site=site)
+	jupyter_notebooks_path = os.path.abspath(frappe.get_site_path('jupyter_notebooks'))
+	sites_path = os.path.abspath(frappe.get_site_path('..'))
+	try:
+		os.stat(jupyter_notebooks_path)
+	except OSError:
+		print('Creating folder to keep jupyter notebooks at {}'.format(jupyter_notebooks_path))
+		os.mkdir(jupyter_notebooks_path)
+	bin_path = os.path.abspath('../env/bin')
+	print('''
+Stating Jupyter notebook
+Run the following in your first cell to connect notebook to frappe
+```
+import frappe
+frappe.init(site='{site}', sites_path='{sites_path}')
+frappe.connect()
+frappe.local.lang = frappe.db.get_default('lang')
+frappe.db.connect()
+```
+	'''.format(site=site, sites_path=sites_path))
+	os.execv('{0}/jupyter'.format(bin_path), [
+		'{0}/jupyter'.format(bin_path),
+		'notebook',
+		jupyter_notebooks_path,
+	])
 
 @click.command('console')
 @pass_context
@@ -341,16 +374,22 @@ def console(context):
 @click.option('--ui-tests', is_flag=True, default=False, help="Run UI Tests")
 @click.option('--module', help="Run tests in a module")
 @click.option('--profile', is_flag=True, default=False)
+@click.option('--skip-test-records', is_flag=True, default=False, help="Don't create test records")
+@click.option('--skip-before-tests', is_flag=True, default=False, help="Don't run before tests hook")
 @click.option('--junit-xml-output', help="Destination file path for junit xml report")
 @pass_context
 def run_tests(context, app=None, module=None, doctype=None, test=(),
-	driver=None, profile=False, junit_xml_output=False, ui_tests = False, doctype_list_path=None):
+	driver=None, profile=False, junit_xml_output=False, ui_tests = False,
+	doctype_list_path=None, skip_test_records=False, skip_before_tests=False):
 	"Run tests"
 	import frappe.test_runner
 	tests = test
 
 	site = get_site(context)
 	frappe.init(site=site)
+
+	frappe.flags.skip_before_tests = skip_before_tests
+	frappe.flags.skip_test_records = skip_test_records
 
 	ret = frappe.test_runner.main(app, module, doctype, context.verbose, tests=tests,
 		force=context.force, profile=profile, junit_xml_output=junit_xml_output,
@@ -484,12 +523,19 @@ def set_config(context, key, value, global_ = False, as_dict=False):
 @click.command('version')
 def get_version():
 	"Show the versions of all the installed apps"
+	from frappe.utils.change_log import get_app_branch
 	frappe.init('')
-	for m in sorted(frappe.get_all_apps()):
-		module = frappe.get_module(m)
-		if hasattr(module, "__version__"):
-			print("{0} {1}".format(m, module.__version__))
 
+	for m in sorted(frappe.get_all_apps()):
+		branch_name = get_app_branch(m)
+		module = frappe.get_module(m)
+		app_hooks = frappe.get_module(m + ".hooks")
+
+		if hasattr(app_hooks, '{0}_version'.format(branch_name)):
+			print("{0} {1}".format(m, getattr(app_hooks, '{0}_version'.format(branch_name))))
+
+		elif hasattr(module, "__version__"):
+			print("{0} {1}".format(m, module.__version__))
 
 
 @click.command('setup-global-help')
@@ -515,6 +561,20 @@ def setup_global_help(mariadb_root_password=None):
 
 	from frappe.utils.help import sync
 	sync()
+
+@click.command('get-docs-app')
+@click.argument('app')
+def get_docs_app(app):
+	'''Get the docs app for given app'''
+	from frappe.utils.help import setup_apps_for_docs
+	setup_apps_for_docs(app)
+
+@click.command('get-all-docs-apps')
+def get_all_docs_apps():
+	'''Get docs apps for all apps'''
+	from frappe.utils.help import setup_apps_for_docs
+	for app in frappe.get_installed_apps():
+		setup_apps_for_docs(app)
 
 @click.command('setup-help')
 @pass_context
@@ -595,6 +655,7 @@ commands = [
 	build,
 	clear_cache,
 	clear_website_cache,
+	jupyter,
 	console,
 	destroy_all_sessions,
 	execute,
