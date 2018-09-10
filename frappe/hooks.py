@@ -135,10 +135,10 @@ doc_events = {
 		"validate": "frappe.email.doctype.email_group.email_group.restrict_email_group"
 	},
 	"Energy Point Log": {
-		"after_insert": "frappe.core.doctype.user.user.update_user_energy_point"
+		"after_insert": "frappe.core.doctype.social_profile.social_profile.update_user_energy_point"
 	},
 	"Activity Counter": {
-		"on_update": "frappe.core.doctype.badge.badge.process_counter_for_badge"
+		"on_update": "frappe.core.doctype.badge.badge.process_activity_counter_for_badge"
 	}
 }
 

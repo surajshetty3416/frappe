@@ -5,7 +5,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
-from frappe.core.doctype.user.user import update_user_energy_point
+from frappe.core.doctype.social_profile.social_profile import update_user_energy_point
 
 ENERGY_POINT_VALUES = {
 	'issue_closed': 2,
@@ -47,6 +47,9 @@ def get_event_type(state):
 def create_energy_point_log(points, reason, reference_doctype, reference_name, user=None):
 	if not user:
 		user = frappe.session.user
+
+	if user == 'admin@example.com':
+		user = 'Administrator'
 
 	frappe.get_doc({
 		'doctype': 'Energy Point Log',
