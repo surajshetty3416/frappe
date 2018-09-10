@@ -38,7 +38,7 @@ from frappe.model.document import Document
 class Badge(Document):
 	pass
 
-def process_counter_for_badge(doc, state):
+def process_activity_counter_for_badge(doc, state):
 	if doc.get_doc_before_save().count < doc.count:
 		badges = frappe.get_all('Badge', filters={
 			'track_counter_type': doc.type,
@@ -47,10 +47,10 @@ def process_counter_for_badge(doc, state):
 		for badge in badges:
 			if badge.count == doc.count:
 				user = doc.user
-				# if user == 'admin@example.com':
-				# 	user = 'Administrator'
-				user  = frappe.get_doc('User', user)
-				user.append('user_badges', {
+				if user == 'admin@example.com':
+					user = 'Administrator'
+				user_profile  = frappe.get_doc('Social Profile', user)
+				user_profile.append('badges', {
 					'badge': badge.name,
 				})
-				user.save()
+				user_profile.save()
