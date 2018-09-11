@@ -10,7 +10,11 @@ from frappe.core.doctype.social_profile.social_profile import update_user_energy
 ENERGY_POINT_VALUES = {
 	'issue_closed': 2,
 	'instant_reply_on_issue': 2,
-	'feedback_point_multiplier': 2
+	'feedback_point_multiplier': 2,
+	'github_pull_request_merge': 2,
+	'github_pull_request_review_submit': 2,
+	'github_issue_open': 1,
+	'github_issue_close': 2,
 }
 
 class EnergyPointLog(Document):
@@ -45,6 +49,7 @@ def get_event_type(state):
 	return state.capitalize()
 
 def create_energy_point_log(points, reason, reference_doctype, reference_name, user=None):
+	print('===================in=========', user, points)
 	if not user:
 		user = frappe.session.user
 
@@ -58,4 +63,4 @@ def create_energy_point_log(points, reason, reference_doctype, reference_name, u
 		'reason': reason,
 		'reference_doctype': reference_doctype,
 		'reference_name': reference_name
-	}).insert()
+	}).insert(ignore_permissions=True)
