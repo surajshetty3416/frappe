@@ -80,15 +80,30 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 	render(force) {
 		if (this.data.length === 0) return;
+		this.render_count();
 
 		if (this.chart) {
 			this.refresh_charts();
 		}
 		if (this.datatable && !force) {
-			this.datatable.refresh(this.get_data(this.data));
+			this.datatable.refresh(this.get_data(this.data), this.columns);
 			return;
 		}
 		this.setup_datatable(this.data);
+	}
+
+	render_count() {
+		let $list_count = this.$paging_area.find('.list-count');
+		if (!$list_count.length) {
+			this.$paging_area.find('.btn-more').addClass('margin-left');
+			$list_count = $('<span>')
+				.addClass('text-muted text-medium list-count')
+				.prependTo(this.$paging_area.find('.level-right'));
+		}
+		this.get_count_str()
+			.then(str => {
+				$list_count.text(str);
+			});
 	}
 
 	on_update(data) {
@@ -613,6 +628,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		if (index === -1) return;
 		const field = this.fields[index];
 		if (field[0] === 'name') {
+			this.refresh();
 			frappe.throw(__('Cannot remove ID field'));
 		}
 		this.fields.splice(index, 1);
@@ -718,7 +734,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	setup_columns() {
 		const hide_columns = ['docstatus'];
 		const fields = this.fields.filter(f => !hide_columns.includes(f[0]));
-		this.columns = fields.map(f => this.build_column(f));
+		this.columns = fields.map(f => this.build_column(f)).filter(Boolean);
 	}
 
 	build_column(c) {
@@ -744,14 +760,25 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 		const editable = frappe.model.is_non_std_field(fieldname) && !docfield.read_only;
 
+		const align = (() => {
+			const is_numeric = frappe.model.is_numeric_field(docfield);
+			if (is_numeric) {
+				return 'right';
+			}
+			return docfield.fieldtype === 'Date' ? 'right' : 'left';
+		})();
+
+		const width = (docfield ? cint(docfield.width) : null) || null;
+
 		return {
 			id: fieldname,
 			field: fieldname,
-			docfield: docfield,
 			name: title,
 			content: title,
-			width: (docfield ? cint(docfield.width) : null) || null,
-			editable: editable,
+			docfield,
+			width,
+			editable,
+			align,
 			format: (value, row, column, data) => {
 				return frappe.format(value, column.docfield, { always_show_decimals: true }, data);
 			}
@@ -986,33 +1013,50 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 					const args = this.get_args();
 					const selected_items = this.get_checked_items(true);
 
-					frappe.prompt({
-						fieldtype:"Select", label: __("Select File Type"), fieldname:"file_format_type",
-						options:"Excel\nCSV", default:"Excel", reqd: 1
-					},
-					(data) => {
-						args.cmd = 'frappe.desk.reportview.export_query';
-						args.file_format_type = data.file_format_type;
+					const d = new frappe.ui.Dialog({
+						title: __("Export Report: {0}",[__(this.doctype)]),
+						fields: [
+							{
+								fieldtype: 'Select',
+								label: __('Select File Type'),
+								fieldname:'file_format_type',
+								options: ['Excel', 'CSV'],
+								default: 'Excel'
+							},
+							{
+								fieldtype: 'Check',
+								fieldname: 'export_all_rows',
+								label: __('Export All {0} rows?', [(this.total_count + "").bold()])
+							}
+						],
+						primary_action_label: __('Download'),
+						primary_action: (data) => {
+							args.cmd = 'frappe.desk.reportview.export_query';
+							args.file_format_type = data.file_format_type;
 
-						if (args.file_format_type === 'CSV') {
-							frappe.tools.downloadify(this.data, null, this.doctype);
-							return;
-						}
+							if(this.add_totals_row) {
+								args.add_totals_row = 1;
+							}
 
-						if(this.add_totals_row) {
-							args.add_totals_row = 1;
-						}
+							if(selected_items.length > 0) {
+								args.selected_items = selected_items;
+							}
 
-						if(selected_items.length > 0) {
-							args.selected_items = selected_items;
-						}
+							if (!data.export_all_rows) {
+								args.start = 0;
+								args.page_length = this.data.length;
+							} else {
+								delete args.start;
+								delete args.page_length;
+							}
 
-						args.start = 0;
-						args.page_length = this.data.length;
+							open_url_post(frappe.request.url, args);
 
-						open_url_post(frappe.request.url, args);
-					},
-					__("Export Report: {0}",[__(this.doctype)]), __("Download"));
+							d.hide();
+						},
+					});
+
+					d.show();
 				}
 			});
 		}

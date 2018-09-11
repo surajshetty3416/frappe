@@ -26,7 +26,7 @@ def get_contact_list(txt, page_length=20):
 			where name like %(txt)s
 			%(condition)s
 			limit %(page_length)s
-		""", {'txt': "%%%s%%" % frappe.db.escape(txt),
+		""", {'txt': frappe.db.escape('%' + txt + '%'),
 			'condition': match_conditions, 'page_length': page_length}, as_dict=True)
 		out = filter(None, out)
 
@@ -89,7 +89,7 @@ def get_cached_contacts(txt):
 	if not txt:
 		return contacts
 
-	match = [d for d in contacts if (txt in d.value or txt in d.description)]
+	match = [d for d in contacts if (d.value and (txt in d.value or txt in d.description))]
 	return match
 
 def update_contact_cache(contacts):

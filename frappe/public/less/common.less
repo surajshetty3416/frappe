@@ -32,6 +32,10 @@ p {
 	color: @text-color !important;
 }
 
+.text-muted {
+	color: #8D99A6 !important;
+}
+
 .text-extra-muted {
 	color: @border-color !important;
 }
@@ -279,4 +283,24 @@ a.no-decoration& {
 
 .ellipsis {
 	.text-ellipsis();
+}
+
+/* Given that the element that text-ellipsis is applied to,
+	should have a max width for it to work */
+.ellipsis-width {
+	max-width: 200px;
+}
+
+/* Font size utilities */
+
+.text-regular {
+	font-size: @text-regular;
+}
+
+.text-medium {
+	font-size: @text-medium;
+}
+
+.text-small {
+	font-size: @text-small;
 }

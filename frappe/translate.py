@@ -339,11 +339,13 @@ def get_messages_from_doctype(name):
 	messages = [('DocType: ' + name, message) for message in messages if is_translatable(message)]
 
 	# extract from js, py files
-	doctype_file_path = frappe.get_module_path(meta.module, "doctype", meta.name, meta.name)
-	messages.extend(get_messages_from_file(doctype_file_path + ".js"))
-	messages.extend(get_messages_from_file(doctype_file_path + "_list.js"))
-	messages.extend(get_messages_from_file(doctype_file_path + "_list.html"))
-	messages.extend(get_messages_from_file(doctype_file_path + "_calendar.js"))
+	if not meta.custom:
+		doctype_file_path = frappe.get_module_path(meta.module, "doctype", meta.name, meta.name)
+		messages.extend(get_messages_from_file(doctype_file_path + ".js"))
+		messages.extend(get_messages_from_file(doctype_file_path + "_list.js"))
+		messages.extend(get_messages_from_file(doctype_file_path + "_list.html"))
+		messages.extend(get_messages_from_file(doctype_file_path + "_calendar.js"))
+		messages.extend(get_messages_from_file(doctype_file_path + "_dashboard.html"))
 
 	# workflow based on doctype
 	messages.extend(get_messages_from_workflow(doctype=name))
@@ -450,13 +452,14 @@ def get_server_messages(app):
 	"""Extracts all translatable strings (tagged with :func:`frappe._`) from Python modules
 		inside an app"""
 	messages = []
+	file_extensions = ('.py', '.html', '.js', '.vue')
 	for basepath, folders, files in os.walk(frappe.get_pymodule_path(app)):
 		for dontwalk in (".git", "public", "locale"):
 			if dontwalk in folders: folders.remove(dontwalk)
 
 		for f in files:
 			f = frappe.as_unicode(f)
-			if f.endswith(".py") or f.endswith(".html") or f.endswith(".js"):
+			if f.endswith(file_extensions):
 				messages.extend(get_messages_from_file(os.path.join(basepath, f)))
 
 	return messages
@@ -504,7 +507,7 @@ def extract_messages_from_code(code, is_py=False):
 	:param code: code from which translatable files are to be extracted
 	:param is_py: include messages in triple quotes e.g. `_('''message''')`"""
 	try:
-		code = render_include(code)
+		code = frappe.as_unicode(render_include(code))
 	except (TemplateError, ImportError, InvalidIncludePath):
 		# Exception will occur when it encounters John Resig's microtemplating code
 		pass

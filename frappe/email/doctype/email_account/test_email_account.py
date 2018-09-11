@@ -14,6 +14,9 @@ from datetime import datetime, timedelta
 
 class TestEmailAccount(unittest.TestCase):
 	def setUp(self):
+		frappe.flags.mute_emails = False
+		frappe.flags.sent_mail = None
+
 		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
 		email_account.db_set("enable_incoming", 1)
 		frappe.db.sql('delete from `tabEmail Queue`')
@@ -43,13 +46,13 @@ class TestEmailAccount(unittest.TestCase):
 		comm = frappe.get_doc("Communication", {"sender": "test_sender@example.com"})
 		comm.db_set("creation", datetime.now() - timedelta(seconds = 30 * 60))
 
-		frappe.db.sql("delete from `tabEmail Queue`")
+		frappe.db.sql("DELETE FROM `tabEmail Queue`")
 		notify_unreplied()
 		self.assertTrue(frappe.db.get_value("Email Queue", {"reference_doctype": comm.reference_doctype,
 			"reference_name": comm.reference_name, "status":"Not Sent"}))
 
 	def test_incoming_with_attach(self):
-		frappe.db.sql("delete from tabCommunication where sender='test_sender@example.com'")
+		frappe.db.sql("DELETE FROM `tabCommunication` WHERE sender='test_sender@example.com'")
 		existing_file = frappe.get_doc({'doctype': 'File', 'file_name': 'erpnext-conf-14.png'})
 		frappe.delete_doc("File", existing_file.name)
 		delete_file_from_filesystem(existing_file)
@@ -99,7 +102,6 @@ class TestEmailAccount(unittest.TestCase):
 		self.assertTrue("This is an e-mail message sent automatically by Microsoft Outlook while" in comm.content)
 
 	def test_outgoing(self):
-		frappe.flags.sent_mail = None
 		make(subject = "test-mail-000", content="test mail 000", recipients="test_receiver@example.com",
 			send_email=True, sender="test_sender@example.com")
 
@@ -107,7 +109,6 @@ class TestEmailAccount(unittest.TestCase):
 		self.assertTrue("test-mail-000" in mail.get("Subject"))
 
 	def test_sendmail(self):
-		frappe.flags.sent_mail = None
 		frappe.sendmail(sender="test_sender@example.com", recipients="test_recipient@example.com",
 			content="test mail 001", subject="test-mail-001", delayed=False)
 
@@ -115,7 +116,6 @@ class TestEmailAccount(unittest.TestCase):
 		self.assertTrue("test-mail-001" in sent_mail.get("Subject"))
 
 	def test_print_format(self):
-		frappe.flags.sent_mail = None
 		make(sender="test_sender@example.com", recipients="test_recipient@example.com",
 			content="test mail 001", subject="test-mail-002", doctype="Email Account",
 			name="_Test Email Account 1", print_format="Standard", send_email=True)

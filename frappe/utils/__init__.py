@@ -6,7 +6,6 @@
 from __future__ import unicode_literals, print_function
 from werkzeug.test import Client
 import os, re, sys, json, hashlib, requests, traceback
-from markdown2 import markdown as _markdown
 from .html_utils import sanitize_html
 import frappe
 from frappe.utils.identicon import Identicon
@@ -442,7 +441,7 @@ def watch(path, handler=None, debug=True):
 	observer.join()
 
 def markdown(text, sanitize=True, linkify=True):
-	html = _markdown(text)
+	html = frappe.utils.md_to_html(text)
 
 	if sanitize:
 		html = html.replace("<!-- markdown -->", "")
@@ -504,10 +503,13 @@ def get_name_from_email_string(email_string, email_id, name):
 
 def get_installed_apps_info():
 	out = []
-	for app in frappe.get_installed_apps():
+	from frappe.utils.change_log import get_versions
+
+	for app, version_details in iteritems(get_versions()):
 		out.append({
 			'app_name': app,
-			'version': getattr(frappe.get_module(app), '__version__', 'Unknown')
+			'version': version_details.get('branch_version') or version_details.get('version'),
+			'branch': version_details.get('branch')
 		})
 
 	return out
@@ -584,3 +586,37 @@ def cast_fieldtype(fieldtype, value):
 		value = to_timedelta(value)
 
 	return value
+
+def get_db_count(*args):
+	"""
+	Pass a doctype or a series of doctypes to get the count of docs in them
+	Parameters:
+		*args: Variable length argument list of doctype names whose doc count you need
+
+	Returns:
+		dict: A dict with the count values.
+
+	Example:
+		via terminal:
+			bench --site erpnext.local execute frappe.utils.get_db_count --args "['DocType', 'Communication']"
+	"""
+	db_count = {}
+	for doctype in args:
+		db_count[doctype] = frappe.db.count(doctype)
+
+	return json.loads(frappe.as_json(db_count))
+
+def call(fn, *args, **kwargs):
+	"""
+	Pass a doctype or a series of doctypes to get the count of docs in them
+	Parameters:
+		fn: frappe function to be called
+
+	Returns:
+		based on the function you call: output of the function you call
+
+	Example:
+		via terminal:
+			bench --site erpnext.local execute frappe.utils.call --args '''["frappe.get_all", "Activity Log"]''' --kwargs '''{"fields": ["user", "creation", "full_name"], "filters":{"Operation": "Login", "Status": "Success"}, "limit": "10"}'''
+	"""
+	return json.loads(frappe.as_json(frappe.call(fn, *args, **kwargs)))

@@ -201,6 +201,16 @@ frappe.dom = {
 	},
 	is_touchscreen: function() {
 		return ('ontouchstart' in window)
+	},
+	handle_broken_images(container) {
+		$(container).find('img').on('error', (e) => {
+			const $img = $(e.currentTarget);
+			$img.addClass('no-image');
+		});
+	},
+	scroll_to_bottom(container) {
+		const $container = $(container);
+		$container.scrollTop($container[0].scrollHeight);
 	}
 }
 
@@ -245,7 +255,32 @@ frappe.scrub = function(text) {
 };
 
 frappe.get_modal = function(title, content) {
-	return $(frappe.render_template("modal", {title:title, content:content})).appendTo(document.body);
+	return $(`<div class="modal fade" style="overflow: auto;" tabindex="-1">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+	                <div class="row">
+	                    <div class="col-xs-7">
+							<span class="indicator hidden"></span>
+	                        <h4 class="modal-title" style="font-weight: bold;">${title}</h4>
+	                    </div>
+	                    <div class="col-xs-5">
+	                        <div class="text-right buttons">
+	            				<button type="button" class="btn btn-default btn-sm btn-modal-close"
+	                                data-dismiss="modal">
+									<i class="octicon octicon-x visible-xs" style="padding: 1px 0px;"></i>
+									<span class="hidden-xs">${__("Close")}</span></button>
+	            				<button type="button" class="btn btn-primary btn-sm hide">
+	                                ${__("Confirm")}</button>
+	                        </div>
+	                    </div>
+	                </div>
+				</div>
+				<div class="modal-body ui-front">${content}
+				</div>
+			</div>
+		</div>
+	</div>`)
 };
 
 frappe.is_online = function() {

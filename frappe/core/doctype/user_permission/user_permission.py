@@ -17,7 +17,7 @@ class UserPermission(Document):
 			'name': ['!=', self.name]
 		}, limit=1)
 		if duplicate_exists:
-			frappe.msgprint(_("User permission already exists"), raise_exception=True)
+			frappe.throw(_("User permission already exists"), frappe.DuplicateEntryError)
 
 	def on_update(self):
 		frappe.cache().delete_value('user_permissions')
@@ -58,8 +58,8 @@ def get_user_permissions(user=None):
 			if meta.is_nested_set():
 				out[perm.allow]["docs"].extend(frappe.db.get_descendants(perm.allow, perm.for_value))
 		frappe.cache().hset("user_permissions", user, out)
-	except frappe.SQLError as e:
-		if e.args[0]==1146:
+	except frappe.db.SQLError:
+		if frappe.db.is_table_missing():
 			# called from patch
 			pass
 

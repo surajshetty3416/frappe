@@ -2,7 +2,6 @@
 // Author - Achilles Rasquinha <achilles@frappe.io>
 
 import Fuse   from 'fuse.js'
-import moment from 'moment'
 import hyper  from '../lib/hyper.min'
 
 import './socketio_client'
@@ -185,6 +184,12 @@ frappe.quick_edit      = (doctype, docname, fn) => {
 				const meta     = frappe.get_meta(doctype)
 				const fields   = meta.fields
 				const required = fields.filter(f => f.reqd || f.bold && !f.read_only)
+
+				required.map(f => {
+					if(f.fieldname == 'content' && doc.type == 'File') {
+						f['read_only'] = 1;
+					}
+				})
 
 				const dialog   = new frappe.ui.Dialog({
 					 title: __(`Edit ${doctype} (${docname})`),
@@ -1656,6 +1661,7 @@ class extends Component {
 				},
 				frappe._.is_mobile() && {
 					   icon: "octicon octicon-x",
+					   class: "frappe-chat-close",
 					onclick: () => this.set_state({ toggle: false })
 				}
 			], Boolean),
@@ -1770,9 +1776,8 @@ class extends Component {
 	}
 
 	on_mounted ( ) {
-		$(document.body).on('click', '.page-container, .frappe-chat-popper', ({ currentTarget }) => {
-			if ( $(currentTarget).is('.page-container') )
-				this.toggle(false)
+		$(document.body).on('click', '.page-container, .frappe-chat-close', ({ currentTarget }) => {
+			this.toggle(false)
 		})
 	}
 
