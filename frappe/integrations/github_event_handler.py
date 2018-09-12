@@ -25,7 +25,7 @@ def process_pull_request(payload):
 	action = payload.get('action')
 	data = payload.get('pull_request')
 	user_github_id = data['user']['login']
-	if not is_in_house_user(user_github_id): return
+	if not is_local_user(user_github_id): return
 	if action == 'closed' and data['merged']:
 		process_merged_pull_request(data)
 	if action == 'submitted':
@@ -35,7 +35,7 @@ def process_issues(payload):
 	action = payload.get('action')
 	data = payload.get('issue')
 	user_github_id = data['user']['login']
-	if not is_in_house_user(user_github_id): return
+	if not is_local_user(user_github_id): return
 	if action == 'opened':
 		create_energy_point_log(
 			ENERGY_POINT_VALUES['github_issue_open'],
@@ -72,7 +72,7 @@ def process_pull_request_review(data):
 	)
 
 
-def is_in_house_user(github_id):
+def is_local_user(github_id):
 	return frappe.db.count('Social Profile', {'github_id': github_id})
 
 def get_user_name(github_id):
