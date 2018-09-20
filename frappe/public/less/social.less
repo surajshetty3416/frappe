@@ -1,0 +1,25 @@
+@import "variables.less";
+@import (reference) "desk.less";
+
+body[data-route*="social"] {
+	.layout-side-section {
+		padding-top: 25px;
+		padding-left: 5px;
+		padding-right: 25px;
+	}
+
+	[data-route], [data-action] {
+		cursor: pointer;
+	}
+
+	.layout-main-section {
+		border: none;
+		font-size: @text-medium;
+		padding-top: 25px;
+
+		@media (max-width: @screen-xs) {
+			padding-left: 20px;
+			padding-right: 20px;
+		}
+	}
+}

@@ -113,7 +113,8 @@
 		"public/less/kanban.less",
 		"public/less/controls.less",
 		"public/less/chat.less",
-		"public/less/filters.less"
+		"public/less/filters.less",
+		"public/less/social.less"
 	],
 	"css/frappe-rtl.css": [
 		"public/css/bootstrap-rtl.css",
@@ -239,7 +240,7 @@
 		"public/js/frappe/feedback.js",
 
 		"public/js/frappe/chat.js",
-		
+
 		"public/js/social/social_factory.js"
 	],
 	"css/module.min.css": [
