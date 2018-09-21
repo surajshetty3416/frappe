@@ -36,6 +36,12 @@ def get_list(doctype, fields=None, filters=None, order_by=None,
 
 @frappe.whitelist()
 def get_count(doctype, filters=None, debug=False, cache=False):
+	try:
+		filters = json.loads(filters)
+	except (TypeError, ValueError):
+		# filters is passed as json
+		pass
+
 	return frappe.db.count(doctype, filters, debug, cache)
 
 @frappe.whitelist()
@@ -79,7 +85,7 @@ def get_value(doctype, fieldname, filters=None, as_dict=True, debug=False, paren
 			filters = frappe.as_unicode(filters)
 
 	except (TypeError, ValueError):
-		# filters are not passesd, not json
+		# filters are not passed, not json
 		pass
 
 	try:
