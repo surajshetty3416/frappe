@@ -8,4 +8,4 @@ from frappe.model.document import Document
 
 class Post(Document):
 	def after_insert(self):
-		frappe.publish_realtime('new_post', self.name, after_commit=True)
+		frappe.publish_realtime('new_post', self, after_commit=True)

@@ -7,11 +7,7 @@
 		<div class='post-stats level flex-column'>
 			<div class="stat" @click="handle()">
 				<p class="text-muted font-weight-bold text-center">Posts</p>
-				<p class="text-center text-large">5</p>
-			</div>
-			<div class="stat" @click="handle()">
-				<p class="text-muted font-weight-bold text-center">Likes</p>
-				<p class="text-center text-large">15</p>
+				<p class="text-center text-large">{{ post_count }}</p>
 			</div>
 		</div>
 	</div>
@@ -21,7 +17,8 @@ export default {
 	data() {
 		return {
 			socialData: {},
-			user_image: ''
+			user_image: '',
+			post_count: 0
 		}
 	},
 	created() {
@@ -31,6 +28,20 @@ export default {
 				this.socialData = data;
 				this.user_image = frappe.avatar(data.name, 'avatar-xl')
 			})
+
+		frappe.db.count('Post', {
+			filters: {
+				'owner': frappe.session.user
+			}
+		}).then((post_count) => {
+			this.post_count = post_count
+		})
+
+		frappe.realtime.on('new_post', (post) => {
+			if (post.owner == frappe.session.user) {
+				this.post_count += 1;
+			}
+		})
 	},
 	methods: {
 		handle() {

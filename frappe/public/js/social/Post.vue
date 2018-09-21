@@ -2,7 +2,7 @@
 	<div class="post-card">
 		<div class="pull-right text-muted" v-html="post_time"></div>
 		<div class="user-avatar" v-html="user_avatar"></div>
-		<div class="user-name">Suraj Shetty</div>
+		<div class="user-name">{{ user_name }}</div>
 		<div class="content" v-html="post.content"></div>
 	</div>
 </template>
@@ -12,7 +12,8 @@ export default {
 	data() {
 		return {
 			user_avatar: frappe.avatar(this.post.owner, 'avatar-medium'),
-			post_time: comment_when(this.post.creation)
+			post_time: comment_when(this.post.creation),
+			user_name: frappe.user_info(this.post.owner).fullname
 		}
 	}
 }
@@ -25,6 +26,7 @@ export default {
 	max-height: 500px;
 	min-height: 70px;
 	overflow: hidden;
+	cursor: pointer;
 	.user-name{
 		font-weight: 900;
 	}

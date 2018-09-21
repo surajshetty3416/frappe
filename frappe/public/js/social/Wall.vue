@@ -1,7 +1,7 @@
 <template>
 	<div class="container flex">
 		<div class="new_posts_count" @click="load_new_posts()" v-if='new_posts_count'>
-			{{ new_posts_count + ' new ' + new_posts_count > 1 ? 'posts': 'post'}}
+			{{ new_posts_count + ' new post'}}
 		</div>
 		<div v-for="post in posts" :key="post.name">
 			<post :post="post"></post>
@@ -28,15 +28,24 @@ export default {
 		})
 	},
 	methods: {
-		get_posts() {
+		get_posts(load_only_new_posts = true) {
+			const filters = {};
+			if (load_only_new_posts && this.posts[0]) {
+				filters.creation = ['>', this.posts[0].creation]
+			}
 			frappe.db.get_list('Post', {
 				fields: ['name', 'content', 'owner', 'creation'],
+				filters: filters
 			}).then((res) => {
-				this.posts = res;
+				if (load_only_new_posts) {
+					this.posts = res.concat(this.posts);
+				} else {
+					this.posts = res;
+				}
 			});
 		},
 		load_new_posts() {
-			this.get_posts() // TODO: make efficient
+			this.get_posts(true) // TODO: make efficient
 			this.new_posts_count = 0;
 		}
 	}
