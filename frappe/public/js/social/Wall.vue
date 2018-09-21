@@ -1,6 +1,8 @@
 <template>
 	<div class="container flex">
-		<div class="new_posts_count" @click="load_new_posts()" v-if='new_posts_count'>{{ new_posts_count + ' new posts'}}</div>
+		<div class="new_posts_count" @click="load_new_posts()" v-if='new_posts_count'>
+			{{ new_posts_count + ' new ' + new_posts_count > 1 ? 'posts': 'post'}}
+		</div>
 		<div v-for="post in posts" :key="post.name">
 			<post :post="post"></post>
 		</div>
@@ -46,7 +48,7 @@ export default {
 	display: flex;
 	flex-direction: column;
 	background: rgb(230, 236, 240);
-	padding: 10px;
+	padding: 0px;
 	width: 500px;
 	font-size: 14px;
 	margin: 0;

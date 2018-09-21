@@ -2,7 +2,7 @@ import Vue from 'vue/dist/vue.js';
 
 // components
 import Wall from './Wall.vue';
-import SocialSidebar from './SocialSidebar.vue';
+import WallSidebar from './WallSidebar.vue';
 frappe.provide('frappe.social');
 
 frappe.social.Wall = class WallFeed {
@@ -28,7 +28,7 @@ frappe.social.Wall = class WallFeed {
 
 		new Vue({
 			el: $('<div>').appendTo(this.$sidebar)[0],
-			render: h => h(SocialSidebar)
+			render: h => h(WallSidebar)
 		});
 	}
 	setup_header() {
