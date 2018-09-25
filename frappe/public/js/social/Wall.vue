@@ -10,7 +10,6 @@
 </template>
 <script>
 import Post from './Post.vue';
-import ActionCard from './ActionCard.vue';
 export default {
 	components: {
 		Post
@@ -35,7 +34,8 @@ export default {
 			}
 			frappe.db.get_list('Post', {
 				fields: ['name', 'content', 'owner', 'creation'],
-				filters: filters
+				filters: filters,
+				order_by: 'creation desc'
 			}).then((res) => {
 				if (load_only_new_posts) {
 					this.posts = res.concat(this.posts);
