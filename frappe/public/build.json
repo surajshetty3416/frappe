@@ -141,6 +141,7 @@
 		"public/js/lib/leaflet/easy-button.js"
 	],
 	"js/desk.min.js": [
+		"core/page/user_permission_manager/user_permission_manager_engine.js",
 		"public/js/frappe/class.js",
 		"public/js/frappe/polyfill.js",
 		"public/js/frappe/provide.js",
