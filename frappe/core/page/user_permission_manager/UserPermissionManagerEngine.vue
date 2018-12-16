@@ -1,19 +1,20 @@
 <template>
-	<div class="container padding">
-		<table class="table table-bordered">
+	<div class="user_permission_container padding">
+		<table class="table table-bordered table-hover">
 			<thead>
 				<tr>
 					<th>Allow</th>
 					<th>For Value</th>
 					<th>Applicable For</th>
-					<th>&nbsp;</th>
 				</tr>
 			</thead>
 			<tbody>
 				<tr v-for="perm in user_permissions" :key="perm.name">
 					<td>{{perm.allow}}</td>
 					<td>{{perm.for_value}}</td>
-					 <td><multi-check :options="['Test', 'Test2']"></multi-check></td>
+					<td>
+						<multi-check class="multicheck" :options="perm.linked_doctypes" :selected_items="perm.applicable_for"/>
+					</td>
 				</tr>
 			</tbody>
 		</table>
@@ -28,21 +29,24 @@ export default {
 	},
 	data() {
 		return {
-			user_permissions: [{
-				'name': 'asdf',
-				'allow': 'User',
-				'for_value': 'suraj@erpnext.com'
-			}]
+			user_permissions: [],
 		}
 	},
-	methods: {
-
+	created() {
+		frappe.xcall('frappe.core.doctype.user_permission.user_permission.get_consolidated_user_permission', {
+			'user': this.user
+		}).then(user_permissions => {
+			this.user_permissions = user_permissions;
+		});
 	}
 }
 </script>
-
-<style lang="less" scoped>
-.container {
-
+<style lang="less">
+.user_permission_container {
+	font-size: 14px;
+	.multicheck {
+		max-height: 150px;
+		overflow: scroll;
+	}
 }
 </style>

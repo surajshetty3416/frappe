@@ -105,6 +105,28 @@ def get_applicable_for_doctype_list(doctype, txt, searchfield, start, page_len, 
 
 	return return_list
 
+@frappe.whitelist()
+def get_consolidated_user_permission(user):
+	user_permissions = frappe.get_all('User Permission',
+		filters={'user': user},
+		fields=['allow', 'for_value', 'applicable_for', 'apply_to_all_doctypes'])
+
+	consolidated_user_permissions = {}
+
+	for perm in user_permissions:
+		key = perm.allow + perm.for_value
+		if consolidated_user_permissions.get(key) == None:
+			consolidated_user_permissions[key] = {
+				'allow': perm.allow,
+				'for_value': perm.for_value,
+				'applicable_for': [perm.applicable_for],
+				'linked_doctypes': set(get_linked_doctypes(perm.allow, True).keys() + [perm.allow])
+			}
+		else:
+			consolidated_user_permissions[key].get('applicable_for').append(perm.applicable_for)
+
+	return consolidated_user_permissions
+
 def get_permitted_documents(doctype):
 	return [d.get('doc') for d in get_user_permissions().get(doctype, []) \
 		if d.get('doc')]
