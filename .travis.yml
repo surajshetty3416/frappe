@@ -40,7 +40,7 @@ before_script:
   - bench scheduler disable
   - sed -i 's/9000/9001/g' sites/common_site_config.json
   - set -e
-  - bench start &
+  - bench start
   - set +e
   - sleep 10
 
