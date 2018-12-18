@@ -109,7 +109,7 @@ def get_applicable_for_doctype_list(doctype, txt, searchfield, start, page_len, 
 def get_consolidated_user_permission(user):
 	user_permissions = frappe.get_all('User Permission',
 		filters={'user': user},
-		fields=['allow', 'for_value', 'applicable_for', 'apply_to_all_doctypes'])
+		fields=['allow', 'user', 'for_value', 'applicable_for', 'apply_to_all_doctypes'])
 
 	consolidated_user_permissions = {}
 
@@ -117,6 +117,7 @@ def get_consolidated_user_permission(user):
 		key = perm.allow + perm.for_value
 		if consolidated_user_permissions.get(key) == None:
 			consolidated_user_permissions[key] = {
+				'user': perm.user,
 				'allow': perm.allow,
 				'for_value': perm.for_value,
 				'applicable_for': [perm.applicable_for],
@@ -126,6 +127,59 @@ def get_consolidated_user_permission(user):
 			consolidated_user_permissions[key].get('applicable_for').append(perm.applicable_for)
 
 	return consolidated_user_permissions
+
+@frappe.whitelist()
+def save_user_permission(user_permission):
+	user_permission = json.loads(user_permission)
+	current_doctypes = frappe.db.get_values('User Permission', filters={
+		'allow': user_permission['allow'],
+		'for_value': user_permission['for_value'],
+		'user': user_permission['user']
+	}, fieldname='applicable_for', as_dict=1)
+
+	current_doctypes = [d.applicable_for for d in current_doctypes]
+
+	if set(current_doctypes) == set(user_permission['applicable_for']):
+		return
+
+	new_applicable_for = list(set(user_permission['applicable_for']) - set(current_doctypes))
+
+	applicable_for_to_delete = list(set(current_doctypes) - set(user_permission['applicable_for']))
+
+	for doctype in new_applicable_for:
+		frappe.new_doc({
+			'doctype': 'User Permission',
+			'allow': user_permission['allow'],
+			'for_value': user_permission['for_value'],
+			'user': user_permission['user'],
+			'applicable_for': doctype
+		}).insert()
+
+	for doctype in applicable_for_to_delete:
+		frappe.db.sql('''DELETE FROM `tabUser Permission` WHERE
+			user=%(user)s,
+			allow=%(allow)s,
+			for_value=%(for_value)s,
+			applicable_for=%(allow)s''', dict(
+				user=user_permission['user'],
+				allow=user_permission['allow'],
+				for_value=user_permission['for_value'],
+				applicable_for=doctype
+			)
+		)
+
+@frappe.whitelist()
+def delete_user_permission(user_permission):
+	user_permission = json.loads(user_permission)
+	frappe.db.sql('''DELETE FROM `tabUser Permission` WHERE
+			user=%(user)s,
+			allow=%(allow)s,
+			for_value=%(for_value)s''', dict(
+				user=user_permission['user'],
+				allow=user_permission['allow'],
+				for_value=user_permission['for_value'],
+			)
+		)
 
 def get_permitted_documents(doctype):
 	return [d.get('doc') for d in get_user_permissions().get(doctype, []) \
