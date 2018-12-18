@@ -40,15 +40,12 @@ function watch_assets() {
 
 			case 'ERROR': {
 				log_error(event.error);
-				console.log('---------------------------------------------------in');
-				throw event.error
 				break;
 			}
 
 			case 'FATAL': {
-				console.log('---------------------------------------------------in2');
 				log_error(event.error);
-				throw event.error;
+				process.kill(process.pid);
 				break;
 			}
 
