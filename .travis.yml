@@ -39,7 +39,9 @@ before_script:
   - bench setup-global-help --mariadb_root_password travis
   - bench scheduler disable
   - sed -i 's/9000/9001/g' sites/common_site_config.json
+  - set -e
   - bench start &
+  - set +e
   - sleep 10
 
 script:
