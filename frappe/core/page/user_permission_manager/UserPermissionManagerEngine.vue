@@ -22,6 +22,7 @@
 					</td>
 					<td>
 						<button class="btn btn-sm" @click="save_user_permission(perm)">Save</button>
+						<button class="btn btn-sm" @click="delete_user_permission(perm)">Delete</button>
 					</td>
 				</tr>
 			</tbody>
@@ -69,7 +70,16 @@ export default {
 				user_permission
 			}).then(() => {
 				frappe.dom.unfreeze();
-				frappe.show_alert('Saved Successfully!')
+				frappe.show_alert('Saved!')
+			})
+		},
+		delete_user_permission(user_permission) {
+			frappe.dom.freeze();
+			frappe.xcall('frappe.core.doctype.user_permission.user_permission.delete_user_permission', {
+				user_permission
+			}).then(() => {
+				frappe.dom.unfreeze();
+				frappe.show_alert('Deleted!')
 			})
 		}
 	}
