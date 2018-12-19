@@ -1,12 +1,12 @@
 <template>
-	<div class="user_permission_container padding">
+	<div class="user-permission-container padding">
 		<input type="text" v-model="search">
 		<table class="table table-bordered table-hover">
 			<thead>
 				<tr>
 					<th>Allow</th>
 					<th>For Value</th>
-					<th>Applicable For</th>
+					<th class="applicable-for-column">Applicable For</th>
 					<th>&nbsp;</th>
 				</tr>
 			</thead>
@@ -15,7 +15,10 @@
 					<td>{{perm.allow}}</td>
 					<td>{{perm.for_value}}</td>
 					<td>
-						<multi-check class="multicheck" :options="perm.linked_doctypes" :selected_items="perm.applicable_for"/>
+						<multi-check class="multicheck"
+							v-model="perm.applicable_for"
+							:options="perm.linked_doctypes"
+						/>
 					</td>
 					<td>
 						<button class="btn btn-sm" @click="save_user_permission(perm)">Save</button>
@@ -61,19 +64,25 @@ export default {
 	},
 	methods: {
 		save_user_permission(user_permission) {
+			frappe.dom.freeze();
 			frappe.xcall('frappe.core.doctype.user_permission.user_permission.save_user_permission', {
 				user_permission
-			}).then()
+			}).then(() => {
+				frappe.dom.unfreeze();
+				frappe.show_alert('Saved Successfully!')
+			})
 		}
 	}
 }
 </script>
 <style lang="less">
-.user_permission_container {
+.user-permission-container {
 	font-size: 14px;
+	.applicable-for-column {
+		width: 50%;
+	}
 	.multicheck {
 		max-height: 150px;
-		max-width: 300px;
 		overflow: scroll;
 	}
 }

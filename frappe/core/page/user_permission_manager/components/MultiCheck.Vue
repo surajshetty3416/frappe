@@ -2,7 +2,7 @@
 	<div>
 		<div class="col-md-6" v-for="option in options" :key="option">
 			<label :for="option">
-				<input type="checkbox" :value="option" :id="option" :checked="is_checked(option)"/>
+				<input type="checkbox" :value="option" :id="option" :checked="value.includes(option)" @change="update(option)"/>
 				<span class="label-area small">{{ option }}</span>
 			</label>
 		</div>
@@ -10,11 +10,15 @@
 </template>
 <script>
 export default {
-	props: ['options', 'selected_items'],
+	props: ['options', 'value'],
 	methods: {
-		is_checked(option) {
-			return this.selected_items.includes(option)
-		}
+		update(option) {
+			if(this.value.includes(option)){
+				this.value.splice(this.value.indexOf(option), 1)
+			} else {
+				this.value.push(option)
+			}
+		},
 	}
 }
 </script>

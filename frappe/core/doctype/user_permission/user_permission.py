@@ -120,8 +120,8 @@ def get_consolidated_user_permission(user):
 				'user': perm.user,
 				'allow': perm.allow,
 				'for_value': perm.for_value,
-				'applicable_for': [perm.applicable_for],
-				'linked_doctypes': set(get_linked_doctypes(perm.allow, True).keys() + [perm.allow])
+				'applicable_for': [perm.applicable_for] if perm.applicable_for else [],
+				'linked_doctypes': get_all_linked_with_doctypes(perm.allow)
 			}
 		else:
 			consolidated_user_permissions[key].get('applicable_for').append(perm.applicable_for)
@@ -146,26 +146,39 @@ def save_user_permission(user_permission):
 
 	applicable_for_to_delete = list(set(current_doctypes) - set(user_permission['applicable_for']))
 
-	for doctype in new_applicable_for:
-		frappe.new_doc({
+	applicable_for_all_doctype = set(user_permission['applicable_for']) == get_all_linked_with_doctypes(user_permission['allow'])
+
+	if applicable_for_all_doctype:
+		frappe.get_doc({
 			'doctype': 'User Permission',
 			'allow': user_permission['allow'],
 			'for_value': user_permission['for_value'],
 			'user': user_permission['user'],
-			'applicable_for': doctype
+			'apply_to_all_doctypes': 1
 		}).insert()
+		applicable_for_to_delete = current_doctypes
+	else:
+		for doctype in new_applicable_for:
+			frappe.get_doc({
+				'doctype': 'User Permission',
+				'allow': user_permission['allow'],
+				'for_value': user_permission['for_value'],
+				'user': user_permission['user'],
+				'applicable_for': doctype,
+				'apply_to_all_doctypes': 0
+			}).insert()
 
 	for doctype in applicable_for_to_delete:
 		frappe.db.sql('''DELETE FROM `tabUser Permission` WHERE
-			user=%(user)s,
-			allow=%(allow)s,
-			for_value=%(for_value)s,
-			applicable_for=%(allow)s''', dict(
+			`user`=%(user)s AND
+			`allow`=%(allow)s AND
+			`for_value`=%(for_value)s AND
+			`applicable_for`=%(applicable_for)s''', dict(
 				user=user_permission['user'],
 				allow=user_permission['allow'],
 				for_value=user_permission['for_value'],
 				applicable_for=doctype
-			)
+			),
 		)
 
 @frappe.whitelist()
@@ -184,3 +197,6 @@ def delete_user_permission(user_permission):
 def get_permitted_documents(doctype):
 	return [d.get('doc') for d in get_user_permissions().get(doctype, []) \
 		if d.get('doc')]
+
+def get_all_linked_with_doctypes(doctype):
+	return set(get_linked_doctypes(doctype, True).keys() + [doctype])
