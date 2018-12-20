@@ -1,7 +1,7 @@
 <template>
 	<div>
 		<div class="col-md-6" v-for="option in options" :key="option">
-			<label :for="option">
+			<label>
 				<input type="checkbox" :value="option" :id="option" :checked="value.includes(option)" @change="update(option)"/>
 				<span class="label-area small">{{ option }}</span>
 			</label>

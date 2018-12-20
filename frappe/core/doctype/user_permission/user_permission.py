@@ -185,8 +185,8 @@ def save_user_permission(user_permission):
 def delete_user_permission(user_permission):
 	user_permission = json.loads(user_permission)
 	frappe.db.sql('''DELETE FROM `tabUser Permission` WHERE
-			user=%(user)s,
-			allow=%(allow)s,
+			user=%(user)s AND
+			allow=%(allow)s AND
 			for_value=%(for_value)s''', dict(
 				user=user_permission['user'],
 				allow=user_permission['allow'],

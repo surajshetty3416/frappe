@@ -11,7 +11,7 @@
 				</tr>
 			</thead>
 			<tbody>
-				<tr v-for="perm in filtered_user_permissions" :key="perm.name">
+				<tr v-for="(perm, key) in filtered_user_permissions" :key="key">
 					<td>{{perm.allow}}</td>
 					<td>{{perm.for_value}}</td>
 					<td>
@@ -22,11 +22,12 @@
 					</td>
 					<td>
 						<button class="btn btn-sm" @click="save_user_permission(perm)">Save</button>
-						<button class="btn btn-sm" @click="delete_user_permission(perm)">Delete</button>
+						<button class="btn btn-sm" @click="delete_user_permission(key)">Delete</button>
 					</td>
 				</tr>
 			</tbody>
 		</table>
+		<button class="btn btn-primary" @click="open_modal">Add New User Permission</button>
 	</div>
 </template>
 <script>
@@ -73,14 +74,18 @@ export default {
 				frappe.show_alert('Saved!')
 			})
 		},
-		delete_user_permission(user_permission) {
+		delete_user_permission(key) {
 			frappe.dom.freeze();
 			frappe.xcall('frappe.core.doctype.user_permission.user_permission.delete_user_permission', {
-				user_permission
+				'user_permission': this.user_permissions[key]
 			}).then(() => {
+				this.$delete(this.user_permissions, key)
 				frappe.dom.unfreeze();
 				frappe.show_alert('Deleted!')
 			})
+		},
+		open_modal() {
+			frappe.user_permission_dialog.show()
 		}
 	}
 }
