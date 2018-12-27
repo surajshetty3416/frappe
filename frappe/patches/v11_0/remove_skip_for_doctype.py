@@ -42,7 +42,9 @@ def execute():
 			# only specific doctypes are selected
 			# split this into multiple records and delete
 			linked_doctypes = get_linked_doctypes(user_permission.allow, True).keys()
-
+			
+			linked_doctypes = list(linked_doctypes)
+			
 			# append the doctype for which we have build the user permission
 			linked_doctypes += [user_permission.allow]
 
@@ -71,12 +73,12 @@ def execute():
 			INSERT INTO `tabUser Permission`
 			(`name`, `user`, `allow`, `for_value`, `applicable_for`, `apply_to_all_doctypes`)
 			VALUES {}
-		'''.format(
+		'''.format( # nosec
 			', '.join(['%s'] * len(new_user_permissions_list))
 		), tuple(new_user_permissions_list))
 
 	if user_permissions_to_delete:
-		frappe.db.sql('DELETE FROM `tabUser Permission` WHERE `name` in ({})'
+		frappe.db.sql('DELETE FROM `tabUser Permission` WHERE `name` in ({})' # nosec
 			.format(','.join(['%s'] * len(user_permissions_to_delete))),
 			tuple(user_permissions_to_delete)
 		)
