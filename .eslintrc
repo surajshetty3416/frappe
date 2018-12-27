@@ -61,6 +61,7 @@
 	"globals": {
 		"frappe": true,
 		"__": true,
+		"Vue": true,
 		"_p": true,
 		"_f": true,
 		"repl": true,
