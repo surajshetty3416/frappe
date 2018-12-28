@@ -122,7 +122,7 @@ def get_consolidated_user_permission(user):
 				'user': perm.user,
 				'allow': perm.allow,
 				'for_value': perm.for_value,
-				'applicable_for': [perm.applicable_for] if perm.applicable_for else [],
+				'applicable_for': [perm.applicable_for] if perm.applicable_for else list(get_all_linked_with_doctypes(perm.allow)),
 				'linked_doctypes': get_all_linked_with_doctypes(perm.allow)
 			}
 		else:
@@ -139,6 +139,7 @@ def save_user_permission(user_permission):
 		'user': user_permission['user']
 	}, fieldname='applicable_for', as_dict=1)
 
+
 	current_doctypes = [d.applicable_for for d in current_doctypes]
 
 	if set(current_doctypes) == set(user_permission['applicable_for']):
@@ -148,29 +149,37 @@ def save_user_permission(user_permission):
 
 	applicable_for_to_delete = list(set(current_doctypes) - set(user_permission['applicable_for']))
 
-	applicable_for_all_doctype = set(user_permission['applicable_for']) == get_all_linked_with_doctypes(user_permission['allow'])
+	applicable_for_all_doctype = set(filter(None, user_permission['applicable_for'])) == get_all_linked_with_doctypes(user_permission['allow'])
 
 	if applicable_for_all_doctype:
-		frappe.get_doc({
-			'doctype': 'User Permission',
-			'allow': user_permission['allow'],
-			'for_value': user_permission['for_value'],
-			'user': user_permission['user'],
-			'apply_to_all_doctypes': 1
-		}).insert()
-		applicable_for_to_delete = current_doctypes
-	else:
-		for doctype in new_applicable_for:
+		if None not in current_doctypes:
 			frappe.get_doc({
 				'doctype': 'User Permission',
 				'allow': user_permission['allow'],
 				'for_value': user_permission['for_value'],
 				'user': user_permission['user'],
-				'applicable_for': doctype,
-				'apply_to_all_doctypes': 0
+				'apply_to_all_doctypes': 1
 			}).insert()
+		applicable_for_to_delete = filter(None, current_doctypes)
+	else:
+		new_user_permissions_list = []
+		for doctype in new_applicable_for:
+			if not doctype:
+				print('------------------------------------sssss------------------------------')
+			# Maintain sequence (name, user, allow, for_value, applicable_for, apply_to_all_doctypes)
+			new_user_permissions_list.append((
+				frappe.generate_hash("", 10),
+				user_permission['user'],
+				user_permission['allow'],
+				user_permission['for_value'],
+				doctype,
+				0
+			))
+		create_new_user_permissions(new_user_permissions_list)
 
+	print(applicable_for_to_delete)
 	for doctype in applicable_for_to_delete:
+		print(doctype)
 		frappe.db.sql('''DELETE FROM `tabUser Permission` WHERE
 			`user`=%(user)s AND
 			`allow`=%(allow)s AND
@@ -179,7 +188,7 @@ def save_user_permission(user_permission):
 				user=user_permission['user'],
 				allow=user_permission['allow'],
 				for_value=user_permission['for_value'],
-				applicable_for=doctype
+				applicable_for=doctype or ''
 			),
 		)
 
@@ -202,3 +211,16 @@ def get_permitted_documents(doctype):
 
 def get_all_linked_with_doctypes(doctype):
 	return set(get_linked_doctypes(doctype, True).keys() + [doctype])
+
+def create_new_user_permissions(new_user_permissions_list):
+	frappe.db.sql('''
+		INSERT INTO `tabUser Permission`
+		(`name`, `user`, `allow`, `for_value`, `applicable_for`, `apply_to_all_doctypes`)
+		VALUES {}
+	'''.format( # nosec
+		', '.join(['%s'] * len(new_user_permissions_list))
+	), tuple(new_user_permissions_list), debug=1)
+
+def clear_and_update_user_permission_cache():
+	frappe.cache().delete_value('user_permissions')
+	frappe.publish_realtime('update_user_permissions')
