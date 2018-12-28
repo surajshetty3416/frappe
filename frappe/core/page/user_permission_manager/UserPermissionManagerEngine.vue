@@ -4,10 +4,10 @@
 		<table class="table table-bordered table-hover">
 			<thead>
 				<tr>
-					<th>Allow</th>
-					<th>For Value</th>
+					<th class="allow-column">Allow</th>
+					<th class="for-value-column">For Value</th>
 					<th class="applicable-for-column">Applicable For</th>
-					<th>&nbsp;</th>
+					<th class="actions-column">&nbsp;</th>
 				</tr>
 			</thead>
 			<tbody>
@@ -19,9 +19,9 @@
 							v-model="perm.applicable_for"
 							:options="perm.linked_doctypes"
 						/>
+						<button class="btn btn-xs btn-default" @click="save_user_permission(perm)">Save</button>
 					</td>
 					<td>
-						<button class="btn btn-sm" @click="save_user_permission(perm)">Save</button>
 						<button class="btn btn-sm" @click="delete_user_permission(key)">Delete</button>
 					</td>
 				</tr>
@@ -58,11 +58,7 @@ export default {
 		}
 	},
 	created() {
-		frappe.xcall('frappe.core.doctype.user_permission.user_permission.get_consolidated_user_permission', {
-			'user': this.user
-		}).then(user_permissions => {
-			this.user_permissions = user_permissions;
-		});
+		this.load_permissions()
 	},
 	methods: {
 		save_user_permission(user_permission) {
@@ -86,15 +82,34 @@ export default {
 		},
 		open_modal() {
 			frappe.user_permission_dialog.show()
+		},
+		load_permissions() {
+			frappe.xcall('frappe.core.doctype.user_permission.user_permission.get_consolidated_user_permission', {
+				'user': this.user
+			}).then(user_permissions => {
+				this.user_permissions = user_permissions;
+			});
 		}
-	}
+	},
+	watch: {
+		user(a, b) {
+			console.log('in');
+			this.load_permissions()
+		}
+	},
 }
 </script>
 <style lang="less">
 .user-permission-container {
 	font-size: 14px;
+	.allow-column, .for-value {
+		width: 20%;
+	}
 	.applicable-for-column {
 		width: 50%;
+	}
+	.actions-column {
+		width: 10%;
 	}
 	.multicheck {
 		max-height: 150px;
