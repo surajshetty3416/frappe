@@ -5,16 +5,23 @@ frappe.UserPermissionManager = class {
 	constructor(wrapper, user) {
 		this.wrapper = wrapper;
 		this.user = user;
-		this.make();
+		this.make(this.user);
 	}
-	make() {
+	make(user) {
 		this.UserPermissionManagerEngine = new Vue({
 			el: this.wrapper[0],
-			render: h => h(UserPermissionManagerEngine, {
-				props: {
-					'user': this.user
-				}
-			}),
+			data() {
+				return {
+					user
+				};
+			},
+			render(h) {
+				return h(UserPermissionManagerEngine, {
+					props: {
+						'user': this.user
+					}
+				});
+			}
 
 		});
 	}

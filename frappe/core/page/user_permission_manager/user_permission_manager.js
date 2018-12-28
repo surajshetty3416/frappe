@@ -34,7 +34,7 @@ frappe.pages['user-permission-manager'].on_page_load = function(wrapper) {
 							$(this).val()
 						);
 					} else {
-						user_permission_manager.user = $(this).val();
+						user_permission_manager.UserPermissionManagerEngine.user = $(this).val();
 					}
 				});
 		}
