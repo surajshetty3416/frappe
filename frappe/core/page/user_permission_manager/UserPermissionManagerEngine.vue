@@ -27,7 +27,6 @@
 				</tr>
 			</tbody>
 		</table>
-		<button class="btn btn-primary" @click="open_modal">Add New User Permission</button>
 	</div>
 </template>
 <script>
@@ -93,7 +92,6 @@ export default {
 	},
 	watch: {
 		user(a, b) {
-			console.log('in');
 			this.load_permissions()
 		}
 	},
