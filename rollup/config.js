@@ -20,7 +20,8 @@ const {
 	bench_path,
 	get_public_path,
 	get_app_path,
-	get_build_json
+	get_build_json,
+	get_options_for_scss
 } = require('./rollup.utils');
 
 function get_rollup_options(output_file, input_files) {
@@ -45,13 +46,16 @@ function get_rollup_options_for_js(output_file, input_files) {
 		multi_entry(),
 		// .html -> .js
 		frappe_html(),
+		// ignore css imports
+		ignore_css(),
 		// .vue -> .js
 		vue.default(),
 		// ES6 -> ES5
 		buble({
 			objectAssign: 'Object.assign',
 			transforms: {
-				dangerousForOf: true
+				dangerousForOf: true,
+				classes: false
 			},
 			exclude: [path.resolve(bench_path, '**/*.css'), path.resolve(bench_path, '**/*.less')]
 		}),
@@ -73,6 +77,14 @@ function get_rollup_options_for_js(output_file, input_files) {
 			onwarn({ code, message, loc, frame }) {
 				// skip warnings
 				if (['EVAL', 'SOURCEMAP_BROKEN', 'NAMESPACE_CONFLICT'].includes(code)) return;
+
+				if ('UNRESOLVED_IMPORT' === code) {
+					log(chalk.yellow.underline(code), ':', message);
+					const command = chalk.yellow('bench setup requirements');
+					log(`Cannot find some dependencies. You may have to run "${command}" to install them.`);
+					log();
+					return;
+				}
 
 				if (loc) {
 					log(`${loc.file} (${loc.line}:${loc.column}) ${message}`);
@@ -104,12 +116,15 @@ function get_rollup_options_for_css(output_file, input_files) {
 		// less -> css
 		postcss({
 			extract: output_path,
-			use: [['less', {
-				// import other less/css files starting from these folders
-				paths: [
-					path.resolve(get_public_path('frappe'), 'less')
-				]
-			}], 'sass'],
+			use: [
+				['less', {
+					// import other less/css files starting from these folders
+					paths: [
+						path.resolve(get_public_path('frappe'), 'less')
+					]
+				}],
+				['sass', get_options_for_scss()]
+			],
 			include: [
 				path.resolve(bench_path, '**/*.less'),
 				path.resolve(bench_path, '**/*.scss'),
@@ -162,6 +177,21 @@ function get_options_for(app) {
 		})
 		.filter(Boolean);
 }
+
+function ignore_css() {
+	return {
+		name: 'ignore-css',
+		transform(code, id) {
+			if (!['.css', '.scss', '.sass', '.less'].some(ext => id.endsWith(ext))) {
+				return null;
+			}
+
+			return `
+				// ignored ${id}
+			`;
+		}
+	};
+};
 
 module.exports = {
 	get_options_for

@@ -6,7 +6,12 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	show() {
-		this.init().then(() => this.refresh());
+		frappe.run_serially([
+			() => this.init(),
+			() => this.before_refresh(),
+			() => this.refresh(),
+			() => frappe.route_options = null
+		]);
 	}
 
 	init() {
@@ -99,7 +104,9 @@ frappe.views.BaseList = class BaseList {
 			}
 			return f;
 		});
-		//de-dup
+		// remove null or undefined values
+		this.fields = this.fields.filter(Boolean);
+		//de-duplicate
 		this.fields = this.fields.uniqBy(f => f[0] + f[1]);
 	}
 
@@ -344,6 +351,11 @@ frappe.views.BaseList = class BaseList {
 		};
 	}
 
+	before_refresh() {
+		// modify args here just before making the request
+		// see list_view.js
+	}
+
 	refresh() {
 		this.freeze(true);
 		// fetch data from server
@@ -354,6 +366,9 @@ frappe.views.BaseList = class BaseList {
 			this.before_render();
 			this.render();
 			this.freeze(false);
+			if (this.settings.refresh) {
+				this.settings.refresh(this);
+			}
 		});
 	}
 
@@ -380,6 +395,10 @@ frappe.views.BaseList = class BaseList {
 
 	render() {
 		// for child classes
+	}
+
+	on_filter_change() {
+		// fired when filters are added or removed
 	}
 
 	toggle_result_area() {
@@ -470,6 +489,7 @@ class FilterArea {
 		if (this.trigger_refresh) {
 			this.list_view.start = 0;
 			this.list_view.refresh();
+			this.list_view.on_filter_change();
 		}
 	}
 
@@ -530,7 +550,9 @@ class FilterArea {
 			fields_dict[fieldname].set_value('');
 			return;
 		}
-		this.filter_list.get_filter(fieldname).remove();
+
+		let filter = this.filter_list.get_filter(fieldname);
+		if (filter) filter.remove();
 	}
 
 	clear(refresh = true) {
@@ -601,15 +623,6 @@ class FilterArea {
 			};
 		}));
 
-		if (fields.length > 3) {
-			fields = fields.map((df, i) => {
-				if (i >= 3) {
-					df.input_class = 'hidden-sm hidden-xs';
-				}
-				return df;
-			});
-		}
-
 		fields.map(df => this.list_view.page.add_field(df));
 
 		// search icon in name filter
@@ -658,6 +671,12 @@ class FilterArea {
 			default_filters: [],
 			on_change: () => this.refresh_list_view()
 		});
+	}
+
+	is_being_edited() {
+		// returns true if user is currently editing filters
+		return this.filter_list &&
+			this.filter_list.wrapper.find('.filter-box:visible').length > 0;
 	}
 }
 

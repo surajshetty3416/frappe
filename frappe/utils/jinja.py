@@ -50,12 +50,18 @@ def validate_template(html):
 		frappe.msgprint('Line {}: {}'.format(e.lineno, e.message))
 		frappe.throw(frappe._("Syntax error in template"))
 
-def render_template(template, context, is_path=None):
+def render_template(template, context, is_path=None, safe_render=True):
 	'''Render a template using Jinja
 
 	:param template: path or HTML containing the jinja template
 	:param context: dict of properties to pass to the template
-	:param is_path: (optional) assert that the `template` parameter is a path'''
+	:param is_path: (optional) assert that the `template` parameter is a path
+	:param safe_render: (optional) prevent server side scripting via jinja templating
+	'''
+
+	from frappe import get_traceback, throw
+	from frappe.utils import escape_html
+	from jinja2 import TemplateError
 
 	if not template:
 		return ""
@@ -66,7 +72,13 @@ def render_template(template, context, is_path=None):
 		or (template.endswith('.html') and '\n' not in template)):
 		return get_jenv().get_template(template).render(context)
 	else:
-		return get_jenv().from_string(template).render(context)
+		if safe_render and ".__" in template:
+			throw("Illegal template")
+		try:
+			return get_jenv().from_string(template).render(context)
+		except TemplateError:
+			throw(title="Jinja Template Error", msg="<pre>{template}</pre><pre>{tb}</pre>".format(template=template, tb=escape_html(get_traceback())))
+
 
 def get_allowed_functions_for_jenv():
 	import os, json
@@ -111,10 +123,10 @@ def get_allowed_functions_for_jenv():
 			'date_format': date_format,
 			"format_date": frappe.utils.data.global_date_format,
 			"form_dict": getattr(frappe.local, 'form_dict', {}),
-			"local": frappe.local,
 			"get_hooks": frappe.get_hooks,
 			"get_meta": frappe.get_meta,
 			"get_doc": frappe.get_doc,
+			"get_cached_doc": frappe.get_cached_doc,
 			"get_list": frappe.get_list,
 			"get_all": frappe.get_all,
 			'get_system_settings': frappe.get_system_settings,
@@ -124,10 +136,12 @@ def get_allowed_functions_for_jenv():
 			"get_gravatar": frappe.utils.get_gravatar_url,
 			"full_name": frappe.local.session.data.full_name if getattr(frappe.local, "session", None) else "Guest",
 			"render_template": frappe.render_template,
+			"request": getattr(frappe.local, 'request', {}),
 			'session': {
 				'user': user,
 				'csrf_token': frappe.local.session.data.csrf_token if getattr(frappe.local, "session", None) else ''
 			},
+			"socketio_port": frappe.conf.socketio_port,
 		},
 		'style': {
 			'border_color': '#d1d8dd'
@@ -153,6 +167,7 @@ def get_allowed_functions_for_jenv():
 		out['frappe']['date_format'] = date_format
 		out['frappe']["db"] = {
 			"get_value": frappe.db.get_value,
+			"get_single_value": frappe.db.get_single_value,
 			"get_default": frappe.db.get_default,
 			"escape": frappe.db.escape,
 		}

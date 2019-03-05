@@ -35,6 +35,7 @@
 
 .dt-scrollable {
 	max-height: calc(100vh - 250px);
+	min-height: 100px;
 }
 
 table td.dt-cell {
@@ -56,8 +57,12 @@ table td.dt-cell {
 	--dt-text-color: @text-muted;
 
 	.dt-row[data-is-filter] {
-		display: table-row !important;
+		display: flex !important;
 	}
+}
+
+.dt-row.dt-row-totalRow {
+	font-weight: bold;
 }
 
 .dt-row.row-update {

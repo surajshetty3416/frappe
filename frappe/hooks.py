@@ -11,8 +11,7 @@ app_color = "orange"
 source_link = "https://github.com/frappe/frappe"
 app_license = "MIT"
 
-develop_version = '11.x.x-develop'
-staging_version = '11.0.0-beta'
+develop_version = '12.x.x-develop'
 
 app_email = "info@frappe.io"
 
@@ -47,15 +46,13 @@ web_include_js = [
 	"website_script.js"
 ]
 
-bootstrap = "assets/frappe/css/bootstrap.css"
-web_include_css = [
-	"assets/css/frappe-web.css"
-]
+web_include_css = []
 
 website_route_rules = [
 	{"from_route": "/blog/<category>", "to_route": "Blog Post"},
 	{"from_route": "/kb/<category>", "to_route": "Help Article"},
-	{"from_route": "/newsletters", "to_route": "Newsletter"}
+	{"from_route": "/newsletters", "to_route": "Newsletter"},
+	{"from_route": "/profile", "to_route": "me"},
 ]
 
 write_file_keys = ["file_url", "file_name"]
@@ -102,7 +99,8 @@ has_permission = {
 	"Contact": "frappe.contacts.address_and_contact.has_permission",
 	"Address": "frappe.contacts.address_and_contact.has_permission",
 	"Communication": "frappe.core.doctype.communication.communication.has_permission",
-	"Workflow Action": "frappe.workflow.doctype.workflow_action.workflow_action.has_permission"
+	"Workflow Action": "frappe.workflow.doctype.workflow_action.workflow_action.has_permission",
+	"File": "frappe.core.doctype.file.file.has_permission"
 }
 
 has_website_permission = {
@@ -118,14 +116,18 @@ doc_events = {
 		"on_update": [
 			"frappe.desk.notifications.clear_doctype_notifications",
 			"frappe.core.doctype.activity_log.feed.update_feed",
-			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions"
+			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions",
+			"frappe.automation.doctype.assignment_rule.assignment_rule.apply"
 		],
 		"after_rename": "frappe.desk.notifications.clear_doctype_notifications",
 		"on_cancel": [
 			"frappe.desk.notifications.clear_doctype_notifications",
 			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions"
 		],
-		"on_trash": "frappe.desk.notifications.clear_doctype_notifications",
+		"on_trash": [
+			"frappe.desk.notifications.clear_doctype_notifications",
+			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions"
+		],
 		"on_change": [
 			"frappe.core.doctype.feedback_trigger.feedback_trigger.trigger_feedback_request",
 			"frappe.core.doctype.energy_point_log.energy_point_log.update_log"
@@ -151,7 +153,8 @@ scheduler_events = {
 		"frappe.integrations.doctype.razorpay_settings.razorpay_settings.capture_payment",
 		"frappe.twofactor.delete_all_barcodes_for_users",
 		"frappe.integrations.doctype.gcalendar_settings.gcalendar_settings.sync",
-		"frappe.website.doctype.web_page.web_page.check_publish_status"
+		"frappe.website.doctype.web_page.web_page.check_publish_status",
+		'frappe.utils.global_search.sync_global_search'
 	],
 	"hourly": [
 		"frappe.model.utils.link_count.update_link_count",
@@ -160,6 +163,7 @@ scheduler_events = {
 		"frappe.desk.page.backups.backups.delete_downloadable_backups",
 		"frappe.limits.update_space_usage",
 		"frappe.desk.doctype.auto_repeat.auto_repeat.make_auto_repeat_entry",
+		"frappe.deferred_insert.save_to_db"
 	],
 	"daily": [
 		"frappe.email.queue.clear_outbox",
@@ -174,7 +178,6 @@ scheduler_events = {
 		"frappe.email.doctype.auto_email_report.auto_email_report.send_daily",
 		"frappe.core.doctype.feedback_request.feedback_request.delete_feedback_request",
 		"frappe.core.doctype.activity_log.activity_log.clear_authentication_logs",
-		"frappe.utils.change_log.check_for_update"
 	],
 	"daily_long": [
 		"frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backups_daily",
@@ -182,7 +185,9 @@ scheduler_events = {
 	],
 	"weekly_long": [
 		"frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backups_weekly",
-		"frappe.integrations.doctype.s3_backup_settings.s3_backup_settings.take_backups_weekly"
+		"frappe.integrations.doctype.s3_backup_settings.s3_backup_settings.take_backups_weekly",
+		"frappe.utils.change_log.check_for_update",
+		"frappe.desk.doctype.route_history.route_history.flush_old_route_records"
 	],
 	"monthly": [
 		"frappe.email.doctype.auto_email_report.auto_email_report.send_monthly"

@@ -12,9 +12,8 @@ from frappe.model.naming import set_new_name
 from six import iteritems, string_types
 from werkzeug.exceptions import NotFound, Forbidden
 import hashlib, json
-from frappe.model import optional_fields
+from frappe.model import optional_fields, table_fields
 from frappe.model.workflow import validate_workflow
-from frappe.utils.file_manager import save_url
 from frappe.utils.global_search import update_global_search
 from frappe.integrations.doctype.webhook import run_webhooks
 
@@ -166,10 +165,10 @@ class Document(BaseDocument):
 			self.latest = frappe.get_doc(self.doctype, self.name)
 		return self.latest
 
-	def check_permission(self, permtype='read', permlabel=None):
+	def check_permission(self, permtype='read', permlevel=None):
 		"""Raise `frappe.PermissionError` if not permitted"""
 		if not self.has_permission(permtype):
-			self.raise_no_permission_to(permlabel or permtype)
+			self.raise_no_permission_to(permlevel or permtype)
 
 	def has_permission(self, permtype="read", verbose=False):
 		"""Call `frappe.has_permission` if `self.flags.ignore_permissions`
@@ -322,7 +321,15 @@ class Document(BaseDocument):
 		for attach_item in get_attachments(self.doctype, self.amended_from):
 
 			#save attachments to new doc
-			save_url(attach_item.file_url, attach_item.file_name, self.doctype, self.name, "Home/Attachments", attach_item.is_private)
+			_file = frappe.get_doc({
+				"doctype": "File",
+				"file_url": attach_item.file_url,
+				"file_name": attach_item.file_name,
+				"attached_to_name": self.name,
+				"attached_to_doctype": self.doctype,
+				"folder": "Home/Attachments"})
+			_file.save()
+
 
 	def update_children(self):
 		'''update child tables'''
@@ -407,10 +414,10 @@ class Document(BaseDocument):
 
 	def update_single(self, d):
 		"""Updates values for Single type Document in `tabSingles`."""
-		frappe.db.sql("""delete from tabSingles where doctype=%s""", self.doctype)
+		frappe.db.sql("""delete from `tabSingles` where doctype=%s""", self.doctype)
 		for field, value in iteritems(d):
 			if field != "doctype":
-				frappe.db.sql("""insert into tabSingles(doctype, field, value)
+				frappe.db.sql("""insert into `tabSingles` (doctype, field, value)
 					values (%s, %s, %s)""", (self.doctype, field, value))
 
 		if self.doctype in frappe.db.value_cache:
@@ -458,16 +465,16 @@ class Document(BaseDocument):
 			d._extract_images_from_text_editor()
 			d._sanitize_content()
 			d._save_passwords()
-
-		self.validate_set_only_once()
-
 		if self.is_new():
 			# don't set fields like _assign, _comments for new doc
 			for fieldname in optional_fields:
 				self.set(fieldname, None)
+		else:
+			self.validate_set_only_once()
 
 	def validate_workflow(self):
 		'''Validate if the workflow transition is valid'''
+		if frappe.flags.in_install == 'frappe': return
 		if self.meta.get_workflow():
 			validate_workflow(self)
 
@@ -482,7 +489,7 @@ class Document(BaseDocument):
 				value = self.get(field.fieldname)
 				original_value = self._doc_before_save.get(field.fieldname)
 
-				if field.fieldtype=='Table':
+				if field.fieldtype in table_fields:
 					fail = not self.is_child_table_same(field.fieldname)
 				elif field.fieldtype in ('Date', 'Datetime', 'Time'):
 					fail = str(value) != str(original_value)
@@ -576,7 +583,7 @@ class Document(BaseDocument):
 		if not df:
 			df = self.meta.get_field(fieldname)
 
-		return df.permlevel in self.get_permlevel_access()
+		return df.permlevel in self.get_permlevel_access(permission_type)
 
 	def get_permissions(self):
 		if self.meta.istable:
@@ -749,7 +756,7 @@ class Document(BaseDocument):
 	def get_all_children(self, parenttype=None):
 		"""Returns all children documents from **Table** type field in a list."""
 		ret = []
-		for df in self.meta.get("fields", {"fieldtype": "Table"}):
+		for df in self.meta.get("fields", {"fieldtype": ['in', table_fields]}):
 			if parenttype:
 				if df.options==parenttype:
 					return self.get(df.fieldname)
@@ -874,9 +881,11 @@ class Document(BaseDocument):
 			return
 
 		if self._action=="save":
+			self.run_method("before_validate")
 			self.run_method("validate")
 			self.run_method("before_save")
 		elif self._action=="submit":
+			self.run_method("before_validate")
 			self.run_method("validate")
 			self.run_method("before_submit")
 		elif self._action=="cancel":
@@ -990,7 +999,7 @@ class Document(BaseDocument):
 			frappe.db.commit()
 
 	def db_get(self, fieldname):
-		'''get database vale for this fieldname'''
+		'''get database value for this fieldname'''
 		return frappe.db.get_value(self.doctype, self.name, fieldname)
 
 	def check_no_back_links_exist(self):
@@ -1107,33 +1116,22 @@ class Document(BaseDocument):
 		"""Returns Desk URL for this document. `/desk#Form/{doctype}/{name}`"""
 		return "/desk#Form/{doctype}/{name}".format(doctype=self.doctype, name=self.name)
 
-	def add_comment(self, comment_type, text=None, comment_by=None, link_doctype=None, link_name=None):
+	def add_comment(self, comment_type='Comment', text=None, comment_email=None, link_doctype=None, link_name=None, comment_by=None):
 		"""Add a comment to this document.
 
 		:param comment_type: e.g. `Comment`. See Communication for more info."""
 
-		if comment_type=='Comment':
-			out = frappe.get_doc({
-				"doctype":"Communication",
-				"communication_type": "Comment",
-				"sender": comment_by or frappe.session.user,
-				"comment_type": comment_type,
-				"reference_doctype": self.doctype,
-				"reference_name": self.name,
-				"content": text or comment_type,
-				"link_doctype": link_doctype,
-				"link_name": link_name
-			}).insert(ignore_permissions=True)
-		else:
-			out = frappe.get_doc(dict(
-				doctype='Version',
-				ref_doctype= self.doctype,
-				docname= self.name,
-				data = frappe.as_json(dict(comment_type=comment_type, comment=text))
-			))
-			if comment_by:
-				out.owner = comment_by
-			out.insert(ignore_permissions=True)
+		out = frappe.get_doc({
+			"doctype":"Comment",
+			'comment_type': comment_type,
+			"comment_email": comment_email or frappe.session.user,
+			"comment_by": comment_by,
+			"reference_doctype": self.doctype,
+			"reference_name": self.name,
+			"content": text or comment_type,
+			"link_doctype": link_doctype,
+			"link_name": link_name
+		}).insert(ignore_permissions=True)
 		return out
 
 	def add_seen(self, user=None):
@@ -1159,7 +1157,7 @@ class Document(BaseDocument):
 
 		if hasattr(self.meta, 'track_views') and self.meta.track_views:
 			frappe.get_doc({
-				"doctype": "View log",
+				"doctype": "View Log",
 				"viewed_by": frappe.session.user,
 				"reference_doctype": self.doctype,
 				"reference_name": self.name,

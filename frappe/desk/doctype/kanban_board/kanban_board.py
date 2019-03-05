@@ -8,7 +8,6 @@ import json
 from frappe import _
 from frappe.model.document import Document
 from six import iteritems
-from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 
 
 class KanbanBoard(Document):
@@ -29,7 +28,7 @@ def get_permission_query_conditions(user):
 	if user == "Administrator":
 		return ""
 
-	return """(`tabKanban Board`.private=0 or `tabKanban Board`.owner="{user}")""".format(user=user)
+	return """(`tabKanban Board`.private=0 or `tabKanban Board`.owner='{user}')""".format(user=user)
 
 def has_permission(doc, ptype, user):
 	if doc.private == 0 or user == "Administrator":
@@ -130,16 +129,8 @@ def update_order(board_name, order):
 @frappe.whitelist()
 def quick_kanban_board(doctype, board_name, field_name, project=None):
 	'''Create new KanbanBoard quickly with default options'''
+
 	doc = frappe.new_doc('Kanban Board')
-
-	if field_name == 'kanban_column':
-		create_custom_field(doctype, {
-			'label': 'Kanban Column',
-			'fieldname': 'kanban_column',
-			'fieldtype': 'Select',
-			'hidden': 1
-		})
-
 	meta = frappe.get_meta(doctype)
 
 	options = ''

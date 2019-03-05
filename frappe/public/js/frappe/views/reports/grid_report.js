@@ -422,6 +422,9 @@ frappe.views.GridReport = Class.extend({
 
 					this.setup_chart && this.setup_chart();
 				}
+			},
+			hooks: {
+				columnTotal: frappe.utils.report_column_total
 			}
 		});
 
@@ -830,7 +833,7 @@ frappe.views.TreeGridReport = frappe.views.GridReportWithPlot.extend({
 			var with_groups = $(msgbox.body).find("[name='with_groups']").prop("checked");
 			var with_ledgers = $(msgbox.body).find("[name='with_ledgers']").prop("checked");
 
-			var data = frappe.slickgrid_tools.get_view_data(me.columns, me.dataView,
+			var data = frappe.slickgrid_tools.get_view_data(me.columns, me.data,
 				function(row, item) {
 					if(with_groups) {
 						// add row

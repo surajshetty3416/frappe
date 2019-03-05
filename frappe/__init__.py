@@ -16,8 +16,15 @@ from faker import Faker
 # public
 from .exceptions import *
 from .utils.jinja import (get_jenv, get_template, render_template, get_email_from_template, get_jloader)
+from .utils.error import get_frame_locals
 
-__version__ = '10.1.47'
+# Hamless for Python 3
+# For Python 2 set default encoding to utf-8
+if sys.version[0] == '2':
+	reload(sys)
+	sys.setdefaultencoding("utf-8")
+
+__version__ = '11.1.13'
 __title__ = "Frappe Framework"
 
 local = Local()
@@ -45,6 +52,7 @@ class _dict(dict):
 def _(msg, lang=None):
 	"""Returns translated string in current lang, if exists."""
 	from frappe.translate import get_full_dict
+	from frappe.utils import strip_html_tags, is_html
 
 	if not hasattr(local, 'lang'):
 		local.lang = lang or 'en'
@@ -52,11 +60,16 @@ def _(msg, lang=None):
 	if not lang:
 		lang = local.lang
 
+	non_translated_msg = msg
+
+	if is_html(msg):
+		msg = strip_html_tags(msg)
+
 	# msg should always be unicode
 	msg = as_unicode(msg).strip()
 
 	# return lang_full_dict according to lang passed parameter
-	return get_full_dict(lang).get(msg) or msg
+	return get_full_dict(lang).get(msg) or non_translated_msg
 
 def as_unicode(text, encoding='utf-8'):
 	'''Convert to unicode if required'''
@@ -168,17 +181,17 @@ def connect(site=None, db_name=None):
 
 	:param site: If site is given, calls `frappe.init`.
 	:param db_name: Optional. Will use from `site_config.json`."""
-	from frappe.database import Database
+	from frappe.database import get_db
 	if site:
 		init(site)
 
-	local.db = Database(user=db_name or local.conf.db_name)
+	local.db = get_db(user=db_name or local.conf.db_name)
 	set_user("Administrator")
 
 def connect_read_only():
-	from frappe.database import Database
+	from frappe.database import get_db
 
-	local.read_only_db = Database(local.conf.slave_host, local.conf.slave_db_name,
+	local.read_only_db = get_db(local.conf.slave_host, local.conf.slave_db_name,
 		local.conf.slave_db_password)
 
 	# swap db connections
@@ -261,7 +274,8 @@ def errprint(msg):
 	if not request or (not "cmd" in local.form_dict) or conf.developer_mode:
 		print(msg)
 
-	error_log.append(msg)
+	from .utils import escape_html
+	error_log.append({"exc": escape_html(msg), "locals": get_frame_locals()})
 
 def log(msg):
 	"""Add to `debug_log`.
@@ -489,6 +503,7 @@ def read_only():
 			retval = fn(*args, **get_newargs(fn, kwargs))
 
 			if local and hasattr(local, 'master_db'):
+				local.db.close()
 				local.db = local.master_db
 
 			return retval
@@ -904,11 +919,15 @@ def get_hooks(hook=None, default=None, app_name=None):
 					append_hook(hooks, key, getattr(app_hooks, key))
 		return hooks
 
+	no_cache = conf.developer_mode or False
 
 	if app_name:
 		hooks = _dict(load_app_hooks(app_name))
 	else:
-		hooks = _dict(cache().get_value("app_hooks", load_app_hooks))
+		if no_cache:
+			hooks = _dict(load_app_hooks())
+		else:
+			hooks = _dict(cache().get_value("app_hooks", load_app_hooks))
 
 	if hook:
 		return hooks.get(hook) or (default if default is not None else [])

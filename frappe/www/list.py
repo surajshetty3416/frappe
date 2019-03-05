@@ -24,10 +24,10 @@ def get_context(context, **dict_params):
 	context.update(get(**frappe.local.form_dict))
 
 @frappe.whitelist(allow_guest=True)
-def get(doctype, txt=None, limit_start=0, limit=20, **kwargs):
+def get(doctype, txt=None, limit_start=0, limit=20, pathname=None, **kwargs):
 	"""Returns processed HTML page for a standard listing."""
-	raw_result = get_list_data(doctype, txt=None, limit_start=0, limit=limit + 1, **kwargs)
-
+	limit_start = cint(limit_start)
+	raw_result = get_list_data(doctype, txt, limit_start, limit=limit + 1, **kwargs)
 	show_more = len(raw_result) > limit
 	if show_more:
 		raw_result = raw_result[:-1]
@@ -54,14 +54,14 @@ def get(doctype, txt=None, limit_start=0, limit=20, **kwargs):
 			new_context.update(new_context.doc.as_dict())
 
 		if not frappe.flags.in_test:
-			new_context["pathname"] = frappe.local.request.path.strip("/ ")
+			pathname = pathname or frappe.local.request.path
+			new_context["pathname"] = pathname.strip("/ ")
 		new_context.update(list_context)
 		set_route(new_context)
 		rendered_row = frappe.render_template(row_template, new_context, is_path=True)
 		result.append(rendered_row)
 
 	from frappe.utils.response import json_handler
-
 	return {
 		"raw_result": json.dumps(raw_result, default=json_handler),
 		"result": result,

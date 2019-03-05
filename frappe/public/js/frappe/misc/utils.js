@@ -3,7 +3,7 @@
 
 frappe.provide('frappe.utils');
 
-frappe.utils = {
+Object.assign(frappe.utils, {
 	get_random: function(len) {
 		var text = "";
 		var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
@@ -88,9 +88,25 @@ frappe.utils = {
 	escape_html: function(txt) {
 		return $("<div></div>").text(txt || "").html();
 	},
+
+	html2text: function(html) {
+		let d = document.createElement('div');
+		d.innerHTML = html;
+		return d.textContent;
+	},
+
 	is_url: function(txt) {
 		return txt.toLowerCase().substr(0,7)=='http://'
 			|| txt.toLowerCase().substr(0,8)=='https://'
+	},
+	to_title_case: function(string, with_space=false) {
+		let titlecased_string = string.toLowerCase().replace(/(?:^|[\s-/])\w/g, function(match) {
+			return match.toUpperCase();
+		});
+
+		let replace_with = with_space ? ' ' : '';
+
+		return titlecased_string.replace(/-|_/g, replace_with);
 	},
 	toggle_blockquote: function(txt) {
 		if (!txt) return txt;
@@ -647,8 +663,27 @@ frappe.utils = {
 			return `<a href="${route}">${name}</a>`;
 		}
 		return route;
+	},
+	get_route_label(route_str) {
+		let route = route_str.split('/');
+		if (['List', 'modules'].includes(route[0])){
+			return `${route[1]} ${route[2] || route[0]}`;
+		} else {
+			return `${route[0]} ${route[1]}`;
+		}
+	},
+	report_column_total: function(values, column, type) {
+		if (column.column.fieldtype == "Percent" || type === "mean") {
+			return values.reduce((a, b) => a + flt(b)) / values.length;
+		} else if (column.column.fieldtype == "Int") {
+			return values.reduce((a, b) => a + cint(b));
+		} else if (frappe.model.is_numeric_field(column.column.fieldtype)) {
+			return values.reduce((a, b) => a + flt(b));
+		} else {
+			return null;
+		}
 	}
-};
+});
 
 // Array de duplicate
 if (!Array.prototype.uniqBy) {

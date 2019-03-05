@@ -23,8 +23,8 @@ frappe.form.formatters = {
 	},
 	Float: function(value, docfield, options, doc) {
 		// don't allow 0 precision for Floats, hence or'ing with null
-		var precision = docfield.precision 
-			|| cint(frappe.boot.sysdefaults && frappe.boot.sysdefaults.float_precision) 
+		var precision = docfield.precision
+			|| cint(frappe.boot.sysdefaults && frappe.boot.sysdefaults.float_precision)
 			|| null;
 		if (docfield.options && docfield.options.trim()) {
 			// options points to a currency field, but expects precision of float!
@@ -67,7 +67,7 @@ frappe.form.formatters = {
 			}
 		}
 
-		value = (value == null || value == "") ? "" : format_currency(value, currency, precision);
+		value = (value == null || value === "") ? "" : format_currency(value, currency, precision);
 
 		if ( options && options.only_value ) {
 			return value;
@@ -238,6 +238,16 @@ frappe.form.formatters = {
 			value = flt(flt(value) / 1024, 1) + "K";
 		}
 		return value;
+	},
+	TableMultiSelect: function(rows, df, options) {
+		rows = rows || [];
+		const meta = frappe.get_meta(df.options);
+		const link_field = meta.fields.find(df => df.fieldtype === 'Link');
+		const formatted_values = rows.map(row => {
+			const value = row[link_field.fieldname];
+			return frappe.format(value, link_field, options, row);
+		});
+		return formatted_values.join(', ');
 	}
 }
 

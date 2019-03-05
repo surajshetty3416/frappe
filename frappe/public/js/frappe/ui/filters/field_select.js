@@ -138,15 +138,10 @@ frappe.ui.FieldSelect = Class.extend({
 		if(me.doctype && df.parent==me.doctype) {
 			label = __(df.label);
 			table = me.doctype;
-			if(df.fieldtype=='Table') me.table_fields.push(df);
+			if(frappe.model.table_fields.includes(df.fieldtype)) me.table_fields.push(df);
 		} else {
 			label = __(df.label) + ' (' + __(df.parent) + ')';
 			table = df.parent;
-		}
-
-		// check if this option should be added
-		if (this.filter_options && this.filter_options(table, df.fieldname) === false) {
-			return;
 		}
 
 		if(frappe.model.no_value_type.indexOf(df.fieldtype) == -1 &&

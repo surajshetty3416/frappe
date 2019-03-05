@@ -10,8 +10,6 @@ from frappe import _
 from six import string_types
 
 # imports - third-party imports
-import pymysql
-from pymysql.constants import ER
 
 default_timeout = 300
 queue_timeout = {
@@ -23,7 +21,7 @@ queue_timeout = {
 
 redis_connection = None
 
-def enqueue(method, queue='default', timeout=300, event=None,
+def enqueue(method, queue='default', timeout=None, event=None,
 	is_async=True, job_name=None, now=False, enqueue_after_commit=False, **kwargs):
 	'''
 		Enqueue method to be executed using a background worker
@@ -38,9 +36,7 @@ def enqueue(method, queue='default', timeout=300, event=None,
 		:param kwargs: keyword arguments to be passed to the method
 	'''
 	# To handle older implementations
-	if 'async' in kwargs:
-		is_async = True
-		del kwargs['async']
+	is_async = kwargs.pop('async', is_async)
 
 	if now or frappe.flags.in_migrate:
 		return frappe.call(method, **kwargs)
@@ -102,11 +98,12 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 	try:
 		method(**kwargs)
 
-	except (pymysql.InternalError, frappe.RetryBackgroundJobError) as e:
+	except (frappe.db.InternalError, frappe.RetryBackgroundJobError) as e:
 		frappe.db.rollback()
 
 		if (retry < 5 and
-			(isinstance(e, frappe.RetryBackgroundJobError) or e.args[0] in (ER.LOCK_DEADLOCK, ER.LOCK_WAIT_TIMEOUT))):
+			(isinstance(e, frappe.RetryBackgroundJobError) or
+				(frappe.db.is_deadlocked(e) or frappe.db.is_timedout(e)))):
 			# retry the job if
 			# 1213 = deadlock
 			# 1205 = lock wait timeout

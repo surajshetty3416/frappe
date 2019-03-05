@@ -58,8 +58,14 @@ def is_a_user_permission_key(key):
 def not_in_user_permission(key, value, user=None):
 	# returns true or false based on if value exist in user permission
 	user = user or frappe.session.user
-	user_permission = get_user_permissions(user).get(frappe.unscrub(key))
-	return user_permission and not (value in user_permission['docs'])
+	user_permission = get_user_permissions(user).get(frappe.unscrub(key)) or []
+
+	for perm in user_permission:
+		# doc found in user permission
+		if perm.get('doc') == value: return False
+
+	# return true only if user_permission exists
+	return True if user_permission else False
 
 def get_user_permissions(user=None):
 	from frappe.core.doctype.user_permission.user_permission \
@@ -115,7 +121,7 @@ def set_default(key, value, parent, parenttype="__default"):
 		select
 			defkey
 		from
-			tabDefaultValue
+			`tabDefaultValue`
 		where
 			defkey=%s and parent=%s
 		for update''', (key, parent)):
@@ -126,6 +132,8 @@ def set_default(key, value, parent, parenttype="__default"):
 				defkey=%s and parent=%s""", (key, parent))
 	if value != None:
 		add_default(key, value, parent)
+	else:
+		_clear_cache(parent)
 
 def add_default(key, value, parent, parenttype=None):
 	d = frappe.get_doc({
