@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 import json
 import frappe
 import frappe.utils
-from frappe.core.doctype.energy_point_log.energy_point_log import ENERGY_POINT_VALUES, create_energy_point_log
+from frappe.social.doctype.energy_point_log.energy_point_log import ENERGY_POINT_VALUES, create_energy_point_log
 
 
 @frappe.whitelist(allow_guest=True)

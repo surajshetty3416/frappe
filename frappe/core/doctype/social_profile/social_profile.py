@@ -17,7 +17,7 @@ def update_user_energy_point(point, user=None):
 	if user == 'admin@erpnext.com': user = 'Administrator'
 	if not user: user = frappe.session.user
 	previous_point = frappe.db.get_value('Social Profile', user, 'energy_point')
-	new_point = previous_point + point
+	new_point = cint(previous_point) + point
 	frappe.db.set_value('Social Profile', user, 'energy_point', new_point)
 
 	print('================= {} gained {} points ==================='.format(user, point))
