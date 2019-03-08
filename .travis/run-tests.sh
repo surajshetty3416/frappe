@@ -11,14 +11,14 @@ setup_mariadb_env() {
 if [[ $DB == 'mariadb' ]]; then
     setup_mariadb_env 'test_frappe'
     bench --site test_site reinstall --yes
-    bench --site test_site scheduler disable
+    bench --site all disable-scheduler
     bench --site test_site run-tests --coverage
 
 elif [[ $TEST_TYPE == 'ui' ]]; then
     setup_mariadb_env 'test_site_ui'
     bench --site test_site_ui --force restore ./apps/frappe/test_sites/test_site_ui/test_site_ui-database.sql.gz
     bench --site test_site_ui migrate
-    bench --site test_site_ui scheduler disable
+    bench --site all disable-scheduler
     cd apps/frappe && yarn && yarn cypress:run
 
 elif [[ $DB == 'postgres' ]]; then
