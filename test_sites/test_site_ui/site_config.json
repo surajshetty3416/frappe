@@ -9,6 +9,5 @@
  "mail_password": "test",
  "admin_password": "qwe",
  "root_password": "travis",
- "run_selenium_tests": 1,
  "host_name": "http://test_site_ui:8000"
 }
