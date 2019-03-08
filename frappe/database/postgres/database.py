@@ -5,7 +5,7 @@ import frappe
 import psycopg2
 import psycopg2.extensions
 from six import string_types
-from frappe.utils import cstr
+from frappe.utils import cstr, cint
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
 from frappe.database.database import Database
@@ -17,7 +17,13 @@ DEC2FLOAT = psycopg2.extensions.new_type(
     'DEC2FLOAT',
     lambda value, curs: float(value) if value is not None else None)
 
+BOOL2INT = psycopg2.extensions.new_type(
+    psycopg2.extensions.BOOLEAN.values,
+    'BOOL2INT',
+    lambda value, curs: cint(value))
+
 psycopg2.extensions.register_type(DEC2FLOAT)
+psycopg2.extensions.register_type(BOOL2INT)
 
 class PostgresDatabase(Database):
 	ProgrammingError = psycopg2.ProgrammingError
@@ -107,12 +113,13 @@ class PostgresDatabase(Database):
 				and table_schema='public'""".format(frappe.conf.db_name))]
 
 	def format_date(self, date):
+		print(date)
 		if not date:
 			return '0001-01-01::DATE'
 
 		if isinstance(date, frappe.string_types):
 			if ':' not in date:
-				date = date + '::DATE'
+				date = date
 		else:
 			date = date.strftime('%Y-%m-%d') + '::DATE'
 
