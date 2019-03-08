@@ -64,9 +64,10 @@ def update_add_node(doc, parent, parent_field):
 		validate_loop(doc.doctype, doc.name, left, right)
 	else: # root
 		right = frappe.db.sql("""
-			SELECT COALESCE(MAX(rgt), 0) + 1 FROM `tab{0}`
+			SELECT COALESCE(MAX(`rgt`), 0) + 1 FROM `tab{0}`
 			WHERE COALESCE(`{1}`, '') = ''
-		""".format(doctype, parent_field))[0][0]
+		""".format(doctype, parent_field))
+		right = right[0][0] if right else 1
 	right = right or 1
 
 	# update all on the right

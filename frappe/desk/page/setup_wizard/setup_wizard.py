@@ -9,7 +9,7 @@ from frappe.translate import (set_default_language, get_dict, send_translations)
 from frappe.geo.country_info import get_country_info
 from frappe.utils.password import update_password
 from werkzeug.useragents import UserAgent
-from . import install_fixtures
+from .install_fixtures import install
 from six import string_types
 
 def get_setup_stages(args):
@@ -69,7 +69,8 @@ def setup_complete(args):
 			for task in stage.get('tasks'):
 				current_task = task
 				task.get('fn')(task.get('args'))
-	except Exception:
+	except Exception as e:
+		print(e)
 		handle_setup_exception(args)
 		return {'status': 'fail', 'fail': current_task.get('fail_msg')}
 	else:
@@ -93,7 +94,7 @@ def run_post_setup_complete(args):
 def run_setup_success(args):
 	for hook in frappe.get_hooks("setup_wizard_success"):
 		frappe.get_attr(hook)(args)
-	install_fixtures.install()
+	install()
 
 def get_stages_hooks(args):
 	stages = []
