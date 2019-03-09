@@ -6,11 +6,6 @@ python:
   - 2.7
   - 3.6
 
-env:
-  - DB=mariadb
-  - DB=postgres
-  - TEST_TYPE=ui
-
 services:
   - mysql
 
@@ -20,6 +15,11 @@ addons:
     - test_site
     - test_site_postgres
     - test_site_ui
+
+env:
+  - DB=mariadb
+  - DB=postgres
+  - TEST_TYPE=ui
 
 matrix:
   exclude:
