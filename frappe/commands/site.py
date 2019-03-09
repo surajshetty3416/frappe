@@ -342,13 +342,17 @@ def uninstall(context, app, dry_run=False, yes=False):
 
 
 @click.command('drop-site')
-@click.argument('site')
+@click.argument('site', nargs=-1)
 @click.option('--root-login', default='root')
 @click.option('--root-password')
 @click.option('--archived-sites-path')
 @click.option('--force', help='Force drop-site even if an error is encountered', is_flag=True, default=False)
 def drop_site(site, root_login='root', root_password=None, archived_sites_path=None, force=False):
-	_drop_site(site, root_login, root_password, archived_sites_path, force)
+	for s in site:
+		try:
+			_drop_site(s, root_login, root_password, archived_sites_path, force)
+		except:
+			pass
 
 
 def _drop_site(site, root_login='root', root_password=None, archived_sites_path=None, force=False):
