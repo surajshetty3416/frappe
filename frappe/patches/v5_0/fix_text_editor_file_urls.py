@@ -42,4 +42,3 @@ def scrub_relative_urls(html):
 def print_diff(html, old_value):
 	import difflib
 	diff = difflib.unified_diff(old_value.splitlines(1), html.splitlines(1), lineterm='')
-	print('\n'.join(list(diff)))
