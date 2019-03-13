@@ -122,7 +122,7 @@ def json_handler(obj):
 	# serialize date
 	import collections
 
-	if isinstance(obj, (datetime.date, datetime.timedelta, datetime.datetime)):
+	if isinstance(obj, (datetime.date, datetime.timedelta, datetime.datetime, datetime.time)):
 		return text_type(obj)
 
 	elif isinstance(obj, decimal.Decimal):
