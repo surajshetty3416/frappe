@@ -8,6 +8,7 @@ import getpass
 from frappe.utils.password import update_password
 
 def before_install():
+	frappe.reload_doc("core", "doctype", "role")
 	frappe.reload_doc("core", "doctype", "docfield")
 	frappe.reload_doc("core", "doctype", "docperm")
 	frappe.reload_doc("core", "doctype", "doctype")
@@ -31,7 +32,7 @@ def after_install():
 	print_settings.save()
 
 	# all roles to admin
-	frappe.get_doc("User", "Administrator").add_roles(*frappe.db.sql_list("""select name from tabRole"""))
+	frappe.get_doc("User", "Administrator").add_roles(*frappe.db.sql_list("""select `name` from `tabRole`"""))
 
 	# update admin password
 	update_password("Administrator", get_admin_password())
@@ -56,7 +57,6 @@ def install_basic_docs():
 			'email':'guest@example.com', 'enabled':1, "is_guest": 1,
 			'roles': [{'role': 'Guest'}]
 		},
-		{'doctype': "Role", "role_name": "Report Manager"},
 		{'doctype': "Role", "role_name": "Translator"},
 		{'doctype': "Workflow State", "workflow_state_name": "Pending",
 			"icon": "question-sign", "style": ""},
