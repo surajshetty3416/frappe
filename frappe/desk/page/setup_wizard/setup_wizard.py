@@ -383,6 +383,8 @@ def make_records(records, debug=False):
 
 		try:
 			doc.insert(ignore_permissions=True)
+			# TODO: find better solution
+			frappe.db.commit()
 
 		except frappe.DuplicateEntryError as e:
 			# print("Failed to insert duplicate {0} {1}".format(doctype, doc.name))
