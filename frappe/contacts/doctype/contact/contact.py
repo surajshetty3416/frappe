@@ -62,15 +62,15 @@ class Contact(Document):
 
 def get_default_contact(doctype, name):
 	'''Returns default contact for the given doctype, name'''
-	out = frappe.db.sql('''select parent,
-			(select is_primary_contact from tabContact c where c.name = dl.parent)
-				as is_primary_contact
-		from
+	out = frappe.db.sql("""SELECT parent,
+			(SELECT `is_primary_contact` FROM `tabContact` c WHERE c.`name` = dl.`parent`)
+				AS is_primary_contact
+		FROM
 			`tabDynamic Link` dl
-		where
-			dl.link_doctype=%s and
-			dl.link_name=%s and
-			dl.parenttype = "Contact"''', (doctype, name))
+		WHERE
+			dl.link_doctype=%s AND
+			dl.link_name=%s AND
+			dl.parenttype = 'Contact'""", (doctype, name))
 
 	if out:
 		return sorted(out, key = functools.cmp_to_key(lambda x,y: cmp(y[1], x[1])))[0][0]

@@ -17,13 +17,7 @@ DEC2FLOAT = psycopg2.extensions.new_type(
     'DEC2FLOAT',
     lambda value, curs: float(value) if value is not None else None)
 
-BOOL2INT = psycopg2.extensions.new_type(
-    psycopg2.extensions.BOOLEAN.values,
-    'BOOL2INT',
-    lambda value, curs: cint(value))
-
 psycopg2.extensions.register_type(DEC2FLOAT)
-psycopg2.extensions.register_type(BOOL2INT)
 
 class PostgresDatabase(Database):
 	ProgrammingError = psycopg2.ProgrammingError

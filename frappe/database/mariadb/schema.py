@@ -70,9 +70,9 @@ class MariaDBTable(DBTable):
 		try:
 			for query_parts in [add_column_query, modify_column_query, add_index_query, drop_index_query]:
 				if query_parts:
-					query_body = ", ".join(query_parts)
-					query = "ALTER TABLE `{}` {}".format(self.table_name, query_body)
-					frappe.db.sql(query)
+					for query_part in query_parts:
+						query = "ALTER TABLE `{}` {}".format(self.table_name, query_part)
+						frappe.db.sql(query)
 
 		except Exception as e:
 			# sanitize

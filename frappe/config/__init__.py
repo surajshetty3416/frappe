@@ -86,15 +86,17 @@ def get_modules_from_app(app):
 	return active_modules_list
 
 def get_all_empty_tables_by_module():
-	results = frappe.db.sql("""
-		SELECT
-			name, module
-		FROM information_schema.tables as i
-		JOIN tabDocType as d
-			ON i.table_name = CONCAT('tab', d.name)
-		WHERE table_rows = 0;
+	# results = frappe.db.sql("""
+	# 	SELECT
+	# 		`name`, `module`
+	# 	FROM information_schema.tables AS i
+	# 	JOIN `tabDocType` AS d
+	# 		ON i.table_name = CONCAT('tab', d.name)
+	# 	WHERE i.`table_rows` = 0;
 
-	""")
+	# """)
+
+	results = {}
 
 	empty_tables_by_module = {}
 
