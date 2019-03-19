@@ -5,7 +5,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
-from frappe.core.doctype.social_profile.social_profile import update_user_energy_point
+from frappe.utils import cint
 
 ENERGY_POINT_VALUES = {
 	'issue_closed': 2,
@@ -19,7 +19,7 @@ ENERGY_POINT_VALUES = {
 
 class EnergyPointLog(Document):
 	def after_insert(self):
-		update_user_energy_point(self.points, self.user)
+		update_user_energy_points(self.points, self.user)
 
 def update_log(doc, state):
 	if frappe.flags.in_patch: return
@@ -65,3 +65,15 @@ def create_energy_point_log(points, reason, reference_doctype, reference_name, u
 		'reference_doctype': reference_doctype,
 		'reference_name': reference_name
 	}).insert(ignore_permissions=True)
+
+def update_user_energy_points(point, user=None):
+	point = cint(point)
+	if not point: return
+	# TODO: find alternative
+	if user == 'admin@erpnext.com': user = 'Administrator'
+	if not user: user = frappe.session.user
+	previous_point = frappe.db.get_value('User', user, 'energy_point')
+	new_point = cint(previous_point) + point
+	frappe.db.set_value('User', user, 'energy_point', new_point)
+
+	print('================= {} gained {} points ==================='.format(user, point))
