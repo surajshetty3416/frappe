@@ -163,7 +163,8 @@ scheduler_events = {
 		"frappe.desk.page.backups.backups.delete_downloadable_backups",
 		"frappe.limits.update_space_usage",
 		"frappe.desk.doctype.auto_repeat.auto_repeat.make_auto_repeat_entry",
-		"frappe.deferred_insert.save_to_db"
+		"frappe.deferred_insert.save_to_db",
+		"frappe.desk.form.document_follow.send_hourly_updates"
 	],
 	"daily": [
 		"frappe.email.queue.clear_outbox",
@@ -178,6 +179,9 @@ scheduler_events = {
 		"frappe.email.doctype.auto_email_report.auto_email_report.send_daily",
 		"frappe.core.doctype.feedback_request.feedback_request.delete_feedback_request",
 		"frappe.core.doctype.activity_log.activity_log.clear_authentication_logs",
+		"frappe.website.doctype.personal_data_deletion_request.personal_data_deletion_request.remove_unverified_record",
+		"frappe.desk.form.document_follow.send_daily_updates"
+
 	],
 	"daily_long": [
 		"frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backups_daily",
@@ -187,7 +191,8 @@ scheduler_events = {
 		"frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backups_weekly",
 		"frappe.integrations.doctype.s3_backup_settings.s3_backup_settings.take_backups_weekly",
 		"frappe.utils.change_log.check_for_update",
-		"frappe.desk.doctype.route_history.route_history.flush_old_route_records"
+		"frappe.desk.doctype.route_history.route_history.flush_old_route_records",
+		"frappe.desk.form.document_follow.send_weekly_updates"
 	],
 	"monthly": [
 		"frappe.email.doctype.auto_email_report.auto_email_report.send_monthly"
@@ -232,3 +237,55 @@ before_write_file = "frappe.limits.validate_space_limit"
 before_migrate = ['frappe.patches.v11_0.sync_user_permission_doctype_before_migrate.execute']
 
 otp_methods = ['OTP App','Email','SMS']
+user_privacy_documents = [
+	{
+		'doctype': 'File',
+		'match_field': 'attached_to_name',
+		'personal_fields': ['file_name', 'file_url'],
+		'applies_to_website_user': 1
+	},
+	{
+		'doctype': 'Email Group Member',
+		'match_field': 'email',
+	},
+	{
+		'doctype': 'Email Unsubscribe',
+		'match_field': 'email',
+	},
+	{
+		'doctype': 'Email Queue',
+		'match_field': 'sender',
+	},
+	{
+		'doctype': 'Email Queue Recipient',
+		'match_field': 'recipient',
+	},
+	{
+		'doctype': 'Contact',
+		'match_field': 'email_id',
+		'personal_fields': ['first_name', 'last_name', 'phone', 'mobile_no'],
+	},
+	{
+		'doctype': 'Address',
+		'match_field': 'email_id',
+		'personal_fields': ['address_title', 'address_line1', 'address_line2', 'city', 'county', 'state', 'pincode',
+			'phone', 'fax'],
+	},
+	{
+		'doctype': 'Communication',
+		'match_field': 'sender',
+		'personal_fields': ['sender_full_name', 'phone_no', 'content'],
+	},
+	{
+		'doctype': 'Communication',
+		'match_field': 'recipients',
+	},
+	{
+		'doctype': 'User',
+		'match_field': 'name',
+		'personal_fields': ['email', 'username', 'first_name', 'middle_name', 'last_name', 'full_name', 'birth_date',
+			'user_image', 'phone', 'mobile_no', 'location', 'banner_image', 'interest', 'bio', 'email_signature', 'background_image'],
+		'applies_to_website_user': 1
+	},
+
+]
