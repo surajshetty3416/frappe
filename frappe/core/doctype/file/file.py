@@ -503,6 +503,9 @@ class File(NestedSet):
 	def save_file_on_filesystem(self):
 		fpath = self.write_file()
 
+		if self.content_type.startswith('image/'):
+			self.compress_image()
+
 		if self.is_private:
 			self.file_url = "/private/files/{0}".format(self.file_name)
 		else:
@@ -512,6 +515,13 @@ class File(NestedSet):
 			'file_name': os.path.basename(fpath),
 			'file_url': self.file_url
 		}
+
+	def compress_image(self):
+		from PIL import Image
+		file_path = get_files_path(self.file_name, is_private=self.is_private)
+		image = Image.open(file_path)
+		image.thumbnail((1024, 756), Image.ANTIALIAS)
+		image.save(file_path, optimize=True, quality=85)
 
 	def get_file_data_from_hash(self):
 		for name in frappe.db.sql_list("select name from `tabFile` where content_hash=%s and is_private=%s",
