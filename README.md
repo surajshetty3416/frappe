@@ -34,6 +34,9 @@
 Full-stack web application framework that uses Python and MariaDB on the server side and a tightly integrated client side library. Built for [ERPNext](https://erpnext.com)
 
 ### Table of Contents
+
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/b339237127da436db27f00337010a21c)](https://app.codacy.com/app/surajshetty3416/frappe?utm_source=github.com&utm_medium=referral&utm_content=surajshetty3416/frappe&utm_campaign=Badge_Grade_Dashboard)
+
 * [Installation](#installation)
 * [License](#license)
 
