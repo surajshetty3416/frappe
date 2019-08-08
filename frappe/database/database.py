@@ -849,7 +849,7 @@ class Database(object):
 
 	def get_table_columns(self, doctype):
 		"""Returns list of column names from given doctype."""
-		columns = self.get_db_table_columns('tab' + doctype)
+		columns = self.get_db_table_columns(self.get_table_name(doctype))
 		if not columns:
 			raise self.TableMissingError
 		return columns
@@ -872,10 +872,15 @@ class Database(object):
 		pass
 
 	@staticmethod
-	def get_index_name(fields):
-		index_name = "_".join(fields) + "_index"
+	def get_index_name(fields, table_name, unique=False):
+		# {tablename}_{columnname(s)}_{suffix}
+
+		suffix = 'key' if unique else 'idx'
+		index_name = table_name + "_".join(fields) + suffix
+
 		# remove index length if present e.g. (10) from index name
 		index_name = re.sub(r"\s*\([^)]+\)\s*", r"", index_name)
+
 		return index_name
 
 	def get_system_setting(self, key):
@@ -958,6 +963,9 @@ class Database(object):
 				frappe.flags.touched_tables = set()
 			frappe.flags.touched_tables.update(tables)
 
+	@staticmethod
+	def get_table_name(doctype):
+		return 'tab{}'.format(doctype)
 
 def enqueue_jobs_after_commit():
 	if frappe.flags.enqueue_after_commit and len(frappe.flags.enqueue_after_commit) > 0:
