@@ -243,29 +243,36 @@ class PostgresDatabase(Database):
 
 	def add_index(self, doctype, fields, index_name=None):
 		"""Creates an index with given fields if not already created.
-		Index name will be `fieldname1_fieldname2_index`"""
-		index_name = index_name or self.get_index_name(fields)
-		table_name = 'tab' + doctype
+		Index name will be `tablename_fieldname1_fieldname2_idx`"""
+		table_name = self.get_table_name(doctype)
+		index_name = index_name or self.get_index_name(fields, table_name)
 
 		self.commit()
-		self.sql("""CREATE INDEX IF NOT EXISTS "{}" ON `{}`("{}")""".format(index_name, table_name, '", "'.join(fields)))
+		self.sql("""CREATE INDEX IF NOT EXISTS "{}" ON "{}"("{}")"""
+			.format(index_name, table_name, '", "'.join(fields)))
 
 	def add_unique(self, doctype, fields, constraint_name=None):
+		table_name = 'tab{}'.format(doctype)
 		if isinstance(fields, string_types):
-			fields = [fields]
+			fields = fields.split(',')
 		if not constraint_name:
-			constraint_name = "unique_" + "_".join(fields)
+			constraint_name = self.get_index_name(fields, table_name, unique=True)
 
-		if not self.sql("""
+		if not has_unique(table_name, constraint_name):
+				self.commit()
+				self.sql("ALTER TABLE `%s` ADD CONSTRAINT %s UNIQUE (%s)" %
+					(table_name, constraint_name, ", ".join(fields)))
+
+	def has_unique(self, table_name, constraint_name):
+		return self.sql("""
 			SELECT CONSTRAINT_NAME
 			FROM information_schema.TABLE_CONSTRAINTS
 			WHERE table_name=%s
 			AND constraint_type='UNIQUE'
-			AND CONSTRAINT_NAME=%s""",
-			('tab' + doctype, constraint_name)):
-				self.commit()
-				self.sql("""ALTER TABLE `tab%s`
-					ADD CONSTRAINT %s UNIQUE (%s)""" % (doctype, constraint_name, ", ".join(fields)))
+			AND CONSTRAINT_NAME=%s
+		""", (table_name, constraint_name))
+
+
 
 	def get_table_columns_description(self, table_name):
 		"""Returns list of column and its description"""

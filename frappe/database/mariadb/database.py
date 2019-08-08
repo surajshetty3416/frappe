@@ -248,25 +248,33 @@ class MariaDBDatabase(Database):
 	def add_index(self, doctype, fields, index_name=None):
 		"""Creates an index with given fields if not already created.
 		Index name will be `fieldname1_fieldname2_index`"""
-		index_name = index_name or self.get_index_name(fields)
-		table_name = 'tab' + doctype
+		table_name = self.get_table_name(doctype)
+		index_name = index_name or self.get_index_name(fields, table_name)
 		if not self.has_index(table_name, index_name):
 			self.commit()
-			self.sql("""ALTER TABLE `%s`
-				ADD INDEX `%s`(%s)""" % (table_name, index_name, ", ".join(fields)))
+			self.sql("ALTER TABLE `%s` ADD INDEX `%s`(%s)" %
+				(table_name, index_name, ", ".join(fields)))
 
 	def add_unique(self, doctype, fields, constraint_name=None):
+		table_name = self.get_table_name(doctype)
 		if isinstance(fields, string_types):
-			fields = [fields]
+			fields = fields.split(',')
 		if not constraint_name:
-			constraint_name = "unique_" + "_".join(fields)
+			constraint_name = self.get_index_name(fields, table_name, unique=True)
 
-		if not self.sql("""select CONSTRAINT_NAME from information_schema.TABLE_CONSTRAINTS
-			where table_name=%s and constraint_type='UNIQUE' and CONSTRAINT_NAME=%s""",
-			('tab' + doctype, constraint_name)):
+		if not self.has_unique_constraint(table_name, constraint_name):
 				self.commit()
-				self.sql("""alter table `tab%s`
-					add unique `%s`(%s)""" % (doctype, constraint_name, ", ".join(fields)))
+				self.sql("ALTER TABLE `tab%s` ADD UNIQUE `%s`(%s)" %
+					(doctype, constraint_name, ", ".join(fields)))
+
+	def has_unique_constraint(self, table_name, constraint_name):
+		return self.sql("""
+			SELECT CONSTRAINT_NAME
+			FROM information_schema.TABLE_CONSTRAINTS
+			WHERE table_name=%s
+			AND constraint_type='UNIQUE'
+			AND CONSTRAINT_NAME=%s
+		""", (table_name, constraint_name))
 
 	def updatedb(self, doctype, meta=None):
 		"""

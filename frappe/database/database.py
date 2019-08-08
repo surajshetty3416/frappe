@@ -874,6 +874,8 @@ class Database(object):
 	@staticmethod
 	def get_index_name(fields, table_name, unique=False):
 		# {tablename}_{columnname(s)}_{suffix}
+		if isinstance(fields, string_types):
+			fields = fields.split(',')
 
 		suffix = 'key' if unique else 'idx'
 		index_name = table_name + "_".join(fields) + suffix

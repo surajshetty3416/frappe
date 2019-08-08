@@ -42,33 +42,49 @@ class MariaDBTable(DBTable):
 
 		add_column_query = []
 		modify_column_query = []
+		add_unique_constraint_query = []
 		add_index_query = []
 		drop_index_query = []
 
-		columns_to_modify =  set(self.change_type + self.add_unique + self.set_default)
+		columns_to_modify =  set(self.change_type + self.set_default)
 
 		for col in self.add_column:
 			add_column_query.append("ADD COLUMN `{}` {}".format(col.fieldname, col.get_definition()))
 
 		for col in columns_to_modify:
-			modify_column_query.append("MODIFY `{}` {}".format(col.fieldname, col.get_definition()))
+			definition = col.get_definition()
+			# to avoid duplication unique index creation
+			# we are handling unique constraint creation seperately
+			definition.rstrip(' unique')
+			modify_column_query.append("MODIFY `{}` {}".format(col.fieldname, definition))
+
+		for col in self.add_unique:
+			constraint_name = frappe.db.get_index_name(col.fieldname, self.table_name, unique=True)
+			add_unique_constraint_query.append("ADD UNIQUE IF NOT EXISTS `{}`(`{}`)"
+				.format(constraint_name, col.fieldname))
 
 		for col in self.add_index:
-			# if index key not exists
-			if not frappe.db.sql("SHOW INDEX FROM `%s` WHERE key_name = %s" %
-					(self.table_name, '%s'), col.fieldname):
-				add_index_query.append("ADD INDEX `{}`(`{}`)".format(col.fieldname, col.fieldname))
+			index_name = frappe.db.get_index_name(col.fieldname, self.table_name, unique=True)
+			add_index_query.append("ADD INDEX IF NOT EXISTS `{}`(`{}`)"
+				.format(index_name, col.fieldname))
 
-		for col in self.drop_index:
-			if col.fieldname != 'name': # primary key
+			for col in self.drop_index:
+				# primary key
+				if col.fieldname == 'name':
+					continue
+
 				# if index key exists
-				if frappe.db.sql("""SHOW INDEX FROM `{0}`
-					WHERE key_name=%s
-					AND Non_unique=%s""".format(self.table_name), (col.fieldname, col.unique)):
-					drop_index_query.append("drop index `{}`".format(col.fieldname))
+				index_name = frappe.db.get_index_name(col.fieldname, self.table_name)
+				drop_index_query.append("DROP INDEX IF EXISTS `{}`".format(index_name))
+
+				# because while if there's a unique constraint, while adding a new column
+				# MariaDB creates a index with column name
+				drop_index_query.append("DROP INDEX IF EXISTS `{}`".format(col.fieldname))
 
 		try:
-			for query_parts in [add_column_query, modify_column_query, add_index_query, drop_index_query]:
+			query_chunks = [add_column_query, modify_column_query, \
+				add_unique_constraint_query, add_index_query, drop_index_query]
+			for query_parts in query_chunks:
 				if query_parts:
 					query_body = ", ".join(query_parts)
 					query = "ALTER TABLE `{}` {}".format(self.table_name, query_body)
@@ -80,7 +96,7 @@ class MariaDBTable(DBTable):
 				frappe.throw(str(e))
 			elif e.args[0]==1062:
 				fieldname = str(e).split("'")[-2]
-				frappe.throw(_("{0} field cannot be set as unique in {1}, as there are non-unique existing values".format(
-					fieldname, self.table_name)))
+				frappe.throw(_("{0} field cannot be set as unique in {1}, as there are non-unique existing values"
+					.format(fieldname, self.table_name)))
 			else:
 				raise e
