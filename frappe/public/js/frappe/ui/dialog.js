@@ -102,6 +102,29 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 
 	}
 
+	setup_field_links() {
+		if (cur_frm) {
+			let visible_fields_filter = f =>
+				!['Section Break', 'Column Break'].includes(f.df.fieldtype)
+				&& !f.df.hidden
+				&& f.disp_status !== 'None';
+
+			let fields = cur_frm.fields
+				.filter(visible_fields_filter)
+				.map(f => ({ label: f.df.label, value: f.df.fieldname }));
+			let html = this.$body.html();
+			fields.forEach(field => {
+				html = html.replace(field.label, `<a data-scroll-to=${field.value}>${field.label}</a>`);
+			});
+			this.$body.html(html);
+			this.$body.find('a[data-scroll-to]').click(e => {
+				e.preventDefault();
+				this.hide();
+				cur_frm.scroll_to_field(e.target.dataset.scrollTo);
+			});
+		}
+	}
+
 	get_primary_btn() {
 		return this.$wrapper.find(".modal-header .btn-primary");
 	}
@@ -170,6 +193,10 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 
 		// clear any message
 		this.clear_message();
+
+		if (true) {
+			this.setup_field_links();
+		}
 
 		this.primary_action_fulfilled = false;
 		this.is_visible = true;
