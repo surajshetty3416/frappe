@@ -66,7 +66,7 @@ frappe.ui.form.Attachments = Class.extend({
 		var $attach = $(frappe.render_template("attachment", {
 			"file_path": "/desk#Form/File/" + fileid,
 			"icon": attachment.is_private ? "fa fa-lock" : "fa fa-unlock-alt",
-			"file_name": file_name,
+			"file_name": frappe.utils.escape_html(file_name),
 			"file_url": frappe.urllib.get_full_url(file_url)
 		})).insertAfter(this.attachments_label.addClass("has-attachments"));
 

@@ -84,7 +84,7 @@ frappe.ui.form.ControlAttach = frappe.ui.form.ControlData.extend({
 				dataurl = parts[1];
 			}
 			this.$value.toggle(true).find(".attached-file-link")
-				.html(filename || this.value)
+				.text(filename || this.value)
 				.attr("href", dataurl || this.value);
 		} else {
 			this.$input.toggle(true);

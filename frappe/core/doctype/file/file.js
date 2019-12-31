@@ -15,10 +15,10 @@ frappe.ui.form.on("File", "refresh", function(frm) {
 	frm.toggle_display("preview", is_viewable);
 	frm.toggle_display("preview_html", is_viewable);
 
-	if(is_viewable){
-		wrapper.html('<div class="img_preview">\
-			<img class="img-responsive" src="'+frm.doc.file_url+'"></img>\
-			</div>');
+	if (is_viewable) {
+		wrapper.html(`<div class="img_preview">
+				<img class="img-responsive" src='${frm.doc.file_url}'></img>
+			</div>`);
 	} else {
 		wrapper.empty();
 	}

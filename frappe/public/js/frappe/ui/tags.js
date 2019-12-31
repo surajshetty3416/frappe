@@ -92,13 +92,13 @@ frappe.ui.Tags = class {
 	}
 
 	clearTags() {
-		this.$ul.find('.frappe-tag').remove();
+		this.$ul.find('.frappe-tag').parent().remove();
 		this.tagsList = [];
 	}
 
-	getListElement($element, className) {
+	getListElement($element, className='') {
 		let $li = $(`<li class="tags-list-item ${className}"></li>`);
-		$element.appendTo($li);
+		$li.append($element);
 		return $li;
 	}
 

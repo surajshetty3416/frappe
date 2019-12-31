@@ -461,8 +461,8 @@ frappe.ui.form.Timeline = class Timeline {
 	}
 
 	set_icon_and_color(c) {
-		if(c.communication_type == "Feedback"){
-			c.icon = "octicon octicon-comment-discussion"
+		if (c.communication_type == "Feedback") {
+			c.icon = "octicon octicon-comment-discussion";
 		} else {
 			c.icon = {
 				"Email": "octicon octicon-mail",
@@ -606,21 +606,21 @@ frappe.ui.form.Timeline = class Timeline {
 								me.frm.perm);
 							if (field_display_status === 'Read' || field_display_status === 'Write') {
 								parts.push(__('{0} from {1} to {2}', [
-									__(df.label),
-									(frappe.ellipsis(frappe.utils.html2text(p[1]), 40) || '""').bold(),
-									(frappe.ellipsis(frappe.utils.html2text(p[2]), 40) || '""').bold()
+									__(df.label).bold(),
+									(frappe.ellipsis(p[1], 40) || '""').bold(),
+									(frappe.ellipsis(p[2], 40) || '""').bold()
 								]));
 							}
 						}
 					}
 					return parts.length < 3;
 				});
-				if(parts.length) {
+				if (parts.length) {
 					let message;
 					if (data.data_import) {
-						message = __("changed value of {0} {1}", [parts.join(', ').bold(), data_import_link]);
+						message = __("changed value of {0} {1}", [parts.join(', '), data_import_link]);
 					} else {
-						message = __("changed value of {0}", [parts.join(', ').bold()]);
+						message = __("changed value of {0}", [parts.join(', ')]);
 					}
 					out.push(me.get_version_comment(version, message));
 				}
@@ -628,18 +628,19 @@ frappe.ui.form.Timeline = class Timeline {
 
 			// value changed in table field
 			if (data.row_changed && data.row_changed.length) {
-				var parts = [], count = 0;
+				let parts = [];
 				data.row_changed.every(function(row) {
 					row[3].every(function(p) {
+						p = p.map(frappe.utils.escape_html);
 						var df = me.frm.fields_dict[row[0]] &&
 							frappe.meta.get_docfield(me.frm.fields_dict[row[0]].grid.doctype,
 								p[0], me.frm.docname);
 
-						if(df && !df.hidden) {
+						if (df && !df.hidden) {
 							var field_display_status = frappe.perm.get_field_display_status(df,
 								null, me.frm.perm);
 
-							if(field_display_status === 'Read' || field_display_status === 'Write') {
+							if (field_display_status === 'Read' || field_display_status === 'Write') {
 								parts.push(__('{0} from {1} to {2} in row #{3}', [
 									frappe.meta.get_label(me.frm.fields_dict[row[0]].grid.doctype,
 										p[0]),
@@ -653,7 +654,7 @@ frappe.ui.form.Timeline = class Timeline {
 					});
 					return parts.length < 3;
 				});
-				if(parts.length) {
+				if (parts.length) {
 					let message;
 					if (data.data_import) {
 						message = __("changed values for {0} {1}", [parts.join(', '), data_import_link]);
@@ -667,20 +668,20 @@ frappe.ui.form.Timeline = class Timeline {
 			// rows added / removed
 			// __('added'), __('removed') # for translation, don't remove
 			['added', 'removed'].forEach(function(key) {
-				if(data[key] && data[key].length) {
+				if (data[key] && data[key].length) {
 					parts = (data[key] || []).map(function(p) {
 						var df = frappe.meta.get_docfield(me.frm.doctype, p[0], me.frm.docname);
-						if(df && !df.hidden) {
+						if (df && !df.hidden) {
 							var field_display_status = frappe.perm.get_field_display_status(df, null,
 								me.frm.perm);
 
-							if(field_display_status === 'Read' || field_display_status === 'Write') {
-								return frappe.meta.get_label(me.frm.doctype, p[0])
+							if (field_display_status === 'Read' || field_display_status === 'Write') {
+								return frappe.meta.get_label(me.frm.doctype, p[0]);
 							}
 						}
 					});
-					parts = parts.filter(function(p) { return p; });
-					if(parts.length) {
+					parts = parts.filter(Boolean).map(frappe.utils.escape_html).map(p => p.bold());
+					if (parts.length) {
 						out.push(me.get_version_comment(version, __("{0} rows for {1}",
 							[__(key), parts.join(', ')])));
 					}
@@ -690,8 +691,8 @@ frappe.ui.form.Timeline = class Timeline {
 	}
 
 	get_version_comment(version, text, comment_type) {
-		if(!comment_type) {
-			text = '<a href="#Form/Version/'+version.name+'">' + text + '</a>';
+		if (!comment_type) {
+			text = `<a href="#Form/Version/${version.name}">${text}</a>`;
 		}
 		return {
 			comment_type: comment_type || 'Edit',

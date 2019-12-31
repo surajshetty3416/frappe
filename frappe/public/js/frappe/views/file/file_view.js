@@ -162,9 +162,10 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 			icon_class = 'octicon octicon-file-text';
 		}
 
-		let title = d.file_name || d.file_url;
+		let title = frappe.utils.escape_html(d.file_name || d.file_url);
 		title = title.slice(0, 60);
 		d._title = title;
+		d._escaped_title = escape(title);
 		d.icon_class = icon_class;
 
 		d.subject_html = `
@@ -184,12 +185,22 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 	}
 
 	render() {
-		this.$result.removeClass('file-grid');
+		this.$result.find('.file-grid').remove();
+		this.$result.find('.list-row-container').remove();
+
+		this.render_header();
+
 		if (frappe.views.FileView.grid_view) {
 			this.render_grid_view();
+			this.render_count();
 		} else {
 			super.render();
 		}
+	}
+
+	render_header() {
+		this.$result.find('.list-row-head').remove();
+		super.render_header();
 	}
 
 	render_grid_view() {
@@ -207,8 +218,8 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 				</a>
 			`;
 		}).join('');
-		this.$result.addClass('file-grid');
-		this.$result.html(html);
+
+		this.$result.append(`<div class="file-grid">${html}</div>`);
 	}
 
 	get_breadcrumbs_html() {
@@ -241,14 +252,17 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 			<div class="list-row-col list-subject level">
 				<input class="level-item list-check-all hidden-xs" type="checkbox" title="${__("Select All")}">
 				<span class="level-item">${breadcrumbs_html}</span>
-			</div>
-			<div class="list-row-col ellipsis hidden-xs">
-				<span>${__('Size')}</span>
-			</div>
-			<div class="list-row-col ellipsis hidden-xs">
-				<span>${__('Created')}</span>
-			</div>
-		`;
+			</div>`;
+
+		if (!frappe.views.FileView.grid_view) {
+			subject_html += `
+				<div class="list-row-col ellipsis hidden-xs">
+					<span>${__('Size')}</span>
+				</div>
+				<div class="list-row-col ellipsis hidden-xs">
+					<span>${__('Created')}</span>
+				</div>`;
+		}
 
 		return this.get_header_html_skeleton(subject_html, '<span class="list-count"></span>');
 	}
@@ -273,8 +287,8 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 		return `
 			<div class="list-row-col ellipsis list-subject level">
 				<input class="level-item list-row-checkbox hidden-xs" type="checkbox" data-name="${file.name}">
-				<span class="level-item  ellipsis" title="${file.file_name}">
-					<a class="ellipsis" href="${route_url}" title="${file.file_name}">
+				<span class="level-item  ellipsis" title="${file._escaped_title}">
+					<a class="ellipsis" href="${route_url}" title="${file._escaped_title}">
 						${file.subject_html}
 					</a>
 				</span>
