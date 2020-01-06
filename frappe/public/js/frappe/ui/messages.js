@@ -217,19 +217,45 @@ frappe.msgprint = function(msg, title) {
 	}
 
 
-	if(msg_exists) {
+	if (msg_exists) {
+		// append a <hr> if another msg already exists
 		frappe.msg_dialog.msg_area.append("<hr>");
-	// append a <hr> if another msg already exists
+	}
+
+	if (cur_frm) {
+		let visible_fields_filter = f =>
+			!['Section Break', 'Column Break'].includes(f.df.fieldtype)
+			&& !f.df.hidden
+			&& f.disp_status !== 'None';
+
+		let fields = cur_frm.fields
+			.filter(visible_fields_filter)
+			.map(f => ({ label: f.df.label, value: f.df.fieldname }));
+
+		fields.forEach(field => {
+			data.message = data.message.replace(field.label, `<a data-scroll-to=${field.value}>${field.label}</a>`);
+		});
 	}
 
 	frappe.msg_dialog.msg_area.append(data.message);
 
+	frappe.msg_dialog.msg_area.find('a[data-scroll-to]').click(e => {
+		e.preventDefault();
+		frappe.msg_dialog.hide();
+		cur_frm.scroll_to_field(e.target.dataset.scrollTo);
+	});
+
 	// make msgprint always appear on top
 	frappe.msg_dialog.$wrapper.css("z-index", 2000);
+
+	if (data.scroll_to_field) {
+		cur_frm && cur_frm.scroll_to_field(data.scroll_to_field);
+	}
+
 	frappe.msg_dialog.show();
 
 	return frappe.msg_dialog;
-}
+};
 
 window.msgprint = frappe.msgprint;
 
