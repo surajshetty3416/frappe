@@ -52,8 +52,8 @@ class EmailAccount(Document):
 			"name": ("!=", self.name)
 		})
 		if duplicate_email_account:
-			frappe.throw(_("Email ID must be unique, Email Account already exists \
-				for {0}".format(frappe.bold(self.email_id))))
+			frappe.throw(_("Email ID must be unique, Email Account already exists for {0}") \
+				.format(frappe.bold(self.email_id)))
 
 		if frappe.local.flags.in_patch or frappe.local.flags.in_test:
 			return
@@ -175,7 +175,7 @@ class EmailAccount(Document):
 				# if called via self.receive and it leads to authentication error, disable incoming
 				# and send email to system manager
 				self.handle_incoming_connect_error(
-					description=_('Authentication failed while receiving emails from Email Account {0}. Message from server: {1}'.format(self.name, e.message))
+					description=_('Authentication failed while receiving emails from Email Account {0}. Message from server: {1}').format(self.name, e.message)
 				)
 
 				return None
@@ -293,8 +293,12 @@ class EmailAccount(Document):
 
 				else:
 					frappe.db.commit()
-					if communication and hasattr(communication, "_attachments"):
-						attachments = [d.file_name for d in communication._attachments]
+					if communication:
+						attachments = []
+
+						if hasattr(communication, '_attachments'):
+							attachments = [d.file_name for d in communication._attachments]
+
 						communication.notify(attachments=attachments, fetched_from_email_account=True)
 
 			#notify if user is linked to account
@@ -448,16 +452,15 @@ class EmailAccount(Document):
 	def set_sender_field_and_subject_field(self):
 		'''Identify the sender and subject fields from the `append_to` DocType'''
 		# set subject_field and sender_field
-		meta_module = frappe.get_meta_module(self.append_to)
 		meta = frappe.get_meta(self.append_to)
+		self.subject_field = None
+		self.sender_field = None
 
-		self.subject_field = getattr(meta_module, "subject_field", "subject")
-		if not meta.get_field(self.subject_field):
-			self.subject_field = None
+		if hasattr(meta, "subject_field"):
+			self.subject_field = meta.subject_field
 
-		self.sender_field = getattr(meta_module, "sender_field", "sender")
-		if not meta.get_field(self.sender_field):
-			self.sender_field = None
+		if hasattr(meta, "sender_field"):
+			self.sender_field = meta.sender_field
 
 	def find_parent_based_on_subject_and_sender(self, communication, email):
 		'''Find parent document based on subject and sender match'''
@@ -671,8 +674,21 @@ class EmailAccount(Document):
 
 @frappe.whitelist()
 def get_append_to(doctype=None, txt=None, searchfield=None, start=None, page_len=None, filters=None):
-	if not txt: txt = ""
-	return [[d] for d in frappe.get_hooks("email_append_to") if txt in d]
+	txt = txt if txt else ""
+	email_append_to_list = []
+
+	# Set Email Append To DocTypes via DocType
+	filters = {"istable": 0, "issingle": 0, "email_append_to": 1}
+	for dt in frappe.get_all("DocType", filters=filters, fields=["name", "email_append_to"]):
+		email_append_to_list.append(dt.name)
+
+	# Set Email Append To DocTypes set via Customize Form
+	for dt in frappe.get_list("Property Setter", filters={"property": "email_append_to", "value": 1}, fields=["doc_type"]):
+		email_append_to_list.append(dt.doc_type)
+
+	email_append_to = [[d] for d in set(email_append_to_list) if txt in d]
+
+	return email_append_to
 
 def test_internet(host="8.8.8.8", port=53, timeout=3):
 	"""Returns True if internet is connected
@@ -761,7 +777,3 @@ def get_max_email_uid(email_account):
 	else:
 		max_uid = cint(result[0].get("uid", 0)) + 1
 		return max_uid
-
-@frappe.whitelist()
-def get_automatic_email_link():
-	return frappe.db.get_value("Email Account", {"enable_incoming": 1, "enable_automatic_linking": 1}, "email_id")

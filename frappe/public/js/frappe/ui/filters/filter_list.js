@@ -63,11 +63,6 @@ frappe.ui.FilterGroup = class {
 	}
 
 	validate_args(doctype, fieldname) {
-		// Tags attached to the document are maintained seperately in Tag Link
-		// and is not the part of doctype meta therefore tag fieldname validation is ignored.
-		if (doctype === "Tag Link" && fieldname === "tag") {
-			return true;
-		}
 
 		if(doctype && fieldname
 			&& !frappe.meta.has_field(doctype, fieldname)
@@ -171,5 +166,21 @@ frappe.ui.FilterGroup = class {
 			</div>
 		</div>
 		<div class="filter-edit-area"></div>`);
+	}
+
+	get_filters_as_object() {
+		let filters = this.get_filters().reduce((acc, filter) => {
+			return Object.assign(acc, {
+				[filter[1]]: [filter[2], filter[3]]
+			});
+		}, {});
+		return filters;
+	}
+
+	add_filters_to_filter_group(filters) {
+
+		filters.forEach(filter => {
+			this.add_filter(filter[0], filter[1], filter[2], filter[3]);
+		});
 	}
 };
