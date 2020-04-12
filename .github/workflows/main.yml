@@ -44,8 +44,7 @@ jobs:
           sudo mysql -u root -e "CREATE USER 'test_frappe_consumer'@'localhost' IDENTIFIED BY 'test_frappe_consumer'";
           sudo mysql -u root -e "GRANT ALL PRIVILEGES ON \`test_frappe_consumer\`.* TO 'test_frappe_consumer'@'localhost'";
 
-          sudo mysql -u root -e "UPDATE mysql.user SET Password=PASSWORD('travis') WHERE User='root'";
-          sudo mysql -u root -e "FLUSH PRIVILEGES";
+          sudo mysql -u root -e "ALTER USER 'root'@'localhost' IDENTIFIED BY 'travis'; FLUSH PRIVILEGES";
 
       - name: install bench
         run: |
