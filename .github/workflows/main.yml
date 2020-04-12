@@ -34,12 +34,18 @@ jobs:
         run: |
           brew install mariadb
           mysql_install_db
-          mysql.server start
+          brew services start mariadb
 
       - name: Setup Database
         run: |
-          mysql -u root -ptravis -e "SET GLOBAL character_set_server = 'utf8mb4'";
-          mysql -u root -ptravis -e "SET GLOBAL collation_server = 'utf8mb4_unicode_ci'";
+          mysql -u root -e "SET GLOBAL character_set_server = 'utf8mb4'";
+          mysql -u root -e "SET GLOBAL collation_server = 'utf8mb4_unicode_ci'";
+          mysql -u root -e "CREATE DATABASE test_frappe_consumer";
+          mysql -u root -e "CREATE USER 'test_frappe_consumer'@'localhost' IDENTIFIED BY 'test_frappe_consumer'";
+          mysql -u root -e "GRANT ALL PRIVILEGES ON \`test_frappe_consumer\`.* TO 'test_frappe_consumer'@'localhost'";
+
+          mysql -u root -e "UPDATE mysql.user SET Password=PASSWORD('travis') WHERE User='root'";
+          mysql -u root -e "FLUSH PRIVILEGES";
 
       - name: install bench
         run: |
@@ -55,7 +61,6 @@ jobs:
 
           mkdir $HOME/frappe-bench/sites/test_site
           cp $GITHUB_WORKSPACE/.travis/consumer_db/mariadb.json $HOME/frappe-bench/sites/test_site/site_config.json
-
 
       - name: start bench
         run: |
