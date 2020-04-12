@@ -10,7 +10,7 @@ on:
 jobs:
   test:
     name: Cypress run
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     services:
       mariadb:
         image: mariadb:latest
