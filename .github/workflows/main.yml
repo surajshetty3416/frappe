@@ -11,18 +11,7 @@ jobs:
   test:
     name: Cypress run
     runs-on: macos-latest
-    services:
-      mariadb:
-        image: mariadb:latest
-        ports:
-          - 3306
-        env:
-          MYSQL_HOST: localhost
-          MYSQL_USER: test_frappe_consumer
-          MYSQL_PASSWORD: test_frappe
-          MYSQL_DATABASE: test_frappe_consumer
-          MYSQL_ROOT_PASSWORD: 'travis'
-        options: --health-cmd="mysqladmin ping" --health-interval=5s --health-timeout=2s --health-retries=3
+
     strategy:
       matrix:
         # run 3 copies of the current job in parallel
@@ -41,13 +30,11 @@ jobs:
       - name: Install Redis
         uses: shogo82148/actions-setup-redis@v1
 
-      - name: before_install
+      - name: Install Mariadb
         run: |
-          wget -O /tmp/wkhtmltox.tar.xz https://github.com/frappe/wkhtmltopdf/raw/master/wkhtmltox-0.12.3_linux-generic-amd64.tar.xz
-          tar -xf /tmp/wkhtmltox.tar.xz -C /tmp
-          sudo mv /tmp/wkhtmltox/bin/wkhtmltopdf /usr/local/bin/wkhtmltopdf
-          sudo chmod o+x /usr/local/bin/wkhtmltopdf
-          sudo apt-get install libcups2-dev
+          brew install mariadb
+          mysql_install_db
+          mysql.server start
 
       - name: Setup Database
         run: |
