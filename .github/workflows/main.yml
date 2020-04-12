@@ -34,7 +34,7 @@ jobs:
         run: |
           brew install mariadb
           mysql_install_db
-          brew services start mariadb
+          mysql.server start
 
       - name: Setup Database
         run: |
