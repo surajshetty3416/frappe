@@ -41,10 +41,18 @@ jobs:
       - name: Install Redis
         uses: shogo82148/actions-setup-redis@v1
 
+      - name: before_install
+        run: |
+          wget -O /tmp/wkhtmltox.tar.xz https://github.com/frappe/wkhtmltopdf/raw/master/wkhtmltox-0.12.3_linux-generic-amd64.tar.xz
+          tar -xf /tmp/wkhtmltox.tar.xz -C /tmp
+          sudo mv /tmp/wkhtmltox/bin/wkhtmltopdf /usr/local/bin/wkhtmltopdf
+          sudo chmod o+x /usr/local/bin/wkhtmltopdf
+          sudo apt-get install libcups2-dev
+
       - name: Setup Database
         run: |
-          mysql -u root -e "SET GLOBAL character_set_server = 'utf8mb4'";
-          mysql -u root -e "SET GLOBAL collation_server = 'utf8mb4_unicode_ci'";
+          mysql -u root -ptravis -e "SET GLOBAL character_set_server = 'utf8mb4'";
+          mysql -u root -ptravis -e "SET GLOBAL collation_server = 'utf8mb4_unicode_ci'";
 
       - name: install bench
         run: |
