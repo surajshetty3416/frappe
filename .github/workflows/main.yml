@@ -10,13 +10,14 @@ on:
 jobs:
   test:
     name: Cypress run
-    runs-on: ubuntu-16.04
+    runs-on: ubuntu-latest
     services:
       mariadb:
         image: mariadb:latest
         ports:
           - 3306
         env:
+          MYSQL_HOST: localhost
           MYSQL_USER: test_frappe_consumer
           MYSQL_PASSWORD: test_frappe
           MYSQL_DATABASE: test_frappe_consumer
