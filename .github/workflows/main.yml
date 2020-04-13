@@ -64,9 +64,9 @@ jobs:
       - name: Run test
         run: |
           cd $HOME/frappe-bench
+          bench setup requirements --node;
           bench start &
           bench --site test_site --force reinstall --yes
-          bench setup requirements --node;
           bench build --app frappe
           bench --site test_site execute frappe.utils.install.complete_setup_wizard
           bench --site test_site run-ui-tests frappe --headless --parallel
