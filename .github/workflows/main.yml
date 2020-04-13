@@ -68,5 +68,6 @@ jobs:
           bench start &
           bench --site test_site --force reinstall --yes
           bench build --app frappe
+          sudo echo "127.0.0.1    test_site" | sudo tee -a /etc/hosts
           bench --site test_site execute frappe.utils.install.complete_setup_wizard
           bench --site test_site run-ui-tests frappe --headless --parallel --ci-build-id $GITHUB_RUN_ID
