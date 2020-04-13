@@ -52,6 +52,7 @@ Cypress.Commands.add('call', (method, args) => {
 					method: 'POST',
 					body: args,
 					retryOnStatusCodeFailure: true,
+					retryOnNetworkFailure: true,
 					headers: {
 						Accept: 'application/json',
 						'Content-Type': 'application/json',
@@ -59,8 +60,11 @@ Cypress.Commands.add('call', (method, args) => {
 					}
 				})
 				.then(res => {
+					console.log(res);
 					expect(res.status).eq(200);
 					return res.body;
+				}).catch(e => {
+					console.log(e);
 				});
 		});
 });
