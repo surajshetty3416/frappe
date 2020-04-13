@@ -60,11 +60,8 @@ Cypress.Commands.add('call', (method, args) => {
 					}
 				})
 				.then(res => {
-					console.log(res);
 					expect(res.status).eq(200);
 					return res.body;
-				}).catch(e => {
-					console.log(e);
 				});
 		});
 });
