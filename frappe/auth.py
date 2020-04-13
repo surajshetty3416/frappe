@@ -123,10 +123,6 @@ class LoginManager:
 		# clear cache
 		frappe.clear_cache(user = frappe.form_dict.get('usr'))
 		user, pwd = get_cached_user_pass()
-		if not pwd:
-			user = form_dict.get('usr')
-			pwd = frappe.form_dict.get('pwd')
-
 		self.authenticate(user=user, pwd=pwd)
 		if self.force_user_to_reset_password():
 			doc = frappe.get_doc("User", self.user)
