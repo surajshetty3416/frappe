@@ -30,12 +30,12 @@ context('Login', () => {
 		cy.window().its('frappe.session.user').should('eq', 'Administrator');
 	});
 
-	it('shows invalid login if incorrect credentials', () => {
-		cy.get('#login_email').type('Administrator');
-		cy.get('#login_password').type('qwer');
+	// it('shows invalid login if incorrect credentials', () => {
+	// 	cy.get('#login_email').type('Administrator');
+	// 	cy.get('#login_password').type('qwer');
 
-		cy.get('.btn-login').click();
-		cy.get('.page-card-head').contains('Invalid Login. Try again.');
-		cy.location('pathname').should('eq', '/login');
-	});
+	// 	cy.get('.btn-login').click();
+	// 	cy.get('.page-card-head').contains('Invalid Login. Try again.');
+	// 	cy.location('pathname').should('eq', '/login');
+	// });
 });
