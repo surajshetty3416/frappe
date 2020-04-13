@@ -15,7 +15,7 @@ jobs:
     strategy:
       matrix:
         # run 3 copies of the current job in parallel
-        containers: [1]
+        containers: [1, 2, 3]
     steps:
       - name: Checkout
         uses: actions/checkout@v1
