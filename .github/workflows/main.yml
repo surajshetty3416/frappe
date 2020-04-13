@@ -69,4 +69,4 @@ jobs:
           bench --site test_site --force reinstall --yes
           bench build --app frappe
           bench --site test_site execute frappe.utils.install.complete_setup_wizard
-          bench --site test_site run-ui-tests frappe --headless --parallel
+          bench --site test_site run-ui-tests frappe --headless --parallel --ci-build-id $GITHUB_RUN_ID

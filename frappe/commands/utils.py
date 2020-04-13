@@ -508,8 +508,10 @@ def run_tests(context, app=None, module=None, doctype=None, test=(),
 @click.command('run-ui-tests')
 @click.argument('app')
 @click.option('--headless', is_flag=True, help="Run UI Test in headless mode")
+@click.option('--parallel', is_flag=True, help="Run UI Test in parallel mode")
+@click.option('--ci-build-id')
 @pass_context
-def run_ui_tests(context, app, headless=False):
+def run_ui_tests(context, app, headless=False, parallel=True, ci_build_id=None):
 	"Run UI tests"
 
 	site = get_site(context)
@@ -524,6 +526,12 @@ def run_ui_tests(context, app, headless=False):
 	# run for headless mode
 	run_or_open = 'run --record --key 4a48f41c-11b3-425b-aa88-c58048fa69eb' if headless else 'open'
 	command = '{site_env} {password_env} yarn run cypress {run_or_open}'
+	if parallel:
+		command += ' --parallel'
+
+	if ci_build_id:
+		command += ' --ci-build-id {}'.format(ci_build_id)
+
 	formatted_command = command.format(site_env=site_env, password_env=password_env, run_or_open=run_or_open)
 	frappe.commands.popen(formatted_command, cwd=app_base_path, raise_err=True)
 
