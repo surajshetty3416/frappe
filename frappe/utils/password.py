@@ -28,12 +28,8 @@ register_crypt_handler(LegacyPassword, force=True)
 passlibctx = CryptContext(
 	schemes=[
 		"pbkdf2_sha256",
-		"argon2",
-		"frappe_legacy",
-	],
-	deprecated=[
-		"frappe_legacy",
-	],
+		"argon2"
+	]
 )
 
 
