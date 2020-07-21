@@ -241,7 +241,7 @@ frappe.search.AwesomeBar = Class.extend({
 
 	make_search_in_current: function(txt) {
 		var route = frappe.get_route();
-		if(route[0]==="List" && txt.indexOf(" in") === -1) {
+		if (route[0] === "List" && txt.indexOf(" " + __("in")) === -1) {
 			// search in title field
 			var meta = frappe.get_meta(frappe.container.page.list_view.doctype);
 			var search_field = meta.title_field || "name";
@@ -287,14 +287,14 @@ frappe.search.AwesomeBar = Class.extend({
 	},
 
 	make_random: function(txt) {
-		if(txt.toLowerCase().includes('random')) {
+		if (txt.toLowerCase().includes('random')) {
 			this.options.push({
-				label: "Generate Random Password",
+				label: __("Generate Random Password"),
 				value: frappe.utils.get_random(16),
 				onclick: function() {
 					frappe.msgprint(frappe.utils.get_random(16), "Result");
 				}
-			})
+			});
 		}
 	}
 });
