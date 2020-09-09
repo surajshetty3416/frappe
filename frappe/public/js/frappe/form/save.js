@@ -164,7 +164,7 @@ frappe.ui.form.save = function (frm, action, callback, btn) {
 				frappe.msgprint({
 					message: message,
 					indicator: 'red',
-					title: __('Missing Fields')
+					title: __('Missing Fields', '\n', '\n')
 				});
 			}
 		});
