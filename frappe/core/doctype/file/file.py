@@ -146,10 +146,12 @@ class File(Document):
 			attachment_limit = cint(frappe.get_meta(self.attached_to_doctype).max_attachments)
 
 		if attachment_limit:
-			current_attachment_count = len(frappe.get_all('File', filters={
-				'attached_to_doctype': self.attached_to_doctype,
-				'attached_to_name': self.attached_to_name,
-			}, limit=attachment_limit + 1))
+			current_attachment_count = frappe.cache().hget('attachment_count', self.get_ref_document_key())
+			if not current_attachment_count:
+				current_attachment_count = len(frappe.get_all('File', filters={
+					'attached_to_doctype': self.attached_to_doctype,
+					'attached_to_name': self.attached_to_name,
+				}, limit=attachment_limit + 1))
 
 			if current_attachment_count >= attachment_limit:
 				frappe.throw(
@@ -159,6 +161,9 @@ class File(Document):
 					exc=frappe.exceptions.AttachmentLimitReached,
 					title=_('Attachment Limit Reached')
 				)
+			else:
+				current_attachment_count += 1
+				frappe.cache().hset('attachment_count', self.get_ref_document_key(), current_attachment_count)
 
 	def set_folder_name(self):
 		"""Make parent folders if not exists based on reference doctype and name"""
@@ -229,6 +234,12 @@ class File(Document):
 		self.call_delete_file()
 		if not self.is_folder:
 			self.add_comment_in_reference_doc('Attachment Removed', _("Removed {0}").format(self.file_name))
+
+		if self.attached_to_name:
+			frappe.cache().hdel('attachment_count', self.get_ref_document_key())
+
+	def get_ref_document_key(self):
+		return self.attached_to_doctype + ":" + self.attached_to_name
 
 	def make_thumbnail(self, set_as_thumbnail=True, width=300, height=300, suffix="small", crop=False):
 		if self.file_url:
