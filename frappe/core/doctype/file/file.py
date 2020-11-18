@@ -78,6 +78,12 @@ class File(Document):
 					"file_name": self.file_name or self.file_url
 				})))
 
+	def on_update(self):
+		if self.has_value_changed('attached_to_name') or self.has_value_changed('attached_to_doctype'):
+			frappe.cache().hdel('attachment_count', self.get_ref_document_key())
+			# clear attachment_count cache of reference document before save
+			frappe.cache().hdel('attachment_count', self.get_ref_document_key(True))
+
 	def after_rename(self, olddn, newdn, merge=False):
 		for successor in self.get_successor():
 			setup_folder_path(successor[0], self.name)
@@ -238,8 +244,9 @@ class File(Document):
 		if self.attached_to_name:
 			frappe.cache().hdel('attachment_count', self.get_ref_document_key())
 
-	def get_ref_document_key(self):
-		return self.attached_to_doctype + ":" + self.attached_to_name
+	def get_ref_document_key(self, for_doc_before_save=False):
+		doc = self if not for_doc_before_save else self.get_doc_before_save() or {}
+		return doc.get('attached_to_doctype', '') + ':' + doc.get('attached_to_name', '')
 
 	def make_thumbnail(self, set_as_thumbnail=True, width=300, height=300, suffix="small", crop=False):
 		if self.file_url:

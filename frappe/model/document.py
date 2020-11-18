@@ -401,6 +401,11 @@ class Document(BaseDocument):
 		'''Get the document title based on title_field or `title` or `name`'''
 		return self.get(self.meta.get_title_field())
 
+	def has_value_changed(self, fieldname):
+		'''Returns true if value is changed before and after saving'''
+		previous = self.get_doc_before_save()
+		return previous.get(fieldname) != self.get(fieldname) if previous else True
+
 	def set_title_field(self):
 		"""Set title field based on template"""
 		def get_values():
