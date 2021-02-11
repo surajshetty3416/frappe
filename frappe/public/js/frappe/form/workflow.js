@@ -13,7 +13,7 @@ frappe.ui.form.States = Class.extend({
 		this.update_fields = frappe.workflow.get_update_fields(this.frm.doctype);
 
 		var me = this;
-		$(this.frm.wrapper).bind("render_complete", function() {
+		$(this.frm.wrapper).on("render_complete", function() {
 			me.refresh();
 		});
 	},

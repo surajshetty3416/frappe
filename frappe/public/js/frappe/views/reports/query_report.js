@@ -19,7 +19,7 @@ frappe.standard_pages['query-report'] = function() {
 		parent: wrapper,
 	});
 
-	$(wrapper).bind('show', function() {
+	$(wrapper).on('show', function() {
 		frappe.query_report.show();
 	});
 };
@@ -451,7 +451,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				}
 			} else {
 				var value = doc[expression];
-				if ($.isArray(value)) {
+				if (Array.isArray(value)) {
 					out = !!value.length;
 				} else {
 					out = !!value;

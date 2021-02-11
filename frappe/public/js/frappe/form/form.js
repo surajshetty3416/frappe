@@ -1326,7 +1326,7 @@ frappe.ui.form.Form = class FrappeForm {
 			var fieldobj = me.fields_dict[f];
 			if(fieldobj) {
 				if(!if_missing || !frappe.model.has_value(me.doctype, me.doc.name, f)) {
-					if(frappe.model.table_fields.includes(fieldobj.df.fieldtype) && $.isArray(v)) {
+					if(frappe.model.table_fields.includes(fieldobj.df.fieldtype) && Array.isArray(v)) {
 
 						frappe.model.clear_table(me.doc, fieldobj.df.fieldname);
 

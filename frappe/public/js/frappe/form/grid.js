@@ -475,7 +475,7 @@ export default class Grid {
 	}
 
 	set_column_disp(fieldname, show) {
-		if ($.isArray(fieldname)) {
+		if (Array.isArray(fieldname)) {
 			for (var i = 0, l = fieldname.length; i < l; i++) {
 				var fname = fieldname[i];
 				this.get_docfield(fname).hidden = show ? 0 : 1;
@@ -582,7 +582,7 @@ export default class Grid {
 	}
 
 	setup_add_row() {
-		this.wrapper.find(".grid-add-row").click(() => {
+		this.wrapper.find(".grid-add-row").on("click", () => {
 			this.add_new_row(null, null, true, null, true);
 			this.set_focus_on_row();
 

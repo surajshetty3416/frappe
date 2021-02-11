@@ -11,7 +11,7 @@ frappe.search.utils = {
 
 		function find(list, keywords, process) {
 			list.forEach(function(item, i) {
-				var _item = ($.isArray(item)) ? item[0] : item;
+				var _item = (Array.isArray(item)) ? item[0] : item;
 				_item = __(_item || '').toLowerCase().replace(/-/g, " ");
 
 				if(keywords===_item || _item.indexOf(keywords) !== -1) {

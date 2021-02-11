@@ -262,7 +262,7 @@ frappe.router = {
 	},
 
 	get_route_from_arguments(route) {
-		if (route.length===1 && $.isArray(route[0])) {
+		if (route.length===1 && Array.isArray(route[0])) {
 			// called as frappe.set_route(['a', 'b', 'c']);
 			route = route[0];
 		}

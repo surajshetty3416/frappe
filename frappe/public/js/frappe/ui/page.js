@@ -165,7 +165,7 @@ frappe.ui.Page = Class.extend({
 				delay: { "show": 600, "hide": 100 },
 				trigger: "hover",
 			});
-			sidebar_toggle.click(() => {
+			sidebar_toggle.on("click", () => {
 				if (frappe.utils.is_xs() || frappe.utils.is_sm()) {
 					this.setup_overlay_sidebar();
 				} else {
@@ -217,7 +217,7 @@ frappe.ui.Page = Class.extend({
 		`);
 
 		button.appendTo(this.icon_group.removeClass("hide"));
-		button.click(click);
+		button.on("click", click);
 		button.attr("title", __(tooltip_label || frappe.unscrub(icon)))
 			.tooltip({ delay: { "show": 600, "hide": 100 }, trigger: "hover" });
 
@@ -289,7 +289,7 @@ frappe.ui.Page = Class.extend({
 
 
 	clear_action_of: function(btn) {
-		btn.addClass("hide").unbind("click").removeAttr("data-working-label");
+		btn.addClass("hide").off("click").removeAttr("data-working-label");
 	},
 
 	clear_primary_action: function() {

@@ -65,7 +65,7 @@
 			$(".add-comment").toggle(false)
 				.parent().append("<div class='text-muted'>Comments are closed.</div>")
 		}
-		$(".add-comment").click(function() {
+		$(".add-comment").on("click", function() {
 			$(this).toggle(false);
 			$("#comment-form").toggle();
 			var full_name = "", user_id = "";
@@ -80,7 +80,7 @@
 			$("#comment-form textarea").val("");
 		})
 
-		$("#submit-comment").click(function() {
+		$("#submit-comment").on("click", function() {
 			var args = {
 				comment_by: $("[name='comment_by']").val(),
 				comment_email: $("[name='comment_email']").val(),

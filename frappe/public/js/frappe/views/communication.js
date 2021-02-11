@@ -401,7 +401,7 @@ frappe.views.CommunicationComposer = Class.extend({
 		}
 
 		//On selection of language retrieve language code
-		$(fields.language_sel.input).change(function(){
+		$(fields.language_sel.input).on("change", function(){
 			me.lang_code = this.value
 		})
 
@@ -422,7 +422,7 @@ frappe.views.CommunicationComposer = Class.extend({
 		var fields = this.dialog.fields_dict;
 
 		// toggle print format
-		$(fields.attach_document_print.input).click(function() {
+		$(fields.attach_document_print.input).on("click", function() {
 			$(fields.select_print_format.wrapper).toggle($(this).prop("checked"));
 		});
 

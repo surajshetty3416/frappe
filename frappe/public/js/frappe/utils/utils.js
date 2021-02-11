@@ -292,7 +292,7 @@ Object.assign(frappe.utils, {
 		}
 		$.each(dict, function(i, d) {
 			for (var key in filters) {
-				if ($.isArray(filters[key])) {
+				if (Array.isArray(filters[key])) {
 					if (filters[key][0]=="in") {
 						if (filters[key][1].indexOf(d[key])==-1)
 							return;
@@ -530,7 +530,7 @@ Object.assign(frappe.utils, {
 			return false;
 		}
 		for (var i = 0; i < arr1.length; i++) {
-			if ($.isArray(arr1[i])) {
+			if (Array.isArray(arr1[i])) {
 				if (!frappe.utils.arrays_equal(arr1[i], arr2[i])) {
 					return false;
 				}

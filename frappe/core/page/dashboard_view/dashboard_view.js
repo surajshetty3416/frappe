@@ -13,7 +13,7 @@ frappe.pages['dashboard-view'].on_page_load = function(wrapper) {
 	});
 
 	frappe.dashboard = new Dashboard(wrapper);
-	$(wrapper).bind('show', function() {
+	$(wrapper).on('show', function() {
 		frappe.dashboard.show();
 	});
 };

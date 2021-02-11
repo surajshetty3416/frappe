@@ -7,7 +7,7 @@ frappe.defaults = {
 		var d = defaults[key];
 		if(!d && frappe.defaults.is_a_user_permission_key(key))
 			d = defaults[frappe.model.scrub(key)];
-		if($.isArray(d)) d = d[0];
+		if(Array.isArray(d)) d = d[0];
 
 		if(!frappe.defaults.in_user_permission(key, d)) {
 			return;
@@ -20,14 +20,14 @@ frappe.defaults = {
 		var d = defaults[key];
 
 		if (frappe.defaults.is_a_user_permission_key(key)) {
-			if (d && $.isArray(d) && d.length===1) {
+			if (d && Array.isArray(d) && d.length===1) {
 				// Use User Permission value when only when it has a single value
 				d = d[0];
 			} else {
 				d = defaults[key] || defaults[frappe.model.scrub(key)];
 			}
 		}
-		if(!$.isArray(d)) d = [d];
+		if(!Array.isArray(d)) d = [d];
 
 		// filter out values which are not permitted to the user
 		d.filter(item => {
@@ -39,12 +39,12 @@ frappe.defaults = {
 	},
 	get_global_default: function(key) {
 		var d = frappe.sys_defaults[key];
-		if($.isArray(d)) d = d[0];
+		if(Array.isArray(d)) d = d[0];
 		return d;
 	},
 	get_global_defaults: function(key) {
 		var d = frappe.sys_defaults[key];
-		if(!$.isArray(d)) d = [d];
+		if(!Array.isArray(d)) d = [d];
 		return d;
 	},
 	set_default: function(key, value, callback) {
@@ -68,7 +68,7 @@ frappe.defaults = {
 		var defaults = frappe.boot.user.defaults;
 		var value = defaults[key];
 		if (frappe.defaults.is_a_user_permission_key(key)) {
-			if (value && $.isArray(value) && value.length===1) {
+			if (value && Array.isArray(value) && value.length===1) {
 				value = value[0];
 			} else {
 				value = defaults[frappe.model.scrub(key)];

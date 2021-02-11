@@ -13,6 +13,8 @@
 	"js/frappe-recorder.min.js": "public/js/frappe/recorder/recorder.js",
 	"js/checkout.min.js": "public/js/integrations/razorpay.js",
 	"js/frappe-web.min.js": [
+		"node_modules/jquery/dist/jquery.min.js",
+		"node_modules/jquery-migrate/dist/jquery-migrate.js",
 		"public/js/frappe/class.js",
 		"public/js/frappe/polyfill.js",
 		"public/js/lib/md5.min.js",
@@ -99,6 +101,8 @@
 	"concat:js/libs.min.js": [
 		"public/js/lib/awesomplete/awesomplete.min.js",
 		"public/js/lib/Sortable.min.js",
+		"node_modules/jquery/dist/jquery.min.js",
+		"node_modules/jquery-migrate/dist/jquery-migrate.js",
 		"public/js/lib/jquery/jquery.hotkeys.js",
 		"node_modules/bootstrap/dist/js/bootstrap.bundle.min.js",
 		"node_modules/vue/dist/vue.min.js",

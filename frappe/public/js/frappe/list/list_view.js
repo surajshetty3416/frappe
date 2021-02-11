@@ -167,7 +167,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				`<button class="btn btn-default btn-xs restricted-button flex align-center">
 					${frappe.utils.icon('restriction', 'xs')}
 				</button>`
-			).click(() => this.show_restrictions(match_rules_list)).appendTo(this.page.page_form);
+			).on("click", () => this.show_restrictions(match_rules_list)).appendTo(this.page.page_form);
 		}
 	}
 
@@ -1216,7 +1216,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	setup_new_doc_event() {
-		this.$no_result.find(".btn-new-doc").click(() => {
+		this.$no_result.find(".btn-new-doc").on("click", () => {
 			if (this.settings.primary_action) {
 				this.settings.primary_action();
 			} else {
@@ -1755,7 +1755,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 			let value_array;
 			if (
-				$.isArray(value) &&
+				Array.isArray(value) &&
 				value[0].startsWith("[") &&
 				value[0].endsWith("]")
 			) {
@@ -1792,7 +1792,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			if (doctype) {
 				if (value_array) {
 					for (var j = 0; j < value_array.length; j++) {
-						if ($.isArray(value_array[j])) {
+						if (Array.isArray(value_array[j])) {
 							filters.push([
 								doctype,
 								field,
@@ -1803,7 +1803,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 							filters.push([doctype, field, "=", value_array[j]]);
 						}
 					}
-				} else if ($.isArray(value)) {
+				} else if (Array.isArray(value)) {
 					filters.push([doctype, field, value[0], value[1]]);
 				} else {
 					filters.push([doctype, field, "=", value]);

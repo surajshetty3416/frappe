@@ -67,7 +67,7 @@ export default class NumberCardWidget extends Widget {
 	}
 
 	set_events() {
-		$(this.body).click(() => {
+		$(this.body).on("click", () => {
 			if (this.in_customize_mode || this.card_doc.type == 'Custom') return;
 			this.set_route();
 		});

@@ -114,7 +114,7 @@ frappe.dashboard_utils = {
 
 	remove_common_static_filter_values(static_filters, dynamic_filters) {
 		if (dynamic_filters) {
-			if ($.isArray(static_filters)) {
+			if (Array.isArray(static_filters)) {
 				static_filters = static_filters.filter(static_filter => {
 					for (let dynamic_filter of dynamic_filters) {
 						if (static_filter[0] == dynamic_filter[0]
@@ -190,7 +190,7 @@ frappe.dashboard_utils = {
 			return filters;
 		}
 
-		if ($.isArray(dynamic_filters)) {
+		if (Array.isArray(dynamic_filters)) {
 			dynamic_filters.forEach(f => {
 				try {
 					f[3] = eval(f[3]);

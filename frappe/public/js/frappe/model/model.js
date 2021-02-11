@@ -652,7 +652,7 @@ $.extend(frappe.model, {
 	get_all_docs: function(doc) {
 		var all = [doc];
 		for(var key in doc) {
-			if($.isArray(doc[key])) {
+			if(Array.isArray(doc[key])) {
 				var children = doc[key];
 				for (var i=0, l=children.length; i < l; i++) {
 					all.push(children[i]);

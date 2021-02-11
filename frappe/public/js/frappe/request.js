@@ -319,7 +319,7 @@ frappe.request.prepare = function(opts) {
 
 	// stringify args if required
 	for(var key in opts.args) {
-		if(opts.args[key] && ($.isPlainObject(opts.args[key]) || $.isArray(opts.args[key]))) {
+		if(opts.args[key] && ($.isPlainObject(opts.args[key]) || Array.isArray(opts.args[key]))) {
 			opts.args[key] = JSON.stringify(opts.args[key]);
 		}
 	}

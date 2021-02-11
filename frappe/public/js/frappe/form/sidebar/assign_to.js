@@ -36,7 +36,7 @@ frappe.ui.form.AssignTo = Class.extend({
 
 		assignments_wrapper.show();
 		assignments_wrapper.append(avatar_group);
-		avatar_group.click(() => {
+		avatar_group.on("click", () => {
 			new frappe.ui.form.AssignmentDialog({
 				assignments: assigned_users,
 				frm: this.frm,
@@ -255,7 +255,7 @@ frappe.ui.form.AssignmentDialog = class {
 					${frappe.utils.icon('close')}
 				</span>
 			`);
-			row.find('.remove-btn').click(() => {
+			row.find('.remove-btn').on("click", () => {
 				this.remove_action && this.remove_action(assignment);
 				row.remove();
 			});

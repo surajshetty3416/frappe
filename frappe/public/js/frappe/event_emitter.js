@@ -19,12 +19,12 @@ const EventEmitterMixin = {
 
 	on(evt, handler) {
 		!this.jq && this.init();
-		this.jq.bind(evt, (e, data) => handler(data));
+		this.jq.on(evt, (e, data) => handler(data));
 	},
 
 	off(evt, handler) {
 		!this.jq && this.init();
-		this.jq.unbind(evt, (e, data) => handler(data));
+		this.jq.off(evt, (e, data) => handler(data));
 	}
 }
 

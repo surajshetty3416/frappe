@@ -225,7 +225,7 @@ frappe.quick_edit      = (doctype, docname, fn) => {
 						</button>
 					</div>
 				`)
-				$element.find('.qe-fp').click(() => {
+				$element.find('.qe-fp').on("click", () => {
 					dialog.hide()
 					frappe.set_route('Form', doctype, docname)
 				})
@@ -1778,7 +1778,7 @@ class extends Component {
 		this.state  = frappe.Chat.Widget.Popper.defaultState
 
 		if ( props.target )
-			$(props.target).click(() => this.toggle())
+			$(props.target).on("click", () => this.toggle())
 
 		frappe.chat.widget = this
 	}
@@ -1859,7 +1859,7 @@ class extends Component {
 			[e.target.name]: e.target.value
 		})
 
-		props.change(state.query)
+		props.on("change", state.query)
 	}
 
 	submit (e) {

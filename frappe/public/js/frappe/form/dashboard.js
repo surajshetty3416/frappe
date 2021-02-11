@@ -88,7 +88,7 @@ frappe.ui.form.Dashboard = class FormDashboard {
 	add_progress(title, percent, message) {
 		let progress_chart = this.make_progress_chart(title);
 
-		if (!$.isArray(percent)) {
+		if (!Array.isArray(percent)) {
 			percent = this.format_percent(title, percent);
 		}
 
@@ -116,7 +116,7 @@ frappe.ui.form.Dashboard = class FormDashboard {
 			this._progress_map[title] = progress_chart;
 		}
 
-		if (!$.isArray(percent)) {
+		if (!Array.isArray(percent)) {
 			percent = this.format_percent(title, percent);
 		}
 		progress_chart.find('.progress-bar').each((i, progress_bar) => {
@@ -681,7 +681,7 @@ class Section {
 		this.set_icon(hide);
 
 		// save state for next reload ('' is falsy)
-		localStorage.setItem(this.df.css_class + '-closed', hide ? '1' : '');	
+		localStorage.setItem(this.df.css_class + '-closed', hide ? '1' : '');
 	}
 
 	set_icon(hide) {

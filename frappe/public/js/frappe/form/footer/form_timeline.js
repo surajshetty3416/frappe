@@ -344,10 +344,10 @@ class FormTimeline extends BaseTimeline {
 
 	setup_reply(communication_box, communication_doc) {
 		let actions = communication_box.find('.actions');
-		let reply = $(`<a class="action-btn reply">${frappe.utils.icon('reply', 'md')}</a>`).click(() => {
+		let reply = $(`<a class="action-btn reply">${frappe.utils.icon('reply', 'md')}</a>`).on("click", () => {
 			this.compose_mail(communication_doc);
 		});
-		let reply_all = $(`<a class="action-btn reply-all">${frappe.utils.icon('reply-all', 'md')}</a>`).click(() => {
+		let reply_all = $(`<a class="action-btn reply-all">${frappe.utils.icon('reply-all', 'md')}</a>`).on("click", () => {
 			this.compose_mail(communication_doc, true);
 		});
 		actions.append(reply);
@@ -401,14 +401,14 @@ class FormTimeline extends BaseTimeline {
 				<button class="btn btn-link action-btn">
 					${frappe.utils.icon('close', 'sm')}
 				</button>
-			`).click(() => this.delete_comment(doc.name));
+			`).on("click", () => this.delete_comment(doc.name));
 		}
 
 		let dismiss_button = $(`
 			<button class="btn btn-link action-btn">
 				${__('Dismiss')}
 			</button>
-		`).click(() => edit_button.toggle_edit_mode());
+		`).on("click", () => edit_button.toggle_edit_mode());
 		dismiss_button.hide();
 
 		edit_box.set_value(doc.content);
@@ -433,7 +433,7 @@ class FormTimeline extends BaseTimeline {
 		let edit_button = $();
 		let current_user = frappe.session.user;
 		if (['Administrator', doc.owner].includes(current_user)) {
-			edit_button = $(`<button class="btn btn-link action-btn">${__("Edit")}</a>`).click(() => {
+			edit_button = $(`<button class="btn btn-link action-btn">${__("Edit")}</a>`).on("click", () => {
 				edit_button.edit_mode ? edit_box.submit() : edit_button.toggle_edit_mode();
 			});
 		}

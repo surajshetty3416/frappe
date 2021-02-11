@@ -44,14 +44,14 @@ frappe.PermissionEngine = class PermissionEngine {
 		this.doctype_select
 			= this.wrapper.page.add_select(__("Document Type"),
 				[{ value: "", label: __("Select Document Type") + "..." }].concat(this.options.doctypes))
-				.change(function () {
+				.on("change", function () {
 					frappe.set_route("permission-manager", $(this).val());
 				});
 
 		this.role_select
 			= this.wrapper.page.add_select(__("Roles"),
 				[__("Select Role") + "..."].concat(this.options.roles))
-				.change(() => {
+				.on("change", () => {
 					this.refresh();
 				});
 

@@ -8,7 +8,7 @@ frappe.standard_pages['Workspaces'] = function() {
 	});
 
 	frappe.workspace = new frappe.views.Workspace(wrapper);
-	$(wrapper).bind('show', function () {
+	$(wrapper).on('show', function () {
 		frappe.workspace.show();
 	});
 };

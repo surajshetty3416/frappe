@@ -310,7 +310,7 @@ frappe.provide("frappe.views");
 			});
 
 			//save on enter
-			$compose_column_form.keydown(function(e) {
+			$compose_column_form.on("keydown", function(e) {
 				if (e.which == 13) {
 					e.preventDefault();
 					if (!frappe.request.ajax_count) {
@@ -477,7 +477,7 @@ frappe.provide("frappe.views");
 			});
 
 			//save on enter
-			$new_card_area.keydown(function(e) {
+			$new_card_area.on("keydown", function(e) {
 				if (e.which == 13) {
 					e.preventDefault();
 					if (!frappe.request.ajax_count) {

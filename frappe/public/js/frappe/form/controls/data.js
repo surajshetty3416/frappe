@@ -26,7 +26,7 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 	},
 	bind_change_event: function() {
 		const change_handler = e => {
-			if (this.change) this.change(e);
+			if (this.change) this.on("change", e);
 			else {
 				let value = this.get_input_value();
 				this.parse_validate_and_set_in_model(value, e);

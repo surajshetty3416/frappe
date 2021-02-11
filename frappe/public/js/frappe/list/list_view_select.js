@@ -163,7 +163,7 @@ frappe.views.ListViewSelect = class ListViewSelect {
 			views_wrapper.find(".sidebar-action a").html(default_action.label);
 			views_wrapper
 				.find(".sidebar-action a")
-				.click(() => default_action.action());
+				.on("click", () => default_action.action());
 		}
 
 		$dropdown.html(html);

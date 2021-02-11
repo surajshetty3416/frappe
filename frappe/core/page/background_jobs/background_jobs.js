@@ -1,7 +1,7 @@
 frappe.pages["background_jobs"].on_page_load = (wrapper) => {
 	const background_job = new BackgroundJobs(wrapper);
 
-	$(wrapper).bind('show', () => {
+	$(wrapper).on('show', () => {
 		background_job.show();
 	});
 

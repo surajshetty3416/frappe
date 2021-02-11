@@ -38,7 +38,7 @@ frappe.ui.form.SuccessAction = class SuccessAction {
 
 				const $buttons = this.get_actions().map(action => {
 					const $btn = $(`<button class="next-action"><span>${__(action.label)}</span></button>`);
-					$btn.click(() => action.action(this.form));
+					$btn.on("click", () => action.action(this.form));
 					return $btn;
 				});
 

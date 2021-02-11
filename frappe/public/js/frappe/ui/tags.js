@@ -40,7 +40,7 @@ frappe.ui.Tags = class {
 			me.$input.val('');
 		};
 
-		this.$input.keypress((e) => {
+		this.$input.on("keypress", (e) => {
 			if (e.which == 13 || e.keyCode == 13) select_tag();
 		});
 		this.$input.focusout(select_tag);

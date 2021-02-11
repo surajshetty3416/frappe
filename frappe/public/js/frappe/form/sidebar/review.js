@@ -35,7 +35,7 @@ frappe.ui.form.Review = class Review {
 				html: true
 			});
 		} else {
-			review_button.click(() => this.show_review_dialog());
+			review_button.on("click", () => this.show_review_dialog());
 		}
 	}
 	get_involved_users() {

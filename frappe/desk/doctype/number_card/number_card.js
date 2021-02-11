@@ -412,7 +412,7 @@ frappe.ui.form.on('Number Card', {
 			frm.dynamic_filter_table.find('tbody').html(filter_row);
 		} else {
 			let filter_rows = '';
-			if ($.isArray(frm.dynamic_filters)) {
+			if (Array.isArray(frm.dynamic_filters)) {
 				frm.dynamic_filters.forEach(filter => {
 					filter_rows +=
 						`<tr>

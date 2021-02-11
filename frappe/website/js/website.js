@@ -154,7 +154,7 @@ $.extend(frappe, {
 			// }
 			try {
 				var err = JSON.parse(data.exc);
-				if($.isArray(err)) {
+				if(Array.isArray(err)) {
 					err = err.join("\n");
 				}
 				console.error ? console.error(err) : console.log(err);
@@ -459,14 +459,14 @@ frappe.setup_search = function (target, search_scope) {
 		}
 	});
 
-	$input.keydown(function(e) {
+	$input.on("keydown", function(e) {
 		// up: 38, down: 40
 		if (e.which == 40) {
 			navigate(0);
 		}
 	});
 
-	$dropdown_menu.keydown(function(e) {
+	$dropdown_menu.on("keydown", function(e) {
 		// up: 38, down: 40
 		if (e.which == 38) {
 			navigate(-1);
@@ -480,7 +480,7 @@ frappe.setup_search = function (target, search_scope) {
 	});
 
 	// Clear dropdown when clicked
-	$(window).click(function() {
+	$(window).on("click", function() {
 		clear_dropdown();
 	});
 

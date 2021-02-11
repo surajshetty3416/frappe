@@ -241,7 +241,7 @@ frappe.search.AwesomeBar = Class.extend({
 		// 	</span>
 		// `);
 
-		// search_text.click(() => {
+		// search_text.on("click", () => {
 		// 	frappe.searchdialog.search.init_search(txt, "global_search");
 		// });
 

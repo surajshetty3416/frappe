@@ -92,7 +92,7 @@ export default class LinksWidget extends Widget {
 				});
 				link_label.mouseout(() => popover.hide());
 			} else {
-				link_label.click(event => {
+				link_label.on('click', event => {
 					if (this.in_customize_mode) return;
 
 					if (link_label.hasClass("help-video-link")) {

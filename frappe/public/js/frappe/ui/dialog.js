@@ -66,7 +66,7 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 		}
 
 		if (this.minimizable) {
-			this.header.find('.title-section').click(() => this.is_minimized && this.toggle_minimize());
+			this.header.find('.title-section').on('click', () => this.is_minimized && this.toggle_minimize());
 			this.get_minimize_btn().removeClass('hide').on('click', () => this.toggle_minimize());
 		}
 
@@ -135,7 +135,7 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 		return this.get_primary_btn()
 			.removeClass("hide")
 			.html(label)
-			.click(function() {
+			.on("click", function() {
 				me.primary_action_fulfilled = true;
 				// get values and send it
 				// as first parameter to click callback

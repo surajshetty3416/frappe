@@ -5,7 +5,7 @@ frappe.pages['print'].on_page_load = function(wrapper) {
 
 	let print_view = new frappe.ui.form.PrintView(wrapper);
 
-	$(wrapper).bind('show', () => {
+	$(wrapper).on('show', () => {
 		const route = frappe.get_route();
 		const doctype = route[1];
 		const docname = route[2];

@@ -15,7 +15,7 @@ frappe.ui.form.Footer = Class.extend({
 	make: function() {
 		this.wrapper = $(frappe.render_template("form_footer", {}))
 			.appendTo(this.parent);
-		this.wrapper.find(".btn-save").click(() => {
+		this.wrapper.find(".btn-save").on("click", () => {
 			this.frm.save('Save', null, this);
 		});
 	},

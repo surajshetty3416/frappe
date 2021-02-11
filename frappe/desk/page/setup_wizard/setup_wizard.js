@@ -553,7 +553,7 @@ frappe.setup.utils = {
 	},
 
 	bind_language_events: function (slide) {
-		slide.get_input("language").unbind("change").on("change", function () {
+		slide.get_input("language").off("change").on("change", function () {
 			clearTimeout(slide.language_call_timeout);
 			slide.language_call_timeout = setTimeout(() => {
 				var lang = $(this).val() || "English";

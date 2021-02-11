@@ -7,7 +7,7 @@ frappe.pages['recorder'].on_page_load = function(wrapper) {
 	});
 
 	frappe.recorder = new Recorder(wrapper);
-	$(wrapper).bind('show', function() {
+	$(wrapper).on('show', function() {
 		frappe.recorder.show();
 	});
 

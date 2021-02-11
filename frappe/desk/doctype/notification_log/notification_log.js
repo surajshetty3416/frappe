@@ -29,7 +29,7 @@ frappe.ui.form.on('Notification Log', {
 			</div>
 		`);
 
-		$wrapper.find(".attached-file-link").click(() => {
+		$wrapper.find(".attached-file-link").on("click", () => {
 			const w = window.open(
 				frappe.urllib.get_full_url(`/api/method/frappe.utils.print_format.download_pdf?
 					doctype=${encodeURIComponent(attachment.doctype)}

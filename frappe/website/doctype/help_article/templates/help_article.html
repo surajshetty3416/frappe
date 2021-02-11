@@ -42,7 +42,7 @@
 <script>
 frappe.ready(function() {
 	frappe.set_search_path("/kb");
-	$(".feedback").click(function() {
+	$(".feedback").on("click", function() {
 		let args = {
 			article: "{{ reference_name or name }}",
 			helpful: this.getAttribute("data-value"),

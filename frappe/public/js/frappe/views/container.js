@@ -24,7 +24,7 @@ frappe.views.Container = Class.extend({
 			$("body").attr("data-sidebar", me.has_sidebar() ? 1 : 0);
 		});
 
-		$(document).bind('rename', function(event, dt, old_name, new_name) {
+		$(document).on('rename', function(event, dt, old_name, new_name) {
 			frappe.breadcrumbs.rename(dt, old_name, new_name);
 		});
 	},

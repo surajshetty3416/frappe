@@ -6,11 +6,11 @@
 
 	<script>
 		frappe.ready(function() {
-			$("#select-all-btn").click(function() {
+			$("#select-all-btn").on("click", function() {
 				$(".group").prop('checked', true);
 
 			});
-			$("#unselect-all-btn").click(function() {
+			$("#unselect-all-btn").on("click", function() {
 				$(".group").prop('checked', false);
 			});
 		});

@@ -114,7 +114,7 @@ frappe.ui.form.QuickEntryForm = Class.extend({
 		this.register_primary_action();
 		!this.force && this.render_edit_in_full_page_link();
 		// ctrl+enter to save
-		this.dialog.wrapper.keydown(function(e) {
+		this.dialog.wrapper.on("keydown", function(e) {
 			if((e.ctrlKey || e.metaKey) && e.which==13) {
 				if(!frappe.request.ajax_count) {
 					// not already working -- double entry

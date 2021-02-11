@@ -25,7 +25,7 @@ export default class ShortcutWidget extends Widget {
 	}
 
 	setup_events() {
-		this.widget.click(() => {
+		this.widget.on("click", () => {
 			if (this.in_customize_mode) return;
 
 			let route = frappe.utils.generate_route({

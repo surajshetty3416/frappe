@@ -75,7 +75,7 @@ export default class ListFilter {
 	}
 
 	bind_toggle_saved_filters() {
-		this.wrapper.find('.saved-filters-preview').click(() => {
+		this.wrapper.find('.saved-filters-preview').on("click", () => {
 			this.toggle_saved_filters(this.saved_filters_hidden);
 		});
 	}
@@ -110,7 +110,7 @@ export default class ListFilter {
 	}
 
 	bind_save_filter() {
-		this.filter_input.$input.keydown(
+		this.filter_input.$input.on("keydown",
 			frappe.utils.debounce((e) => {
 				const value = this.filter_input.get_value();
 				const has_value = Boolean(value);

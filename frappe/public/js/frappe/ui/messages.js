@@ -85,7 +85,7 @@ frappe.prompt = function(fields, callback, title, primary_label) {
 			reqd: 1
 		}];
 	}
-	if(!$.isArray(fields)) fields = [fields];
+	if(!Array.isArray(fields)) fields = [fields];
 	var d = new frappe.ui.Dialog({
 		fields: fields,
 		title: title || __("Enter Value"),
@@ -396,7 +396,7 @@ frappe.show_alert = function(message, seconds=7, actions={}) {
 		div.find('.alert-body').show().html(message.body);
 	}
 
-	div.find('.close, button').click(function() {
+	div.find('.close, button').on("click", function() {
 		div.addClass('out');
 		setTimeout(() => div.remove(), 800);
 		return false;

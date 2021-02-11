@@ -56,7 +56,7 @@ frappe.ui.form.ControlTime = frappe.ui.form.ControlDate.extend({
 
 		this.datepicker.$datepicker
 			.find('[data-action="today"]')
-			.click(() => {
+			.on("click", () => {
 				this.datepicker.selectDate(frappe.datetime.now_time(true));
 				this.datepicker.hide();
 			});

@@ -1,7 +1,7 @@
 frappe.pages["leaderboard"].on_page_load = (wrapper) => {
 	frappe.leaderboard = new Leaderboard(wrapper);
 
-	$(wrapper).bind('show', ()=> {
+	$(wrapper).on('show', ()=> {
 		// Get which leaderboard to show
 		let doctype = frappe.get_route()[1];
 		frappe.leaderboard.show_leaderboard(doctype);

@@ -36,7 +36,7 @@ frappe.ui.toolbar.Toolbar = class {
 				search_modal.find('#modal-search').focus();
 			}, 300);
 		});
-		$('.navbar-toggle-full-width').click(() => {
+		$('.navbar-toggle-full-width').on('click', () => {
 			frappe.ui.toolbar.toggle_full_width();
 		});
 	}
@@ -148,7 +148,7 @@ $.extend(frappe.ui.toolbar, {
 			+icon+'"></i> '+label+'</a></li>')
 			.insertBefore(menu.find(".divider"))
 			.find("a")
-			.click(function() {
+			.on("click", function() {
 				click.apply(this);
 			});
 	},

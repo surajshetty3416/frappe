@@ -149,7 +149,7 @@ $.extend(frappe.user, {
 });
 
 frappe.session_alive = true;
-$(document).bind('mousemove', function() {
+$(document).on('mousemove', function() {
 	if(frappe.session_alive===false) {
 		$(document).trigger("session_alive");
 	}

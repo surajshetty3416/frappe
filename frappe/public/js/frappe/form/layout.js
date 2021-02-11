@@ -555,7 +555,7 @@ frappe.ui.form.Layout = Class.extend({
 			out = this.frm.script_manager.trigger(expression.substr(3), this.doctype, this.docname);
 		} else {
 			var value = doc[expression];
-			if ($.isArray(value)) {
+			if (Array.isArray(value)) {
 				out = !!value.length;
 			} else {
 				out = !!value;

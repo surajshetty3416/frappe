@@ -10,7 +10,7 @@ frappe.ui.form.ControlCode = frappe.ui.form.ControlText.extend({
 			.appendTo(this.input_area);
 
 		this.expanded = false;
-		this.$expand_button = $(`<button class="btn btn-xs btn-default">${this.get_button_label()}</button>`).click(() => {
+		this.$expand_button = $(`<button class="btn btn-xs btn-default">${this.get_button_label()}</button>`).on("click", () => {
 			this.expanded = !this.expanded;
 			this.refresh_height();
 			this.toggle_label();

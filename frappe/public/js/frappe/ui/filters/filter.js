@@ -98,7 +98,7 @@ frappe.ui.Filter = class {
 			this.on_change();
 		});
 
-		this.filter_edit_area.find('.condition').change(() => {
+		this.filter_edit_area.find('.condition').on('change', () => {
 			if (!this.field) return;
 
 			let condition = this.get_condition();
@@ -291,7 +291,7 @@ frappe.ui.Filter = class {
 		// run on enter
 		$(this.field.wrapper)
 			.find(':input')
-			.keydown(e => {
+			.on("keydown", e => {
 				if (e.which == 13 && this.field.df.fieldtype !== 'MultiSelect') {
 					this.on_change();
 				}
@@ -319,7 +319,7 @@ frappe.ui.Filter = class {
 	set_condition(condition, trigger_change = false) {
 		let $condition_field = this.filter_edit_area.find('.condition');
 		$condition_field.val(condition);
-		if (trigger_change) $condition_field.change();
+		if (trigger_change) $condition_field.on("change", );
 	}
 
 	add_condition_help(condition) {

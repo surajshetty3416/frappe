@@ -87,7 +87,7 @@ $.extend(frappe.model, {
 			for(var i in doc) {
 				var value = doc[i];
 
-				if($.isArray(value)) {
+				if(Array.isArray(value)) {
 					for (var x=0, y=value.length; x < y; x++) {
 						var d = value[x];
 

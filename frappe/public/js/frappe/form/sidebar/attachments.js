@@ -10,7 +10,7 @@ frappe.ui.form.Attachments = Class.extend({
 	},
 	make: function() {
 		var me = this;
-		this.parent.find(".add-attachment-btn").click(function() {
+		this.parent.find(".add-attachment-btn").on("click", function() {
 			me.new_attachment();
 		});
 		this.add_attachment_wrapper = this.parent.find(".add_attachment").parent();

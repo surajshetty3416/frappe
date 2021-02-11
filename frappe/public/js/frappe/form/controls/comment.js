@@ -37,7 +37,7 @@ frappe.ui.form.ControlComment = frappe.ui.form.ControlTextEditor.extend({
 	bind_events() {
 		this._super();
 
-		this.button.click(() => {
+		this.button.on("click", () => {
 			this.submit();
 		});
 
