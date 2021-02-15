@@ -102,7 +102,7 @@
 		"node_modules/moment/min/moment-with-locales.min.js",
 		"node_modules/moment-timezone/builds/moment-timezone-with-data.min.js",
 		"public/js/lib/socket.io.min.js",
-		"public/js/lib/jSignature.min.js",
+		"node_modules/signature_pad/dist/signature_pad.umd.min.js",
 		"public/js/lib/leaflet/leaflet.js",
 		"public/js/lib/leaflet/leaflet.draw.js",
 		"public/js/lib/leaflet/L.Control.Locate.js",

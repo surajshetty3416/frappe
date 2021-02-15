@@ -45,6 +45,7 @@
     "qz-tray": "^2.0.8",
     "redis": "^2.8.0",
     "showdown": "^1.9.1",
+    "signature_pad": "^3.0.0-beta.4",
     "snyk": "^1.425.4",
     "socket.io": "^2.4.0",
     "superagent": "^3.8.2",
