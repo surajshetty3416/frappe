@@ -1,0 +1,22 @@
+name: Coverage Wrap Up
+
+on:
+  workflow_run:
+    workflows: ["Server"]
+    types:
+      - completed
+
+jobs:
+  coveralls:
+    container: python:3-slim
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Coveralls Finished
+        if: ${{ env.WILDCARD == 'strawberry' }}
+        run: |
+          cd ${GITHUB_WORKSPACE}
+          pip3 install coverage==5.5
+          pip3 install coveralls==3.0.1
+          coveralls --finish
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
