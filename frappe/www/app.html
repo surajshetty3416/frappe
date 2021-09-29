@@ -20,9 +20,15 @@
 			href="{{ favicon or "/assets/frappe/images/frappe-favicon.svg" }}" type="image/x-icon">
 		<link rel="icon"
 			href="{{ favicon or "/assets/frappe/images/frappe-favicon.svg" }}" type="image/x-icon">
-		{% for include in include_css -%}
-		{{ include_style(include) }}
-		{%- endfor -%}
+		<style>
+			.centered {
+				position: absolute;
+				top: 50%;
+				left: 50%;
+				transform: translate(-50%, -50%);
+				-webkit-transform: translate(-50%, -50%);
+			}
+		</style>
 	</head>
 	<body>
 		{% include "public/icons/timeless/symbol-defs.svg" %}
@@ -38,23 +44,27 @@
 		<div id="build-events-overlay"></div>
 
 		<script type="text/javascript">
-		window._version_number = "{{ build_version }}";
-		// browser support
-		window.app = true;
-		window.dev_server = {{ dev_server }};
-
-		if(!window.frappe) window.frappe = {};
-
-		frappe.boot = {{ boot }};
-
-		frappe.csrf_token = "{{ csrf_token }}";
-
+			window._version_number = "{{ build_version }}";
+			// browser support
+			window.app = true;
+			window.dev_server = {{ dev_server }};
+			if (!window.frappe) window.frappe = {};
+			frappe.csrf_token = "{{ csrf_token }}";
+			frappe.js_assets = {{ js_assets }};
+			frappe.css_assets = {{ css_assets }};
+			function add_style(filename) {
+				const head = document.getElementsByTagName('head')[0];
+				const style = document.createElement('link');
+				style.href = filename;
+				style.type = 'text/css';
+				style.rel = 'stylesheet';
+				head.append(style);
+			}
+			frappe.css_assets.forEach(add_style);
 		</script>
-
-	{% for include in include_js %}
-	{{ include_script(include) }}
-	{% endfor %}
-
+		{% for include in include_js %}
+		{{ include_script(include) }}
+		{% endfor %}
 	{% include "templates/includes/app_analytics/google_analytics.html" %}
 	{% include "templates/includes/app_analytics/mixpanel_analytics.html" %}
 

@@ -281,12 +281,13 @@ frappe.form.formatters = {
 		return $("<div></div>").text(value).html();
 	},
 	FileSize: function(value) {
-		if(value > 1048576) {
+		if (value > 1048576) {
 			value = flt(flt(value) / 1048576, 1) + "M";
 		} else if (value > 1024) {
 			value = flt(flt(value) / 1024, 1) + "K";
+		} else {
+			return value + "B";
 		}
-		return value;
 	},
 	TableMultiSelect: function(rows, df, options) {
 		rows = rows || [];

@@ -29,8 +29,6 @@ page_js = {
 
 # website
 app_include_js = [
-	"libs.bundle.js",
-	"desk.bundle.js",
 	"list.bundle.js",
 	"form.bundle.js",
 	"controls.bundle.js",

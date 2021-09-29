@@ -29,7 +29,7 @@ frappe.Application = class Application {
 		this.startup();
 	}
 
-	startup() {
+	async startup() {
 		frappe.socketio.init();
 		frappe.model.init();
 
@@ -43,7 +43,7 @@ frappe.Application = class Application {
 		}
 
 		this.setup_frappe_vue();
-		this.load_bootinfo();
+		await this.load_bootinfo();
 		this.load_user_permissions();
 		this.make_nav_bar();
 		this.set_favicon();
@@ -254,28 +254,26 @@ frappe.Application = class Application {
 		});
 		d.show();
 	}
-	load_bootinfo() {
-		if(frappe.boot) {
-			this.setup_workspaces();
-			frappe.model.sync(frappe.boot.docs);
-			$.extend(frappe._messages, frappe.boot.__messages);
-			this.check_metadata_cache_status();
-			this.set_globals();
-			this.sync_pages();
-			frappe.router.setup();
-			moment.locale("en");
-			moment.user_utc_offset = moment().utcOffset();
-			if(frappe.boot.timezone_info) {
-				moment.tz.add(frappe.boot.timezone_info);
-			}
-			if(frappe.boot.print_css) {
-				frappe.dom.set_style(frappe.boot.print_css, "print-style");
-			}
-			frappe.user.name = frappe.boot.user.name;
-			frappe.router.setup();
-		} else {
-			this.set_as_guest();
+	async load_bootinfo() {
+		await this.load_boot_info();
+		await this.load_scripts(frappe.js_assets);
+		this.setup_workspaces();
+		frappe.model.sync(frappe.boot.docs);
+		$.extend(frappe._messages, frappe.boot.__messages);
+		this.check_metadata_cache_status();
+		this.set_globals();
+		this.sync_pages();
+		frappe.router.setup();
+		moment.locale("en");
+		moment.user_utc_offset = moment().utcOffset();
+		if(frappe.boot.timezone_info) {
+			moment.tz.add(frappe.boot.timezone_info);
 		}
+		if(frappe.boot.print_css) {
+			frappe.dom.set_style(frappe.boot.print_css, "print-style");
+		}
+		frappe.user.name = frappe.boot.user.name;
+		frappe.router.setup();
 	}
 
 	setup_workspaces() {
@@ -614,7 +612,37 @@ frappe.Application = class Application {
 			}
 		});
 	}
-}
+
+	load_script(filename) {
+		return new Promise((resolve, reject) => {
+			const body = document.getElementsByTagName('body')[0];
+
+			const script = document.createElement('script');
+			script.src = filename;
+			script.type = 'text/javascript';
+
+			script.addEventListener('load', function () {
+				// The script is loaded completely
+				resolve(true);
+			});
+
+			body.append(script);
+		});
+	}
+
+	async load_scripts(assets) {
+		console.log(assets)
+		for (const asset of assets) {
+			await this.load_script(asset);
+		}
+	}
+
+	async load_boot_info() {
+		return frappe.xcall("frappe.www.app.get_boot_info").then(boot => {
+			frappe.boot = boot;
+		});
+	}
+};
 
 frappe.get_module = function(m, default_module) {
 	var module = frappe.modules[m] || default_module;
@@ -638,3 +666,7 @@ frappe.get_module = function(m, default_module) {
 
 	return module;
 };
+
+// load js files
+// load icon file
+// get boot object

@@ -201,7 +201,6 @@ frappe.router = {
 	render_page() {
 		// create the page generator (factory) object and call `show`
 		// if there is no generator, render the `Page` object
-
 		const route = this.current_route;
 		const factory = frappe.utils.to_title_case(route[0]);
 
@@ -220,6 +219,7 @@ frappe.router = {
 				frappe.views.pageview.show(route_name);
 			}
 		}
+		frappe.dom.unfreeze();
 	},
 
 	re_route(sub_path) {

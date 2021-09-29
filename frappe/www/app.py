@@ -6,7 +6,7 @@ import os, re
 import frappe
 from frappe import _
 import frappe.sessions
-from frappe.utils.jinja_globals import is_rtl
+from frappe.utils.jinja_globals import is_rtl, bundled_asset
 
 def get_context(context):
 	if frappe.session.user == "Guest":
@@ -15,11 +15,6 @@ def get_context(context):
 		frappe.throw(_("You are not permitted to access this page."), frappe.PermissionError)
 
 	hooks = frappe.get_hooks()
-	try:
-		boot = frappe.sessions.get()
-	except Exception as e:
-		boot = frappe._dict(status='failed', error = str(e))
-		print(frappe.get_traceback())
 
 	# this needs commit
 	csrf_token = frappe.sessions.get_csrf_token()
@@ -28,23 +23,16 @@ def get_context(context):
 
 	desk_theme = frappe.db.get_value("User", frappe.session.user, "desk_theme")
 
-	boot_json = frappe.as_json(boot)
-
-	# remove script tags from boot
-	boot_json = re.sub(r"\<script[^<]*\</script\>", "", boot_json)
-
-	# TODO: Find better fix
-	boot_json = re.sub(r"</script\>", "", boot_json)
-
 	context.update({
 		"no_cache": 1,
 		"build_version": frappe.utils.get_build_version(),
-		"include_js": hooks["app_include_js"],
+		"include_js": ["libs.bundle.js", "desk.bundle.js"],
 		"include_css": hooks["app_include_css"],
+		"js_assets": [bundled_asset(path) for path in hooks["app_include_js"]],
+		"css_assets": [bundled_asset(path) for path in hooks["app_include_css"]],
 		"layout_direction": "rtl" if is_rtl() else "ltr",
 		"lang": frappe.local.lang,
 		"sounds": hooks["sounds"],
-		"boot": boot if context.get("for_mobile") else boot_json,
 		"desk_theme": desk_theme or "Light",
 		"csrf_token": csrf_token,
 		"google_analytics_id": frappe.conf.get("google_analytics_id"),
@@ -53,6 +41,21 @@ def get_context(context):
 	})
 
 	return context
+
+@frappe.whitelist()
+def get_boot_info(for_mobile=False):
+	try:
+		boot = frappe.sessions.get()
+	except Exception as e:
+		boot = frappe._dict(status='failed', error = str(e))
+	# 	print(frappe.get_traceback())
+	# boot_json = frappe.as_json(boot)
+	# # remove script tags from boot
+	# boot_json = re.sub(r"\<script[^<]*\</script\>", "", boot_json)
+
+	# # TODO: Find better fix
+	# boot_json = re.sub(r"</script\>", "", boot_json)
+	return boot
 
 @frappe.whitelist()
 def get_desk_assets(build_version):
