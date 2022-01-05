@@ -52,6 +52,7 @@ frappe.Application = class Application {
 		this.add_browser_class();
 		this.setup_energy_point_listeners();
 		this.setup_copy_doc_listener();
+		this.setup_awesome_bar();
 
 		frappe.ui.keys.setup();
 
@@ -590,6 +591,10 @@ frappe.Application = class Application {
 		if (frappe.boot.developer_mode) {
 			frappe.require("build_events.bundle.js");
 		}
+	}
+
+	setup_awesome_bar() {
+		frappe.require("awesomebar.bundle.js");
 	}
 
 	setup_energy_point_listeners() {
