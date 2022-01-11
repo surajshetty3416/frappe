@@ -595,6 +595,10 @@ frappe.Application = class Application {
 
 	setup_awesome_bar() {
 		frappe.require("awesomebar.bundle.js");
+		frappe.ui.keys.add_shortcut({
+			shortcut: "ctrl+/",
+			action: () => frappe.ui.awesomebar.toggle()
+		})
 	}
 
 	setup_energy_point_listeners() {

@@ -14,6 +14,9 @@ class AwesomeBar {
 	hide() {
 		this.awesomebar.hide();
 	}
+	toggle() {
+		this.awesomebar.toggle();
+	}
 }
 
 let div = $('<div class="awe">')
