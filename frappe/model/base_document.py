@@ -153,9 +153,6 @@ class BaseDocument(object):
 				value = []
 				self.set(key, value)
 
-			if limit and isinstance(value, (list, tuple)) and len(value) > limit:
-				value = value[:limit]
-
 			return value
 		else:
 			return self.__dict__
@@ -252,7 +249,7 @@ class BaseDocument(object):
 
 		return value
 
-	def get_valid_dict(self, sanitize=True, convert_dates_to_str=False, ignore_nulls=False, ignore_virtual=False):
+	def get_valid_dict(self, sanitize=True, convert_dates_to_str=False, ignore_nulls = False):
 		d = frappe._dict()
 		for fieldname in self.meta.get_valid_columns():
 			d[fieldname] = self.get(fieldname)
@@ -264,10 +261,6 @@ class BaseDocument(object):
 			df = self.meta.get_field(fieldname)
 
 			if df and df.get("is_virtual"):
-				if ignore_virtual:
-					del d[fieldname]
-					continue
-
 				from frappe.utils.safe_exec import get_safe_globals
 
 				if d[fieldname] is None:
@@ -403,43 +396,26 @@ class BaseDocument(object):
 		fieldname = [df.fieldname for df in self.meta.get_table_fields() if df.options==doctype]
 		return fieldname[0] if fieldname else None
 
-	def db_insert(self, ignore_if_duplicate=False):
-		"""INSERT the document (with valid columns) in the database.
-
-			args:
-				ignore_if_duplicate: ignore primary key collision
-								at database level (postgres)
-								in python (mariadb)
-		"""
+	def db_insert(self):
+		"""INSERT the document (with valid columns) in the database."""
 		if not self.name:
 			# name will be set by document class in most cases
 			set_new_name(self)
-
-		conflict_handler = ""
-		# On postgres we can't implcitly ignore PK collision
-		# So instruct pg to ignore `name` field conflicts
-		if ignore_if_duplicate and frappe.db.db_type == "postgres":
-			conflict_handler = "on conflict (name) do nothing"
 
 		if not self.creation:
 			self.creation = self.modified = now()
 			self.created_by = self.modified_by = frappe.session.user
 
 		# if doctype is "DocType", don't insert null values as we don't know who is valid yet
-		d = self.get_valid_dict(
-			convert_dates_to_str=True,
-			ignore_nulls=self.doctype in DOCTYPES_FOR_DOCTYPE,
-			ignore_virtual=True,
-		)
+		d = self.get_valid_dict(convert_dates_to_str=True, ignore_nulls = self.doctype in DOCTYPES_FOR_DOCTYPE)
 
 		columns = list(d)
 		try:
 			frappe.db.sql("""INSERT INTO `tab{doctype}` ({columns})
-					VALUES ({values}) {conflict_handler}""".format(
-					doctype=self.doctype,
-					columns=", ".join("`"+c+"`" for c in columns),
-					values=", ".join(["%s"] * len(columns)),
-					conflict_handler=conflict_handler
+					VALUES ({values})""".format(
+					doctype = self.doctype,
+					columns = ", ".join("`"+c+"`" for c in columns),
+					values = ", ".join(["%s"] * len(columns))
 				), list(d.values()))
 		except Exception as e:
 			if frappe.db.is_primary_key_violation(e):
@@ -452,11 +428,8 @@ class BaseDocument(object):
 					self.db_insert()
 					return
 
-				if not ignore_if_duplicate:
-					frappe.msgprint(_("{0} {1} already exists")
-							.format(self.doctype, frappe.bold(self.name)),
-							title=_("Duplicate Name"), indicator="red")
-					raise frappe.DuplicateEntryError(self.doctype, self.name, e)
+				frappe.msgprint(_("{0} {1} already exists").format(self.doctype, frappe.bold(self.name)), title=_("Duplicate Name"), indicator="red")
+				raise frappe.DuplicateEntryError(self.doctype, self.name, e)
 
 			elif frappe.db.is_unique_key_violation(e):
 				# unique constraint
@@ -784,7 +757,7 @@ class BaseDocument(object):
 
 		type_map = frappe.db.type_map
 
-		for fieldname, value in self.get_valid_dict(ignore_virtual=True).items():
+		for fieldname, value in self.get_valid_dict().items():
 			df = self.meta.get_field(fieldname)
 
 			if not df or df.fieldtype == 'Check':
@@ -862,7 +835,7 @@ class BaseDocument(object):
 		if frappe.flags.in_install:
 			return
 
-		for fieldname, value in self.get_valid_dict(ignore_virtual=True).items():
+		for fieldname, value in self.get_valid_dict().items():
 			if not value or not isinstance(value, str):
 				continue
 
