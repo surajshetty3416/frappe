@@ -118,7 +118,9 @@ jobs:
 
       - name: Install
         if: ${{ steps.check-build.outputs.build == 'strawberry' }}
-        run: bash ${GITHUB_WORKSPACE}/.github/helper/install.sh
+        run: |
+          bash ${GITHUB_WORKSPACE}/.github/helper/install.sh
+          cat ~/frappe-bench/Procfile
         env:
           DB: mariadb
           TYPE: ui
@@ -142,7 +144,9 @@ jobs:
           CYPRESS_RECORD_KEY: 4a48f41c-11b3-425b-aa88-c58048fa69eb
 
       - name: Stop server
-        run: ps -ef | grep "frappe serve" | awk '{print $2}' | xargs kill
+        run: |
+          ps -ef | grep "frappe serve" | awk '{print $2}' | xargs kill -s SIGINT
+          sleep 5
 
       - name: Check If Coverage Report Exists
         id: check_coverage
