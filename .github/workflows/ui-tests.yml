@@ -145,7 +145,7 @@ jobs:
 
       - name: Stop server
         run: |
-          ps -ef | grep "frappe serve" | awk '{print $2}' | xargs kill -s SIGINT 2> /dev/null
+          ps -ef | grep "frappe serve" | awk '{print $2}' | xargs kill -s SIGINT 2> /dev/null || true
           sleep 5
 
       - name: Check If Coverage Report Exists
