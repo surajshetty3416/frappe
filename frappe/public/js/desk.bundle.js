@@ -16,6 +16,7 @@ import "./frappe/request.js";
 import "./frappe/socketio_client.js";
 import "./frappe/utils/utils.js";
 import "./frappe/event_emitter.js";
+import "./frappe/like_manager";
 import "./frappe/router.js";
 import "./frappe/router_history.js";
 import "./frappe/defaults.js";
