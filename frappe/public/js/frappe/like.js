@@ -15,14 +15,22 @@ class Like extends HTMLElement {
 		this.shadowRoot.innerHTML = `
 			<style>
 				.like {
-					font-size: var(--text-sm);
+					width: fit-content;
+					font-size: var(--text-md);
 					cursor: pointer;
 				}
-				.liked {
-					padding: 0px 5px;
+				.like:not(.liked) {
+					opacity: 50%;
+				}
+				.like:hover {
+					opacity: 100%;
+				}
+				.liked-by-me {
+					font-size: var(--text-xs);
+					padding: 1px 6px;
 					border-radius: 10px;
 					border: 1px solid var(--blue-500);
-					background: vat(--blue-50)
+					background: var(--blue-50)
 				}
 			</style>
 		`;
@@ -34,7 +42,7 @@ class Like extends HTMLElement {
 	}
 
 	disconnectedCallback() {
-		//implementation
+		this.remove_like_listeners();
 	}
 
 	attributeChangedCallback(name, oldVal, newVal) {
@@ -66,6 +74,10 @@ class Like extends HTMLElement {
 		});
 	}
 
+	remove_like_listeners() {
+		frappe.realtime.off(`document-like-${this.doctype}-${this.docname}`);
+	}
+
 	setup_events() {
 		this.like_wrapper.click(() => {
 			this.update_likes(!this.liked);
@@ -78,12 +90,16 @@ class Like extends HTMLElement {
 	}
 
 	set_likes() {
-		this.like_wrapper.toggleClass('liked', !!this.liked);
-
-		this.counter.toggle(this.likes.length > 0);
-		if (this.likes.length) {
+		this.like_wrapper.toggleClass('liked-by-me', !!this.liked);
+		let liked_by_someone = !!this.likes.length;
+		this.counter.toggle(liked_by_someone);
+		this.like_wrapper.toggleClass('liked', liked_by_someone);
+		if (liked_by_someone) {
 			this.counter.text(this.likes.length);
 		}
+		this.like_wrapper.tooltip('hide');
+		this.like_wrapper.attr("data-original-title", `Liked by ${this.likes.join(', ') || 'no one'}`)
+			.tooltip({ delay: { "show": 600, "hide": 100 }, trigger: "hover" });
 	}
 
 	update_likes(like, user) {

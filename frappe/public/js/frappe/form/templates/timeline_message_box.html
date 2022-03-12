@@ -46,7 +46,6 @@
 			{% } %}
 		</span>
 		<span class="actions">
-			<frappe-like reference-doctype="Comment" reference-docname="{{doc.name}}"></frappe-like>
 			{% if (doc._doc_status && doc._doc_status_indicator) { %}
 			<span class="indicator-pill {%= doc._doc_status_indicator %}"
 				title="{%= __(doc._doc_status) %}"
@@ -83,8 +82,9 @@
 	<div class="content">
 		{{ doc.content }}
 	</div>
-	{% if (doc.attachments && doc.attachments.length) { %}
 	<div style="margin-top: 10px">
+		<frappe-like reference-doctype="Comment" reference-docname="{{doc.name}}"></frappe-like>
+	{% if (doc.attachments && doc.attachments.length) { %}
 	{% $.each(doc.attachments, function(i, a) { %}
 	<div class="ellipsis flex">
 		<a href="{%= encodeURI(a.file_url).replace(/#/g, \'%23\') %}"
@@ -102,6 +102,6 @@
 		</a>
 	</div>
 	{% }); %}
-	</div>
 	{% } %}
+	</div>
 </div>
