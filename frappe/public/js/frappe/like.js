@@ -18,19 +18,21 @@ class Like extends HTMLElement {
 					width: fit-content;
 					font-size: var(--text-md);
 					cursor: pointer;
+					border-radius: 10px;
+					background: var(--gray-50);
+					padding: 1px 6px;
+					border: 1px solid var(--control-bg-on-gray);
+					font-size: var(--text-sm);
 				}
 				.like:not(.liked) {
-					opacity: 50%;
+					opacity: 70%;
 				}
 				.like:hover {
 					opacity: 100%;
 				}
 				.liked-by-me {
-					font-size: var(--text-xs);
-					padding: 1px 6px;
-					border-radius: 10px;
 					border: 1px solid var(--blue-500);
-					background: var(--blue-50)
+					background: var(--blue-50);
 				}
 			</style>
 		`;
