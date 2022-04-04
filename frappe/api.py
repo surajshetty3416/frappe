@@ -39,6 +39,7 @@ def handle():
 
 	parts = frappe.request.path[1:].split("/",3)
 	call = doctype = name = None
+	print(parts, frappe.request.path)
 
 	if len(parts) > 1:
 		call = parts[1]
@@ -51,6 +52,7 @@ def handle():
 
 	if call=="method":
 		frappe.local.form_dict.cmd = doctype
+		print(parts, frappe.local.form_dict.cmd, "--------")
 		return frappe.handler.handle()
 
 	elif call=="resource":
