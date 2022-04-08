@@ -50,7 +50,7 @@ def application(request):
 		rollback = True
 
 		init_request(request)
-		print(request.path, "------------------------------")
+		print(request.path, "------------------------------", frappe.form_dict.cmd)
 		frappe.recorder.record()
 		frappe.monitor.start()
 		frappe.rate_limiter.apply()
