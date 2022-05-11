@@ -43,8 +43,6 @@ export default {
 		return {
 			input_value: '',
 			input_focused: false,
-			now_selecting: 'table',
-			table: {},
 			column: {},
 		}
 	},
@@ -64,76 +62,30 @@ export default {
 	watch: {
 		input_focused(is_focused, old_is_focused) {
 			if (is_focused && is_focused != old_is_focused) {
-				this.query.get_selectable_tables.fetch()
-			}
-		},
-		input_value(new_value) {
-			const delimiter_count = (new_value.match(/;/g) || []).length
-			if (delimiter_count === 0) {
-				this.table = {}
-				this.column = {}
-				this.now_selecting = 'table'
-				return
-			}
-			if (delimiter_count === 1) {
-				this.column = {}
-				this.now_selecting = 'column'
-				return
+				this.query.get_selectable_columns.fetch({ tables: this.query.doc.tables })
 			}
 		},
 	},
 	computed: {
-		table_list() {
-			return this.query.get_selectable_tables?.data?.message || []
-		},
 		column_list() {
 			return this.query.get_selectable_columns?.data?.message || []
 		},
 		suggestions() {
-			const [table, column] = this.input_value.split(';')
-
-			if (this.now_selecting === 'table') {
-				return this.get_table_suggestions(table)
-			}
-			if (this.now_selecting === 'column') {
-				return this.get_column_suggestions(column)
-			}
+			return this.get_column_suggestions(this.input_value)
 		},
 	},
 	methods: {
 		on_suggestion_select(suggestion) {
-			if (this.now_selecting === 'table') {
-				this.query.get_selectable_columns.fetch({ table: suggestion })
-				this.input_value = `${suggestion.label};`
-				this.table = suggestion
-				this.now_selecting = 'column'
-				this.$refs.column_search?.focus()
-				return
-			}
-
-			if (this.now_selecting === 'column') {
-				this.column = suggestion
-				this.query.add_column.submit({ column: this.column })
-				this.reset()
-				return
-			}
+			this.query.add_column.submit({ column: suggestion })
+			this.reset()
+			return
 		},
 		reset() {
 			this.$refs.column_search?.blur()
-			this.table = {}
 			this.column = {}
 			this.input_value = ''
 			this.input_focused = false
 			this.now_selecting = null
-		},
-		get_table_suggestions(input) {
-			let _suggestions = []
-			if (input) {
-				_suggestions = this.table_list.filter((t) => t.label.toLowerCase().includes(input.toLowerCase()))
-			} else {
-				_suggestions = this.table_list
-			}
-			return _suggestions
 		},
 		get_column_suggestions(input) {
 			let _suggestions = []
