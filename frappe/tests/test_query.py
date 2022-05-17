@@ -1,8 +1,7 @@
 import unittest
-
 import frappe
-from frappe.tests.test_query_builder import db_type_is, run_only_if
 
+from frappe.tests.test_query_builder import db_type_is, run_only_if
 
 @run_only_if(db_type_is.MARIADB)
 class TestQuery(unittest.TestCase):
