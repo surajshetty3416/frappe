@@ -2,6 +2,7 @@
 
 import './assign_to';
 import './attachments';
+import './share_new';
 import './share';
 import './review';
 import './document_follow';
@@ -167,7 +168,7 @@ frappe.ui.form.Sidebar = class {
 	}
 
 	make_shared() {
-		this.frm.shared = new frappe.ui.form.Share({
+		this.frm.shared = new frappe.ui.form.Share2({
 			frm: this.frm,
 			parent: this.sidebar.find(".form-shared")
 		});

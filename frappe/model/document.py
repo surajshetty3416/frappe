@@ -1388,7 +1388,7 @@ class Document(BaseDocument):
 		if no_expiry:
 			expires_on = None
 
-		if document_key_exist := frappe.db.exists(
+		if existing_key := frappe.db.exists(
 			"Document Share Key",
 			{
 				"reference_doctype": self.doctype,
@@ -1396,7 +1396,7 @@ class Document(BaseDocument):
 				"expires_on": expires_on,
 			},
 		):
-			doc = frappe.get_doc("Document Share Key", document_key_exist)
+			doc = frappe.get_doc("Document Share Key", existing_key)
 		else:
 			doc = frappe.new_doc("Document Share Key")
 			doc.reference_doctype = self.doctype

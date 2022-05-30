@@ -1,0 +1,30 @@
+<div>
+	<ul class="list-group mt-3">
+		{% for share in shared_with %}
+		<li class="flex justify-between list-group-item">
+			<span>
+				{{ share.user }}
+			</span>
+			<div class="btn-group">
+				<button type="button" class="btn btn-xs btn-link dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+					{{ share.rights }}
+				</button>
+				<div class="dropdown-menu small">
+					{% for option in rights_options %}
+					<button class="dropdown-item btn btn-link">{{ option.label }}</button>
+					{% endfor %}
+					{% if actions %}
+					<div class="dropdown-divider"></div>
+					{% endif %}
+					{% for action in actions %}
+					<button class="dropdown-item btn btn-link">{{ action.label }}</button>
+					{% endfor %}
+				</div>
+			</div>
+		</li>
+		{% endfor %}
+	</ul>
+</div>
+<h5 class="mt-5">
+	<a> Get public Link -> </a>
+</h5>

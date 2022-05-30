@@ -14,7 +14,15 @@ frappe.ui.form.Share = class Share {
 	}
 	render_sidebar() {
 		const shared = this.shared || this.frm.get_docinfo().shared;
-		const shared_users = shared.filter(Boolean).map(s => s.user);
+		const shared_users = [];
+		let share_with_everyone = false;
+		shared.filter(Boolean).forEach((el) => {
+			if (el.everyone) {
+				share_with_everyone = true;
+			} else {
+				shared_users.push(el.user);
+			}
+		});
 
 		this.share_link.attr("title", __("Get Shareable Link"))
 			.tooltip({ delay: { "show": 600, "hide": 100 }});
@@ -40,7 +48,11 @@ frappe.ui.form.Share = class Share {
 
 		this.shares.show();
 		// REDESIGN-TODO: handle "shared with everyone"
-		this.shares.append(frappe.avatar_group(shared_users, 5, {'align': 'left', 'overlap': true}));
+		if (share_with_everyone) {
+			this.shares.append(frappe.avatar("Everyone"));
+		} else {
+			this.shares.append(frappe.avatar_group(shared_users, 5, {'align': 'left', 'overlap': true}));
+		}
 	}
 	show() {
 		var me = this;

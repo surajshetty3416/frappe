@@ -762,10 +762,10 @@ def get_email_awaiting(user):
 	if waiting:
 		return waiting
 	else:
-		user_email_table = DocType("User Email")
-		frappe.qb.update(user_email_table).set(user_email_table.user_email_table, 0).where(
-			user_email_table.parent == user
-		).run()
+		# user_email_table = DocType("User Email")
+		# frappe.qb.update(user_email_table).set(user_email_table.user_email_table, 0).where(
+		# 	user_email_table.parent == user
+		# ).run()
 		return False
 
 

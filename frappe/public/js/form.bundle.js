@@ -4,6 +4,7 @@ import "./frappe/form/templates/form_dashboard.html";
 import "./frappe/form/templates/form_footer.html";
 import "./frappe/form/templates/form_links.html";
 import "./frappe/form/templates/form_sidebar.html";
+import "./frappe/form/templates/share.html";
 import "./frappe/form/templates/print_layout.html";
 import "./frappe/form/templates/report_links.html";
 import "./frappe/form/templates/set_sharing.html";
