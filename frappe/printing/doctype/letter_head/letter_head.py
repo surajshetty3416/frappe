@@ -69,10 +69,12 @@ class LetterHead(Document):
 
 		self.set(
 			html_field,
-			f"""<div style="text-align: {self.get(align, "").lower()};">
-<img src="{self.get(field)}" alt="{self.get("name")}"
-{dimension}="{dimension_value}" style="{dimension}: {dimension_value}px;">
-</div>""",
+			f"""
+				<div style="text-align: {(self.get(align) or "").lower()};">
+					<img src="{self.get(field)}" alt="{self.get("name")}"
+					{dimension}="{dimension_value}" style="{dimension}: {dimension_value}px;">
+				</div>
+			""",
 		)
 
 		frappe.msgprint(success_msg, alert=True)
