@@ -30,6 +30,8 @@ def publish_realtime(
 	docname=None,
 	task_id=None,
 	after_commit=False,
+	allow_website_users=False,
+	allow_guest=False,
 ):
 	"""Publish real-time updates
 
@@ -66,8 +68,12 @@ def publish_realtime(
 			room = get_user_room(user)
 		elif doctype and docname:
 			room = get_doc_room(doctype, docname)
+		elif allow_website_users:
+			room = get_website_users_room()
+		elif allow_guest:
+			room = get_guest_room()
 		else:
-			room = get_site_room()
+			room = get_desk_users_room()
 
 	if after_commit:
 		params = [event, message, room]
@@ -124,6 +130,7 @@ def get_user_info():
 	session = Session(None, resume=True).get_session_data()
 	return {
 		"user": session.user,
+		"has_desk_access": session.get("user_type") == "System User",
 	}
 
 
@@ -137,6 +144,18 @@ def get_user_room(user):
 
 def get_site_room():
 	return "".join([frappe.local.site, ":all"])
+
+
+def get_desk_users_room():
+	return f"{get_site_room()}:desk_users"
+
+
+def get_website_users_room():
+	return f"{get_site_room()}:website_users"
+
+
+def get_guest_room():
+	return f"{get_site_room()}:guest"
 
 
 def get_task_progress_room(task_id):

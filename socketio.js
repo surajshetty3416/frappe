@@ -45,9 +45,17 @@ io.on("connection", function (socket) {
 				sid: sid,
 			})
 			.then((res) => {
-				const room = get_user_room(socket, res.body.message.user);
-				socket.join(room);
-				socket.join(get_site_room(socket));
+				const user = res.body.message.user;
+				const has_desk_access = res.body.message.has_desk_access;
+				const user_room = get_user_room(socket, user);
+				socket.join(user_room);
+				socket.join(get_guest_room(socket));
+				if (user !== "Guest") {
+					socket.join(get_website_users_room(socket));
+					if (has_desk_access) {
+						socket.join(get_desk_users_room(socket));
+					}
+				}
 			})
 			.catch((e) => {
 				if (e.code === "ECONNREFUSED" && retries < 5) {
@@ -220,6 +228,18 @@ function get_user_room(socket, user) {
 
 function get_site_room(socket) {
 	return get_site_name(socket) + ":all";
+}
+
+function get_desk_users_room(socket) {
+	return get_site_room(socket) + ":desk_users";
+}
+
+function get_website_users_room(socket) {
+	return get_site_room(socket) + ":website_users";
+}
+
+function get_guest_room(socket) {
+	return get_site_name(socket) + ":guest";
 }
 
 function get_task_room(socket, task_id) {
