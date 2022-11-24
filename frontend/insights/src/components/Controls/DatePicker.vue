@@ -5,7 +5,7 @@
 				readonly
 				type="text"
 				:placeholder="placeholder"
-				:value="value && formatValue ? formatValue(value) : value"
+				:value="value && formatter ? formatter(value) : value"
 				@focus="!readonly ? togglePopover() : null"
 				:class="[
 					'form-input block h-8 w-full cursor-text select-none rounded-md text-sm placeholder-gray-500',
@@ -98,7 +98,7 @@
 <script>
 export default {
 	name: 'DatePicker',
-	props: ['value', 'placeholder', 'formatValue', 'readonly', 'inputClass'],
+	props: ['value', 'placeholder', 'formatter', 'readonly', 'inputClass'],
 	emits: ['change'],
 	data() {
 		return {
@@ -160,6 +160,9 @@ export default {
 		},
 		selectCurrentMonthYear() {
 			let date = this.value ? this.getDate(this.value) : this.getDate()
+			if (date === 'Invalid Date') {
+				date = this.getDate()
+			}
 			this.currentYear = date.getFullYear()
 			this.currentMonth = date.getMonth() + 1
 		},
