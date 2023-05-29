@@ -12,11 +12,19 @@ from sqlalchemy.engine.base import Connection
 from insights.insights.query_builders.sql_builder import SQLQueryBuilder
 
 from .base_database import BaseDatabase
-from .utils import (
-    MARIADB_TO_GENERIC_TYPES,
-    create_insights_table,
-    get_sqlalchemy_engine,
-)
+from .utils import create_insights_table, get_sqlalchemy_engine
+
+MARIADB_TO_GENERIC_TYPES = {
+    "int": "Integer",
+    "bigint": "Long Int",
+    "decimal": "Decimal",
+    "text": "Text",
+    "longtext": "Long Text",
+    "date": "Date",
+    "datetime": "Datetime",
+    "time": "Time",
+    "varchar": "String",
+}
 
 
 class MariaDBTableFactory:
