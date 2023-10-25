@@ -55,7 +55,7 @@ function changeDataSource(sourceName) {
 </script>
 
 <template>
-	<div class="mr-2 flex h-full items-center">
+	<div class="mr-2 flex items-center">
 		<div v-if="query.doc.is_saved_as_table" class="mr-2">
 			<Component class="h-4 w-4 text-gray-600" fill="currentColor" />
 		</div>
