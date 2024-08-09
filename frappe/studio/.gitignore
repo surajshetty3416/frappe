@@ -5,3 +5,6 @@
 tags
 node_modules
 __pycache__
+studio/docs/current
+studio/public/frontend
+studio/www/studio.html
