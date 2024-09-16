@@ -33,7 +33,6 @@
 </template>
 <script setup lang="ts">
 import routeRedirects from "@/data/routeRedirects";
-import useStore from "@/store";
 import { ListView } from "frappe-ui";
 import { computed, ref } from "vue";
 
@@ -50,22 +49,8 @@ const rows = computed(() => {
 		};
 	});
 });
-const store = useStore();
 
 const addRedirect = () => {
-	// webComponent.insert
-	// 	.submit({
-	// 		block: getBlockString(blockCopy),
-	// 		component_name: componentProperties.value.componentName,
-	// 		for_web_page: componentProperties.value.isGlobalComponent ? null : store.selectedPage,
-	// 	})
-	// 	.then(async (data: BuilderComponent) => {
-	// 		posthog.capture("builder_component_created", { component_name: data.name });
-	// 		store.componentMap.set(data.name, getBlockInstance(data.block));
-	// 		const block = store.activeCanvas?.findBlock(props.block.blockId);
-	// 		if (!block) return;
-	// 		block.extendFromComponent(data.name);
-	// 	});
 	routeRedirects.insert
 		.submit({
 			source: redirectMap.value.from,
