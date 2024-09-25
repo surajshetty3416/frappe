@@ -4,7 +4,6 @@ import { FIELDTYPES } from '../../helpers/constants'
 import { DountChartConfig } from '../../types/chart.types'
 import { DimensionOption, MeasureOption } from './ChartConfigForm.vue'
 import CollapsibleSection from './CollapsibleSection.vue'
-import InlineFormControlLabel from '../../components/InlineFormControlLabel.vue'
 
 const props = defineProps<{
 	dimensions: DimensionOption[]
@@ -42,7 +41,6 @@ const discrete_dimensions = computed(() =>
 				@update:modelValue="config.value_column = $event"
 			/>
 
-			<!-- <Checkbox label="Show Data Labels" /> -->
 			<FormControl
 				v-model="config.legend_position"
 				label="Legend Position"
