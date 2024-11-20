@@ -17,7 +17,10 @@ const operation = query.getSQLOperation()
 const data_source = ref(operation ? operation.data_source : '')
 const sql = ref(operation ? operation.raw_sql : '')
 function execute() {
-	query.setSQLQuery(sql.value, data_source.value)
+	query.setSQL({
+		raw_sql: sql.value,
+		data_source: data_source.value,
+	})
 }
 
 const columns = computed(() => query.result.columns)
