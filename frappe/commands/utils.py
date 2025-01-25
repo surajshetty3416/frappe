@@ -981,8 +981,9 @@ def rebuild_global_search(context: CliCtxObj, static_pages=False):
 
 @click.command("list-sites")
 @click.option("--json", "output_json", is_flag=True, help="Output in JSON format")
+@click.option("--app", help="Filter sites by app")
 @pass_context
-def list_sites(context: CliCtxObj, output_json=False):
+def list_sites(context: CliCtxObj, output_json=False, app=None):
 	"List all the sites in current bench"
 	site_dir = os.getcwd()
 	# Get the current site from common_site_config.json
@@ -992,6 +993,7 @@ def list_sites(context: CliCtxObj, output_json=False):
 		with open(common_site_config_path) as f:
 			config = json.load(f)
 			default_site = config.get("default_site")
+
 	sites = [
 		site
 		for site in os.listdir(site_dir)
@@ -999,10 +1001,32 @@ def list_sites(context: CliCtxObj, output_json=False):
 		and not site.startswith(".")
 		and os.path.exists(os.path.join(site_dir, site, "site_config.json"))
 	]
+
+	if app:
+		filtered_sites = []
+		for site in sites:
+			try:
+				frappe.init(site)
+				frappe.connect()
+				if app in frappe.get_installed_apps():
+					filtered_sites.append(site)
+				frappe.destroy()
+			except Exception:
+				click.secho(f"Error checking {site}:", fg="yellow")
+			finally:
+				frappe.destroy()
+		sites = filtered_sites
+		if not sites:
+			click.secho(f"No sites found with {app} installed", fg="yellow")
+			return
+
 	if output_json:
 		click.echo(json.dumps(sites))
 	elif sites:
-		click.echo("Available sites:")
+		if app:
+			click.echo(f"\nSites with {app} installed:")
+		else:
+			click.echo("Available sites:")
 		for site in sites:
 			if site == default_site:
 				click.echo(f"* {site}")
