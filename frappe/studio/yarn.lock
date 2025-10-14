@@ -870,6 +870,11 @@
   resolved "https://registry.yarnpkg.com/@remirror/core-constants/-/core-constants-3.0.0.tgz#96fdb89d25c62e7b6a5d08caf0ce5114370e3b8f"
   integrity sha512-42aWfPrimMfDKDi4YegyS7x+/0tlzaqwPQCULLanv3DMIlu96KTJR0fM5isWX2UViOqlGnX6YFgqWepcX+XMNg==
 
+"@replit/codemirror-indentation-markers@^6.5.3":
+  version "6.5.3"
+  resolved "https://registry.yarnpkg.com/@replit/codemirror-indentation-markers/-/codemirror-indentation-markers-6.5.3.tgz#1cfe5c557c45dd7f2988cbee278f17607010591b"
+  integrity sha512-hL5Sfvw3C1vgg7GolLe/uxX5T3tmgOA3ZzqlMv47zjU1ON51pzNWiVbS22oh6crYhtVhv8b3gdXwoYp++2ilHw==
+
 "@rollup/rollup-android-arm-eabi@4.41.1":
   version "4.41.1"
   resolved "https://registry.yarnpkg.com/@rollup/rollup-android-arm-eabi/-/rollup-android-arm-eabi-4.41.1.tgz#f39f09f60d4a562de727c960d7b202a2cf797424"
