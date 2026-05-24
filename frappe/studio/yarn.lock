@@ -4103,7 +4103,7 @@ fraction.js@^5.3.4:
 
 frappe-ui@frappe/frappe-ui#main:
   version "0.1.278"
-  resolved "https://codeload.github.com/frappe/frappe-ui/tar.gz/bb0ae2f0a42660735b347e278b7943e211955e7e"
+  resolved "https://codeload.github.com/frappe/frappe-ui/tar.gz/c64ed783c8416e28e236e7813639793510742f53"
   dependencies:
     "@headlessui/vue" "^1.7.14"
     "@popperjs/core" "^2.11.2"
