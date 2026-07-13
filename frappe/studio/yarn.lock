@@ -902,6 +902,10 @@
     "@floating-ui/utils" "^0.2.11"
     vue-demi ">=0.13.0"
 
+"@framework/ui@link:../frappe/ui":
+  version "0.0.0"
+  uid ""
+
 "@headlessui/vue@^1.7.14":
   version "1.7.23"
   resolved "https://registry.yarnpkg.com/@headlessui/vue/-/vue-1.7.23.tgz#7fe19dbeca35de9e6270c82c78c4864e6a6f7391"
@@ -1765,6 +1769,13 @@
   version "3.27.1"
   resolved "https://registry.yarnpkg.com/@tiptap/extensions/-/extensions-3.27.1.tgz#cc0859ef6f6ad9333f0ab769e670a252904cd32b"
   integrity sha512-1Tdx9faw8k0/83V6X+xCDVhV8yElGt95JxeW3YMkKQJI56QdlPz0xOdJPlMiSGJKinPyVier+x9LJD/YZUZIaw==
+
+"@tiptap/markdown@^3.26.0":
+  version "3.27.3"
+  resolved "https://registry.yarnpkg.com/@tiptap/markdown/-/markdown-3.27.3.tgz#f512612f08b5d336ef2f78a50158ef7eccadef2b"
+  integrity sha512-+hNpPsJHqiuirpaF7LD4tZPEFqCe3Uu3nRE8krtrP3zWYmWnHnfQNg+zlvrVNR3pN9S3oh4WC96Wg/otYDJHdA==
+  dependencies:
+    marked "^17.0.1"
 
 "@tiptap/pm@^3.26.0", "@tiptap/pm@^3.27.1":
   version "3.27.1"
@@ -5194,6 +5205,11 @@ marked@^15.0.12, marked@^15.0.6:
   version "15.0.12"
   resolved "https://registry.yarnpkg.com/marked/-/marked-15.0.12.tgz#30722c7346e12d0a2d0207ab9b0c4f0102d86c4e"
   integrity sha512-8dD6FusOQSrpv9Z1rdNMdlSgQOIP880DHqnohobOmYLElGEqAL/JvxvuxZO16r4HtjTlfPRDC1hbvxC9dPN2nA==
+
+marked@^17.0.1:
+  version "17.0.6"
+  resolved "https://registry.yarnpkg.com/marked/-/marked-17.0.6.tgz#2a97586a272d3be5880f198e020b74ad27cf86ba"
+  integrity sha512-gB0gkNafnonOw0obSTEGZTT86IuhILt2Wfx0mWH/1Au83kybTayroZ/V6nS25mN7u8ASy+5fMhgB3XPNrOZdmA==
 
 math-intrinsics@^1.1.0:
   version "1.1.0"
