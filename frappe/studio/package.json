@@ -1,15 +1,14 @@
 {
     "private": true,
     "type": "module",
-    "workspaces": [
-        "frontend",
-        "frappe-ui"
-    ],
     "scripts": {
         "postinstall": "cd frontend && yarn install",
         "dev": "cd frontend && yarn dev",
+        "dev:frappe-ui": "cd frontend && yarn dev:frappe-ui",
         "build": "cd frontend && yarn build",
-        "build-studio-app": "cd frontend && yarn build-studio-app"
+        "build-studio-app": "cd frontend && yarn build-studio-app",
+        "upgrade-frappeui-submodule": "cd frappe-ui && git fetch --prune --tags upstream && git checkout v$(node -p \"require('../frontend/package.json').dependencies['frappe-ui']\")",
+        "upgrade-frappeui": "cd frontend && yarn add frappe-ui@beta --exact && cd .. && yarn upgrade-frappeui-submodule"
     },
     "version": "0.0.0"
 }
