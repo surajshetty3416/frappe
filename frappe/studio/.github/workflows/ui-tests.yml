@@ -1,4 +1,4 @@
-name: UI Tests
+name: UI
 
 on:
   push:
@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   component-tests:
-    name: UI Tests
+    name: Component
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
