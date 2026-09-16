@@ -1,89 +1,75 @@
 [project]
-name = "frappe-flow"
-version = "0.1.0"
-description = "An open-source agent harness."
-readme = "README.md"
-license = "MIT"
+name = "flow"
 authors = [
-    { name = "Shrihari Mahabal", email = "shriharimahabal08@gmail.com" },
+    { name = "Shrihari Mahabal", email = "shriharimahabal08@gmail.com"}
 ]
-keywords = ["ai", "agents", "cli", "coding-agent"]
-requires-python = ">=3.14"
+description = "Frappe Flow — native AI agents, tools, and triggers for Frappe"
+requires-python = ">=3.14,<3.15"
+readme = "README.md"
+license = "AGPL-3.0-or-later"
+dynamic = ["version"]
 dependencies = [
-    "fastapi>=0.115",
-    "uvicorn>=0.34",
-    "httpx>=0.28",
-    "pydantic>=2.9",
+    "frappe-flow==0.1.0",
+    "lancedb<1,>=0.33",
     "litellm>=1.100,<2",
-    "redis>=5.0",
-    "textual>=8.2.8",
-    "pillow>=11.0",
-    "python-multipart>=0.0.20",
-    "pyyaml>=6.0",
+    "onnxruntime<2,>=1.27",
+    "pdfplumber<1,>=0.11",
+    "python-docx<2,>=1.1",
+    "rapidocr<4,>=3",
 ]
-
-[project.optional-dependencies]
-dev = [
-    "pytest>=8.3",
-    "pytest-asyncio>=0.24",
-    "ruff>=0.9",
-    "textual-dev>=1.8.0",
-    "ty>=0.0.65",
-]
-
-[project.scripts]
-flow = "flow_harness.cli.main:main"
 
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["flit_core >=3.4,<4"]
+build-backend = "flit_core.buildapi"
 
-[tool.hatch.build.hooks.custom]
-path = "hatch_build.py"
+[tool.bench.frappe-dependencies]
+frappe = ">=16.0.0-dev,<18.0.0"
 
-[tool.hatch.build.targets.wheel]
-packages = ["src/flow_harness", "src/flow_tui"]
-artifacts = ["src/flow_harness/server/webui/**"]
+# These dependencies are only installed when developer mode is enabled
+[tool.bench.dev-dependencies]
+# package_name = "~=1.1.0"
 
-[tool.hatch.build.targets.sdist]
-include = ["src", "ui", "hatch_build.py", "README.md", "LICENSE", "pyproject.toml"]
-exclude = ["ui/node_modules", "ui/**/dist"]
-artifacts = ["src/flow_harness/server/webui/**"]
-
-[tool.ty.src]
-exclude = ["tests"]
-
-[tool.pytest.ini_options]
-asyncio_mode = "auto"
-testpaths = ["tests"]
+# These apt dependencies will be installed from Ubuntu repositories when you host your app on Frappe Cloud
+[deploy.dependencies.apt]
+packages = ["libgl1", "libglib2.0-0"]
 
 [tool.ruff]
 line-length = 110
-target-version = "py313"
-src = ["src"]
+target-version = "py314"
 
 [tool.ruff.lint]
 select = [
-	"F",
-	"E",
-	"W",
-	"I",
-	"UP",
-	"B",
-	"RUF",
+    "F",
+    "E",
+    "W",
+    "I",
+    "UP",
+    "B",
+    "RUF",
 ]
 ignore = [
-	"B017", # assertRaises(Exception) - should be more specific
-	"B018", # useless expression, not assigned to anything
-	"B023", # function doesn't bind loop variable - will have last iteration's value
-	"B904", # raise inside except without from
-	"E101", # indentation contains mixed spaces and tabs
-	"E501", # line too long
-	"E741", # ambiguous variable name
-	"W191", # indentation contains tabs
-	"UP037", # quoted annotations
-	"UP040", # Use type aliases instead of type annotations
+    "B017", # assertRaises(Exception) - should be more specific
+    "B018", # useless expression, not assigned to anything
+    "B023", # function doesn't bind loop variable - will have last iteration's value
+    "B904", # raise inside except without from
+    "E101", # indentation contains mixed spaces and tabs
+    "E402", # module level import not at top of file
+    "E501", # line too long
+    "E741", # ambiguous variable name
+    "F401", # "unused" imports
+    "F403", # can't detect undefined names from * import
+    "F405", # can't detect undefined names from * import
+    "F722", # syntax error in forward type annotation
+    "W191", # indentation contains tabs
+    "UP030", # Use implicit references for positional format fields (translations)
+    "UP031", # Use format specifiers instead of percent format
+    "UP032", # Use f-string instead of `format` call (translations)
+    "UP037", # quoted annotations
+    "UP040", # Use type aliases instead of type annotations
+    "UP006", # runtime typing.List/Dict introspection in tool schema builder, not annotations
+    "UP007", # runtime typing.Union introspection in tool schema builder, not annotations
 ]
+typing-modules = ["frappe.types.DF"]
 
 [tool.ruff.format]
 quote-style = "double"

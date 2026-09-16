@@ -1,9 +1,17 @@
-.venv/
-__pycache__/
+.DS_Store
 *.pyc
-*.egg-info/
-.pytest_cache/
-.ruff_cache/
-.flow-data/
-# built by `npm run build -w app` in ui/; served by `flow web`
-src/flow_harness/server/webui/
+*.egg-info
+*.swp
+tags
+node_modules
+__pycache__
+.ruff_cache
+*.un~
+.idea/
+.vscode/
+.venv/
+dist/
+flow/public/frontend/
+flow/www/flow/index.html
+frontend/auto-imports.d.ts
+frontend/components.d.ts
