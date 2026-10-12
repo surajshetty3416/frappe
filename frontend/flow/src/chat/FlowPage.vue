@@ -1,10 +1,10 @@
 <template>
 	<!-- clip, not hidden: a hidden root still scrolls when focus lands in the closed panel -->
 	<div class="flex h-full min-h-0 overflow-clip bg-surface-base text-base text-ink-gray-8">
-		<SessionSidebar :open="sidebarOpen" @close="store.setSidebarOpen(false)" />
+		<SessionSidebar v-if="!embedded" :open="sidebarOpen" @close="store.setSidebarOpen(false)" />
 		<main class="relative flex min-w-0 flex-1 flex-col bg-surface-base">
 			<ChatHeader
-				:sidebar-open="sidebarOpen"
+				:sidebar-open="embedded || sidebarOpen"
 				:workspace="false"
 				@open-sidebar="store.setSidebarOpen(true)"
 			/>
@@ -47,7 +47,7 @@
 				Only the owner of this chat can send messages.
 			</p>
 		</main>
-		<WorkspacePanel>
+		<WorkspacePanel v-if="!embedded">
 			<template #empty>
 				<p class="text-xs text-ink-gray-4">A sub-agent's thread opens here.</p>
 			</template>
@@ -105,7 +105,11 @@ const MODES = [
 	{ id: "auto", label: "Auto-approve", desc: "Runs every tool without stopping to ask." },
 ];
 
-const props = defineProps({ boot: { type: Object, required: true } });
+const props = defineProps({
+	boot: { type: Object, required: true },
+	// a side panel beside another layer: no session list, no file panel, and the URL stays theirs
+	embedded: { type: Boolean, default: false },
+});
 
 // the store's model refresh is the boot call; the page asks for it when boot goes stale
 const page = createPage(props.boot, { refresh: () => store.refreshModels() });
@@ -167,28 +171,30 @@ watch(
 // the route names the open conversation, so links and reloads keep it
 const route = useRoute();
 const router = useRouter();
-watch(
-	() => store.state.sessionId,
-	(id) => {
-		const target = id ? `/flow/s/${id}` : "/flow";
-		if (route.path !== target) router.replace(target);
-	}
-);
-watch(
-	() => route.params.session,
-	(id) => {
-		if (id && id !== store.state.sessionId) store.openSession(id);
-		else if (!id && store.state.sessionId) store.startNewChat();
-	}
-);
-watch(
-	() => store.state.session?.title,
-	(title) => (document.title = title ? `${title} · Flow` : "Flow")
-);
+if (!props.embedded) {
+	watch(
+		() => store.state.sessionId,
+		(id) => {
+			const target = id ? `/flow/s/${id}` : "/flow";
+			if (route.path !== target) router.replace(target);
+		}
+	);
+	watch(
+		() => route.params.session,
+		(id) => {
+			if (id && id !== store.state.sessionId) store.openSession(id);
+			else if (!id && store.state.sessionId) store.startNewChat();
+		}
+	);
+	watch(
+		() => store.state.session?.title,
+		(title) => (document.title = title ? `${title} · Flow` : "Flow")
+	);
+}
 
 let uninstallShortcuts = null;
 onMounted(async () => {
-	uninstallShortcuts = installShortcuts(store);
+	if (!props.embedded) uninstallShortcuts = installShortcuts(store);
 	store.refreshModels();
 	await store.refreshSessions();
 	// the route watcher may have opened the URL's session while the list was loading

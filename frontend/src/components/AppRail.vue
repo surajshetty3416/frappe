@@ -12,6 +12,14 @@
 			/>
 		</nav>
 		<div class="flex flex-col items-center gap-2">
+			<SidebarRailItem
+				v-if="activeLayer !== 'flow'"
+				label="Ask Flow"
+				icon="lucide-sparkles"
+				:active="assistantOpen"
+				variant="ghost"
+				@click="assistantOpen = !assistantOpen"
+			/>
 			<SidebarRailItem label="Desk" icon="lucide-layout-grid" href="/desk" variant="ghost" />
 			<SidebarRailItem
 				:label="isDark ? 'Light theme' : 'Dark theme'"
@@ -35,6 +43,7 @@ import { Avatar, Dropdown, SidebarRail, SidebarRailItem, call, useColorScheme } 
 import { computed } from "vue"
 import { useRoute } from "vue-router"
 
+import { assistantOpen } from "../assistant"
 import { layers } from "../layers"
 import { sessionUser } from "../session"
 
