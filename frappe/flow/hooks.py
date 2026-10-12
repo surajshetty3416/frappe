@@ -61,6 +61,7 @@ scheduler_events = {
 }
 
 after_install = [
+	"frappe.flow.shell.make_chat_the_home",
 	"frappe.flow.permissions.ensure_flow_role",
 	"frappe.flow.assistant.sync_builtin_assistant",
 	"frappe.flow.daemon.lifecycle.after_install",
