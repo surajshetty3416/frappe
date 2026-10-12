@@ -5,13 +5,12 @@ from typing import Annotated
 
 import frappe
 from frappe import _
+from frappe.ai import artifacts, tool
+from frappe.ai.lib.tool import ToolContext
 from frappe.web.ai.block_codec import BlockCodec
 from frappe.web.ai.page_writer import expand_page_yaml, persist_page
-from frappe.web.hooks import builder_path
-from frappe.ai import tool
-from frappe.ai.lib.tool import ToolContext
 
-PAGE_YAML_GUIDE = f"""Create a website page with Frappe Builder and open it in the editor. The page stays a draft until it is published.
+PAGE_YAML_GUIDE = f"""Create a website page with Frappe Builder; its editor opens beside the chat. The page stays a draft until it is published.
 
 page_yaml is one YAML block tree whose root is `el: body`. Block keys: {BlockCodec.fields_doc()}. Every block is a flex or block box styled with CSS-in-JS (camelCase properties, string values with units); text goes in `text` (inline HTML allowed); children go in `c`; links and images use attrs (href, src, alt). Example:
 
@@ -32,10 +31,6 @@ c:
 Write real, specific copy from the conversation, never placeholder text."""
 
 
-def editor_url(page: str) -> str:
-	return f"/{builder_path}/page/{page}"
-
-
 @tool
 def list_web_pages(
 	search: Annotated[str, "Words to look for in page titles and routes; empty lists the latest"] = "",
@@ -52,7 +47,11 @@ def list_web_pages(
 		limit=20,
 	)
 	return [
-		{**page, "editor": editor_url(page.name), "url": f"/{page.route}" if page.published else None}
+		{
+			**page,
+			"editor": artifacts.route("Builder Page", page.name),
+			"url": f"/{page.route}" if page.published else None,
+		}
 		for page in pages
 	]
 
@@ -73,7 +72,13 @@ def create_web_page(
 		frappe.throw(_("page_yaml has no blocks Builder can read. The root must be a block with `el: body`."))
 	page = frappe.get_doc({"doctype": "Builder Page", "page_title": title, "route": route.strip("/")}).insert()
 	persist_page(page.name, page_yaml)
-	return {"page": page.name, "editor": editor_url(page.name), "preview": f"{editor_url(page.name)}/preview"}
+	artifact = artifacts.link(ctx.session_id, "Builder Page", page.name)
+	return {
+		"page": page.name,
+		"editor": artifact["route"],
+		"preview": f"{artifact['route']}/preview",
+		"artifact": artifact,
+	}
 
 
 @tool(
@@ -84,4 +89,5 @@ def publish_web_page(page: Annotated[str, "The Builder Page name, e.g. page-1a2b
 	"""Publish a Builder page's draft so it is live on the website."""
 	doc = frappe.get_doc("Builder Page", page)
 	doc.publish()
-	return {"url": f"/{doc.route}", "editor": editor_url(doc.name)}
+	artifact = artifacts.link(ctx.session_id, "Builder Page", doc.name)
+	return {"url": f"/{doc.route}", "editor": artifact["route"], "artifact": artifact}

@@ -14,7 +14,8 @@
   "section_break_transcript",
   "transcript_html",
   "messages",
-  "attachments"
+  "attachments",
+  "artifacts"
  ],
  "fields": [
   {
@@ -97,9 +98,16 @@
    "label": "Attachments",
    "options": "Flow Session Attachment",
    "read_only": 1
+  },
+  {
+   "description": "What this conversation made or changed: websites, dashboards, apps. The newest is last.",
+   "fieldname": "artifacts",
+   "fieldtype": "Table",
+   "label": "Artifacts",
+   "options": "Flow Session Artifact",
+   "read_only": 1
   }
  ],
- "index_web_pages_for_search": 0,
  "links": [
   {
    "group": "Runs",
@@ -107,7 +115,7 @@
    "link_fieldname": "session"
   }
  ],
- "modified": "2026-10-08 12:00:00",
+ "modified": "2026-10-12 16:17:43.001884",
  "modified_by": "Administrator",
  "module": "AI",
  "name": "Flow Session",
@@ -141,6 +149,5 @@
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
- "title_field": "title",
- "track_changes": 0
+ "title_field": "title"
 }

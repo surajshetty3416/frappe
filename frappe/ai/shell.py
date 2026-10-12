@@ -9,8 +9,9 @@ def get_boot() -> dict:
 		return {}
 
 	from frappe.ai.api import boot
+	from frappe.ai.artifacts import artifact_types
 
-	return {"flow_boot": boot()}
+	return {"flow_boot": boot(), "studio_artifacts": artifact_types()}
 
 
 def make_chat_the_home():

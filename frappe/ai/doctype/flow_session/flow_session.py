@@ -34,12 +34,13 @@ class FlowSession(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
-
+		from frappe.ai.doctype.flow_session_artifact.flow_session_artifact import FlowSessionArtifact
 		from frappe.ai.doctype.flow_session_attachment.flow_session_attachment import FlowSessionAttachment
 		from frappe.ai.doctype.flow_session_message.flow_session_message import FlowSessionMessage
+		from frappe.types import DF
 
 		agent: DF.Link
+		artifacts: DF.Table[FlowSessionArtifact]
 		attachments: DF.Table[FlowSessionAttachment]
 		auto_approve: DF.Check
 		last_synced_seq: DF.Int
@@ -99,6 +100,7 @@ class FlowSession(Document):
 			frappe.db.delete("Flow Session Message", {"parent": ["in", batch]})
 			_delete_attachment_files(batch)
 			frappe.db.delete("Flow Session Attachment", {"parent": ["in", batch]})
+			frappe.db.delete("Flow Session Artifact", {"parent": ["in", batch]})
 			frappe.db.delete("Flow Session", {"name": ["in", batch]})
 			_purge_attachment_chunks(batch)
 
@@ -279,6 +281,28 @@ class FlowSession(Document):
 		with flow_server() as client:
 			client.patch_config(self.name, auto_approve=auto_approve)
 		self.db_set("auto_approve", auto_approve)
+
+	def add_artifact(self, doctype: str, name: str, title: str | None) -> None:
+		"""List an artifact this conversation made or changed, last, as its newest."""
+		# Written row by row under the session's lock, with `modified` bumped, so a sync
+		# saving an older copy of the session fails its timestamp check instead of dropping it.
+		frappe.db.get_value(self.doctype, self.name, "name", for_update=True)
+		row = {"parenttype": self.doctype, "parentfield": "artifacts", "parent": self.name}
+		frappe.db.delete(
+			"Flow Session Artifact", {**row, "reference_doctype": doctype, "reference_name": name}
+		)
+		last = frappe.db.get_value("Flow Session Artifact", row, "idx", order_by="idx desc", for_update=True)
+		frappe.get_doc(
+			{
+				"doctype": "Flow Session Artifact",
+				**row,
+				"idx": (last or 0) + 1,
+				"reference_doctype": doctype,
+				"reference_name": name,
+				"title": title,
+			}
+		).db_insert()
+		self.update_modified()
 
 	def entries(self, *, since: int = 0, path: str = "active") -> dict[str, Any]:
 		"""The flow server's log: a snapshot of the active branch, or every row after `since`."""

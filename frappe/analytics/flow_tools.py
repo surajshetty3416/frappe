@@ -7,9 +7,8 @@ from pydantic import BaseModel, Field
 
 import frappe
 from frappe import _
-from frappe.ai import tool
+from frappe.ai import artifacts, tool
 from frappe.ai.lib.tool import ToolContext
-from frappe.analytics.hooks import insights_path
 
 DATA_TYPES = {
     "Date": "Date",
@@ -142,7 +141,7 @@ def list_dashboards(*, ctx: ToolContext) -> list[dict]:
     dashboards = frappe.get_list(
         "Insights Dashboard v3", fields=["name", "title", "workbook"], order_by="modified desc", limit=30
     )
-    return [{**d, "url": f"/{insights_path}/dashboards/{d.name}"} for d in dashboards]
+    return [{**d, "url": artifacts.route("Insights Dashboard v3", d.name)} for d in dashboards]
 
 
 @tool(
@@ -156,12 +155,12 @@ def create_dashboard(
     ctx: ToolContext,
 ) -> dict:
     """Build an Insights dashboard over the site's own data: one query and one chart per entry,
-    laid out on a new dashboard in a new workbook. Check field names with describe first."""
+    laid out on a new dashboard in a new workbook, whose editor opens beside the chat. Check
+    field names with describe first."""
     from frappe.analytics.doctype.insights_workbook.insights_workbook import import_workbook
 
     result = import_workbook(workbook_file(title, charts))
-    dashboard = result["names"]["d-0"]
-    return {
-        "dashboard": f"/{insights_path}/dashboards/{dashboard}",
-        "workbook": f"/{insights_path}/workbook/{result['workbook']}",
-    }
+    dashboard = artifacts.link(ctx.session_id, "Insights Dashboard v3", result["names"]["d-0"])
+    # linked last, so the workbook is the chat's newest artifact: its editor shows the dashboard
+    workbook = artifacts.link(ctx.session_id, "Insights Workbook", result["workbook"])
+    return {"dashboard": dashboard["route"], "workbook": workbook["route"], "artifact": workbook}
