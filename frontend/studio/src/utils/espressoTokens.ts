@@ -1,6 +1,6 @@
 import defaultTheme from "tailwindcss/defaultTheme"
 import { computed } from "vue"
-import { objToArray } from "@/utils/helpers.js"
+import { objToArray } from "@studio/utils/helpers.js"
 import { cssVariables, fontSize, radius, semanticColors, shadows } from "frappe-ui/tailwind/tokens"
 
 // frappe-ui exposes semantic colors as { category: { name: cssValue } }. Use the names and reference the CSS variable its plugin defines on :root. The

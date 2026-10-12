@@ -117,8 +117,8 @@
 	</div>
 </template>
 <script setup lang="ts">
-import { __ } from "@/translation";
-import { mapToObject, replaceMapKey } from "@/utils/helpers";
+import { __ } from "@builder/translation";
+import { mapToObject, replaceMapKey } from "@builder/utils/helpers";
 import { ref, useAttrs, watch } from "vue";
 
 import LucideObject from "~icons/lucide/braces";

@@ -125,10 +125,10 @@
 	</div>
 </template>
 <script setup lang="ts">
-import { __ } from "@/translation";
-import routeRedirects from "@/data/routeRedirects";
-import { confirm } from "@/utils/helpers";
-import { highlightSource, highlightTarget } from "@/utils/redirectSyntax";
+import { __ } from "@builder/translation";
+import routeRedirects from "@builder/data/routeRedirects";
+import { confirm } from "@builder/utils/helpers";
+import { highlightSource, highlightTarget } from "@builder/utils/redirectSyntax";
 import { Dialog, FormControl, Switch, toast } from "frappe-ui";
 import { computed, nextTick, onMounted, ref } from "vue";
 

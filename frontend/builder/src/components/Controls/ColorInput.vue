@@ -64,14 +64,14 @@
 	</div>
 </template>
 <script setup lang="ts">
-import { __ } from "@/translation";
-import Autocomplete from "@/components/Controls/Autocomplete.vue";
-import NewBuilderToken from "@/components/Modals/NewBuilderToken.vue";
-import useBuilderStore from "@/stores/builderStore";
-import { BuilderToken } from "@/types/doctypes";
-import { getColorVariableOptions } from "@/utils/colorOptions";
-import { getRGB } from "@/utils/helpers";
-import { useBuilderToken } from "@/utils/useBuilderToken";
+import { __ } from "@builder/translation";
+import Autocomplete from "@builder/components/Controls/Autocomplete.vue";
+import NewBuilderToken from "@builder/components/Modals/NewBuilderToken.vue";
+import useBuilderStore from "@builder/stores/builderStore";
+import { BuilderToken } from "@builder/types/doctypes";
+import { getColorVariableOptions } from "@builder/utils/colorOptions";
+import { getRGB } from "@builder/utils/helpers";
+import { useBuilderToken } from "@builder/utils/useBuilderToken";
 import { Tooltip } from "frappe-ui";
 import { computed, ComputedRef, nextTick, onMounted, ref, useAttrs, watch } from "vue";
 import ColorPicker from "./ColorPicker.vue";

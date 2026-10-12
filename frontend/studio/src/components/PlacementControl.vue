@@ -101,9 +101,9 @@
 	</div>
 </template>
 <script setup lang="ts">
-import blockController from "@/utils/blockController"
+import blockController from "@studio/utils/blockController"
 import { computed, StyleValue } from "vue"
-import InputLabel from "@/components/InputLabel.vue"
+import InputLabel from "@studio/components/InputLabel.vue"
 
 defineProps<{ label?: string }>()
 

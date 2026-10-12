@@ -87,22 +87,22 @@ import {
 	ListGroup,
 } from "frappe-ui/list"
 
-import Container from "@/components/AppLayout/Container.vue"
-import FitContainer from "@/components/AppLayout/FitContainer.vue"
-import SplitView from "@/components/AppLayout/SplitView.vue"
-import Repeater from "@/components/AppLayout/Repeater.vue"
-import HTML from "@/components/AppLayout/HTML.vue"
-import CardList from "@/components/AppLayout/CardList.vue"
-import AvatarCard from "@/components/AppLayout/AvatarCard.vue"
-import Audio from "@/components/AppLayout/Audio.vue"
-import ImageView from "@/components/AppLayout/ImageView.vue"
-import TextBlock from "@/components/AppLayout/TextBlock.vue"
-import AppHeader from "@/components/AppLayout/AppHeader.vue"
-import BottomTabs from "@/components/AppLayout/BottomTabs.vue"
-import MarkdownEditor from "@/components/AppLayout/MarkdownEditor.vue"
+import Container from "@studio/components/AppLayout/Container.vue"
+import FitContainer from "@studio/components/AppLayout/FitContainer.vue"
+import SplitView from "@studio/components/AppLayout/SplitView.vue"
+import Repeater from "@studio/components/AppLayout/Repeater.vue"
+import HTML from "@studio/components/AppLayout/HTML.vue"
+import CardList from "@studio/components/AppLayout/CardList.vue"
+import AvatarCard from "@studio/components/AppLayout/AvatarCard.vue"
+import Audio from "@studio/components/AppLayout/Audio.vue"
+import ImageView from "@studio/components/AppLayout/ImageView.vue"
+import TextBlock from "@studio/components/AppLayout/TextBlock.vue"
+import AppHeader from "@studio/components/AppLayout/AppHeader.vue"
+import BottomTabs from "@studio/components/AppLayout/BottomTabs.vue"
+import MarkdownEditor from "@studio/components/AppLayout/MarkdownEditor.vue"
 
-import { vueComponents } from "@/data/vueComponents"
-import { CustomVueComponentMeta } from "@/types/vue"
+import { vueComponents } from "@studio/data/vueComponents"
+import { CustomVueComponentMeta } from "@studio/types/vue"
 
 export function registerGlobalComponents(app: App) {
 	app.component("Alert", Alert)

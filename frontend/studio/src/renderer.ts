@@ -1,15 +1,15 @@
-import "@/index.css"
+import "@studio/index.css"
 
 import { createApp } from "vue"
 import { createPinia } from "pinia"
-import "@/setupFrappeUIResource"
-import { createAppRouter } from "@/router/app_router"
-import ErrorPage from "@/pages/ErrorPage.vue"
-import AppRenderer from "@/AppRenderer.vue"
+import "@studio/setupFrappeUIResource"
+import { createAppRouter } from "@studio/router/app_router"
+import ErrorPage from "@studio/pages/ErrorPage.vue"
+import AppRenderer from "@studio/AppRenderer.vue"
 import { resourcesPlugin } from "frappe-ui"
-import { registerGlobalComponents, registerCustomVueComponents } from "@/globals"
-import { registerStudioPageScripts } from "@/data/studioPageScripts"
-import { initSocket } from "@/socket"
+import { registerGlobalComponents, registerCustomVueComponents } from "@studio/globals"
+import { registerStudioPageScripts } from "@studio/data/studioPageScripts"
+import { initSocket } from "@studio/socket"
 
 // For rendering apps built by studio
 const app = createApp(AppRenderer)

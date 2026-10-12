@@ -85,8 +85,8 @@
 </template>
 
 <script setup lang="ts">
-import { __ } from "@/translation";
-import { useDomains } from "@/data/domains";
+import { __ } from "@builder/translation";
+import { useDomains } from "@builder/data/domains";
 import { useIntervalFn } from "@vueuse/core";
 import { Badge, Dropdown, ErrorMessage, FormControl, toast } from "frappe-ui";
 import { computed, onActivated, onDeactivated, onMounted, ref, watch } from "vue";

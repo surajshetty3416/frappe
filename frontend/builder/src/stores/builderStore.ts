@@ -1,10 +1,10 @@
-import { __ } from "@/translation";
-import BlockContextMenu from "@/components/BlockContextMenu.vue";
-import type { AISetupState } from "@/components/ai/types";
-import { builderSettings } from "@/data/builderSettings";
-import { BuilderSettings } from "@/types/doctypes";
-import { editorDemo } from "@/utils/editorDemo";
-import RealTimeHandler from "@/utils/realtimeHandler";
+import { __ } from "@builder/translation";
+import BlockContextMenu from "@builder/components/BlockContextMenu.vue";
+import type { AISetupState } from "@builder/components/ai/types";
+import { builderSettings } from "@builder/data/builderSettings";
+import { BuilderSettings } from "@builder/types/doctypes";
+import { editorDemo } from "@builder/utils/editorDemo";
+import RealTimeHandler from "@builder/utils/realtimeHandler";
 import { breakpointsTailwind, useBreakpoints, useDark, useStorage } from "@vueuse/core";
 import { createResource, toast } from "frappe-ui";
 import { useTelemetry } from "@framework/ui/telemetry";

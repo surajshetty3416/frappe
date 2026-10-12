@@ -1,5 +1,5 @@
-import type Block from "@/block";
-import { generateId, getBlockInstance, getBlockString } from "@/utils/helpers";
+import type Block from "@builder/block";
+import { generateId, getBlockInstance, getBlockString } from "@builder/utils/helpers";
 import { debounceFilter, pausableFilter, watchIgnorable } from "@vueuse/core";
 import { ref, Ref } from "vue";
 

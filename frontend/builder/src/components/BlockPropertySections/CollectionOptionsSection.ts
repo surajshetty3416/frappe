@@ -1,11 +1,11 @@
-import Autocomplete from "@/components/Controls/Autocomplete.vue";
-import useCanvasStore from "@/stores/canvasStore";
-import usePageStore from "@/stores/pageStore";
-import blockController from "@/utils/blockController";
-import componentController from "@/utils/componentController";
-import { getRepeaterScopedData } from "@/utils/helpers";
+import Autocomplete from "@builder/components/Controls/Autocomplete.vue";
+import useCanvasStore from "@builder/stores/canvasStore";
+import usePageStore from "@builder/stores/pageStore";
+import blockController from "@builder/utils/blockController";
+import componentController from "@builder/utils/componentController";
+import { getRepeaterScopedData } from "@builder/utils/helpers";
 import { computed, h } from "vue";
-import { __ } from "@/translation";
+import { __ } from "@builder/translation";
 
 const keyOptions = computed(() => {
 	const pageStore = usePageStore();

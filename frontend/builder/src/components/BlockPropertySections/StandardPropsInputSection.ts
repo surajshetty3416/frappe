@@ -1,12 +1,12 @@
-import blockController from "@/utils/blockController";
+import blockController from "@builder/utils/blockController";
 import ArrayInput from "../ArrayInput.vue";
 import BasePropertyControl from "../Controls/BasePropertyControl.vue";
 import ColorInput from "../Controls/ColorInput.vue";
 import OptionToggle from "../Controls/OptionToggle.vue";
 import ImageUploadInput from "../ImageUploadInput.vue";
 import ObjectInput from "../ObjectInput.vue";
-import useCanvasStore from "@/stores/canvasStore.js";
-import { __ } from "@/translation";
+import useCanvasStore from "@builder/stores/canvasStore.js";
+import { __ } from "@builder/translation";
 
 const componentMap = {
 	array: ArrayInput,

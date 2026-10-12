@@ -2,10 +2,10 @@ import { Ref } from "vue"
 import { createDocumentResource, createResource, dialog } from "frappe-ui"
 import { toast } from "frappe-ui"
 
-import type { ObjectLiteral, StyleValue, SelectOption, HashString, RGBString } from "@/types"
-import type { Variable } from "@/types/Studio/StudioPageVariable"
-import type { StudioApp } from "@/types/Studio/StudioApp"
-import type { StudioPage } from "@/types/Studio/StudioPage"
+import type { ObjectLiteral, StyleValue, SelectOption, HashString, RGBString } from "@studio/types"
+import type { Variable } from "@studio/types/Studio/StudioPageVariable"
+import type { StudioApp } from "@studio/types/Studio/StudioApp"
+import type { StudioPage } from "@studio/types/Studio/StudioPage"
 import DOMPurify from "dompurify"
 
 function isEditor() {

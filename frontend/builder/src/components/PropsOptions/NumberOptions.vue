@@ -34,10 +34,10 @@
 </template>
 
 <script setup lang="ts">
-import { __ } from "@/translation";
+import { __ } from "@builder/translation";
 import { nextTick, ref, watch } from "vue";
 import { toast } from "frappe-ui";
-import InlineInput from "@/components/Controls/InlineInput.vue";
+import InlineInput from "@builder/components/Controls/InlineInput.vue";
 
 const props = defineProps<{
 	options: Record<string, any>;

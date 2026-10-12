@@ -25,7 +25,7 @@
 import { Avatar } from "frappe-ui"
 import { ref } from "vue"
 
-import type { AvatarCardProps } from "@/types/studio_components/AvatarCard"
+import type { AvatarCardProps } from "@studio/types/studio_components/AvatarCard"
 import LucideHeart from "~icons/lucide/heart"
 
 defineProps<AvatarCardProps>()

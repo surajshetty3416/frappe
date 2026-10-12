@@ -79,15 +79,15 @@
 	</div>
 </template>
 <script lang="ts" setup>
-import { __ } from "@/translation";
-import PanelResizer from "@/components/PanelResizer.vue";
-import PreviewFloatingToolbar from "@/components/PreviewFloatingToolbar.vue";
-import PublishButton from "@/components/PublishButton.vue";
-import { webPages } from "@/data/webPage";
-import router from "@/router";
-import useBuilderStore from "@/stores/builderStore";
-import usePageStore, { DETACHED_PREVIEW_CHANNEL } from "@/stores/pageStore";
-import { BuilderPage } from "@/types/doctypes";
+import { __ } from "@builder/translation";
+import PanelResizer from "@builder/components/PanelResizer.vue";
+import PreviewFloatingToolbar from "@builder/components/PreviewFloatingToolbar.vue";
+import PublishButton from "@builder/components/PublishButton.vue";
+import { webPages } from "@builder/data/webPage";
+import router from "@builder/router";
+import useBuilderStore from "@builder/stores/builderStore";
+import usePageStore, { DETACHED_PREVIEW_CHANNEL } from "@builder/stores/pageStore";
+import { BuilderPage } from "@builder/types/doctypes";
 import { Button, useKeyboardShortcut } from "frappe-ui";
 import { useTelemetry } from "@framework/ui/telemetry";
 import { useDebounceFn, useEventListener, useStorage } from "@vueuse/core";

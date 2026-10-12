@@ -9,9 +9,9 @@ import "./index.css";
 import router from "./router";
 import translationPlugin, { ensureTranslations } from "./translation";
 
-import App from "@/App.vue";
-import Input from "@/components/Controls/Input.vue";
-import { editorDemo } from "@/utils/editorDemo";
+import App from "@builder/App.vue";
+import Input from "@builder/components/Controls/Input.vue";
+import { editorDemo } from "@builder/utils/editorDemo";
 
 const app = createApp(App);
 const pinia = createPinia();

@@ -7,8 +7,8 @@
 	</div>
 </template>
 <script setup lang="ts">
-import PageScript from "@/components/PageScript.vue";
-import usePageStore from "@/stores/pageStore";
+import PageScript from "@builder/components/PageScript.vue";
+import usePageStore from "@builder/stores/pageStore";
 
 const pageStore = usePageStore();
 </script>

@@ -1,4 +1,4 @@
-import { builderSettings } from "@/data/builderSettings";
+import { builderSettings } from "@builder/data/builderSettings";
 
 export type ScriptCleanup = () => void;
 export type BlockClientScriptRuntime = {

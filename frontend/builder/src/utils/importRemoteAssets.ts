@@ -1,6 +1,6 @@
-import type Block from "@/block";
-import userFont from "@/data/userFonts";
-import { registerCustomFont } from "@/utils/fontManager";
+import type Block from "@builder/block";
+import userFont from "@builder/data/userFonts";
+import { registerCustomFont } from "@builder/utils/fontManager";
 import { call, toast } from "frappe-ui";
 
 const REMOTE_URL = /^https?:\/\//;

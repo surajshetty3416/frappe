@@ -2,9 +2,9 @@ import { defineStore } from "pinia"
 import { ref, computed } from "vue"
 import { useRouter } from "vue-router"
 
-import useCodeStore from "@/stores/codeStore"
+import useCodeStore from "@studio/stores/codeStore"
 
-import type { StudioPage } from "@/types/Studio/StudioPage"
+import type { StudioPage } from "@studio/types/Studio/StudioPage"
 
 const useAppStore = defineStore("appStore", () => {
 	const activePage = ref<StudioPage | null>(null)

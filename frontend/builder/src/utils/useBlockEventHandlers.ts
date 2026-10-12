@@ -1,8 +1,8 @@
-import useBuilderStore from "@/stores/builderStore";
-import useCanvasStore from "@/stores/canvasStore";
-import getBlockTemplate from "@/utils/blockTemplate";
-import { getBlock, getBlockInfo, isBlock } from "@/utils/helpers";
-import { isReorderable, startBlockReorder } from "@/utils/useBlockReorder";
+import useBuilderStore from "@builder/stores/builderStore";
+import useCanvasStore from "@builder/stores/canvasStore";
+import getBlockTemplate from "@builder/utils/blockTemplate";
+import { getBlock, getBlockInfo, isBlock } from "@builder/utils/helpers";
+import { isReorderable, startBlockReorder } from "@builder/utils/useBlockReorder";
 import { useEventListener } from "@vueuse/core";
 import { nextTick } from "vue";
 

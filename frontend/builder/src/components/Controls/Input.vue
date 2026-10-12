@@ -49,8 +49,8 @@
 	</div>
 </template>
 <script lang="ts" setup>
-import NumberArrows from "@/components/Controls/NumberArrows.vue";
-import { useNumberInput } from "@/utils/useNumberInput";
+import NumberArrows from "@builder/components/Controls/NumberArrows.vue";
+import { useNumberInput } from "@builder/utils/useNumberInput";
 import { useDebounceFn, useResizeObserver, useVModel } from "@vueuse/core";
 import { Select } from "frappe-ui";
 import { computed, nextTick, onMounted, onUnmounted, ref, useAttrs, useSlots, watch } from "vue";

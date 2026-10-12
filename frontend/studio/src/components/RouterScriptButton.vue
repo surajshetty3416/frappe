@@ -17,7 +17,7 @@
 <script setup lang="ts">
 import { HoverCard } from "frappe-ui"
 import LucideBraces from "~icons/lucide/braces"
-import useStudioStore from "@/stores/studioStore"
+import useStudioStore from "@studio/stores/studioStore"
 
 const store = useStudioStore()
 

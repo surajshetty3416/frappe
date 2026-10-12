@@ -1,6 +1,6 @@
-import SplitPropertyControl from "@/components/Controls/SplitPropertyControl.vue";
-import blockController from "@/utils/blockController";
-import { __ } from "@/translation";
+import SplitPropertyControl from "@builder/components/Controls/SplitPropertyControl.vue";
+import blockController from "@builder/utils/blockController";
+import { __ } from "@builder/translation";
 
 const SPLITS = ["T", "R", "B", "L"];
 

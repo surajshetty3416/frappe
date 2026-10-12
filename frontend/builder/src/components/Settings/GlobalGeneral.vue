@@ -83,12 +83,12 @@
 	</div>
 </template>
 <script setup lang="ts">
-import { __ } from "@/translation";
-import { allWebPages } from "@/data/allWebPages";
-import { builderSettings } from "@/data/builderSettings";
-import { websiteSettings } from "@/data/websiteSettings";
-import useBuilderStore from "@/stores/builderStore";
-import { BuilderPage } from "@/types/doctypes";
+import { __ } from "@builder/translation";
+import { allWebPages } from "@builder/data/allWebPages";
+import { builderSettings } from "@builder/data/builderSettings";
+import { websiteSettings } from "@builder/data/websiteSettings";
+import useBuilderStore from "@builder/stores/builderStore";
+import { BuilderPage } from "@builder/types/doctypes";
 import { Switch } from "frappe-ui";
 import { computed } from "vue";
 import ImageUploader from "../Controls/ImageUploader.vue";

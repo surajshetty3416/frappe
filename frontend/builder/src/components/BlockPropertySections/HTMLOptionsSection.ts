@@ -1,11 +1,11 @@
-import CodeEditor from "@/components/Controls/CodeEditor.vue";
-import blockController from "@/utils/blockController";
-import { convertSVGBlockToImage, isOversizedSVG } from "@/utils/helpers";
+import CodeEditor from "@builder/components/Controls/CodeEditor.vue";
+import blockController from "@builder/utils/blockController";
+import { convertSVGBlockToImage, isOversizedSVG } from "@builder/utils/helpers";
 import { Button } from "frappe-ui";
 import { computed } from "vue";
 import useCanvasStore from "../../stores/canvasStore";
 import BasePropertyControl from "../Controls/BasePropertyControl.vue";
-import { __ } from "@/translation";
+import { __ } from "@builder/translation";
 
 function getSelectedSVG() {
 	const block = blockController.getSelectedBlocks()[0];

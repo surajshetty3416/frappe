@@ -5,14 +5,14 @@ import {
 } from "vue"
 import { watchDebounced } from "@vueuse/core"
 import { createDocumentResource, createListResource, createResource, call } from "frappe-ui"
-import { studioPageResources } from "@/data/studioResources"
-import { studioVariables } from "@/data/studioVariables"
-import { loadPageScriptModule } from "@/data/studioPageScripts"
-import * as globalUtils from "@/utils/globalUtils"
-import { useSocket } from "@/socket"
-import { getInitialVariableValue, getValueFromObject, setValueInObject } from "@/utils/helpers"
-import { isDynamicValue, normalizeDynamicValue } from "@/utils/code"
-import { isFunctionExpression, toOptionalChaining, getTopLevelBindings } from "@/utils/parseCode"
+import { studioPageResources } from "@studio/data/studioResources"
+import { studioVariables } from "@studio/data/studioVariables"
+import { loadPageScriptModule } from "@studio/data/studioPageScripts"
+import * as globalUtils from "@studio/utils/globalUtils"
+import { useSocket } from "@studio/socket"
+import { getInitialVariableValue, getValueFromObject, setValueInObject } from "@studio/utils/helpers"
+import { isDynamicValue, normalizeDynamicValue } from "@studio/utils/code"
+import { isFunctionExpression, toOptionalChaining, getTopLevelBindings } from "@studio/utils/parseCode"
 import type {
 	Filters,
 	Resource,
@@ -20,10 +20,10 @@ import type {
 	DocumentListResource,
 	APIResource,
 	DataResult,
-} from "@/types/Studio/StudioResource"
-import type { StudioPage } from "@/types/Studio/StudioPage"
-import type { Variable } from "@/types/Studio/StudioPageVariable"
-import type { ExpressionEvaluationContext } from "@/types"
+} from "@studio/types/Studio/StudioResource"
+import type { StudioPage } from "@studio/types/Studio/StudioPage"
+import type { Variable } from "@studio/types/Studio/StudioPageVariable"
+import type { ExpressionEvaluationContext } from "@studio/types"
 import type { Ref } from "vue"
 import type { Router, RouteLocationNormalized } from "vue-router"
 

@@ -20,11 +20,11 @@
 </template>
 
 <script setup lang="ts">
-import { __ } from "@/translation";
-import Autocomplete from "@/components/Controls/Autocomplete.vue";
-import { webPages } from "@/data/webPage";
-import { BuilderPage } from "@/types/doctypes";
-import { filterOptions } from "@/utils/autocompleteOptions";
+import { __ } from "@builder/translation";
+import Autocomplete from "@builder/components/Controls/Autocomplete.vue";
+import { webPages } from "@builder/data/webPage";
+import { BuilderPage } from "@builder/types/doctypes";
+import { filterOptions } from "@builder/utils/autocompleteOptions";
 import { DateRangePicker, Select, type DateRangeValue } from "frappe-ui";
 import { computed } from "vue";
 

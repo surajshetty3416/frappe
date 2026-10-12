@@ -1,10 +1,10 @@
-import AttributePropertyControl from "@/components/Controls/AttributePropertyControl.vue";
-import ImageUploadInput from "@/components/ImageUploadInput.vue";
-import blockController from "@/utils/blockController";
-import { getOptimizeButtonText, optimizeImage, shouldShowOptimizeButton } from "@/utils/imageUtils";
+import AttributePropertyControl from "@builder/components/Controls/AttributePropertyControl.vue";
+import ImageUploadInput from "@builder/components/ImageUploadInput.vue";
+import blockController from "@builder/utils/blockController";
+import { getOptimizeButtonText, optimizeImage, shouldShowOptimizeButton } from "@builder/utils/imageUtils";
 import { Button } from "frappe-ui";
 import { computed } from "vue";
-import { __ } from "@/translation";
+import { __ } from "@builder/translation";
 
 const imageOptionsSectionProperties = [
 	{

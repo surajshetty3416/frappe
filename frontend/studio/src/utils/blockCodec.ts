@@ -1,4 +1,4 @@
-import { BlockOptions } from "@/types"
+import { BlockOptions } from "@studio/types"
 
 /**
  * Expand a compact node (name/style/c/props...) into Studio block format

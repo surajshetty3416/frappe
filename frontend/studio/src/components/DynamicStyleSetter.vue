@@ -43,14 +43,14 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue"
 import { Button, ErrorMessage } from "frappe-ui"
-import Code from "@/components/Code.vue"
-import IconButton from "@/components/IconButton.vue"
-import DraggablePopup from "@/components/DraggablePopup.vue"
-import Block from "@/utils/block"
-import { useStudioCompletions } from "@/utils/completions/useStudioCompletions"
-import { getExpressionError } from "@/utils/parseCode"
+import Code from "@studio/components/Code.vue"
+import IconButton from "@studio/components/IconButton.vue"
+import DraggablePopup from "@studio/components/DraggablePopup.vue"
+import Block from "@studio/utils/block"
+import { useStudioCompletions } from "@studio/utils/completions/useStudioCompletions"
+import { getExpressionError } from "@studio/utils/parseCode"
 import type { CompletionContext } from "@codemirror/autocomplete"
-import type { BlockProperty } from "@/components/ComponentStyles.vue"
+import type { BlockProperty } from "@studio/components/ComponentStyles.vue"
 import LucideCirclePlus from "~icons/lucide/circle-plus"
 
 const props = defineProps<{ block?: Block; property: BlockProperty }>()

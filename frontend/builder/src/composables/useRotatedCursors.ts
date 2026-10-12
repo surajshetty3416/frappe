@@ -1,8 +1,8 @@
-import type Block from "@/block";
-import resizeCursorSvg from "@/assets/resize-cursor.svg?raw";
-import rotationCursorSvg from "@/assets/rotation-cursor.svg?raw";
-import { getRotatedCursor } from "@/utils/cursor";
-import { getTotalRotation } from "@/utils/rotation";
+import type Block from "@builder/block";
+import resizeCursorSvg from "@builder/assets/resize-cursor.svg?raw";
+import rotationCursorSvg from "@builder/assets/rotation-cursor.svg?raw";
+import { getRotatedCursor } from "@builder/utils/cursor";
+import { getTotalRotation } from "@builder/utils/rotation";
 import { computed } from "vue";
 
 // Cursors for the drag handles of a block, turned to match its *rendered* angle - its own

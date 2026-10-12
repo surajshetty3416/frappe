@@ -135,14 +135,14 @@
 </template>
 
 <script setup lang="ts">
-import { __ } from "@/translation";
-import EditableSpan from "@/components/EditableSpan.vue";
-import PageListModal from "@/components/Modals/PageListModal.vue";
-import useBuilderStore from "@/stores/builderStore";
-import usePageStore from "@/stores/pageStore";
-import { BuilderClientScript, BuilderPage, BuilderPageClientScript } from "@/types/doctypes";
-import { promptDiscardScriptEdits, promptScriptConflict, promptSharedScriptSave } from "@/utils/dialogs";
-import { getErrorMessage, getPageUsageMessage } from "@/utils/helpers";
+import { __ } from "@builder/translation";
+import EditableSpan from "@builder/components/EditableSpan.vue";
+import PageListModal from "@builder/components/Modals/PageListModal.vue";
+import useBuilderStore from "@builder/stores/builderStore";
+import usePageStore from "@builder/stores/pageStore";
+import { BuilderClientScript, BuilderPage, BuilderPageClientScript } from "@builder/types/doctypes";
+import { promptDiscardScriptEdits, promptScriptConflict, promptSharedScriptSave } from "@builder/utils/dialogs";
+import { getErrorMessage, getPageUsageMessage } from "@builder/utils/helpers";
 import { Combobox, createListResource, createResource, Dropdown, type ComboboxOptionValue } from "frappe-ui";
 import { useTelemetry } from "@framework/ui/telemetry";
 import { computed, nextTick, ref, watch } from "vue";

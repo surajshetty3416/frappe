@@ -1,13 +1,13 @@
-import MainMenu from "@/components/MainMenu.vue";
-import PublishButton from "@/components/PublishButton.vue";
-import ModeSwitcher from "@/components/ToolbarItems/ModeSwitcher.vue";
-import PageTitlePopover from "@/components/ToolbarItems/PageTitlePopover.vue";
-import ReadOnlyBadge from "@/components/ToolbarItems/ReadOnlyBadge.vue";
-import ToolbarActions from "@/components/ToolbarItems/ToolbarActions.vue";
-import ViewerAvatars from "@/components/ToolbarItems/ViewerAvatars.vue";
-import useBuilderStore from "@/stores/builderStore";
-import usePageStore from "@/stores/pageStore";
-import { createRegistry, type RegistryItem } from "@/utils/createRegistry";
+import MainMenu from "@builder/components/MainMenu.vue";
+import PublishButton from "@builder/components/PublishButton.vue";
+import ModeSwitcher from "@builder/components/ToolbarItems/ModeSwitcher.vue";
+import PageTitlePopover from "@builder/components/ToolbarItems/PageTitlePopover.vue";
+import ReadOnlyBadge from "@builder/components/ToolbarItems/ReadOnlyBadge.vue";
+import ToolbarActions from "@builder/components/ToolbarItems/ToolbarActions.vue";
+import ViewerAvatars from "@builder/components/ToolbarItems/ViewerAvatars.vue";
+import useBuilderStore from "@builder/stores/builderStore";
+import usePageStore from "@builder/stores/pageStore";
+import { createRegistry, type RegistryItem } from "@builder/utils/createRegistry";
 import type { Component } from "vue";
 
 export type ToolbarRegion = "left" | "center" | "right";

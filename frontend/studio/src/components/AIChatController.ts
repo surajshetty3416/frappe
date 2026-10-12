@@ -1,10 +1,10 @@
 import { call } from "frappe-ui"
 import { ref, type Ref } from "vue"
-import { type AIChatHandlers, attachAIChatListeners, detachAIChatListeners } from "@/components/ai/realtime"
-import { ToolDispatcher } from "@/components/ai/toolDispatch"
-import type { BlockOptions } from "@/types"
-import { tryParseJsonBlock } from "@/utils/blockCodec"
-import { throttle } from "@/utils/helpers"
+import { type AIChatHandlers, attachAIChatListeners, detachAIChatListeners } from "@studio/components/ai/realtime"
+import { ToolDispatcher } from "@studio/components/ai/toolDispatch"
+import type { BlockOptions } from "@studio/types"
+import { tryParseJsonBlock } from "@studio/utils/blockCodec"
+import { throttle } from "@studio/utils/helpers"
 
 /** Everything the controller needs from the panel: the shared chat state it mutates
  * and the canvas/page helpers it drives. Keeps the controller free of Vue component

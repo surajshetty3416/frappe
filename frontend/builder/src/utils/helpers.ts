@@ -1,9 +1,9 @@
-import Block from "@/block";
-import useCanvasStore from "@/stores/canvasStore";
-import { __ } from "@/translation";
-import { BuilderPage } from "@/types/doctypes";
-import getBlockTemplate from "@/utils/blockTemplate";
-import { editorDemo } from "@/utils/editorDemo";
+import Block from "@builder/block";
+import useCanvasStore from "@builder/stores/canvasStore";
+import { __ } from "@builder/translation";
+import { BuilderPage } from "@builder/types/doctypes";
+import getBlockTemplate from "@builder/utils/blockTemplate";
+import { editorDemo } from "@builder/utils/editorDemo";
 import { dialog, FileUploadHandler, toast, type DialogSize, type DialogTheme } from "frappe-ui";
 import { reactive, toRaw } from "vue";
 import { getRGB, HexToHSV, HSVToHex } from "./colors";
@@ -549,7 +549,7 @@ async function uploadUserFont(
 	file: File,
 	options: UploadUserFontOptions = {},
 ): Promise<UploadUserFontResult | null> {
-	const { default: userFont } = await import("@/data/userFonts");
+	const { default: userFont } = await import("@builder/data/userFonts");
 
 	const fontName = await getFontNameFromFile(file);
 

@@ -50,12 +50,12 @@
 </template>
 
 <script setup lang="ts">
-import { __ } from "@/translation";
-import AnalyticsFilters from "@/components/Settings/AnalyticsFilters.vue";
-import AnalyticsOverview from "@/components/Settings/AnalyticsOverview.vue";
-import TopReferrersList from "@/components/Settings/TopReferrersList.vue";
-import TrackingDisabledNotice from "@/components/Settings/TrackingDisabledNotice.vue";
-import { useAnalytics } from "@/composables/useAnalytics";
+import { __ } from "@builder/translation";
+import AnalyticsFilters from "@builder/components/Settings/AnalyticsFilters.vue";
+import AnalyticsOverview from "@builder/components/Settings/AnalyticsOverview.vue";
+import TopReferrersList from "@builder/components/Settings/TopReferrersList.vue";
+import TrackingDisabledNotice from "@builder/components/Settings/TrackingDisabledNotice.vue";
+import { useAnalytics } from "@builder/composables/useAnalytics";
 import { ListView } from "frappe-ui/experimental";
 
 const {

@@ -89,9 +89,9 @@
 	</div>
 </template>
 <script setup lang="ts">
-import { __ } from "@/translation";
-import router, { sessionUser } from "@/router";
-import { confirm } from "@/utils/helpers";
+import { __ } from "@builder/translation";
+import router, { sessionUser } from "@builder/router";
+import { confirm } from "@builder/utils/helpers";
 import { UseTimeAgo } from "@vueuse/components";
 import { Avatar, Badge, Dialog, createResource, toast } from "frappe-ui";
 import { computed, nextTick, ref } from "vue";

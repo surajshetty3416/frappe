@@ -27,12 +27,12 @@
 </template>
 
 <script setup lang="ts">
-import Autocomplete from "@/components/Controls/Autocomplete.vue";
-import MiddleTruncate from "@/components/MiddleTruncate.vue";
-import usePageStore from "@/stores/pageStore";
-import { filterOptions } from "@/utils/autocompleteOptions";
-import blockController from "@/utils/blockController";
-import { getDataArray, getDefaultPropsList, getParentProps, getRepeaterScopedData } from "@/utils/helpers";
+import Autocomplete from "@builder/components/Controls/Autocomplete.vue";
+import MiddleTruncate from "@builder/components/MiddleTruncate.vue";
+import usePageStore from "@builder/stores/pageStore";
+import { filterOptions } from "@builder/utils/autocompleteOptions";
+import blockController from "@builder/utils/blockController";
+import { getDataArray, getDefaultPropsList, getParentProps, getRepeaterScopedData } from "@builder/utils/helpers";
 import { computed, ref, watch } from "vue";
 
 type DynamicValue = {

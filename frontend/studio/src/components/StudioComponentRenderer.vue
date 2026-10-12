@@ -4,11 +4,11 @@
 
 <script setup lang="ts">
 import { provide, computed } from "vue"
-import AppComponent from "@/components/AppComponent.vue"
-import Block from "@/utils/block"
-import useComponentStore from "@/stores/componentStore"
+import AppComponent from "@studio/components/AppComponent.vue"
+import Block from "@studio/utils/block"
+import useComponentStore from "@studio/stores/componentStore"
 
-import { usePageScope } from "@/stores/codeStore"
+import { usePageScope } from "@studio/stores/codeStore"
 
 const props = defineProps<{
 	studioComponent: Block

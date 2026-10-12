@@ -1,9 +1,9 @@
-import BasePropertyControl from "@/components/Controls/BasePropertyControl.vue";
-import InlineInput from "@/components/Controls/InlineInput.vue";
-import OptionToggle from "@/components/Controls/OptionToggle.vue";
-import useCanvasStore from "@/stores/canvasStore";
-import blockController from "@/utils/blockController";
-import { __ } from "@/translation";
+import BasePropertyControl from "@builder/components/Controls/BasePropertyControl.vue";
+import InlineInput from "@builder/components/Controls/InlineInput.vue";
+import OptionToggle from "@builder/components/Controls/OptionToggle.vue";
+import useCanvasStore from "@builder/stores/canvasStore";
+import blockController from "@builder/utils/blockController";
+import { __ } from "@builder/translation";
 
 const getEditorConfig = (): BlockEditorConfig => {
 	return blockController.getFirstSelectedBlock()?.editorConfig || {};

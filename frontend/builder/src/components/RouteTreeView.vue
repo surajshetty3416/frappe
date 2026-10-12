@@ -51,11 +51,11 @@
 </template>
 
 <script setup lang="ts">
-import { __ } from "@/translation";
+import { __ } from "@builder/translation";
 // TODO: Refactor to meke it generic, this has lots of unnecessary coupling, props usage and hacky implementation
-import RouteTreeNode from "@/components/RouteTreeNode.vue";
-import { builderSettings } from "@/data/builderSettings";
-import { BuilderPage } from "@/types/doctypes";
+import RouteTreeNode from "@builder/components/RouteTreeNode.vue";
+import { builderSettings } from "@builder/data/builderSettings";
+import { BuilderPage } from "@builder/types/doctypes";
 import { createListResource, useKeyboardShortcut } from "frappe-ui";
 import { computed, onBeforeUpdate, ref, watch, watchEffect } from "vue";
 import { useRouter } from "vue-router";

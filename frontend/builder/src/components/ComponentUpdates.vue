@@ -57,10 +57,10 @@
 </template>
 
 <script setup lang="ts">
-import useCanvasStore from "@/stores/canvasStore";
-import useComponentStore from "@/stores/componentStore";
-import usePageStore from "@/stores/pageStore";
-import { __ } from "@/translation";
+import useCanvasStore from "@builder/stores/canvasStore";
+import useComponentStore from "@builder/stores/componentStore";
+import usePageStore from "@builder/stores/pageStore";
+import { __ } from "@builder/translation";
 import { Button, Popover, Tooltip } from "frappe-ui";
 import { computed, nextTick, onUnmounted, ref, watch } from "vue";
 

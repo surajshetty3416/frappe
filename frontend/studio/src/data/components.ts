@@ -5,10 +5,10 @@ import {
 	FRAPPE_UI_EXPERIMENTAL_COMPONENTS,
 	FRAPPE_UI_CHARTS,
 	FRAMEWORK_UI_COMPONENTS,
-} from "@/utils/constants"
-import { COMPONENT_FAMILIES } from "@/data/componentFamilies"
+} from "@studio/utils/constants"
+import { COMPONENT_FAMILIES } from "@studio/data/componentFamilies"
 
-import type { FrappeUIComponents, FrappeUIComponent } from "@/types"
+import type { FrappeUIComponents, FrappeUIComponent } from "@studio/types"
 
 import LucideCircleAlert from "~icons/lucide/circle-alert"
 import LucideUser from "~icons/lucide/user"
@@ -357,7 +357,7 @@ export const COMPONENTS: FrappeUIComponents = {
 			],
 		},
 		editInFragmentMode: true,
-		proxyComponent: defineAsyncComponent(() => import("@/components/ProxyComponents/ProxyDialog.vue")),
+		proxyComponent: defineAsyncComponent(() => import("@studio/components/ProxyComponents/ProxyDialog.vue")),
 	},
 	Divider: {
 		name: "Divider",

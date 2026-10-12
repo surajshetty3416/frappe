@@ -1,21 +1,21 @@
-import type { BlockOptions, BlockStyleMap, BlockStyles, CompletionSource, Slot, SlotScope } from "@/types"
+import type { BlockOptions, BlockStyleMap, BlockStyles, CompletionSource, Slot, SlotScope } from "@studio/types"
 import { clamp } from "@vueuse/core"
 import { reactive, CSSProperties, nextTick } from 'vue'
 
-import useCanvasStore from "@/stores/canvasStore"
-import useComponentStore from "@/stores/componentStore"
+import useCanvasStore from "@studio/stores/canvasStore"
+import useComponentStore from "@studio/stores/componentStore"
 import LucideHash from "~icons/lucide/hash"
 import LucideAppWindow from "~icons/lucide/app-window"
 import LucideBox from "~icons/lucide/box"
 import LucideCode from "~icons/lucide/code"
 
 import { generateId, isObjectEmpty, kebabToCamelCase, numberToPx } from "./helpers";
-import { copyObject, getBlockCopy, getComponentBlock } from "@/utils/serializer"
-import { componentHasDefaultSlot, getComponentSlots } from "@/utils/components"
-import { mergeLegacyRawStyles } from "@/patches/mergeLegacyRawStyles"
+import { copyObject, getBlockCopy, getComponentBlock } from "@studio/utils/serializer"
+import { componentHasDefaultSlot, getComponentSlots } from "@studio/utils/components"
+import { mergeLegacyRawStyles } from "@studio/patches/mergeLegacyRawStyles"
 
-import type { StyleValue, FrappeUIComponent, FrappeUIComponents } from "@/types"
-import type { ComponentEvent } from "@/types/ComponentEvent"
+import type { StyleValue, FrappeUIComponent, FrappeUIComponents } from "@studio/types"
+import type { ComponentEvent } from "@studio/types/ComponentEvent"
 
 export type styleProperty = keyof CSSProperties | `__${string}`;
 

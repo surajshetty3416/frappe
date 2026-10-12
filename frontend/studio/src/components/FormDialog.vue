@@ -77,12 +77,12 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue"
 import { createResource, Dialog, FormControl, Button } from "frappe-ui"
-import Block from "@/utils/block"
-import { getComponentBlock } from "@/utils/serializer"
-import type { DocTypeField, SelectOption } from "@/types"
-import components from "@/data/components"
+import Block from "@studio/utils/block"
+import { getComponentBlock } from "@studio/utils/serializer"
+import type { DocTypeField, SelectOption } from "@studio/types"
+import components from "@studio/data/components"
 import Link from "@framework/ui/components/Link/Link.vue"
-import Grid from "@/components/Grid.vue"
+import Grid from "@studio/components/Grid.vue"
 import { toast } from "frappe-ui"
 
 const props = defineProps<{

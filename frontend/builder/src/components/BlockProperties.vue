@@ -32,9 +32,9 @@
 	</div>
 </template>
 <script setup lang="ts">
-import { propertySections, type PropertySection } from "@/components/BlockPropertySections";
-import useBuilderStore from "@/stores/builderStore";
-import blockController from "@/utils/blockController";
+import { propertySections, type PropertySection } from "@builder/components/BlockPropertySections";
+import useBuilderStore from "@builder/stores/builderStore";
+import blockController from "@builder/utils/blockController";
 import { Ref, ref, toValue } from "vue";
 import CollapsibleSection from "./CollapsibleSection.vue";
 

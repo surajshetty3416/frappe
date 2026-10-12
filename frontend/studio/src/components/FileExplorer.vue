@@ -179,11 +179,11 @@
 import { ref, computed, watch, nextTick, onMounted, onBeforeUnmount } from "vue"
 import { useStorage } from "@vueuse/core"
 import { Button, Dialog, ErrorMessage, FormControl, Tree, toast, Tooltip } from "frappe-ui"
-import CodeEditorDock from "@/components/CodeEditorDock.vue"
-import ContextMenu from "@/components/ContextMenu.vue"
-import EmptyState from "@/components/EmptyState.vue"
-import useStudioStore from "@/stores/studioStore"
-import { usePageScope } from "@/stores/codeStore"
+import CodeEditorDock from "@studio/components/CodeEditorDock.vue"
+import ContextMenu from "@studio/components/ContextMenu.vue"
+import EmptyState from "@studio/components/EmptyState.vue"
+import useStudioStore from "@studio/stores/studioStore"
+import { usePageScope } from "@studio/stores/codeStore"
 import {
 	listStudioFiles,
 	readStudioFile,
@@ -194,10 +194,10 @@ import {
 	deleteStudioFile,
 	languageForFile,
 	type StudioFileNode,
-} from "@/data/studioFiles"
-import { confirm } from "@/utils/helpers"
-import { pageScriptCompletions } from "@/utils/completions/pageScriptCompletions"
-import type { ContextMenuOption } from "@/types"
+} from "@studio/data/studioFiles"
+import { confirm } from "@studio/utils/helpers"
+import { pageScriptCompletions } from "@studio/utils/completions/pageScriptCompletions"
+import type { ContextMenuOption } from "@studio/types"
 
 const store = useStudioStore()
 const pageScope = usePageScope()

@@ -208,13 +208,13 @@
 		@update:modelValue="(val: string) => blockController.setStyle('placeSelf', val)" /> -->
 </template>
 <script lang="ts" setup>
-import { __ } from "@/translation";
-import InlineInput from "@/components/Controls/InlineInput.vue";
-import OptionToggle from "@/components/Controls/OptionToggle.vue";
-import SplitPropertyControl from "@/components/Controls/SplitPropertyControl.vue";
-import StylePropertyControl from "@/components/Controls/StylePropertyControl.vue";
-import blockController from "@/utils/blockController";
-import { GRID_UNIT_OPTIONS } from "@/utils/unitOptions";
+import { __ } from "@builder/translation";
+import InlineInput from "@builder/components/Controls/InlineInput.vue";
+import OptionToggle from "@builder/components/Controls/OptionToggle.vue";
+import SplitPropertyControl from "@builder/components/Controls/SplitPropertyControl.vue";
+import StylePropertyControl from "@builder/components/Controls/StylePropertyControl.vue";
+import blockController from "@builder/utils/blockController";
+import { GRID_UNIT_OPTIONS } from "@builder/utils/unitOptions";
 import { computed } from "vue";
 
 defineProps<{ gapProps: InstanceType<typeof SplitPropertyControl>["$props"] }>();

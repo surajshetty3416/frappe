@@ -1,4 +1,4 @@
-import "@/setupFrappeUIResource";
+import "@builder/setupFrappeUIResource";
 import { createDocumentResource } from "frappe-ui";
 
 const builderSettings = createDocumentResource({

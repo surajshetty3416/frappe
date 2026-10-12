@@ -20,8 +20,8 @@
 </template>
 
 <script setup lang="ts">
-import { __ } from "@/translation";
-import { websiteSettings } from "@/data/websiteSettings";
+import { __ } from "@builder/translation";
+import { websiteSettings } from "@builder/data/websiteSettings";
 import { Button } from "frappe-ui";
 
 const enableTracking = () => {

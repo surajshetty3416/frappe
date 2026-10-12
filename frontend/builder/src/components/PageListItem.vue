@@ -64,12 +64,12 @@
 	</router-link>
 </template>
 <script setup lang="ts">
-import { __ } from "@/translation";
-import PageActionsDropdown from "@/components/PageActionsDropdown.vue";
-import { useDashboardState } from "@/composables/useDashboardState";
-import PageStatusLine from "@/components/PageStatusLine.vue";
-import { BuilderPage } from "@/types/doctypes";
-import { getUserInfo } from "@/usersInfo";
+import { __ } from "@builder/translation";
+import PageActionsDropdown from "@builder/components/PageActionsDropdown.vue";
+import { useDashboardState } from "@builder/composables/useDashboardState";
+import PageStatusLine from "@builder/components/PageStatusLine.vue";
+import { BuilderPage } from "@builder/types/doctypes";
+import { getUserInfo } from "@builder/usersInfo";
 import { UseTimeAgo } from "@vueuse/components";
 import { Avatar } from "frappe-ui";
 import { computed } from "vue";

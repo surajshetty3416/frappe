@@ -1,4 +1,4 @@
-import type Block from "@/block";
+import type Block from "@builder/block";
 
 type ResizeDirection = {
 	horizontal?: "left" | "right";

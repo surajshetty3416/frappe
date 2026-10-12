@@ -147,24 +147,24 @@
 <script setup lang="ts">
 import { ref, computed, watch } from "vue"
 import { Combobox, FormControl, createResource, Dialog, TabButtons, Button } from "frappe-ui"
-import useStudioStore from "@/stores/studioStore"
-import Block from "@/utils/block"
-import EmptyState from "@/components/EmptyState.vue"
-import ItemActions from "@/components/ItemActions.vue"
-import blockController from "@/utils/blockController"
+import useStudioStore from "@studio/stores/studioStore"
+import Block from "@studio/utils/block"
+import EmptyState from "@studio/components/EmptyState.vue"
+import ItemActions from "@studio/components/ItemActions.vue"
+import blockController from "@studio/utils/blockController"
 
-import { isObjectEmpty, confirm } from "@/utils/helpers"
+import { isObjectEmpty, confirm } from "@studio/utils/helpers"
 
-import type { ActionConfigurations, ComponentEvent } from "@/types/ComponentEvent"
+import type { ActionConfigurations, ComponentEvent } from "@studio/types/ComponentEvent"
 import Link from "@framework/ui/components/Link/Link.vue"
-import Grid from "@/components/Grid.vue"
-import Code from "@/components/Code.vue"
-import { useStudioCompletions } from "@/utils/completions/useStudioCompletions"
-import type { DocTypeField } from "@/types"
+import Grid from "@studio/components/Grid.vue"
+import Code from "@studio/components/Code.vue"
+import { useStudioCompletions } from "@studio/utils/completions/useStudioCompletions"
+import type { DocTypeField } from "@studio/types"
 import { toast } from "frappe-ui"
 import type { CompletionContext } from "@codemirror/autocomplete"
-import { usePageScope } from "@/stores/codeStore"
-import useComponentInstance from "@/utils/useComponentInstance"
+import { usePageScope } from "@studio/stores/codeStore"
+import useComponentInstance from "@studio/utils/useComponentInstance"
 
 const props = defineProps<{
 	block?: Block

@@ -6,10 +6,10 @@ import {
 	type RouterOptions,
 } from "vue-router"
 import { toast } from "frappe-ui"
-import AppPage from "@/pages/AppPage.vue"
-import { loadPage, discardPage } from "@/page/pageLoader"
-import NotFound from "@/pages/NotFound.vue"
-import * as globalUtils from "@/utils/globalUtils"
+import AppPage from "@studio/pages/AppPage.vue"
+import { loadPage, discardPage } from "@studio/page/pageLoader"
+import NotFound from "@studio/pages/NotFound.vue"
+import * as globalUtils from "@studio/utils/globalUtils"
 
 export type RouterConfig = {
 	routerOptions?: Omit<RouterOptions, "history" | "routes">

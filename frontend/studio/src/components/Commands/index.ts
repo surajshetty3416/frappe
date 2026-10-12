@@ -1,10 +1,10 @@
-import router from "@/router/studio_router"
-import blockController from "@/utils/blockController"
-import { copyBlockStyles } from "@/utils/styleCopyPaste"
-import useStudioStore from "@/stores/studioStore"
-import useCanvasStore from "@/stores/canvasStore"
-import { openAppInDesk, openPageInDesk } from "@/utils/helpers"
-import { createRegistry, type RegistryItem } from "@/utils/createRegistry"
+import router from "@studio/router/studio_router"
+import blockController from "@studio/utils/blockController"
+import { copyBlockStyles } from "@studio/utils/styleCopyPaste"
+import useStudioStore from "@studio/stores/studioStore"
+import useCanvasStore from "@studio/stores/canvasStore"
+import { openAppInDesk, openPageInDesk } from "@studio/utils/helpers"
+import { createRegistry, type RegistryItem } from "@studio/utils/createRegistry"
 import { nextTick } from "vue"
 
 /** A key binding for a command. The description labels it in the shortcuts dialog. */

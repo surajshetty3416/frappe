@@ -45,11 +45,11 @@
 </template>
 
 <script setup lang="ts">
-import { __ } from "@/translation";
-import { useDashboardState } from "@/composables/useDashboardState";
-import { pageCreators } from "@/data/webPage";
-import { sessionUser } from "@/router";
-import { getUsersInfo } from "@/usersInfo";
+import { __ } from "@builder/translation";
+import { useDashboardState } from "@builder/composables/useDashboardState";
+import { pageCreators } from "@builder/data/webPage";
+import { sessionUser } from "@builder/router";
+import { getUsersInfo } from "@builder/usersInfo";
 import { Avatar, Button, Combobox, Popover, type ComboboxOptionValue } from "frappe-ui";
 import { computed, type Ref } from "vue";
 

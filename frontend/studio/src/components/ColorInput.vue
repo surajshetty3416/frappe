@@ -41,11 +41,11 @@
 </template>
 <script setup lang="ts">
 import { computed } from "vue"
-import ColorPicker from "@/components/ColorPicker.vue"
-import Input from "@/components/Input.vue"
-import InputLabel from "@/components/InputLabel.vue"
-import { getColorFromToken, getRGB, isColorToken } from "@/utils/helpers"
-import type { HashString } from "@/types"
+import ColorPicker from "@studio/components/ColorPicker.vue"
+import Input from "@studio/components/Input.vue"
+import InputLabel from "@studio/components/InputLabel.vue"
+import { getColorFromToken, getRGB, isColorToken } from "@studio/utils/helpers"
+import type { HashString } from "@studio/types"
 
 const props = withDefaults(
 	defineProps<{

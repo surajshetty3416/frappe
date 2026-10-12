@@ -35,13 +35,13 @@
 </template>
 
 <script setup lang="ts">
-import { pxToNumber } from "@/utils/helpers"
+import { pxToNumber } from "@studio/utils/helpers"
 import { computed, onMounted, ref, watch, inject } from "vue"
-import Block from "@/utils/block"
-import guidesTracker from "@/utils/guidesTracker"
-import useCanvasStore from "@/stores/canvasStore"
+import Block from "@studio/utils/block"
+import guidesTracker from "@studio/utils/guidesTracker"
+import useCanvasStore from "@studio/stores/canvasStore"
 
-import type { CanvasProps } from "@/types/StudioCanvas"
+import type { CanvasProps } from "@studio/types/StudioCanvas"
 
 const props = defineProps({
 	targetBlock: {

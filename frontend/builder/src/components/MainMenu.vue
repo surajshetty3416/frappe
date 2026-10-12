@@ -14,14 +14,14 @@
 	</Dropdown>
 </template>
 <script setup lang="ts">
-import { __ } from "@/translation";
-import { useDashboardState } from "@/composables/useDashboardState";
-import useBuilderStore from "@/stores/builderStore";
-import useCanvasStore from "@/stores/canvasStore";
-import usePageStore from "@/stores/pageStore";
-import { BuilderPage } from "@/types/doctypes";
-import { triggerCopyEvent } from "@/utils/helpers";
-import { deletePage } from "@/utils/pageActions";
+import { __ } from "@builder/translation";
+import { useDashboardState } from "@builder/composables/useDashboardState";
+import useBuilderStore from "@builder/stores/builderStore";
+import useCanvasStore from "@builder/stores/canvasStore";
+import usePageStore from "@builder/stores/pageStore";
+import { BuilderPage } from "@builder/types/doctypes";
+import { triggerCopyEvent } from "@builder/utils/helpers";
+import { deletePage } from "@builder/utils/pageActions";
 import { useDark, useToggle } from "@vueuse/core";
 import { Dropdown } from "frappe-ui";
 import { useRouter } from "vue-router";

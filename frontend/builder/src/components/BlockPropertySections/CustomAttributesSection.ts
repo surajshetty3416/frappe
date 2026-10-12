@@ -1,7 +1,7 @@
-import ObjectEditor from "@/components/ObjectEditor.vue";
-import blockController from "@/utils/blockController";
+import ObjectEditor from "@builder/components/ObjectEditor.vue";
+import blockController from "@builder/utils/blockController";
 import { computed } from "vue";
-import { __ } from "@/translation";
+import { __ } from "@builder/translation";
 
 const customAttributesSectionProperties = [
 	{

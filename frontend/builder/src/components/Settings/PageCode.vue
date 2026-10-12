@@ -23,9 +23,9 @@
 	</div>
 </template>
 <script setup lang="ts">
-import CodeEditor from "@/components/Controls/CodeEditor.vue";
-import useBuilderStore from "@/stores/builderStore";
-import usePageStore from "@/stores/pageStore";
+import CodeEditor from "@builder/components/Controls/CodeEditor.vue";
+import useBuilderStore from "@builder/stores/builderStore";
+import usePageStore from "@builder/stores/pageStore";
 
 const builderStore = useBuilderStore();
 const pageStore = usePageStore();

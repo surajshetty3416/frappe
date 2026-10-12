@@ -139,10 +139,10 @@
 </template>
 
 <script setup lang="ts">
-import type Block from "@/block";
-import ColorPicker from "@/components/Controls/ColorPicker.vue";
-import Input from "@/components/Controls/Input.vue";
-import { __ } from "@/translation";
+import type Block from "@builder/block";
+import ColorPicker from "@builder/components/Controls/ColorPicker.vue";
+import Input from "@builder/components/Controls/Input.vue";
+import { __ } from "@builder/translation";
 import type { Editor } from "@tiptap/vue-3";
 import { BubbleMenu } from "@tiptap/vue-3/menus";
 import { vOnClickOutside } from "@vueuse/components";

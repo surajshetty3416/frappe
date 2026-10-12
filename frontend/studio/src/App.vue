@@ -12,7 +12,7 @@
 
 <script setup lang="ts">
 import { FrappeUIProvider } from "frappe-ui"
-import { useLiveEditor } from "@/utils/useLiveEditor"
+import { useLiveEditor } from "@studio/utils/useLiveEditor"
 
 useLiveEditor()
 </script>

@@ -39,10 +39,10 @@
 </template>
 
 <script setup lang="ts">
-import { __ } from "@/translation";
-import AnalyticsEmptyState from "@/components/Settings/AnalyticsEmptyState.vue";
-import type { AnalyticsResponse } from "@/composables/useAnalytics";
-import { shortenNumber } from "@/utils/helpers";
+import { __ } from "@builder/translation";
+import AnalyticsEmptyState from "@builder/components/Settings/AnalyticsEmptyState.vue";
+import type { AnalyticsResponse } from "@builder/composables/useAnalytics";
+import { shortenNumber } from "@builder/utils/helpers";
 import { AxisChart } from "frappe-ui/experimental";
 import { computed } from "vue";
 

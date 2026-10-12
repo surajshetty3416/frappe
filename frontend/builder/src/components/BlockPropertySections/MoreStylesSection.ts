@@ -1,8 +1,8 @@
-import MoreStylesPanel from "@/components/MoreStylesPanel.vue";
-import blockController from "@/utils/blockController";
-import { getStylePropertiesWithoutControls } from "@/utils/stylePropertiesWithControls";
+import MoreStylesPanel from "@builder/components/MoreStylesPanel.vue";
+import blockController from "@builder/utils/blockController";
+import { getStylePropertiesWithoutControls } from "@builder/utils/stylePropertiesWithControls";
 import { computed } from "vue";
-import { __ } from "@/translation";
+import { __ } from "@builder/translation";
 
 const moreStylesSectionProperties = [
 	{

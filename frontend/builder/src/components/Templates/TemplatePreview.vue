@@ -35,8 +35,8 @@
 	</div>
 </template>
 <script setup lang="ts">
-import { __ } from "@/translation";
-import { TemplatePageSummary } from "@/types/template";
+import { __ } from "@builder/translation";
+import { TemplatePageSummary } from "@builder/types/template";
 import { useElementSize } from "@vueuse/core";
 import { Button } from "frappe-ui";
 import { computed, ref } from "vue";

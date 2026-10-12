@@ -20,7 +20,7 @@
 	</FileUploader>
 </template>
 <script setup lang="ts">
-import { __ } from "@/translation";
+import { __ } from "@builder/translation";
 import { FileUploader } from "frappe-ui";
 const prop = withDefaults(
 	defineProps<{

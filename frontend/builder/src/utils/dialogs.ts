@@ -1,17 +1,17 @@
-import type Block from "@/block";
-import { useDashboardState } from "@/composables/useDashboardState";
-import builderProjectFolder from "@/data/builderProjectFolder";
-import webComponent from "@/data/webComponent";
-import { webPages } from "@/data/webPage";
-import useBuilderStore from "@/stores/builderStore";
-import useCanvasStore from "@/stores/canvasStore";
-import useComponentStore from "@/stores/componentStore";
-import usePageStore from "@/stores/pageStore";
-import { BuilderComponent, BuilderPage, BuilderProjectFolder } from "@/types/doctypes";
-import { getBlockCopy, getBlockString } from "@/utils/helpers";
+import type Block from "@builder/block";
+import { useDashboardState } from "@builder/composables/useDashboardState";
+import builderProjectFolder from "@builder/data/builderProjectFolder";
+import webComponent from "@builder/data/webComponent";
+import { webPages } from "@builder/data/webPage";
+import useBuilderStore from "@builder/stores/builderStore";
+import useCanvasStore from "@builder/stores/canvasStore";
+import useComponentStore from "@builder/stores/componentStore";
+import usePageStore from "@builder/stores/pageStore";
+import { BuilderComponent, BuilderPage, BuilderProjectFolder } from "@builder/types/doctypes";
+import { getBlockCopy, getBlockString } from "@builder/utils/helpers";
 import { useDateFormat, useStorage } from "@vueuse/core";
 import { createResource, dialog, toast } from "frappe-ui";
-import { __ } from "@/translation";
+import { __ } from "@builder/translation";
 
 // Imperative dialogs that replace single-purpose modal components. Each opens
 // a frappe-ui prompt that auto-closes once `onConfirm` resolves; throwing from

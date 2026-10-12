@@ -4,8 +4,8 @@
 	</Tooltip>
 </template>
 <script setup lang="ts">
-import { BuilderPage } from "@/types/doctypes";
-import { getPageStatus } from "@/utils/pageStatus";
+import { BuilderPage } from "@builder/types/doctypes";
+import { getPageStatus } from "@builder/utils/pageStatus";
 import { Tooltip } from "frappe-ui";
 import { computed } from "vue";
 

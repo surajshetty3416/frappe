@@ -35,7 +35,7 @@
 </template>
 
 <script setup lang="ts">
-import { __ } from "@/translation";
+import { __ } from "@builder/translation";
 import { ListView } from "frappe-ui/experimental";
 import { h } from "vue";
 

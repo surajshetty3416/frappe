@@ -223,7 +223,7 @@
 </template>
 
 <script setup lang="ts">
-import ColorInput from "@/components/Controls/ColorInput.vue";
+import ColorInput from "@builder/components/Controls/ColorInput.vue";
 import { Button, FileUploader, FormControl } from "frappe-ui";
 import { computed, reactive, ref, watchEffect } from "vue";
 import {

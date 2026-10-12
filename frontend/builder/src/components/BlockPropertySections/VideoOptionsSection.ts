@@ -1,9 +1,9 @@
-import AttributePropertyControl from "@/components/Controls/AttributePropertyControl.vue";
-import InlineInput from "@/components/Controls/InlineInput.vue";
-import OptionToggle from "@/components/Controls/OptionToggle.vue";
-import ImageUploadInput from "@/components/ImageUploadInput.vue";
-import blockController from "@/utils/blockController";
-import { __ } from "@/translation";
+import AttributePropertyControl from "@builder/components/Controls/AttributePropertyControl.vue";
+import InlineInput from "@builder/components/Controls/InlineInput.vue";
+import OptionToggle from "@builder/components/Controls/OptionToggle.vue";
+import ImageUploadInput from "@builder/components/ImageUploadInput.vue";
+import blockController from "@builder/utils/blockController";
+import { __ } from "@builder/translation";
 
 const videoOptionsSectionProperties = [
 	{

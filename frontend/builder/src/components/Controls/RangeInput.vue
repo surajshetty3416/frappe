@@ -28,7 +28,7 @@
 	</div>
 </template>
 <script setup lang="ts">
-import InputLabel from "@/components/Controls/InputLabel.vue";
+import InputLabel from "@builder/components/Controls/InputLabel.vue";
 import { nextTick, onMounted, ref, watch } from "vue";
 const props = defineProps<{
 	modelValue?: number | string;

@@ -1,5 +1,5 @@
 import { computed } from "vue";
-import { extractNumberAndUnit } from "@/utils/helpers";
+import { extractNumberAndUnit } from "@builder/utils/helpers";
 
 interface UseNumberInputOptions {
 	getValue: () => string | number | boolean | null | undefined;

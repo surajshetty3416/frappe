@@ -30,7 +30,7 @@
 		@update:modelValue="emit('update:modelValue', $event)" />
 </template>
 <script setup lang="ts">
-import { useAnchoredPopover } from "@/utils/useAnchoredPopover";
+import { useAnchoredPopover } from "@builder/utils/useAnchoredPopover";
 import { Popover } from "frappe-ui";
 import { computed, ref } from "vue";
 import ColorPickerContent from "./ColorPickerContent.vue";

@@ -26,13 +26,13 @@
 </template>
 
 <script setup lang="ts">
-import AnalyticsFilters from "@/components/Settings/AnalyticsFilters.vue";
-import AnalyticsOverview from "@/components/Settings/AnalyticsOverview.vue";
-import TopClicksList from "@/components/Settings/TopClicksList.vue";
-import TopReferrersList from "@/components/Settings/TopReferrersList.vue";
-import TrackingDisabledNotice from "@/components/Settings/TrackingDisabledNotice.vue";
-import { useAnalytics } from "@/composables/useAnalytics";
-import usePageStore from "@/stores/pageStore";
+import AnalyticsFilters from "@builder/components/Settings/AnalyticsFilters.vue";
+import AnalyticsOverview from "@builder/components/Settings/AnalyticsOverview.vue";
+import TopClicksList from "@builder/components/Settings/TopClicksList.vue";
+import TopReferrersList from "@builder/components/Settings/TopReferrersList.vue";
+import TrackingDisabledNotice from "@builder/components/Settings/TrackingDisabledNotice.vue";
+import { useAnalytics } from "@builder/composables/useAnalytics";
+import usePageStore from "@builder/stores/pageStore";
 
 const pageStore = usePageStore();
 const {

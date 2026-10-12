@@ -70,9 +70,9 @@
 </template>
 
 <script setup lang="ts">
-import blockController from "@/utils/blockController"
+import blockController from "@studio/utils/blockController"
 import { computed, watch } from "vue"
-import Input from "@/components/Input.vue"
+import Input from "@studio/components/Input.vue"
 
 const position = computed({
 	get() {

@@ -52,8 +52,6 @@
 				<p class="text-xs text-ink-gray-4">A sub-agent's thread opens here.</p>
 			</template>
 		</WorkspacePanel>
-		<Dialogs />
-		<ToastProvider />
 		<FlowSettings />
 		<TranscriptDialog />
 	</div>
@@ -62,7 +60,7 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, provide, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { Dialogs, ToastProvider, toast, useColorScheme } from "frappe-ui";
+import { toast, useColorScheme } from "frappe-ui";
 import BrandMark from "@flow/ui-core/components/BrandMark.vue";
 import ChatHeader from "@flow/ui-core/components/ChatHeader.vue";
 import Composer from "@flow/ui-core/components/Composer.vue";
@@ -172,7 +170,7 @@ const router = useRouter();
 watch(
 	() => store.state.sessionId,
 	(id) => {
-		const target = id ? `/s/${id}` : "/";
+		const target = id ? `/flow/s/${id}` : "/flow";
 		if (route.path !== target) router.replace(target);
 	}
 );

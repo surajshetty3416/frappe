@@ -129,13 +129,13 @@
 	</FileUploader>
 </template>
 <script lang="ts" setup>
-import { __ } from "@/translation";
-import ImageFocusInput from "@/components/Controls/ImageFocusInput.vue";
-import ImageUploader from "@/components/Controls/ImageUploader.vue";
-import InlineInput from "@/components/Controls/InlineInput.vue";
-import InputLabel from "@/components/Controls/InputLabel.vue";
-import useBuilderStore from "@/stores/builderStore";
-import { useAnchoredPopover } from "@/utils/useAnchoredPopover";
+import { __ } from "@builder/translation";
+import ImageFocusInput from "@builder/components/Controls/ImageFocusInput.vue";
+import ImageUploader from "@builder/components/Controls/ImageUploader.vue";
+import InlineInput from "@builder/components/Controls/InlineInput.vue";
+import InputLabel from "@builder/components/Controls/InputLabel.vue";
+import useBuilderStore from "@builder/stores/builderStore";
+import { useAnchoredPopover } from "@builder/utils/useAnchoredPopover";
 import { FileUploader, Popover, TabButtons, type TabButtonValue } from "frappe-ui";
 import { computed, ref, watch } from "vue";
 

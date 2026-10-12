@@ -1,10 +1,10 @@
-import builderProjectFolder from "@/data/builderProjectFolder";
-import router from "@/router";
-import useBuilderStore from "@/stores/builderStore";
-import usePageStore from "@/stores/pageStore";
-import { __ } from "@/translation";
-import { BuilderPage, BuilderProjectFolder } from "@/types/doctypes";
-import { webPages } from "@/data/webPage";
+import builderProjectFolder from "@builder/data/builderProjectFolder";
+import router from "@builder/router";
+import useBuilderStore from "@builder/stores/builderStore";
+import usePageStore from "@builder/stores/pageStore";
+import { __ } from "@builder/translation";
+import { BuilderPage, BuilderProjectFolder } from "@builder/types/doctypes";
+import { webPages } from "@builder/data/webPage";
 import { createListResource, createResource, dialog } from "frappe-ui";
 import { ref } from "vue";
 

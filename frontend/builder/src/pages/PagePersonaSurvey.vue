@@ -78,12 +78,12 @@
 </template>
 
 <script setup lang="ts">
-import { __ } from "@/translation";
-import TemplateGallery from "@/components/Templates/TemplateGallery.vue";
-import { useDashboardState } from "@/composables/useDashboardState";
-import { builderSettings } from "@/data/builderSettings";
-import { sessionUser } from "@/router";
-import { getUserInfo } from "@/usersInfo";
+import { __ } from "@builder/translation";
+import TemplateGallery from "@builder/components/Templates/TemplateGallery.vue";
+import { useDashboardState } from "@builder/composables/useDashboardState";
+import { builderSettings } from "@builder/data/builderSettings";
+import { sessionUser } from "@builder/router";
+import { getUserInfo } from "@builder/usersInfo";
 import { Button, Textarea, call } from "frappe-ui";
 import { useTelemetry } from "@framework/ui/telemetry";
 import { computed, nextTick, reactive, ref } from "vue";

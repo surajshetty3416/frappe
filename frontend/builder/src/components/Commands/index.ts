@@ -1,10 +1,10 @@
-import router from "@/router";
-import useBuilderStore from "@/stores/builderStore";
-import useCanvasStore from "@/stores/canvasStore";
-import usePageStore from "@/stores/pageStore";
-import { __ } from "@/translation";
-import blockController from "@/utils/blockController";
-import { createRegistry, type RegistryItem } from "@/utils/createRegistry";
+import router from "@builder/router";
+import useBuilderStore from "@builder/stores/builderStore";
+import useCanvasStore from "@builder/stores/canvasStore";
+import usePageStore from "@builder/stores/pageStore";
+import { __ } from "@builder/translation";
+import blockController from "@builder/utils/blockController";
+import { createRegistry, type RegistryItem } from "@builder/utils/createRegistry";
 import { useDark, useStorage, useToggle } from "@vueuse/core";
 import type { KeyboardShortcutCombo } from "frappe-ui";
 import { nextTick, type Ref } from "vue";

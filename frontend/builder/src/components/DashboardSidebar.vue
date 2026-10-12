@@ -102,17 +102,17 @@
 	</Dialog>
 </template>
 <script lang="ts" setup>
-import { __ } from "@/translation";
+import { __ } from "@builder/translation";
 import builderLogo from "/builder_logo.png";
-import EditableSpan from "@/components/EditableSpan.vue";
-import FilesIcon from "@/components/Icons/Files.vue";
-import SettingsIcon from "@/components/Icons/SettingsGear.vue";
-import { useDashboardState } from "@/composables/useDashboardState";
-import builderProjectFolder from "@/data/builderProjectFolder";
-import useBuilderStore from "@/stores/builderStore";
-import { BuilderProjectFolder } from "@/types/doctypes";
-import { promptCreateFolder } from "@/utils/dialogs";
-import { confirm } from "@/utils/helpers";
+import EditableSpan from "@builder/components/EditableSpan.vue";
+import FilesIcon from "@builder/components/Icons/Files.vue";
+import SettingsIcon from "@builder/components/Icons/SettingsGear.vue";
+import { useDashboardState } from "@builder/composables/useDashboardState";
+import builderProjectFolder from "@builder/data/builderProjectFolder";
+import useBuilderStore from "@builder/stores/builderStore";
+import { BuilderProjectFolder } from "@builder/types/doctypes";
+import { promptCreateFolder } from "@builder/utils/dialogs";
+import { confirm } from "@builder/utils/helpers";
 import { useDark, useToggle } from "@vueuse/core";
 import {
 	createResource,
@@ -129,7 +129,7 @@ import { TrialBanner } from "@framework/ui/components/TrialBanner";
 import { DialogDescription, DialogTitle } from "reka-ui";
 import { computed, defineAsyncComponent, h, ref } from "vue";
 
-const BuilderSettings = defineAsyncComponent(() => import("@/components/BuilderSettings.vue"));
+const BuilderSettings = defineAsyncComponent(() => import("@builder/components/BuilderSettings.vue"));
 const isDark = useDark({
 	attribute: "data-theme",
 });

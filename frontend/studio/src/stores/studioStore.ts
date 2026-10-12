@@ -1,25 +1,25 @@
 import { ref, nextTick, computed, toRaw, readonly } from "vue"
 import { useDebounceFn, useStorage } from "@vueuse/core"
-import router from "@/router/studio_router"
+import router from "@studio/router/studio_router"
 import { defineStore } from "pinia"
 
-import { fetchApp, fetchPage, confirm, getInitialVariableValue, getRouteVariables } from "@/utils/helpers"
-import { getBlockInstance, getRootBlock, getBlockCopyWithoutParent, jsToJson } from "@/utils/serializer"
-import { studioPages } from "@/data/studioPages"
-import { studioApps } from "@/data/studioApps"
-import { studioVariables } from "@/data/studioVariables"
+import { fetchApp, fetchPage, confirm, getInitialVariableValue, getRouteVariables } from "@studio/utils/helpers"
+import { getBlockInstance, getRootBlock, getBlockCopyWithoutParent, jsToJson } from "@studio/utils/serializer"
+import { studioPages } from "@studio/data/studioPages"
+import { studioApps } from "@studio/data/studioApps"
+import { studioVariables } from "@studio/data/studioVariables"
 
-import Block from "@/utils/block"
-import useCanvasStore from "@/stores/canvasStore"
-import useCodeStore, { usePageScope } from "@/stores/codeStore"
-import { reloadCustomVueComponents } from "@/globals"
-import { registerStudioPageScripts, unregisterStudioPageScripts } from "@/data/studioPageScripts"
-import { registerCustomComponentPaths } from "@/utils/components"
-import type { CustomVueComponentMeta } from "@/types/vue"
+import Block from "@studio/utils/block"
+import useCanvasStore from "@studio/stores/canvasStore"
+import useCodeStore, { usePageScope } from "@studio/stores/codeStore"
+import { reloadCustomVueComponents } from "@studio/globals"
+import { registerStudioPageScripts, unregisterStudioPageScripts } from "@studio/data/studioPageScripts"
+import { registerCustomComponentPaths } from "@studio/utils/components"
+import type { CustomVueComponentMeta } from "@studio/types/vue"
 
-import type { StudioApp } from "@/types/Studio/StudioApp"
-import type { StudioPage } from "@/types/Studio/StudioPage"
-import type { PageCopy } from "@/utils/blockCopyPaste"
+import type { StudioApp } from "@studio/types/Studio/StudioApp"
+import type { StudioPage } from "@studio/types/Studio/StudioPage"
+import type { PageCopy } from "@studio/utils/blockCopyPaste"
 import type {
 	BlockOptions,
 	LeftPanelOptions,
@@ -27,10 +27,10 @@ import type {
 	leftPanelComponentTabOptions,
 	SettingsTab,
 	StudioMode,
-} from "@/types"
-import ComponentContextMenu from "@/components/ComponentContextMenu.vue"
-import type ComponentLayers from "@/components/ComponentLayers.vue"
-import type { Variable, VariableOption } from "@/types/Studio/StudioPageVariable"
+} from "@studio/types"
+import ComponentContextMenu from "@studio/components/ComponentContextMenu.vue"
+import type ComponentLayers from "@studio/components/ComponentLayers.vue"
+import type { Variable, VariableOption } from "@studio/types/Studio/StudioPageVariable"
 import { toast, dialog } from "frappe-ui"
 import { createResource, call } from "frappe-ui"
 

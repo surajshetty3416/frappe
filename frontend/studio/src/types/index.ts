@@ -1,6 +1,6 @@
 import type { Component, FunctionalComponent } from "vue"
 import Block from "../utils/block"
-import type { VuePropDefault } from "@/types/vue"
+import type { VuePropDefault } from "@studio/types/vue"
 import type { Completion } from "@codemirror/autocomplete"
 
 export type ObjectLiteral = Record<string, any>

@@ -1,4 +1,4 @@
-import { BuilderAIModel, BuilderAIProvider } from "@/types/doctypes";
+import { BuilderAIModel, BuilderAIProvider } from "@builder/types/doctypes";
 import { createListResource } from "frappe-ui";
 
 // Providers and models are plain doctypes, so the settings UI talks to them

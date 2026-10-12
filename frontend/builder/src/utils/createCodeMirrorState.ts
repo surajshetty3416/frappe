@@ -32,7 +32,7 @@ import jsCompletionsFromGlobalScope from "./jsGlobalCompletion";
 import customPythonCompletions from "./pythonCustomCompletion";
 
 import { createApp } from "vue";
-import CustomSearchPanel from "@/components/Controls/CodeMirror/CustomSearchPanel.vue";
+import CustomSearchPanel from "@builder/components/Controls/CodeMirror/CustomSearchPanel.vue";
 import { indentationMarkers } from "@replit/codemirror-indentation-markers";
 
 interface CreateStateParams {

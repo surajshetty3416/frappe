@@ -19,7 +19,7 @@
 
 <script setup lang="ts">
 import { Icon } from "frappe-ui"
-import type { BottomTabsProps } from "@/types/studio_components/BottomTabs"
+import type { BottomTabsProps } from "@studio/types/studio_components/BottomTabs"
 
 defineProps<{ tabs: BottomTabsProps }>()
 </script>

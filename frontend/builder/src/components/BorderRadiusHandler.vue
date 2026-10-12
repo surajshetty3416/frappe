@@ -14,9 +14,9 @@
 </template>
 
 <script setup lang="ts">
-import type Block from "@/block";
-import { startDrag } from "@/utils/cursor";
-import { getNumberFromPx } from "@/utils/helpers";
+import type Block from "@builder/block";
+import { startDrag } from "@builder/utils/cursor";
+import { getNumberFromPx } from "@builder/utils/helpers";
 import { useElementBounding } from "@vueuse/core";
 import type { Ref } from "vue";
 import { computed, inject, reactive, ref, watchEffect } from "vue";

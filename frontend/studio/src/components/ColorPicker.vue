@@ -112,13 +112,13 @@
 <script setup lang="ts">
 import { Ref, StyleValue, computed, nextTick, ref, watch } from "vue"
 import { Popover, Tabs } from "frappe-ui"
-import EyeDropperIcon from "@/components/Icons/EyeDropper.vue"
-import ListBox from "@/components/ListBox.vue"
-import useCanvasStore from "@/stores/canvasStore"
-import { HSVToHex, HexToHSV, getRGB } from "@/utils/helpers"
+import EyeDropperIcon from "@studio/components/Icons/EyeDropper.vue"
+import ListBox from "@studio/components/ListBox.vue"
+import useCanvasStore from "@studio/stores/canvasStore"
+import { HSVToHex, HexToHSV, getRGB } from "@studio/utils/helpers"
 import { clamp, useEyeDropper } from "@vueuse/core"
-import type { HashString, RGBString } from "@/types"
-import { getEspressoTokens } from "@/utils/espressoTokens"
+import type { HashString, RGBString } from "@studio/types"
+import { getEspressoTokens } from "@studio/utils/espressoTokens"
 
 const canvasStore = useCanvasStore()
 

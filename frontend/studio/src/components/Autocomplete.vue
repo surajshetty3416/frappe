@@ -92,7 +92,7 @@
 
 <script setup lang="ts">
 import { Button } from "frappe-ui"
-import CrossIcon from "@/components/Icons/Cross.vue"
+import CrossIcon from "@studio/components/Icons/Cross.vue"
 import {
 	ComboboxAnchor,
 	ComboboxContent,

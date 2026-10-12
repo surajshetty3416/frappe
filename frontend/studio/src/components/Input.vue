@@ -38,7 +38,7 @@
 </template>
 <script lang="ts" setup>
 import { FormControl, Select } from "frappe-ui"
-import CrossIcon from "@/components/Icons/Cross.vue"
+import CrossIcon from "@studio/components/Icons/Cross.vue"
 import { useVModel } from "@vueuse/core"
 import { useAttrs } from "vue"
 

@@ -1,4 +1,4 @@
-import type { EditorDemoPayload } from "@/utils/editorDemo";
+import type { EditorDemoPayload } from "@builder/utils/editorDemo";
 
 // a page's CSS roots, which on the canvas mean the canvas copy of the page
 const DOCUMENT_ROOTS = /(^|[{},]\s*)(?:html|body|:root)(?=[\s{,.:#[>+~])/g;

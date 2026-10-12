@@ -15,8 +15,8 @@
 </template>
 
 <script setup lang="ts">
-import SlotScopeProvider from "@/components/SlotScopeProvider.vue"
-import type { RepeaterProps } from "@/types/studio_components/Repeater"
+import SlotScopeProvider from "@studio/components/SlotScopeProvider.vue"
+import type { RepeaterProps } from "@studio/types/studio_components/Repeater"
 
 defineProps<RepeaterProps>()
 </script>

@@ -7,9 +7,9 @@
 	</Button>
 </template>
 <script lang="ts" setup>
-import { __ } from "@/translation";
-import blockController from "@/utils/blockController";
-import { uploadUserFont } from "@/utils/helpers";
+import { __ } from "@builder/translation";
+import blockController from "@builder/utils/blockController";
+import { uploadUserFont } from "@builder/utils/helpers";
 import { nextTick } from "vue";
 const emit = defineEmits(["change"]);
 

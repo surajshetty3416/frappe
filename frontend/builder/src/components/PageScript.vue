@@ -147,14 +147,14 @@
 	</div>
 </template>
 <script lang="ts" setup>
-import { __ } from "@/translation";
-import Dialog from "@/components/Controls/Dialog.vue";
-import { webPages } from "@/data/webPage";
-import useBuilderStore from "@/stores/builderStore";
-import useCanvasStore from "@/stores/canvasStore.js";
-import usePageStore from "@/stores/pageStore";
-import { BuilderPage } from "@/types/doctypes";
-import componentController from "@/utils/componentController";
+import { __ } from "@builder/translation";
+import Dialog from "@builder/components/Controls/Dialog.vue";
+import { webPages } from "@builder/data/webPage";
+import useBuilderStore from "@builder/stores/builderStore";
+import useCanvasStore from "@builder/stores/canvasStore.js";
+import usePageStore from "@builder/stores/pageStore";
+import { BuilderPage } from "@builder/types/doctypes";
+import componentController from "@builder/utils/componentController";
 import { TabButtons, toast } from "frappe-ui";
 import { useTelemetry } from "@framework/ui/telemetry";
 import { computed, defineComponent, ref, watch } from "vue";

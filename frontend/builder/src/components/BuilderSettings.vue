@@ -40,12 +40,12 @@
 	</div>
 </template>
 <script setup lang="ts">
-import { settingsGroupLabels, settingsGroups, settingsItems } from "@/components/Settings";
-import builderProjectFolder from "@/data/builderProjectFolder";
-import { builderSettings } from "@/data/builderSettings";
-import useBuilderStore from "@/stores/builderStore";
-import usePageStore from "@/stores/pageStore";
-import { __ } from "@/translation";
+import { settingsGroupLabels, settingsGroups, settingsItems } from "@builder/components/Settings";
+import builderProjectFolder from "@builder/data/builderProjectFolder";
+import { builderSettings } from "@builder/data/builderSettings";
+import useBuilderStore from "@builder/stores/builderStore";
+import usePageStore from "@builder/stores/pageStore";
+import { __ } from "@builder/translation";
 import { computed, onActivated, onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 

@@ -1,18 +1,18 @@
-import type Block from "@/block";
-import BuilderCanvas from "@/components/BuilderCanvas.vue";
-import webComponent from "@/data/webComponent";
-import { webPages } from "@/data/webPage";
-import useBuilderStore from "@/stores/builderStore";
-import useCanvasStore from "@/stores/canvasStore";
-import usePageStore from "@/stores/pageStore";
-import { BuilderPage } from "@/types/doctypes";
-import blockController from "@/utils/blockController";
-import getBlockTemplate from "@/utils/blockTemplate";
+import type Block from "@builder/block";
+import BuilderCanvas from "@builder/components/BuilderCanvas.vue";
+import webComponent from "@builder/data/webComponent";
+import { webPages } from "@builder/data/webPage";
+import useBuilderStore from "@builder/stores/builderStore";
+import useCanvasStore from "@builder/stores/canvasStore";
+import usePageStore from "@builder/stores/pageStore";
+import { BuilderPage } from "@builder/types/doctypes";
+import blockController from "@builder/utils/blockController";
+import getBlockTemplate from "@builder/utils/blockTemplate";
 
-import { commandShortcuts } from "@/components/Commands";
-import { __ } from "@/translation";
-import { copyBuilderBlocks, pasteBuilderBlocks } from "@/utils/builderBlockCopyPaste";
-import { promptOversizedSVG, promptSaveVersion } from "@/utils/dialogs";
+import { commandShortcuts } from "@builder/components/Commands";
+import { __ } from "@builder/translation";
+import { copyBuilderBlocks, pasteBuilderBlocks } from "@builder/utils/builderBlockCopyPaste";
+import { promptOversizedSVG, promptSaveVersion } from "@builder/utils/dialogs";
 import {
 	addPxToNumber,
 	getBlockCopy,
@@ -25,7 +25,7 @@ import {
 	triggerCopyEvent,
 	uploadBuilderAsset,
 	uploadSVGAsFile,
-} from "@/utils/helpers";
+} from "@builder/utils/helpers";
 import { useEventListener } from "@vueuse/core";
 import { toast, useKeyboardShortcut } from "frappe-ui";
 import { Ref } from "vue";

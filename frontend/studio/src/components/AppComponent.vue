@@ -51,26 +51,26 @@
 </template>
 
 <script setup lang="ts">
-import Block from "@/utils/block"
+import Block from "@studio/utils/block"
 import { computed, onMounted, ref, useAttrs, inject, type ComputedRef, h, getCurrentInstance } from "vue"
 import type { ComponentPublicInstance } from "vue"
 import { createResource } from "frappe-ui"
-import { getComponentRoot, isObjectEmpty } from "@/utils/helpers"
-import { useScreenSize } from "@/utils/useScreenSize"
-import { isDynamicValue } from "@/utils/code"
-import { resolveEventListener } from "@/utils/eventModifiers"
-import useComponentInstance from "@/utils/useComponentInstance"
+import { getComponentRoot, isObjectEmpty } from "@studio/utils/helpers"
+import { useScreenSize } from "@studio/utils/useScreenSize"
+import { isDynamicValue } from "@studio/utils/code"
+import { resolveEventListener } from "@studio/utils/eventModifiers"
+import useComponentInstance from "@studio/utils/useComponentInstance"
 
-import { usePageScope } from "@/stores/codeStore"
+import { usePageScope } from "@studio/stores/codeStore"
 import { toast } from "frappe-ui"
-import type { SlotScope } from "@/types"
-import type { Field } from "@/types/ComponentEvent"
-import type { DataResult } from "@/types/Studio/StudioResource"
+import type { SlotScope } from "@studio/types"
+import type { Field } from "@studio/types/ComponentEvent"
+import type { DataResult } from "@studio/types/Studio/StudioResource"
 
-import StudioComponentRenderer from "@/components/StudioComponentRenderer.vue"
-import SlotScopeProvider from "@/components/SlotScopeProvider.vue"
-import { customVueComponentsRegistry } from "@/globals"
-import MissingComponent from "@/components/MissingComponent.vue"
+import StudioComponentRenderer from "@studio/components/StudioComponentRenderer.vue"
+import SlotScopeProvider from "@studio/components/SlotScopeProvider.vue"
+import { customVueComponentsRegistry } from "@studio/globals"
+import MissingComponent from "@studio/components/MissingComponent.vue"
 
 const props = defineProps<{
 	block: Block

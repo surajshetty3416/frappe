@@ -126,10 +126,10 @@
 <script setup lang="ts">
 import { clamp } from "@vueuse/core"
 import { computed, inject, ref, watchEffect } from "vue"
-import Block from "@/utils/block"
-import { pxToNumber } from "@/utils/helpers"
+import Block from "@studio/utils/block"
+import { pxToNumber } from "@studio/utils/helpers"
 
-import type { CanvasProps } from "@/types/StudioCanvas"
+import type { CanvasProps } from "@studio/types/StudioCanvas"
 
 const props = defineProps({
 	targetBlock: {

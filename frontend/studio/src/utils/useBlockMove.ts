@@ -1,10 +1,10 @@
 // Ported from Builder, modified later
 import { nextTick } from "vue"
-import type Block from "@/utils/block"
-import useCanvasStore from "@/stores/canvasStore"
-import setGuides from "@/utils/guidesTracker"
-import { getBlockInfo, numberToPx } from "@/utils/helpers"
-import type { PauseId } from "@/utils/useCanvasHistory"
+import type Block from "@studio/utils/block"
+import useCanvasStore from "@studio/stores/canvasStore"
+import setGuides from "@studio/utils/guidesTracker"
+import { getBlockInfo, numberToPx } from "@studio/utils/helpers"
+import type { PauseId } from "@studio/utils/useCanvasHistory"
 
 const DRAG_THRESHOLD = 4 // px before a mousedown becomes a drag
 const OUT_OF_FLOW_POSITIONS = ["absolute", "fixed"]

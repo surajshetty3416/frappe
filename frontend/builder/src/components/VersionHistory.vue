@@ -137,14 +137,14 @@
 </template>
 
 <script setup lang="ts">
-import { __ } from "@/translation";
-import useBuilderStore from "@/stores/builderStore";
-import useCanvasStore from "@/stores/canvasStore";
-import usePageStore from "@/stores/pageStore";
-import { BuilderSnapshot } from "@/types/doctypes";
-import { getUserInfo } from "@/usersInfo";
-import { saveVersion } from "@/utils/dialogs";
-import { confirm } from "@/utils/helpers";
+import { __ } from "@builder/translation";
+import useBuilderStore from "@builder/stores/builderStore";
+import useCanvasStore from "@builder/stores/canvasStore";
+import usePageStore from "@builder/stores/pageStore";
+import { BuilderSnapshot } from "@builder/types/doctypes";
+import { getUserInfo } from "@builder/usersInfo";
+import { saveVersion } from "@builder/utils/dialogs";
+import { confirm } from "@builder/utils/helpers";
 import { UseTimeAgo } from "@vueuse/components";
 import { Avatar, Button, createListResource, TextInput } from "frappe-ui";
 import { computed, nextTick, onBeforeUnmount, ref, watch } from "vue";

@@ -2,7 +2,7 @@
 import { useElementBounding } from "@vueuse/core"
 import { effectScope, getCurrentScope, nextTick, onScopeDispose, reactive, watch, watchEffect } from "vue"
 import { numberToPx } from "./helpers"
-import type { CanvasProps } from "@/types/StudioCanvas"
+import type { CanvasProps } from "@studio/types/StudioCanvas"
 
 export interface Tracker {
 	update: () => void

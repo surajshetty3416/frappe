@@ -113,9 +113,9 @@
 </template>
 
 <script setup lang="ts">
-import { __ } from "@/translation";
-import NumberArrows from "@/components/Controls/NumberArrows.vue";
-import { useNumberInput } from "@/utils/useNumberInput";
+import { __ } from "@builder/translation";
+import NumberArrows from "@builder/components/Controls/NumberArrows.vue";
+import { useNumberInput } from "@builder/utils/useNumberInput";
 import { useResizeObserver } from "@vueuse/core";
 import {
 	ComboboxContent,

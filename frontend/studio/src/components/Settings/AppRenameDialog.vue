@@ -13,8 +13,8 @@
 import { computed } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import { Button, FormControl, Tooltip, call, dialog, toast } from "frappe-ui"
-import useStudioStore from "@/stores/studioStore"
-import { studioApps } from "@/data/studioApps"
+import useStudioStore from "@studio/stores/studioStore"
+import { studioApps } from "@studio/data/studioApps"
 
 const store = useStudioStore()
 const route = useRoute()

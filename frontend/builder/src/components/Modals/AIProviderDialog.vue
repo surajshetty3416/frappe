@@ -94,10 +94,10 @@
 </template>
 
 <script setup lang="ts">
-import InputLabel from "@/components/Controls/InputLabel.vue";
-import { defaultProvider } from "@/data/aiModels";
-import { BuilderAIProvider } from "@/types/doctypes";
-import { getErrorMessage } from "@/utils/helpers";
+import InputLabel from "@builder/components/Controls/InputLabel.vue";
+import { defaultProvider } from "@builder/data/aiModels";
+import { BuilderAIProvider } from "@builder/types/doctypes";
+import { getErrorMessage } from "@builder/utils/helpers";
 import { Button, createResource, Dialog, Switch, toast } from "frappe-ui";
 import { computed, ref, watch } from "vue";
 

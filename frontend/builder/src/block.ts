@@ -1,13 +1,13 @@
-import useCanvasStore from "@/stores/canvasStore";
-import useComponentStore from "@/stores/componentStore";
+import useCanvasStore from "@builder/stores/canvasStore";
+import useComponentStore from "@builder/stores/componentStore";
 import {
 	extendWithComponent,
 	rebuildWithComponent,
 	resetWithComponent,
 	syncBlockWithComponent,
-} from "@/utils/block/componentInstance";
-import { findBlockInTree, resetBlock } from "@/utils/block/tree";
-import type { SpacingType } from "@/utils/cssUtils";
+} from "@builder/utils/block/componentInstance";
+import { findBlockInTree, resetBlock } from "@builder/utils/block/tree";
+import type { SpacingType } from "@builder/utils/cssUtils";
 import {
 	addPxToNumber,
 	cssUrl,
@@ -26,7 +26,7 @@ import {
 	setSpacing,
 	toStyleProperty,
 	uploadBuilderAsset,
-} from "@/utils/helpers";
+} from "@builder/utils/helpers";
 import { Editor } from "@tiptap/vue-3";
 import { clamp } from "@vueuse/core";
 import { computed, nextTick, reactive } from "vue";

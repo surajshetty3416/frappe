@@ -238,9 +238,9 @@
 </template>
 
 <script setup lang="ts">
-import type { AIPreset as Preset, AISetupState } from "@/components/ai/types";
-import { reloadAIRegistry } from "@/data/aiModels";
-import { getErrorMessage } from "@/utils/helpers";
+import type { AIPreset as Preset, AISetupState } from "@builder/components/ai/types";
+import { reloadAIRegistry } from "@builder/data/aiModels";
+import { getErrorMessage } from "@builder/utils/helpers";
 import { Badge, Button, Checkbox, createResource, FormControl, Progress, toast } from "frappe-ui";
 import { computed, onMounted, onUnmounted, ref } from "vue";
 

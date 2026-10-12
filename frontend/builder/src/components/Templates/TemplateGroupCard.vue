@@ -35,9 +35,9 @@
 	</div>
 </template>
 <script setup lang="ts">
-import { __ } from "@/translation";
-import { TemplateGroup } from "@/types/template";
-import { prefetchThumbnails } from "@/utils/prefetch";
+import { __ } from "@builder/translation";
+import { TemplateGroup } from "@builder/types/template";
+import { prefetchThumbnails } from "@builder/utils/prefetch";
 import { computed } from "vue";
 
 const props = defineProps<{

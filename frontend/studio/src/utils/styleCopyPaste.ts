@@ -1,6 +1,6 @@
 import { useStorage } from "@vueuse/core"
-import type Block from "@/utils/block"
-import type { BlockStyles } from "@/types"
+import type Block from "@studio/utils/block"
+import type { BlockStyles } from "@studio/types"
 
 const copiedStyle = useStorage<{ componentId: string; styles: BlockStyles | null }>(
 	"studio-copied-style",

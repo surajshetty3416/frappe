@@ -8,12 +8,12 @@
 	</div>
 </template>
 <script setup lang="ts">
-import type Block from "@/block";
-import { blockContextMenuOptions } from "@/components/BlockContextMenuOptions";
-import ContextMenu from "@/components/ContextMenu.vue";
-import NewBlockTemplate from "@/components/Modals/NewBlockTemplate.vue";
-import useBuilderStore from "@/stores/builderStore";
-import type { BlockMenuContext } from "@/types/blockContextMenu";
+import type Block from "@builder/block";
+import { blockContextMenuOptions } from "@builder/components/BlockContextMenuOptions";
+import ContextMenu from "@builder/components/ContextMenu.vue";
+import NewBlockTemplate from "@builder/components/Modals/NewBlockTemplate.vue";
+import useBuilderStore from "@builder/stores/builderStore";
+import type { BlockMenuContext } from "@builder/types/blockContextMenu";
 import { Ref, ref } from "vue";
 
 const builderStore = useBuilderStore();

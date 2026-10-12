@@ -16,8 +16,8 @@
 <script setup lang="ts">
 import { ref } from "vue"
 import { FormControl, Switch, call } from "frappe-ui"
-import { scrub } from "@/utils/helpers"
-import SettingItem from "@/components/SettingItem.vue"
+import { scrub } from "@studio/utils/helpers"
+import SettingItem from "@studio/components/SettingItem.vue"
 
 defineProps<{ appName?: string | null }>()
 const enableExport = defineModel<boolean>("enableExport", { required: true })

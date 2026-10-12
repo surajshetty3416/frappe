@@ -1,14 +1,14 @@
-import useStudioStore from "@/stores/studioStore"
-import useCanvasStore from "@/stores/canvasStore"
+import useStudioStore from "@studio/stores/studioStore"
+import useCanvasStore from "@studio/stores/canvasStore"
 import { useEventListener } from "@vueuse/core"
-import blockController from "@/utils/blockController"
-import { isTargetEditable, numberToPx, isHTML } from "@/utils/helpers"
-import { getComponentBlock } from "@/utils/serializer"
-import { copyBlocks, copySelectedBlocks, pasteBlocks, pasteDataSource } from "@/utils/blockCopyPaste"
-import Block from "@/utils/block"
-import type { BlockOptions } from "@/types"
+import blockController from "@studio/utils/blockController"
+import { isTargetEditable, numberToPx, isHTML } from "@studio/utils/helpers"
+import { getComponentBlock } from "@studio/utils/serializer"
+import { copyBlocks, copySelectedBlocks, pasteBlocks, pasteDataSource } from "@studio/utils/blockCopyPaste"
+import Block from "@studio/utils/block"
+import type { BlockOptions } from "@studio/types"
 import { toast, useKeyboardShortcut } from "frappe-ui"
-import { commandShortcuts } from "@/components/Commands"
+import { commandShortcuts } from "@studio/components/Commands"
 
 const store = useStudioStore()
 const canvasStore = useCanvasStore()

@@ -1,4 +1,4 @@
-import useCanvasStore from "@/stores/canvasStore";
+import useCanvasStore from "@builder/stores/canvasStore";
 import { useElementBounding } from "@vueuse/core";
 import { reactive } from "vue";
 const canvasStore = useCanvasStore();

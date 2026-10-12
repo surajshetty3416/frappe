@@ -39,9 +39,9 @@
 	</div>
 </template>
 <script setup lang="ts">
-import CodeEditor from "@/components/Controls/CodeEditor.vue";
-import { builderSettings } from "@/data/builderSettings";
-import useBuilderStore from "@/stores/builderStore";
+import CodeEditor from "@builder/components/Controls/CodeEditor.vue";
+import { builderSettings } from "@builder/data/builderSettings";
+import useBuilderStore from "@builder/stores/builderStore";
 
 const builderStore = useBuilderStore();
 </script>

@@ -97,8 +97,8 @@
 </template>
 
 <script setup lang="ts">
-import { __ } from "@/translation";
-import { parseGradient, stringifyGradient, type Gradient, type GradientStop } from "@/utils/gradientUtils";
+import { __ } from "@builder/translation";
+import { parseGradient, stringifyGradient, type Gradient, type GradientStop } from "@builder/utils/gradientUtils";
 import { useMouseInElement, useMousePressed, useStorage } from "@vueuse/core";
 import { Popover, TabButtons } from "frappe-ui";
 import { computed, onBeforeUnmount, ref, watch } from "vue";

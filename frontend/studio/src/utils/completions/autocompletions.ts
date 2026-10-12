@@ -1,5 +1,5 @@
 import type { Completion, CompletionContext } from "@codemirror/autocomplete"
-import type { CompletionSource } from "@/types"
+import type { CompletionSource } from "@studio/types"
 
 export const getCompletions = (context: CompletionContext, sources?: CompletionSource[]) => {
 	const line = context.state.doc.lineAt(context.pos)

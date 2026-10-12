@@ -35,13 +35,13 @@
 
 <script setup lang="ts">
 import { computed } from "vue"
-import useStudioStore from "@/stores/studioStore"
-import type { StudioPage } from "@/types/Studio/StudioPage"
-import type { StudioApp } from "@/types/Studio/StudioApp"
-import Input from "@/components/Input.vue"
-import CollapsibleSection from "@/components/CollapsibleSection.vue"
-import PageMetaFields from "@/components/PageMetaFields.vue"
-import { getRouteVariables } from "@/utils/helpers"
+import useStudioStore from "@studio/stores/studioStore"
+import type { StudioPage } from "@studio/types/Studio/StudioPage"
+import type { StudioApp } from "@studio/types/Studio/StudioApp"
+import Input from "@studio/components/Input.vue"
+import CollapsibleSection from "@studio/components/CollapsibleSection.vue"
+import PageMetaFields from "@studio/components/PageMetaFields.vue"
+import { getRouteVariables } from "@studio/utils/helpers"
 
 const store = useStudioStore()
 const props = defineProps<{

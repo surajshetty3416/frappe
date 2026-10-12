@@ -1,7 +1,7 @@
-import { useLatestRequest } from "@/composables/useLatestRequest";
-import useCanvasStore from "@/stores/canvasStore";
-import useComponentStore from "@/stores/componentStore";
-import { BuilderComponent } from "@/types/doctypes";
+import { useLatestRequest } from "@builder/composables/useLatestRequest";
+import useCanvasStore from "@builder/stores/canvasStore";
+import useComponentStore from "@builder/stores/componentStore";
+import { BuilderComponent } from "@builder/types/doctypes";
 import { createResource } from "frappe-ui";
 import { computed, reactive, watch } from "vue";
 import { parseJSONWithFallback } from "./helpers";

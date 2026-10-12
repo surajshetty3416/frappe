@@ -1,9 +1,9 @@
-import { __ } from "@/translation";
-import type Block from "@/block";
-import type BuilderCanvas from "@/components/BuilderCanvas.vue";
-import type { IndicatorGeometry } from "@/utils/dropGeometry";
-import { getVersionedDoc } from "@/data/snapshot";
-import { confirm, getBlockCopy, getBlockInstance } from "@/utils/helpers";
+import { __ } from "@builder/translation";
+import type Block from "@builder/block";
+import type BuilderCanvas from "@builder/components/BuilderCanvas.vue";
+import type { IndicatorGeometry } from "@builder/utils/dropGeometry";
+import { getVersionedDoc } from "@builder/data/snapshot";
+import { confirm, getBlockCopy, getBlockInstance } from "@builder/utils/helpers";
 import { toast } from "frappe-ui";
 import { defineStore } from "pinia";
 import { nextTick } from "vue";

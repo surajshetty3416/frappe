@@ -1,14 +1,14 @@
-import type Block from "@/utils/block";
-import useStudioStore from "@/stores/studioStore";
-import getBlockTemplate from "@/utils/blockTemplate";
+import type Block from "@studio/utils/block";
+import useStudioStore from "@studio/stores/studioStore";
+import getBlockTemplate from "@studio/utils/blockTemplate";
 import {
 	numberToPx,
 	pxToNumber,
-} from "@/utils/helpers";
+} from "@studio/utils/helpers";
 import { clamp, useEventListener } from "@vueuse/core";
 import { Ref } from "vue";
-import type { CanvasProps, CanvasHistory } from "@/types/StudioCanvas"
-import type { Slot } from "@/types";
+import type { CanvasProps, CanvasHistory } from "@studio/types/StudioCanvas"
+import type { Slot } from "@studio/types";
 
 const store = useStudioStore();
 

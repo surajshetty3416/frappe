@@ -1,6 +1,6 @@
 import { useElementBounding } from "@vueuse/core";
 import { nextTick, reactive } from "vue";
-import type { CanvasProps } from "@/types/StudioCanvas";
+import type { CanvasProps } from "@studio/types/StudioCanvas";
 
 function setPanAndZoom(
 	target: HTMLElement,

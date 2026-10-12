@@ -1,11 +1,11 @@
 import { defineStore } from "pinia"
 import { markRaw, reactive } from "vue"
 import { createDocumentResource } from "frappe-ui"
-import Block from "@/utils/block"
-import type { StudioComponent } from "@/types/Studio/StudioComponent"
-import { isObjectEmpty } from "@/utils/helpers"
-import { getBlockInstance, getBlockObjectCopy } from "@/utils/serializer"
-import getBlockTemplate from "@/utils/blockTemplate"
+import Block from "@studio/utils/block"
+import type { StudioComponent } from "@studio/types/Studio/StudioComponent"
+import { isObjectEmpty } from "@studio/utils/helpers"
+import { getBlockInstance, getBlockObjectCopy } from "@studio/utils/serializer"
+import getBlockTemplate from "@studio/utils/blockTemplate"
 
 const useComponentStore = defineStore("componentStore", () => {
 	const componentMap = reactive<Map<string, Block>>(new Map())

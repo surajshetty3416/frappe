@@ -1,5 +1,5 @@
-import { __ } from "@/translation";
-import type { EditorDemoPayload } from "@/utils/editorDemo";
+import { __ } from "@builder/translation";
+import type { EditorDemoPayload } from "@builder/utils/editorDemo";
 
 type Doc = Record<string, any>;
 

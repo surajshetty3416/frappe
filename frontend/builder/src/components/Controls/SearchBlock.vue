@@ -144,10 +144,10 @@
 	</div>
 </template>
 <script setup lang="ts">
-import { __ } from "@/translation";
-import type Block from "@/block";
-import useBuilderStore from "@/stores/builderStore";
-import useCanvasStore from "@/stores/canvasStore";
+import { __ } from "@builder/translation";
+import type Block from "@builder/block";
+import useBuilderStore from "@builder/stores/builderStore";
+import useCanvasStore from "@builder/stores/canvasStore";
 import { watchDebounced } from "@vueuse/core";
 import { Checkbox, Popover } from "frappe-ui";
 import { computed, nextTick, onMounted, Ref, ref, watch } from "vue";

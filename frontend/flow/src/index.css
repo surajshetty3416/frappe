@@ -1,6 +1,6 @@
 @import "@flow/ui-core/flow.css";
 
-@tailwind base;
+@config "../tailwind.config.js";
 @tailwind components;
 @tailwind utilities;
 

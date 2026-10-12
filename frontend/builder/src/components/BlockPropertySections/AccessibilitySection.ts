@@ -1,7 +1,7 @@
-import InlineInput from "@/components/Controls/InlineInput.vue";
-import blockController from "@/utils/blockController";
+import InlineInput from "@builder/components/Controls/InlineInput.vue";
+import blockController from "@builder/utils/blockController";
 import { computed } from "vue";
-import { __ } from "@/translation";
+import { __ } from "@builder/translation";
 
 const accessibilitySectionProperties = [
 	{

@@ -201,3 +201,7 @@ playwright-report/
 .playwright-mcp
 # local checkout of frappe-datatable; not a submodule of this repo
 ui/datatable/
+
+# built by frontend/ (vite)
+frappe/public/frontend
+frappe/www/_frontend.html

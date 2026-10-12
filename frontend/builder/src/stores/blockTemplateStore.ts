@@ -1,8 +1,8 @@
-import { __ } from "@/translation";
-import type Block from "@/block";
-import builderBlockTemplate from "@/data/builderBlockTemplate";
-import { BlockTemplate } from "@/types/doctypes";
-import { getBlockInstance, getBlockString } from "@/utils/helpers";
+import { __ } from "@builder/translation";
+import type Block from "@builder/block";
+import builderBlockTemplate from "@builder/data/builderBlockTemplate";
+import { BlockTemplate } from "@builder/types/doctypes";
+import { getBlockInstance, getBlockString } from "@builder/utils/helpers";
 import { createDocumentResource } from "frappe-ui";
 import { defineStore } from "pinia";
 import { nextTick } from "vue";

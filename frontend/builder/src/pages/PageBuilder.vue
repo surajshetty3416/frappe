@@ -111,36 +111,36 @@
 </template>
 
 <script setup lang="ts">
-import { __ } from "@/translation";
-import BlockContextMenu from "@/components/BlockContextMenu.vue";
-import BuilderCanvas from "@/components/BuilderCanvas.vue";
-import BuilderCommandPalette from "@/components/BuilderCommandPalette.vue";
-import BuilderLeftPanel from "@/components/BuilderLeftPanel.vue";
-import BuilderRightPanel from "@/components/BuilderRightPanel.vue";
-import BuilderToolbar from "@/components/BuilderToolbar.vue";
-import { installEditorDemo } from "@/components/EditorDemo";
-import Dialog from "@/components/Controls/Dialog.vue";
-import PageListModal from "@/components/Modals/PageListModal.vue";
-import TemplatesDialog from "@/components/Templates/TemplatesDialog.vue";
-import { webPages } from "@/data/webPage";
-import { sessionUser } from "@/router";
-import useBuilderStore from "@/stores/builderStore";
-import useCanvasStore from "@/stores/canvasStore";
-import usePageStore from "@/stores/pageStore";
-import { BuilderPage } from "@/types/doctypes";
-import { getUsersInfo } from "@/usersInfo";
-import { editorDemo } from "@/utils/editorDemo";
-import blockController from "@/utils/blockController";
-import { offerPendingAssetImport } from "@/utils/builderBlockCopyPaste";
-import componentController from "@/utils/componentController.js";
-import { getPageUsageMessage, getRootBlockTemplate } from "@/utils/helpers";
-import { useBuilderEvents } from "@/utils/useBuilderEvents";
+import { __ } from "@builder/translation";
+import BlockContextMenu from "@builder/components/BlockContextMenu.vue";
+import BuilderCanvas from "@builder/components/BuilderCanvas.vue";
+import BuilderCommandPalette from "@builder/components/BuilderCommandPalette.vue";
+import BuilderLeftPanel from "@builder/components/BuilderLeftPanel.vue";
+import BuilderRightPanel from "@builder/components/BuilderRightPanel.vue";
+import BuilderToolbar from "@builder/components/BuilderToolbar.vue";
+import { installEditorDemo } from "@builder/components/EditorDemo";
+import Dialog from "@builder/components/Controls/Dialog.vue";
+import PageListModal from "@builder/components/Modals/PageListModal.vue";
+import TemplatesDialog from "@builder/components/Templates/TemplatesDialog.vue";
+import { webPages } from "@builder/data/webPage";
+import { sessionUser } from "@builder/router";
+import useBuilderStore from "@builder/stores/builderStore";
+import useCanvasStore from "@builder/stores/canvasStore";
+import usePageStore from "@builder/stores/pageStore";
+import { BuilderPage } from "@builder/types/doctypes";
+import { getUsersInfo } from "@builder/usersInfo";
+import { editorDemo } from "@builder/utils/editorDemo";
+import blockController from "@builder/utils/blockController";
+import { offerPendingAssetImport } from "@builder/utils/builderBlockCopyPaste";
+import componentController from "@builder/utils/componentController.js";
+import { getPageUsageMessage, getRootBlockTemplate } from "@builder/utils/helpers";
+import { useBuilderEvents } from "@builder/utils/useBuilderEvents";
 import { useDebounceFn } from "@vueuse/core";
 import { createResource, KeyboardShortcutsDialog, useKeyboardShortcut } from "frappe-ui";
 import { computed, onActivated, onDeactivated, onMounted, provide, ref, watch, watchEffect } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import CodeEditor from "../components/Controls/CodeEditor.vue";
-import { prefetchBuilderSettings, prefetchTemplateGallery } from "@/utils/prefetch";
+import { prefetchBuilderSettings, prefetchTemplateGallery } from "@builder/utils/prefetch";
 
 const expandedEditor = ref<null | InstanceType<typeof CodeEditor>>(null);
 

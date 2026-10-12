@@ -13,9 +13,9 @@
 	</div>
 </template>
 <script setup lang="ts">
-import { __ } from "@/translation";
-import router from "@/router";
-import usePageStore from "@/stores/pageStore";
+import { __ } from "@builder/translation";
+import router from "@builder/router";
+import usePageStore from "@builder/stores/pageStore";
 import { Badge, createResource, toast } from "frappe-ui";
 
 const pageStore = usePageStore();

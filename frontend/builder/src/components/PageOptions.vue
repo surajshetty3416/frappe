@@ -39,11 +39,11 @@
 	</div>
 </template>
 <script setup lang="ts">
-import useBuilderStore from "@/stores/builderStore";
-import usepageStore from "@/stores/pageStore";
-import { __ } from "@/translation";
-import { BuilderPage } from "@/types/doctypes";
-import { getRouteVariables } from "@/utils/helpers";
+import useBuilderStore from "@builder/stores/builderStore";
+import usepageStore from "@builder/stores/pageStore";
+import { __ } from "@builder/translation";
+import { BuilderPage } from "@builder/types/doctypes";
+import { getRouteVariables } from "@builder/utils/helpers";
 import { useDebounceFn } from "@vueuse/core";
 import { computed } from "vue";
 import CollapsibleSection from "./CollapsibleSection.vue";

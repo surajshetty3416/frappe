@@ -40,7 +40,7 @@
 
 <script setup lang="ts">
 import { Tooltip } from "frappe-ui"
-import type { FrappeUIComponent } from "@/types"
+import type { FrappeUIComponent } from "@studio/types"
 
 defineProps<{
 	component: FrappeUIComponent

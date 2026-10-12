@@ -32,7 +32,7 @@
 	</div>
 </template>
 <script setup lang="ts">
-import { TemplatePageSummary } from "@/types/template";
+import { TemplatePageSummary } from "@builder/types/template";
 
 defineProps<{
 	page: TemplatePageSummary;

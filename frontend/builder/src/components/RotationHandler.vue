@@ -11,12 +11,12 @@
 </template>
 
 <script setup lang="ts">
-import type Block from "@/block";
-import rotationCursorSvg from "@/assets/rotation-cursor.svg?raw";
-import { useRotatedCursors } from "@/composables/useRotatedCursors";
-import useCanvasStore from "@/stores/canvasStore";
-import { getRotatedCursor, setDragCursor, startDrag } from "@/utils/cursor";
-import { getElementRotation } from "@/utils/rotation";
+import type Block from "@builder/block";
+import rotationCursorSvg from "@builder/assets/rotation-cursor.svg?raw";
+import { useRotatedCursors } from "@builder/composables/useRotatedCursors";
+import useCanvasStore from "@builder/stores/canvasStore";
+import { getRotatedCursor, setDragCursor, startDrag } from "@builder/utils/cursor";
+import { getElementRotation } from "@builder/utils/rotation";
 import { ref } from "vue";
 import CursorTooltip from "./CursorTooltip.vue";
 

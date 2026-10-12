@@ -11,10 +11,10 @@
 </template>
 
 <script lang="ts" setup>
-import { __ } from "@/translation";
+import { __ } from "@builder/translation";
 import { nextTick, ref, watch } from "vue";
 import { toast } from "frappe-ui";
-import { getErrorMessage } from "@/utils/helpers";
+import { getErrorMessage } from "@builder/utils/helpers";
 
 const props = withDefaults(
 	defineProps<{

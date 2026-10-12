@@ -1,4 +1,4 @@
-import { __ } from "@/translation";
+import { __ } from "@builder/translation";
 import { createResource } from "frappe-ui";
 import { toast } from "frappe-ui";
 

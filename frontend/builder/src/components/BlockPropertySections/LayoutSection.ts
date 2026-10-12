@@ -1,10 +1,10 @@
-import BlockFlexLayoutHandler from "@/components/BlockFlexLayoutHandler.vue";
-import BlockGridLayoutHandler from "@/components/BlockGridLayoutHandler.vue";
-import OptionToggle from "@/components/Controls/OptionToggle.vue";
-import blockController from "@/utils/blockController";
-import { collapseGapShorthand, expandGapShorthand } from "@/utils/cssUtils";
+import BlockFlexLayoutHandler from "@builder/components/BlockFlexLayoutHandler.vue";
+import BlockGridLayoutHandler from "@builder/components/BlockGridLayoutHandler.vue";
+import OptionToggle from "@builder/components/Controls/OptionToggle.vue";
+import blockController from "@builder/utils/blockController";
+import { collapseGapShorthand, expandGapShorthand } from "@builder/utils/cssUtils";
 import StylePropertyControl from "../Controls/StylePropertyControl.vue";
-import { __ } from "@/translation";
+import { __ } from "@builder/translation";
 
 const SPLITS = ["V", "H"];
 

@@ -5,8 +5,8 @@
 	</div>
 </template>
 <script setup lang="ts">
-import PageStatusDot from "@/components/PageStatusDot.vue";
-import { BuilderPage } from "@/types/doctypes";
+import PageStatusDot from "@builder/components/PageStatusDot.vue";
+import { BuilderPage } from "@builder/types/doctypes";
 
 defineProps<{
 	page: BuilderPage;

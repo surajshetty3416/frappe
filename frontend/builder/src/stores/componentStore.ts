@@ -1,19 +1,19 @@
-import { __ } from "@/translation";
-import type Block from "@/block";
-import { useLatestRequest } from "@/composables/useLatestRequest";
-import { getVersionedDoc } from "@/data/snapshot";
-import { webPages } from "@/data/webPage";
-import webComponent from "@/data/webComponent";
-import useCanvasStore from "@/stores/canvasStore";
-import usePageStore from "@/stores/pageStore";
-import { BuilderComponent } from "@/types/doctypes";
-import getBlockTemplate from "@/utils/blockTemplate";
-import { alert, confirm, getBlockInstance, getBlockString } from "@/utils/helpers";
-import { editorDemo } from "@/utils/editorDemo";
+import { __ } from "@builder/translation";
+import type Block from "@builder/block";
+import { useLatestRequest } from "@builder/composables/useLatestRequest";
+import { getVersionedDoc } from "@builder/data/snapshot";
+import { webPages } from "@builder/data/webPage";
+import webComponent from "@builder/data/webComponent";
+import useCanvasStore from "@builder/stores/canvasStore";
+import usePageStore from "@builder/stores/pageStore";
+import { BuilderComponent } from "@builder/types/doctypes";
+import getBlockTemplate from "@builder/utils/blockTemplate";
+import { alert, confirm, getBlockInstance, getBlockString } from "@builder/utils/helpers";
+import { editorDemo } from "@builder/utils/editorDemo";
 import { createDocumentResource, createResource, toast } from "frappe-ui";
 import { defineStore } from "pinia";
 import { markRaw } from "vue";
-import { ComponentDocDraft } from "@/utils/componentController";
+import { ComponentDocDraft } from "@builder/utils/componentController";
 
 export type ComponentDataStore = Record<string, Record<string, Record<string, any>>>;
 

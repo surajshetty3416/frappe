@@ -30,13 +30,13 @@
 		@mousedown.stop.prevent="(ev) => handleResize(ev, corner)" />
 </template>
 <script setup lang="ts">
-import type Block from "@/block";
-import { useRotatedCursors } from "@/composables/useRotatedCursors";
-import useCanvasStore from "@/stores/canvasStore";
-import { startDrag } from "@/utils/cursor";
-import { getResizePositionDelta, toLocalDelta } from "@/utils/rotation";
-import type { ResizeDirection } from "@/utils/rotation";
-import { getNumberFromPx, getRenderedPosition } from "@/utils/helpers";
+import type Block from "@builder/block";
+import { useRotatedCursors } from "@builder/composables/useRotatedCursors";
+import useCanvasStore from "@builder/stores/canvasStore";
+import { startDrag } from "@builder/utils/cursor";
+import { getResizePositionDelta, toLocalDelta } from "@builder/utils/rotation";
+import type { ResizeDirection } from "@builder/utils/rotation";
+import { getNumberFromPx, getRenderedPosition } from "@builder/utils/helpers";
 import { clamp } from "@vueuse/core";
 import { computed, inject, onMounted, ref, watch } from "vue";
 import guidesTracker from "../utils/guidesTracker";

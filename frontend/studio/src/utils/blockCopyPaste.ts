@@ -1,20 +1,20 @@
 import { dialog, toast, call } from "frappe-ui"
-import useStudioStore from "@/stores/studioStore"
-import useCanvasStore from "@/stores/canvasStore"
-import { usePageScope } from "@/stores/codeStore"
-import useComponentStore from "@/stores/componentStore"
-import { studioPages } from "@/data/studioPages"
-import { hasPageScript as hasCompiledPageScript } from "@/data/studioPageScripts"
+import useStudioStore from "@studio/stores/studioStore"
+import useCanvasStore from "@studio/stores/canvasStore"
+import { usePageScope } from "@studio/stores/codeStore"
+import useComponentStore from "@studio/stores/componentStore"
+import { studioPages } from "@studio/data/studioPages"
+import { hasPageScript as hasCompiledPageScript } from "@studio/data/studioPageScripts"
 import {
 	showPasteConflictDialog,
 	type PasteConflictChoice,
 	type PasteConflictKind,
-} from "@/components/PasteConflictDialog.vue"
-import PasteWarningToast from "@/components/PasteWarningToast.vue"
-import { getBlockCopy, getBlockCopyWithoutParent, getBlockInstance, isJSONString } from "@/utils/serializer"
-import { setClipboardData } from "@/utils/helpers"
-import Block from "@/utils/block"
-import type { BlockOptions } from "@/types"
+} from "@studio/components/PasteConflictDialog.vue"
+import PasteWarningToast from "@studio/components/PasteWarningToast.vue"
+import { getBlockCopy, getBlockCopyWithoutParent, getBlockInstance, isJSONString } from "@studio/utils/serializer"
+import { setClipboardData } from "@studio/utils/helpers"
+import Block from "@studio/utils/block"
+import type { BlockOptions } from "@studio/types"
 
 const CLIPBOARD_FORMAT = "studio-copied-blocks"
 const CLIPBOARD_PREFIX = `${CLIPBOARD_FORMAT}:`

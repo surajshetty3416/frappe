@@ -1,13 +1,13 @@
-import type Block from "@/block";
-import { findBlockInTree } from "@/utils/block/tree";
-import useCanvasStore from "@/stores/canvasStore";
-import { CanvasProps } from "@/types/Builder/BuilderCanvas";
-import { getRootBlockTemplate } from "@/utils/helpers";
-import { useCanvasHistory } from "@/utils/useCanvasHistory";
+import type Block from "@builder/block";
+import { findBlockInTree } from "@builder/utils/block/tree";
+import useCanvasStore from "@builder/stores/canvasStore";
+import { CanvasProps } from "@builder/types/Builder/BuilderCanvas";
+import { getRootBlockTemplate } from "@builder/utils/helpers";
+import { useCanvasHistory } from "@builder/utils/useCanvasHistory";
 import { useElementBounding } from "@vueuse/core";
 import { nextTick, reactive, ref, Ref } from "vue";
 import { toast } from "frappe-ui";
-import { __ } from "@/translation";
+import { __ } from "@builder/translation";
 
 const canvasStore = useCanvasStore();
 

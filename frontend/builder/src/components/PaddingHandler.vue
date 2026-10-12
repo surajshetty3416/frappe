@@ -76,9 +76,9 @@
 	</div>
 </template>
 <script setup lang="ts">
-import type Block from "@/block";
-import { useRotatedCursors } from "@/composables/useRotatedCursors";
-import { HANDLE_MIN_SCALE, Position, useSpacingHandler } from "@/composables/useSpacingHandler";
+import type Block from "@builder/block";
+import { useRotatedCursors } from "@builder/composables/useRotatedCursors";
+import { HANDLE_MIN_SCALE, Position, useSpacingHandler } from "@builder/composables/useSpacingHandler";
 import { computed, watchEffect } from "vue";
 import { getNumberFromPx } from "../utils/helpers";
 import CursorTooltip from "./CursorTooltip.vue";

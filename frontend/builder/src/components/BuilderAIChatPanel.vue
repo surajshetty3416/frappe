@@ -422,19 +422,19 @@
 </template>
 
 <script setup lang="ts">
-import AIAffectedItems from "@/components/AIAffectedItems.vue";
-import AITurnTimeline from "@/components/ai/AITurnTimeline.vue";
-import AIUISpec from "@/components/ai/AIUISpec.vue";
-import BobOrb from "@/components/ai/BobOrb.vue";
-import { AIChatController } from "@/components/AIChatController";
-import AIDebugPanel from "@/components/AIDebugPanel.vue";
-import Dialog from "@/components/Controls/Dialog.vue";
-import SparklesIcon from "@/components/Icons/Sparkles.vue";
-import { cardAnswers } from "@/components/ai/cardAnswers";
-import { renderMarkdown } from "@/components/ai/markdown";
-import type { AITurnStep, ChatMessage } from "@/components/ai/types";
-import useBuilderStore from "@/stores/builderStore";
-import useCanvasStore from "@/stores/canvasStore";
+import AIAffectedItems from "@builder/components/AIAffectedItems.vue";
+import AITurnTimeline from "@builder/components/ai/AITurnTimeline.vue";
+import AIUISpec from "@builder/components/ai/AIUISpec.vue";
+import BobOrb from "@builder/components/ai/BobOrb.vue";
+import { AIChatController } from "@builder/components/AIChatController";
+import AIDebugPanel from "@builder/components/AIDebugPanel.vue";
+import Dialog from "@builder/components/Controls/Dialog.vue";
+import SparklesIcon from "@builder/components/Icons/Sparkles.vue";
+import { cardAnswers } from "@builder/components/ai/cardAnswers";
+import { renderMarkdown } from "@builder/components/ai/markdown";
+import type { AITurnStep, ChatMessage } from "@builder/components/ai/types";
+import useBuilderStore from "@builder/stores/builderStore";
+import useCanvasStore from "@builder/stores/canvasStore";
 import { Button, Dropdown, KeyboardShortcut, Tooltip } from "frappe-ui";
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
 

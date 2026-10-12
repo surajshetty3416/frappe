@@ -119,31 +119,31 @@
 	</div>
 </template>
 <script setup lang="ts">
-import type Block from "@/block";
-import DraggablePopup from "@/components/Controls/DraggablePopup.vue";
-import SearchBlock from "@/components/Controls/SearchBlock.vue";
-import LoadingIcon from "@/components/Icons/Loading.vue";
-import { builderSettings } from "@/data/builderSettings";
-import useBuilderStore from "@/stores/builderStore";
-import useCanvasStore from "@/stores/canvasStore";
-import usePageStore from "@/stores/pageStore";
-import { __ } from "@/translation";
-import { BreakpointConfig, CanvasHistory } from "@/types/Builder/BuilderCanvas";
-import { getBlockObject, isCtrlOrCmd } from "@/utils/helpers";
+import type Block from "@builder/block";
+import DraggablePopup from "@builder/components/Controls/DraggablePopup.vue";
+import SearchBlock from "@builder/components/Controls/SearchBlock.vue";
+import LoadingIcon from "@builder/components/Icons/Loading.vue";
+import { builderSettings } from "@builder/data/builderSettings";
+import useBuilderStore from "@builder/stores/builderStore";
+import useCanvasStore from "@builder/stores/canvasStore";
+import usePageStore from "@builder/stores/pageStore";
+import { __ } from "@builder/translation";
+import { BreakpointConfig, CanvasHistory } from "@builder/types/Builder/BuilderCanvas";
+import { getBlockObject, isCtrlOrCmd } from "@builder/utils/helpers";
 import {
 	type BlockClientScriptRuntime,
 	executeClientScriptRestricted,
 	executeClientScriptUnrestricted,
-} from "@/utils/scriptSandbox";
-import { useBlockEventHandlers } from "@/utils/useBlockEventHandlers";
-import { useBlockSelection } from "@/utils/useBlockSelection";
-import { useBuildFollow } from "@/utils/useBuildFollow";
-import { setFont } from "@/utils/fontManager";
-import { useBuilderToken } from "@/utils/useBuilderToken";
-import { useCanvasDropZone } from "@/utils/useCanvasDropZone";
-import { useCanvasEvents } from "@/utils/useCanvasEvents";
-import { useCanvasMarqueeSelection } from "@/utils/useCanvasMarqueeSelection";
-import { useCanvasUtils } from "@/utils/useCanvasUtils";
+} from "@builder/utils/scriptSandbox";
+import { useBlockEventHandlers } from "@builder/utils/useBlockEventHandlers";
+import { useBlockSelection } from "@builder/utils/useBlockSelection";
+import { useBuildFollow } from "@builder/utils/useBuildFollow";
+import { setFont } from "@builder/utils/fontManager";
+import { useBuilderToken } from "@builder/utils/useBuilderToken";
+import { useCanvasDropZone } from "@builder/utils/useCanvasDropZone";
+import { useCanvasEvents } from "@builder/utils/useCanvasEvents";
+import { useCanvasMarqueeSelection } from "@builder/utils/useCanvasMarqueeSelection";
+import { useCanvasUtils } from "@builder/utils/useCanvasUtils";
 import { Tooltip } from "frappe-ui";
 import {
 	Ref,

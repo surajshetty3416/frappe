@@ -1,5 +1,5 @@
-import type Block from "@/block";
-import type { RegistryEntry } from "@/utils/createRegistry";
+import type Block from "@builder/block";
+import type { RegistryEntry } from "@builder/utils/createRegistry";
 
 // the menu opens from the canvas and from the layers panel, so an item needs the
 // event target and the origin as well as the block

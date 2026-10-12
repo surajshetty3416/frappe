@@ -1,8 +1,8 @@
-import { runPageScripts } from "@/components/EditorDemo/pageScripts";
-import useBuilderStore from "@/stores/builderStore";
-import useCanvasStore from "@/stores/canvasStore";
-import usePageStore from "@/stores/pageStore";
-import { editorDemo, postToLauncher } from "@/utils/editorDemo";
+import { runPageScripts } from "@builder/components/EditorDemo/pageScripts";
+import useBuilderStore from "@builder/stores/builderStore";
+import useCanvasStore from "@builder/stores/canvasStore";
+import usePageStore from "@builder/stores/pageStore";
+import { editorDemo, postToLauncher } from "@builder/utils/editorDemo";
 import { until } from "@vueuse/core";
 
 type Rect = { left: number; top: number; width: number; height: number };

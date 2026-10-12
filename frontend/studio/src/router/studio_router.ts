@@ -1,11 +1,11 @@
 import { createRouter, createWebHistory } from "vue-router"
-import session from "@/utils/session"
+import session from "@studio/utils/session"
 
 const routes = [
 	{
 		path: "/home",
 		name: "Home",
-		component: () => import("@/pages/Home.vue"),
+		component: () => import("@studio/pages/Home.vue"),
 	},
 	{
 		path: "/",
@@ -14,22 +14,22 @@ const routes = [
 	{
 		path: "/app/:appID",
 		name: "StudioApp",
-		component: () => import("@/pages/StudioApp.vue"),
+		component: () => import("@studio/pages/StudioApp.vue"),
 	},
 	{
 		path: "/app/:appID/:pageID",
 		name: "StudioPage",
-		component: () => import("@/pages/StudioPage.vue"),
+		component: () => import("@studio/pages/StudioPage.vue"),
 	},
 	{
 		path: "/not-permitted",
 		name: "NotPermitted",
-		component: () => import("@/pages/NotPermitted.vue"),
+		component: () => import("@studio/pages/NotPermitted.vue"),
 	},
 	{
 		path: "/:catchAll(.*)",
 		name: "NotFound",
-		component: () => import("@/pages/NotFound.vue"),
+		component: () => import("@studio/pages/NotFound.vue"),
 	}
 ]
 

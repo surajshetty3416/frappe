@@ -82,11 +82,11 @@
 <script setup lang="ts">
 import { computed, ref } from "vue"
 import { Button, FileUploader, toast } from "frappe-ui"
-import Input from "@/components/Input.vue"
-import AppRenameDialog from "@/components/Settings/AppRenameDialog.vue"
-import ExportAppDialog from "@/components/ExportAppDialog.vue"
-import useStudioStore from "@/stores/studioStore"
-import { scrub } from "@/utils/helpers"
+import Input from "@studio/components/Input.vue"
+import AppRenameDialog from "@studio/components/Settings/AppRenameDialog.vue"
+import ExportAppDialog from "@studio/components/ExportAppDialog.vue"
+import useStudioStore from "@studio/stores/studioStore"
+import { scrub } from "@studio/utils/helpers"
 import defaultFavicon from "/favicon.png"
 
 type FileDoc = { file_url: string }

@@ -1,0 +1,28 @@
+{
+	"compilerOptions": {
+		"target": "ES2022",
+		"module": "ESNext",
+		"moduleResolution": "bundler",
+		"strict": true,
+		"jsx": "preserve",
+		"jsxImportSource": "vue",
+		"skipLibCheck": true,
+		"noEmit": true,
+		"allowJs": true,
+		"resolveJsonModule": true,
+		"esModuleInterop": true,
+		"useDefineForClassFields": true,
+		"lib": ["ES2023", "DOM", "DOM.Iterable"],
+		"types": ["node", "vite/client", "unplugin-icons/types/vue"],
+		"paths": {
+			"@shell/*": ["./src/*"],
+			"@builder/*": ["./builder/src/*"],
+			"@insights/*": ["./insights/src2/*"],
+			"@studio/*": ["./studio/src/*"],
+			"@flow/*": ["./flow/src/*"],
+			"@framework/ui": ["../ui/src/index.ts"],
+			"@framework/ui/*": ["../ui/src/*"]
+		}
+	},
+	"include": ["src/**/*", "*/src/**/*", "insights/src2/**/*"]
+}

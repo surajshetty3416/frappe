@@ -1,8 +1,8 @@
-import useBuilderStore from "@/stores/builderStore";
-import usePageStore from "@/stores/pageStore";
+import useBuilderStore from "@builder/stores/builderStore";
+import usePageStore from "@builder/stores/pageStore";
 import { frappeRequest, toast } from "frappe-ui";
 import { nextTick, onMounted, watch } from "vue";
-import { __ } from "@/translation";
+import { __ } from "@builder/translation";
 
 const TOAST_ID = "site-read-only-mode";
 const POLL_INTERVAL = 10 * 1000;

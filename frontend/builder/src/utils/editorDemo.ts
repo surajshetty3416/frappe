@@ -5,7 +5,7 @@ import type {
 	BuilderPage,
 	BuilderToken,
 	UserFont,
-} from "@/types/doctypes";
+} from "@builder/types/doctypes";
 
 /** A published page and what it renders with, as served to the sandboxed editor demo. */
 export type EditorDemoPayload = {

@@ -75,21 +75,21 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, Ref, watchEffect, nextTick, inject, watch } from "vue"
-import BoxResizer from "@/components/BoxResizer.vue"
-import PaddingHandler from "@/components/PaddingHandler.vue"
-import MarginHandler from "@/components/MarginHandler.vue"
+import BoxResizer from "@studio/components/BoxResizer.vue"
+import PaddingHandler from "@studio/components/PaddingHandler.vue"
+import MarginHandler from "@studio/components/MarginHandler.vue"
 import LucideRepeat from "~icons/lucide/repeat"
 import LucidePenLine from "~icons/lucide/pen-line"
 
-import Block from "@/utils/block"
-import useStudioStore from "@/stores/studioStore"
-import useCanvasStore from "@/stores/canvasStore"
-import useComponentEditorStore from "@/stores/componentEditorStore"
-import trackTarget, { Tracker } from "@/utils/trackTarget"
-import { isReorderable, startBlockReorder } from "@/utils/useBlockReorder"
-import { isMovable, startBlockMove } from "@/utils/useBlockMove"
+import Block from "@studio/utils/block"
+import useStudioStore from "@studio/stores/studioStore"
+import useCanvasStore from "@studio/stores/canvasStore"
+import useComponentEditorStore from "@studio/stores/componentEditorStore"
+import trackTarget, { Tracker } from "@studio/utils/trackTarget"
+import { isReorderable, startBlockReorder } from "@studio/utils/useBlockReorder"
+import { isMovable, startBlockMove } from "@studio/utils/useBlockMove"
 
-import type { CanvasProps } from "@/types/StudioCanvas"
+import type { CanvasProps } from "@studio/types/StudioCanvas"
 
 const props = defineProps({
 	block: {

@@ -1,9 +1,9 @@
 import { inject, onMounted, onBeforeUnmount } from "vue"
 
-import { fetchApp } from "@/utils/helpers"
-import { invalidateComponentCache, getComponentSlots } from "@/utils/components"
-import useStudioStore from "@/stores/studioStore"
-import useComponentStore from "@/stores/componentStore"
+import { fetchApp } from "@studio/utils/helpers"
+import { invalidateComponentCache, getComponentSlots } from "@studio/utils/components"
+import useStudioStore from "@studio/stores/studioStore"
+import useComponentStore from "@studio/stores/componentStore"
 
 // Keep the open editor in sync with changes made outside it. Three sources, two transports:
 //   - page/app/component JSON synced from disk -> backend socket (studio_doc_update)

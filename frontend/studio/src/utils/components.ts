@@ -1,11 +1,11 @@
-import components from "@/data/components"
-import type { ComponentProp, ComponentProps } from "@/types"
-import type { VueProp, VuePropType } from "@/types/vue"
+import components from "@studio/data/components"
+import type { ComponentProp, ComponentProps } from "@studio/types"
+import type { VueProp, VuePropType } from "@studio/types/vue"
 
-import * as jsonTypes from "@/json_types"
-import { isObjectEmpty } from "@/utils/helpers"
+import * as jsonTypes from "@studio/json_types"
+import { isObjectEmpty } from "@studio/utils/helpers"
 import { ConcreteComponent, reactive } from "vue"
-import type { CustomVueComponentMeta } from "@/types/vue"
+import type { CustomVueComponentMeta } from "@studio/types/vue"
 
 interface ComponentTypes {
 	[componentName: string]: {
@@ -188,7 +188,7 @@ const frappeUIModules: Record<string, string> = import.meta.glob(
 	{ query: "?raw", eager: true, import: "default" },
 )
 
-const studioModules: Record<string, string> = import.meta.glob("@/components/AppLayout/*.vue", {
+const studioModules: Record<string, string> = import.meta.glob("@studio/components/AppLayout/*.vue", {
 	query: "?raw",
 	eager: true,
 	import: "default",

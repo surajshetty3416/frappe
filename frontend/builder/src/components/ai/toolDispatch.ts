@@ -1,9 +1,9 @@
-import type Block from "@/block";
-import type BuilderCanvas from "@/components/BuilderCanvas.vue";
-import type usePageStore from "@/stores/pageStore";
-import type { BuilderClientScript } from "@/types/doctypes";
-import { findBlockInTree } from "@/utils/block/tree";
-import { getBlockInstance } from "@/utils/helpers";
+import type Block from "@builder/block";
+import type BuilderCanvas from "@builder/components/BuilderCanvas.vue";
+import type usePageStore from "@builder/stores/pageStore";
+import type { BuilderClientScript } from "@builder/types/doctypes";
+import { findBlockInTree } from "@builder/utils/block/tree";
+import { getBlockInstance } from "@builder/utils/helpers";
 import { ref, type Ref } from "vue";
 import { normalizeStyles } from "./normalizeStyles";
 import type { AffectedBlock, AffectedScript } from "./types";

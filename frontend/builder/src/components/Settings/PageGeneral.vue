@@ -174,14 +174,14 @@
 	</div>
 </template>
 <script setup lang="ts">
-import { __ } from "@/translation";
-import ImageUploader from "@/components/Controls/ImageUploader.vue";
-import builderProjectFolder from "@/data/builderProjectFolder";
-import { builderSettings } from "@/data/builderSettings";
-import useBuilderStore from "@/stores/builderStore";
-import usePageStore from "@/stores/pageStore";
-import { BuilderProjectFolder } from "@/types/doctypes";
-import { toTitleCase } from "@/utils/helpers";
+import { __ } from "@builder/translation";
+import ImageUploader from "@builder/components/Controls/ImageUploader.vue";
+import builderProjectFolder from "@builder/data/builderProjectFolder";
+import { builderSettings } from "@builder/data/builderSettings";
+import useBuilderStore from "@builder/stores/builderStore";
+import usePageStore from "@builder/stores/pageStore";
+import { BuilderProjectFolder } from "@builder/types/doctypes";
+import { toTitleCase } from "@builder/utils/helpers";
 import { createResource, Switch, toast } from "frappe-ui";
 import { computed } from "vue";
 

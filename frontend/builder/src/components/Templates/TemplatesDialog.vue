@@ -17,9 +17,9 @@
 	</Dialog>
 </template>
 <script setup lang="ts">
-import { __ } from "@/translation";
-import Dialog from "@/components/Controls/Dialog.vue";
-import { useDashboardState } from "@/composables/useDashboardState";
+import { __ } from "@builder/translation";
+import Dialog from "@builder/components/Controls/Dialog.vue";
+import { useDashboardState } from "@builder/composables/useDashboardState";
 import { Button } from "frappe-ui";
 import { useTelemetry } from "@framework/ui/telemetry";
 import { DialogDescription, DialogTitle } from "reka-ui";

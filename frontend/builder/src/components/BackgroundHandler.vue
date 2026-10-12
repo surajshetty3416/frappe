@@ -136,18 +136,18 @@
 </template>
 
 <script lang="ts" setup>
-import { __ } from "@/translation";
-import Autocomplete from "@/components/Controls/Autocomplete.vue";
-import ColorPicker from "@/components/Controls/ColorPicker.vue";
-import GradientEditor from "@/components/Controls/GradientEditor.vue";
-import ImageFocusInput from "@/components/Controls/ImageFocusInput.vue";
-import StylePropertyControl from "@/components/Controls/StylePropertyControl.vue";
-import useBuilderStore from "@/stores/builderStore";
-import blockController from "@/utils/blockController";
-import { getColorVariableOptions } from "@/utils/colorOptions";
-import { cssUrl } from "@/utils/helpers";
-import { useBuilderToken } from "@/utils/useBuilderToken";
-import { useAnchoredPopover } from "@/utils/useAnchoredPopover";
+import { __ } from "@builder/translation";
+import Autocomplete from "@builder/components/Controls/Autocomplete.vue";
+import ColorPicker from "@builder/components/Controls/ColorPicker.vue";
+import GradientEditor from "@builder/components/Controls/GradientEditor.vue";
+import ImageFocusInput from "@builder/components/Controls/ImageFocusInput.vue";
+import StylePropertyControl from "@builder/components/Controls/StylePropertyControl.vue";
+import useBuilderStore from "@builder/stores/builderStore";
+import blockController from "@builder/utils/blockController";
+import { getColorVariableOptions } from "@builder/utils/colorOptions";
+import { cssUrl } from "@builder/utils/helpers";
+import { useBuilderToken } from "@builder/utils/useBuilderToken";
+import { useAnchoredPopover } from "@builder/utils/useAnchoredPopover";
 import { FileUploader, Popover, Switch, TabButtons, type TabButtonValue } from "frappe-ui";
 import { computed, ref, watch } from "vue";
 

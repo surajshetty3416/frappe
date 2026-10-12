@@ -22,12 +22,12 @@
 	</ContextMenu>
 </template>
 <script setup lang="ts">
-import PageStatusDot from "@/components/PageStatusDot.vue";
-import usePageStore from "@/stores/pageStore";
-import { BuilderPage } from "@/types/doctypes";
+import PageStatusDot from "@builder/components/PageStatusDot.vue";
+import usePageStore from "@builder/stores/pageStore";
+import { BuilderPage } from "@builder/types/doctypes";
 import { ContextMenu, SidebarItem } from "frappe-ui";
 import { computed } from "vue";
-import { openPage, pageMenu, shortTitle } from "@/utils/pageActions";
+import { openPage, pageMenu, shortTitle } from "@builder/utils/pageActions";
 
 const props = defineProps<{
 	page: BuilderPage;

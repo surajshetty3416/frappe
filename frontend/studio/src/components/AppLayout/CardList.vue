@@ -23,9 +23,9 @@
 
 <script setup lang="ts">
 import { ref } from "vue"
-import AvatarCard from "@/components/AppLayout/AvatarCard.vue"
-import type { AvatarCardProps } from "@/types/studio_components/AvatarCard"
-import type { CardListProps, CardListEmits } from "@/types/studio_components/CardList"
+import AvatarCard from "@studio/components/AppLayout/AvatarCard.vue"
+import type { AvatarCardProps } from "@studio/types/studio_components/AvatarCard"
+import type { CardListProps, CardListEmits } from "@studio/types/studio_components/CardList"
 
 const emit = defineEmits<CardListEmits>()
 withDefaults(defineProps<CardListProps>(), {

@@ -1,5 +1,5 @@
-import type Block from "@/block";
-import { getDataForKey, getParentProps, getPropValue } from "@/utils/helpers";
+import type Block from "@builder/block";
+import { getDataForKey, getParentProps, getPropValue } from "@builder/utils/helpers";
 
 type ValueMap = Record<string, any>;
 

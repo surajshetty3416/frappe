@@ -43,7 +43,7 @@
 	</div>
 </template>
 <script setup lang="ts">
-import { __ } from "@/translation";
+import { __ } from "@builder/translation";
 import { defineAsyncComponent, ref, VNodeRef, watch } from "vue";
 
 // keeps the CodeMirror stack out of the main editor bundle

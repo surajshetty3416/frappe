@@ -1,9 +1,9 @@
-import type Block from "@/block";
-import useBlockTemplateStore from "@/stores/blockTemplateStore";
-import useBuilderStore from "@/stores/builderStore";
-import useCanvasStore from "@/stores/canvasStore";
-import useComponentStore from "@/stores/componentStore";
-import { getLayoutDirection, type LayoutDirection } from "@/utils/dropGeometry";
+import type Block from "@builder/block";
+import useBlockTemplateStore from "@builder/stores/blockTemplateStore";
+import useBuilderStore from "@builder/stores/builderStore";
+import useCanvasStore from "@builder/stores/canvasStore";
+import useComponentStore from "@builder/stores/componentStore";
+import { getLayoutDirection, type LayoutDirection } from "@builder/utils/dropGeometry";
 import {
 	getBlockCopy,
 	getBlockInstance,
@@ -11,7 +11,7 @@ import {
 	getVideoBlock,
 	uploadBuilderAsset,
 	uploadUserFont,
-} from "@/utils/helpers";
+} from "@builder/utils/helpers";
 import { useDropZone } from "@vueuse/core";
 import { useTelemetry } from "@framework/ui/telemetry";
 import { Ref } from "vue";

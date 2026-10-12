@@ -1,16 +1,16 @@
-import type Block from "@/block";
-import { CanvasProps } from "@/types/Builder/BuilderCanvas";
-import type { SpacingType } from "@/utils/cssUtils";
+import type Block from "@builder/block";
+import { CanvasProps } from "@builder/types/Builder/BuilderCanvas";
+import type { SpacingType } from "@builder/utils/cssUtils";
 import {
 	SPACING_PROPERTIES,
 	collapseBoxShorthand,
 	collapseGapShorthand,
 	expandBoxShorthand,
 	expandGapShorthand,
-} from "@/utils/cssUtils";
-import { startDrag } from "@/utils/cursor";
-import { getNumberFromPx } from "@/utils/helpers";
-import { toLocalDelta } from "@/utils/rotation";
+} from "@builder/utils/cssUtils";
+import { startDrag } from "@builder/utils/cursor";
+import { getNumberFromPx } from "@builder/utils/helpers";
+import { toLocalDelta } from "@builder/utils/rotation";
 import { clamp } from "@vueuse/core";
 import { computed, inject, ref } from "vue";
 

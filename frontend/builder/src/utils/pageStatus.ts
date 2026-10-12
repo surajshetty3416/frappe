@@ -1,6 +1,6 @@
-import { pagesWithUnpublishedChanges } from "@/data/webPage";
-import { __ } from "@/translation";
-import { BuilderPage } from "@/types/doctypes";
+import { pagesWithUnpublishedChanges } from "@builder/data/webPage";
+import { __ } from "@builder/translation";
+import { BuilderPage } from "@builder/types/doctypes";
 
 export type PageStatus = {
 	label: string;

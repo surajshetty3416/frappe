@@ -1,18 +1,18 @@
-import { __ } from "@/translation";
-import type Block from "@/block";
-import useCanvasStore from "@/stores/canvasStore";
-import useComponentStore from "@/stores/componentStore";
-import usePageStore from "@/stores/pageStore";
-import { BuilderClientScript, BuilderComponent, BuilderPage, BuilderToken } from "@/types/doctypes";
+import { __ } from "@builder/translation";
+import type Block from "@builder/block";
+import useCanvasStore from "@builder/stores/canvasStore";
+import useComponentStore from "@builder/stores/componentStore";
+import usePageStore from "@builder/stores/pageStore";
+import { BuilderClientScript, BuilderComponent, BuilderPage, BuilderToken } from "@builder/types/doctypes";
 
-import builderTokens from "@/data/builderToken";
+import builderTokens from "@builder/data/builderToken";
 import {
 	collectRemoteAssets,
 	dropImportedFontFaces,
 	importRemoteAssets,
 	importRemoteFonts,
 	type RemoteFont,
-} from "@/utils/importRemoteAssets";
+} from "@builder/utils/importRemoteAssets";
 import {
 	copyToClipboard,
 	detachBlockFromComponent,
@@ -21,7 +21,7 @@ import {
 	getCopyWithoutParent,
 	isJSONString,
 	showDialog,
-} from "@/utils/helpers";
+} from "@builder/utils/helpers";
 import { createListResource, toast } from "frappe-ui";
 import { nextTick } from "vue";
 import { webPages } from "../data/webPage";

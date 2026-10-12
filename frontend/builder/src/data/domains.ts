@@ -1,8 +1,8 @@
 import { createResource } from "frappe-ui";
 import { ref } from "vue";
 import { toast } from "frappe-ui";
-import { __ } from "@/translation";
-import { getErrorMessage } from "@/utils/helpers";
+import { __ } from "@builder/translation";
+import { getErrorMessage } from "@builder/utils/helpers";
 
 const API = "frappe.builder.domain";
 

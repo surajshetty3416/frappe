@@ -1,13 +1,13 @@
-import type Block from "@/block";
-import AttributePropertyControl from "@/components/Controls/AttributePropertyControl.vue";
-import Autocomplete from "@/components/Controls/Autocomplete.vue";
-import { linkablePages } from "@/data/allWebPages";
-import useCanvasStore from "@/stores/canvasStore";
-import { BuilderPage } from "@/types/doctypes";
-import blockController from "@/utils/blockController";
+import type Block from "@builder/block";
+import AttributePropertyControl from "@builder/components/Controls/AttributePropertyControl.vue";
+import Autocomplete from "@builder/components/Controls/Autocomplete.vue";
+import { linkablePages } from "@builder/data/allWebPages";
+import useCanvasStore from "@builder/stores/canvasStore";
+import { BuilderPage } from "@builder/types/doctypes";
+import blockController from "@builder/utils/blockController";
 import { Switch } from "frappe-ui";
 import { computed } from "vue";
-import { __ } from "@/translation";
+import { __ } from "@builder/translation";
 
 const getSectionIds = (block: Block): string[] => {
 	const id = block.getId();

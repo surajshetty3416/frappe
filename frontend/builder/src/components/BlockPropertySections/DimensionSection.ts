@@ -1,5 +1,5 @@
-import DimensionInput from "@/components/DimensionInput.vue";
-import { __ } from "@/translation";
+import DimensionInput from "@builder/components/DimensionInput.vue";
+import { __ } from "@builder/translation";
 
 const dimensionSectionProperties = [
 	{

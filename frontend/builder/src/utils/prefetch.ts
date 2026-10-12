@@ -1,8 +1,8 @@
-import { preloadSettingsPanes } from "@/components/Settings";
-import { useDashboardState } from "@/composables/useDashboardState";
-import { builderSettings } from "@/data/builderSettings";
-import { templateGroups } from "@/data/webPage";
-import type { TemplateGroup } from "@/types/template";
+import { preloadSettingsPanes } from "@builder/components/Settings";
+import { useDashboardState } from "@builder/composables/useDashboardState";
+import { builderSettings } from "@builder/data/builderSettings";
+import { templateGroups } from "@builder/data/webPage";
+import type { TemplateGroup } from "@builder/types/template";
 
 // kept referenced so the browser holds them in memory; the picker's cards then paint on open
 const warmedThumbnails = new Map<string, HTMLImageElement>();
@@ -11,7 +11,7 @@ const MAX_WARMED_THUMBNAILS = 150;
 
 export function prefetchBuilderSettings() {
 	whenIdle(() => {
-		import("@/components/BuilderSettings.vue");
+		import("@builder/components/BuilderSettings.vue");
 		preloadSettingsPanes();
 		if (!builderSettings.doc) builderSettings.reload();
 	});

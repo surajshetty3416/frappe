@@ -82,15 +82,15 @@
 </template>
 
 <script setup lang="ts">
-import { __ } from "@/translation";
-import { useDashboardState } from "@/composables/useDashboardState";
-import builderProjectFolder from "@/data/builderProjectFolder";
-import { notifyPagesChanged } from "@/utils/pageActions";
-import { templateGroups } from "@/data/webPage";
-import router from "@/router";
-import useBuilderStore from "@/stores/builderStore";
-import usePageStore from "@/stores/pageStore";
-import { TemplateGroup, TemplatePageSummary } from "@/types/template";
+import { __ } from "@builder/translation";
+import { useDashboardState } from "@builder/composables/useDashboardState";
+import builderProjectFolder from "@builder/data/builderProjectFolder";
+import { notifyPagesChanged } from "@builder/utils/pageActions";
+import { templateGroups } from "@builder/data/webPage";
+import router from "@builder/router";
+import useBuilderStore from "@builder/stores/builderStore";
+import usePageStore from "@builder/stores/pageStore";
+import { TemplateGroup, TemplatePageSummary } from "@builder/types/template";
 import { Button, createResource, toast } from "frappe-ui";
 import { useTelemetry } from "@framework/ui/telemetry";
 import { computed, onMounted, ref, watch } from "vue";

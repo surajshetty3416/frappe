@@ -21,8 +21,8 @@
 	</div>
 </template>
 <script setup lang="ts">
-import { __ } from "@/translation";
-import { websiteSettings } from "@/data/websiteSettings";
+import { __ } from "@builder/translation";
+import { websiteSettings } from "@builder/data/websiteSettings";
 import CodeEditor from "../Controls/CodeEditor.vue";
 
 const guideURL =

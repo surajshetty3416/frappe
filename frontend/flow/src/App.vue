@@ -4,7 +4,7 @@
 		<div v-if="error" class="max-w-md">
 			<div class="text-lg font-medium text-ink-gray-9">Flow could not start</div>
 			<div class="mt-2 text-sm text-ink-gray-6">{{ error }}</div>
-			<a href="/app" class="mt-4 inline-block text-sm font-medium text-ink-gray-8 underline"
+			<a href="/desk" class="mt-4 inline-block text-sm font-medium text-ink-gray-8 underline"
 				>Open the Desk</a
 			>
 		</div>

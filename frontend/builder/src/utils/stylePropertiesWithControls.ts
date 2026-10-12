@@ -1,6 +1,6 @@
-import { propertySections, type PropertySection } from "@/components/BlockPropertySections";
-import { isValidCSSPropertyName } from "@/utils/cssMetadata";
-import { stripStatePrefix, toCSSProperty } from "@/utils/helpers";
+import { propertySections, type PropertySection } from "@builder/components/BlockPropertySections";
+import { isValidCSSPropertyName } from "@builder/utils/cssMetadata";
+import { stripStatePrefix, toCSSProperty } from "@builder/utils/helpers";
 
 const getSectionProperties = (section: PropertySection) =>
 	typeof section.properties === "function" ? section.properties() : section.properties;

@@ -1,13 +1,13 @@
-import LayersIcon from "@/components/Icons/Layers.vue";
-import AssetsTab from "@/components/LeftPanelTabs/AssetsTab.vue";
-import BlocksTab from "@/components/LeftPanelTabs/BlocksTab.vue";
-import CodeTab from "@/components/LeftPanelTabs/CodeTab.vue";
-import LayersTab from "@/components/LeftPanelTabs/LayersTab.vue";
-import useBuilderStore from "@/stores/builderStore";
-import { createRegistry, type RegistryItem } from "@/utils/createRegistry";
+import LayersIcon from "@builder/components/Icons/Layers.vue";
+import AssetsTab from "@builder/components/LeftPanelTabs/AssetsTab.vue";
+import BlocksTab from "@builder/components/LeftPanelTabs/BlocksTab.vue";
+import CodeTab from "@builder/components/LeftPanelTabs/CodeTab.vue";
+import LayersTab from "@builder/components/LeftPanelTabs/LayersTab.vue";
+import useBuilderStore from "@builder/stores/builderStore";
+import { createRegistry, type RegistryItem } from "@builder/utils/createRegistry";
 import type { KeyboardShortcutCombo } from "frappe-ui";
 import { defineAsyncComponent, type Component } from "vue";
-import { __ } from "@/translation";
+import { __ } from "@builder/translation";
 
 export type LeftPanelTab = RegistryItem & {
 	label: string;
@@ -86,6 +86,6 @@ leftPanelTabs.register({
 	label: __("Bob AI"),
 	icon: "lucide-sparkle",
 	// the panel brings its own markdown, yaml and sanitiser stack, so it waits to be opened
-	component: defineAsyncComponent(() => import("@/components/BuilderAIChatPanel.vue")),
+	component: defineAsyncComponent(() => import("@builder/components/BuilderAIChatPanel.vue")),
 	shortcut: "Mod+Shift+O",
 });

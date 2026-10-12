@@ -17,7 +17,7 @@
 </template>
 
 <script lang="ts" setup>
-import InputLabel from "@/components/Controls/InputLabel.vue";
+import InputLabel from "@builder/components/Controls/InputLabel.vue";
 import { Dropdown } from "frappe-ui";
 import { ref } from "vue";
 

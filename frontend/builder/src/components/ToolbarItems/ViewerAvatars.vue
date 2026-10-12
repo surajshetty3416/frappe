@@ -21,8 +21,8 @@
 	</div>
 </template>
 <script setup lang="ts">
-import useBuilderStore from "@/stores/builderStore";
-import { __ } from "@/translation";
+import useBuilderStore from "@builder/stores/builderStore";
+import { __ } from "@builder/translation";
 import { Tooltip } from "frappe-ui";
 import { computed } from "vue";
 

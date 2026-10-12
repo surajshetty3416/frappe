@@ -223,14 +223,14 @@
 import { computed, ref, watch } from "vue"
 import { createResource, Dialog, FormControl, Checkbox, ErrorMessage, Button, Badge } from "frappe-ui"
 import Link from "@framework/ui/components/Link/Link.vue"
-import ScriptSection from "@/components/ScriptSection.vue"
-import Filters from "@/components/Filters.vue"
-import Grid from "@/components/Grid.vue"
+import ScriptSection from "@studio/components/ScriptSection.vue"
+import Filters from "@studio/components/Filters.vue"
+import Grid from "@studio/components/Grid.vue"
 
-import type { DocTypeField, SelectOption } from "@/types"
-import type { ResourceType, Resource } from "@/types/Studio/StudioResource"
-import { getParamsArray, isObjectEmpty } from "@/utils/helpers"
-import { useStudioCompletions } from "@/utils/completions/useStudioCompletions"
+import type { DocTypeField, SelectOption } from "@studio/types"
+import type { ResourceType, Resource } from "@studio/types/Studio/StudioResource"
+import { getParamsArray, isObjectEmpty } from "@studio/utils/helpers"
+import { useStudioCompletions } from "@studio/utils/completions/useStudioCompletions"
 import type { CompletionContext } from "@codemirror/autocomplete"
 
 const props = defineProps<{

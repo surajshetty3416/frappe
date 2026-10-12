@@ -70,25 +70,25 @@ const routes = [
 		path: "/",
 		name: "home",
 		beforeEnter: validateVisit,
-		component: () => import("@/pages/PageBuilderDashboard.vue"),
+		component: () => import("@builder/pages/PageBuilderDashboard.vue"),
 	},
 	{
 		path: "/page/:pageId",
 		name: "builder",
 		beforeEnter: validateVisit,
-		component: () => import("@/pages/PageBuilder.vue"),
+		component: () => import("@builder/pages/PageBuilder.vue"),
 	},
 	{
 		path: "/page/:pageId/preview",
 		name: "preview",
 		beforeEnter: validateVisit,
-		component: () => import("@/pages/PagePreview.vue"),
+		component: () => import("@builder/pages/PagePreview.vue"),
 	},
 	{
 		path: "/persona-survey",
 		name: "persona-survey",
 		beforeEnter: validateVisit,
-		component: () => import("@/pages/PagePersonaSurvey.vue"),
+		component: () => import("@builder/pages/PagePersonaSurvey.vue"),
 	},
 ];
 
@@ -106,7 +106,7 @@ const router = createRouter({
 	history: createWebHistory(builder_path),
 	// named "builder" so the editor's own links resolve, but only to the demo's page
 	routes: editorDemo
-		? [{ path: "/demo/:pageId", name: "builder", component: () => import("@/pages/PageBuilder.vue") }]
+		? [{ path: "/demo/:pageId", name: "builder", component: () => import("@builder/pages/PageBuilder.vue") }]
 		: routes,
 });
 

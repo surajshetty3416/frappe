@@ -38,7 +38,7 @@
 
 <script setup lang="ts">
 import { nextTick, ref, watch } from "vue";
-import InlineInput from "@/components/Controls/InlineInput.vue";
+import InlineInput from "@builder/components/Controls/InlineInput.vue";
 
 const props = defineProps<{
 	options: Record<string, any>;

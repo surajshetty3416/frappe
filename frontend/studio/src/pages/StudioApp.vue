@@ -1,5 +1,5 @@
 <script>
-import { studioApps } from "@/data/studioApps"
+import { studioApps } from "@studio/data/studioApps"
 
 // intermediate component to find and redirect to the app home when someone lands on the app
 export default {

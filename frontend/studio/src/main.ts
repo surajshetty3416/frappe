@@ -3,15 +3,15 @@ import "./index.css"
 import { createApp } from "vue"
 import { createPinia } from "pinia"
 import "./setupFrappeUIResource"
-import studio_router from "@/router/studio_router"
+import studio_router from "@studio/router/studio_router"
 import App from "./App.vue"
 
 import { resourcesPlugin, frappeRequest } from "frappe-ui"
 import { registerGlobalComponents } from "./globals"
 
-import { COMPONENTS } from "@/data/components"
-import Block from "@/utils/block"
-import { initSocket } from "@/socket"
+import { COMPONENTS } from "@studio/data/components"
+import Block from "@studio/utils/block"
+import { initSocket } from "@studio/socket"
 
 Block.setComponents(COMPONENTS)
 

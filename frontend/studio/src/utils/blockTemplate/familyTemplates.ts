@@ -1,5 +1,5 @@
-import type { BlockOptions, BlockStyleMap, Slot } from "@/types"
-import type { TextBlockProps } from "@/types/studio_components/TextBlock"
+import type { BlockOptions, BlockStyleMap, Slot } from "@studio/types"
+import type { TextBlockProps } from "@studio/types/studio_components/TextBlock"
 
 export const familyTemplates = {
 	list: listTemplate,

@@ -1,12 +1,12 @@
-import type Block from "@/block";
-import useCanvasStore from "@/stores/canvasStore";
+import type Block from "@builder/block";
+import useCanvasStore from "@builder/stores/canvasStore";
 import {
 	clusterLines,
 	collectChildRects,
 	computeDropIndicator,
 	computeReadingOrderIndex,
 	getLayoutDirection,
-} from "@/utils/dropGeometry";
+} from "@builder/utils/dropGeometry";
 
 const DRAG_THRESHOLD = 4; // px before a mousedown becomes a drag
 const GHOST_OPACITY = 0.9;

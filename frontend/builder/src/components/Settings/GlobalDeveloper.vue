@@ -38,9 +38,9 @@
 	</div>
 </template>
 <script setup lang="ts">
-import { __ } from "@/translation";
-import { builderSettings } from "@/data/builderSettings";
-import useBuilderStore from "@/stores/builderStore";
+import { __ } from "@builder/translation";
+import { builderSettings } from "@builder/data/builderSettings";
+import useBuilderStore from "@builder/stores/builderStore";
 import { Select, Switch } from "frappe-ui";
 
 const builderStore = useBuilderStore();

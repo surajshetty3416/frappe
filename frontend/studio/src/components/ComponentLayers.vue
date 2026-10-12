@@ -174,15 +174,15 @@
 import { ref, watch, computed, nextTick } from "vue"
 import Draggable from "vuedraggable"
 
-import ComponentLayers from "@/components/ComponentLayers.vue"
+import ComponentLayers from "@studio/components/ComponentLayers.vue"
 
-import useCanvasStore from "@/stores/canvasStore"
-import Block from "@/utils/block"
-import useComponentEditorStore from "@/stores/componentEditorStore"
-import SlotIcon from "@/components/Icons/SlotIcon.vue"
+import useCanvasStore from "@studio/stores/canvasStore"
+import Block from "@studio/utils/block"
+import useComponentEditorStore from "@studio/stores/componentEditorStore"
+import SlotIcon from "@studio/components/Icons/SlotIcon.vue"
 import LucideRepeat from "~icons/lucide/repeat"
 import LucidePenLine from "~icons/lucide/pen-line"
-import type { Slot } from "@/types"
+import type { Slot } from "@studio/types"
 
 type LayerInstance = InstanceType<typeof ComponentLayers>
 

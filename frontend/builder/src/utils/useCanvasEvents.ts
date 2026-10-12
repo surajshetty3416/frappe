@@ -1,8 +1,8 @@
-import type Block from "@/block";
-import useBuilderStore from "@/stores/builderStore";
-import useCanvasStore from "@/stores/canvasStore";
-import { CanvasHistory } from "@/types/Builder/BuilderCanvas";
-import getBlockTemplate from "@/utils/blockTemplate";
+import type Block from "@builder/block";
+import useBuilderStore from "@builder/stores/builderStore";
+import useCanvasStore from "@builder/stores/canvasStore";
+import { CanvasHistory } from "@builder/types/Builder/BuilderCanvas";
+import getBlockTemplate from "@builder/utils/blockTemplate";
 import {
 	addPxToNumber,
 	getBlock,
@@ -10,7 +10,7 @@ import {
 	getNumberFromPx,
 	isBlock,
 	isTargetEditable,
-} from "@/utils/helpers";
+} from "@builder/utils/helpers";
 import { clamp, useEventListener } from "@vueuse/core";
 import { Ref } from "vue";
 

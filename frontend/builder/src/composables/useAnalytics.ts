@@ -1,9 +1,9 @@
-import { websiteSettings } from "@/data/websiteSettings";
-import { shortenNumber } from "@/utils/helpers";
+import { websiteSettings } from "@builder/data/websiteSettings";
+import { shortenNumber } from "@builder/utils/helpers";
 import { useStorage } from "@vueuse/core";
 import { createResource, debounce } from "frappe-ui";
 import { computed, ref, watch } from "vue";
-import { __ } from "@/translation";
+import { __ } from "@builder/translation";
 
 export interface AnalyticsResponse {
 	total_unique_views: number;

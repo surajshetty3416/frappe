@@ -1,14 +1,14 @@
-import type Block from "@/block";
-import { builderSettings } from "@/data/builderSettings";
-import { webPages } from "@/data/webPage";
-import router from "@/router";
-import useBuilderStore from "@/stores/builderStore";
-import useCanvasStore from "@/stores/canvasStore";
-import useComponentStore from "@/stores/componentStore.js";
-import { __ } from "@/translation";
-import { BuilderClientScript, BuilderPage } from "@/types/doctypes";
-import getBlockTemplate from "@/utils/blockTemplate";
-import { editorDemo } from "@/utils/editorDemo";
+import type Block from "@builder/block";
+import { builderSettings } from "@builder/data/builderSettings";
+import { webPages } from "@builder/data/webPage";
+import router from "@builder/router";
+import useBuilderStore from "@builder/stores/builderStore";
+import useCanvasStore from "@builder/stores/canvasStore";
+import useComponentStore from "@builder/stores/componentStore.js";
+import { __ } from "@builder/translation";
+import { BuilderClientScript, BuilderPage } from "@builder/types/doctypes";
+import getBlockTemplate from "@builder/utils/blockTemplate";
+import { editorDemo } from "@builder/utils/editorDemo";
 import {
 	confirm,
 	countBlocks,
@@ -16,7 +16,7 @@ import {
 	getBlockInstance,
 	getCopyWithoutParent,
 	getRouteVariables,
-} from "@/utils/helpers";
+} from "@builder/utils/helpers";
 import { createDocumentResource, createListResource, createResource, toast } from "frappe-ui";
 import { useTelemetry } from "@framework/ui/telemetry";
 import { defineStore } from "pinia";

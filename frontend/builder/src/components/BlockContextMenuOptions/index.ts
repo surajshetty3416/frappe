@@ -1,11 +1,11 @@
-import type Block from "@/block";
-import useBuilderStore from "@/stores/builderStore";
-import useCanvasStore from "@/stores/canvasStore";
-import useComponentStore from "@/stores/componentStore";
-import type { ContextMenuOption } from "@/types/blockContextMenu";
-import getBlockTemplate from "@/utils/blockTemplate";
-import { createRegistry } from "@/utils/createRegistry";
-import { promptCreateComponent } from "@/utils/dialogs";
+import type Block from "@builder/block";
+import useBuilderStore from "@builder/stores/builderStore";
+import useCanvasStore from "@builder/stores/canvasStore";
+import useComponentStore from "@builder/stores/componentStore";
+import type { ContextMenuOption } from "@builder/types/blockContextMenu";
+import getBlockTemplate from "@builder/utils/blockTemplate";
+import { createRegistry } from "@builder/utils/createRegistry";
+import { promptCreateComponent } from "@builder/utils/dialogs";
 import {
 	confirm,
 	convertSVGBlockToImage,
@@ -13,11 +13,11 @@ import {
 	getBlockCopy,
 	isOversizedSVG,
 	triggerCopyEvent,
-} from "@/utils/helpers";
+} from "@builder/utils/helpers";
 import { useStorage } from "@vueuse/core";
 import { toast } from "frappe-ui";
 import { nextTick, type Ref } from "vue";
-import { __ } from "@/translation";
+import { __ } from "@builder/translation";
 
 export const blockContextMenuOptions = createRegistry<ContextMenuOption>();
 

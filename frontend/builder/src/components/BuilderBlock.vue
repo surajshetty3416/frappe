@@ -42,18 +42,18 @@
 	</teleport>
 </template>
 <script setup lang="ts">
-import type Block from "@/block";
-import { builderSettings } from "@/data/builderSettings";
-import useBuilderStore from "@/stores/builderStore";
-import useCanvasStore from "@/stores/canvasStore";
-import useComponentStore from "@/stores/componentStore";
-import usePageStore from "@/stores/pageStore";
-import { BlockValueResolver } from "@/utils/blockValueResolver";
-import componentController from "@/utils/componentController.js";
-import { needsItalic, setFont } from "@/utils/fontManager";
-import { extractComponentId, getTextContent } from "@/utils/helpers";
-import type { BlockClientScriptEmulator } from "@/utils/scriptSandbox";
-import { useDraggableBlock } from "@/utils/useDraggableBlock";
+import type Block from "@builder/block";
+import { builderSettings } from "@builder/data/builderSettings";
+import useBuilderStore from "@builder/stores/builderStore";
+import useCanvasStore from "@builder/stores/canvasStore";
+import useComponentStore from "@builder/stores/componentStore";
+import usePageStore from "@builder/stores/pageStore";
+import { BlockValueResolver } from "@builder/utils/blockValueResolver";
+import componentController from "@builder/utils/componentController.js";
+import { needsItalic, setFont } from "@builder/utils/fontManager";
+import { extractComponentId, getTextContent } from "@builder/utils/helpers";
+import type { BlockClientScriptEmulator } from "@builder/utils/scriptSandbox";
+import { useDraggableBlock } from "@builder/utils/useDraggableBlock";
 import {
 	computed,
 	inject,

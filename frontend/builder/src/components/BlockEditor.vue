@@ -43,12 +43,12 @@
 	</div>
 </template>
 <script setup lang="ts">
-import type Block from "@/block";
-import useBuilderStore from "@/stores/builderStore";
-import useCanvasStore from "@/stores/canvasStore";
-import blockController from "@/utils/blockController";
-import { addPxToNumber, getRenderedPosition } from "@/utils/helpers";
-import { isReorderable, startBlockReorder } from "@/utils/useBlockReorder";
+import type Block from "@builder/block";
+import useBuilderStore from "@builder/stores/builderStore";
+import useCanvasStore from "@builder/stores/canvasStore";
+import blockController from "@builder/utils/blockController";
+import { addPxToNumber, getRenderedPosition } from "@builder/utils/helpers";
+import { isReorderable, startBlockReorder } from "@builder/utils/useBlockReorder";
 import { Ref, computed, inject, nextTick, onMounted, ref, watch, watchEffect } from "vue";
 import setGuides from "../utils/guidesTracker";
 import trackTarget from "../utils/trackTarget";

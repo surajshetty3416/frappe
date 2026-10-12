@@ -29,7 +29,7 @@
 <script setup lang="ts">
 import AppLogo from "../Icons/AppLogo.vue"
 import LucideChevronLeft from "~icons/lucide/chevron-left"
-import type { AppHeaderProps } from "@/types/studio_components/AppHeader"
+import type { AppHeaderProps } from "@studio/types/studio_components/AppHeader"
 
 defineProps<AppHeaderProps>()
 </script>

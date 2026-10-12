@@ -38,10 +38,10 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue"
 import { Button, Dialog, toast } from "frappe-ui"
-import useStudioStore from "@/stores/studioStore"
-import { studioApps } from "@/data/studioApps"
-import { scrub } from "@/utils/helpers"
-import AppExportSettings from "@/components/AppExportSettings.vue"
+import useStudioStore from "@studio/stores/studioStore"
+import { studioApps } from "@studio/data/studioApps"
+import { scrub } from "@studio/utils/helpers"
+import AppExportSettings from "@studio/components/AppExportSettings.vue"
 
 type Prompt = { title: string; segments: (string | { path: string })[]; resolve: (confirmed: boolean) => void }
 

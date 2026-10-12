@@ -10,12 +10,12 @@
 	</div>
 </template>
 <script setup lang="ts">
-import useBuilderStore from "@/stores/builderStore";
-import usePageStore from "@/stores/pageStore";
-import { __ } from "@/translation";
+import useBuilderStore from "@builder/stores/builderStore";
+import usePageStore from "@builder/stores/pageStore";
+import { __ } from "@builder/translation";
 import { UseDark } from "@vueuse/components";
 import { useTitle } from "@vueuse/core";
-import { useSiteReadOnlyNotice } from "@/utils/useSiteReadOnlyNotice";
+import { useSiteReadOnlyNotice } from "@builder/utils/useSiteReadOnlyNotice";
 import { FrappeUIProvider } from "frappe-ui";
 import { computed, provide } from "vue";
 import { useRoute } from "vue-router";
