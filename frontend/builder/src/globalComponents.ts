@@ -1,10 +1,12 @@
 import BuilderInput from "@builder/components/Controls/Input.vue";
 import { Button, FormControl } from "frappe-ui";
-import type { App } from "vue";
+import type { App, Component } from "vue";
 
-// many builder templates use these without importing them
+// many builder templates use these without importing them; another layer may have
+// registered the same frappe-ui components already
 export function registerGlobalComponents(app: App) {
-	app.component("Button", Button);
-	app.component("FormControl", FormControl);
-	app.component("BuilderInput", BuilderInput);
+	const register = (name: string, component: Component) => app.component(name) || app.component(name, component);
+	register("Button", Button);
+	register("FormControl", FormControl);
+	register("BuilderInput", BuilderInput);
 }
