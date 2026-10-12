@@ -1,5 +1,5 @@
 <template>
-	<FlowPage v-if="boot" :boot="boot" :embedded="embedded" />
+	<FlowPage v-if="boot" :boot="boot" :embedded="embedded" :opened="opened" />
 	<div v-else class="flex h-full items-center justify-center bg-surface-base px-6 text-center">
 		<div v-if="error" class="max-w-md">
 			<div class="text-lg font-medium text-ink-gray-9">Flow could not start</div>
@@ -19,7 +19,10 @@ import { LoadingIndicator } from "frappe-ui";
 import { loadBoot } from "./boot.js";
 import FlowPage from "./chat/FlowPage.vue";
 
-defineProps({ embedded: { type: Boolean, default: false } });
+defineProps({
+	embedded: { type: Boolean, default: false },
+	opened: { type: Function, default: null },
+});
 
 const boot = ref(null);
 const error = ref("");

@@ -109,6 +109,8 @@ const props = defineProps({
 	boot: { type: Object, required: true },
 	// a side panel beside another layer: no session list, no file panel, and the URL stays theirs
 	embedded: { type: Boolean, default: false },
+	// what the user has open beside the panel ({ title, path }), sent with each message
+	opened: { type: Function, default: null },
 });
 
 // the store's model refresh is the boot call; the page asks for it when boot goes stale
@@ -123,6 +125,7 @@ const client = new FrappeClient({
 		onBoot: page.onBoot,
 		onSession: page.onSession,
 		onRows: page.onRows,
+		opened: () => props.opened?.(),
 	},
 });
 const store = createFlowStore(client, {

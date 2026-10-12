@@ -8,7 +8,7 @@
 			</div>
 		</div>
 		<div class="relative min-h-0 flex-1">
-			<FlowApp embedded />
+			<FlowApp embedded :opened="opened" />
 		</div>
 	</aside>
 </template>
@@ -16,8 +16,13 @@
 <script setup lang="ts">
 import { Button } from "frappe-ui"
 import { defineAsyncComponent } from "vue"
+import { useRoute } from "vue-router"
 
 import { assistantOpen } from "../assistant"
+
+const route = useRoute()
+// the page beside the panel, so "this page" or "this dashboard" in a message has a referent
+const opened = () => ({ title: document.title, path: route.fullPath })
 
 const FlowApp = defineAsyncComponent(async () => {
 	await import("@flow/index.css")
