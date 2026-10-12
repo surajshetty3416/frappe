@@ -8,7 +8,7 @@ import base64
 import json
 import unittest
 
-from builder.ai import codex
+from frappe.builder.ai import codex
 
 
 def fake_jwt(claims: dict) -> str:

@@ -1,11 +1,11 @@
 import frappe
 
-from insights.api.data_sources import (
+from frappe.insights.api.data_sources import (
     get_data_source_table,
     get_data_source_table_columns,
     get_data_source_table_row_count,
 )
-from insights.tests.base import InsightsIntegrationTestCase
+from frappe.insights.tests.base import InsightsIntegrationTestCase
 
 SITE_DB = "Site DB"
 USER_A = "row-perm-a@example.com"

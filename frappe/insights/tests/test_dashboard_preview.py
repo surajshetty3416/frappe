@@ -11,11 +11,11 @@ from unittest.mock import patch
 import frappe
 from werkzeug.test import EnvironBuilder
 
-from insights.api.view import get_dashboard
-from insights.permission_user import permission_user_for
-from insights.permissions import has_doc_permission
-from insights.tests.base import InsightsIntegrationTestCase
-from insights.tests.factories import (
+from frappe.insights.api.view import get_dashboard
+from frappe.insights.permission_user import permission_user_for
+from frappe.insights.permissions import has_doc_permission
+from frappe.insights.tests.base import InsightsIntegrationTestCase
+from frappe.insights.tests.factories import (
     DT,
     create_test_chart,
     create_test_dashboard,
@@ -23,7 +23,7 @@ from insights.tests.factories import (
     create_test_workbook,
     delete_users,
 )
-from insights.tests.permissions_utils import USER_1, create_test_users
+from frappe.insights.tests.permissions_utils import USER_1, create_test_users
 
 OWNER = USER_1
 ATTACKER_HOST = "attacker.example"
@@ -116,11 +116,11 @@ class TestDashboardPreview(InsightsIntegrationTestCase):
         doc = frappe.get_doc(DT.DASHBOARD, dashboard)
         with (
             patch(
-                "insights.insights.doctype.insights_dashboard_v3.insights_dashboard_v3.get_page_preview",
+                "frappe.insights.doctype.insights_dashboard_v3.insights_dashboard_v3.get_page_preview",
                 side_effect=record,
             ),
             patch(
-                "insights.insights.doctype.insights_dashboard_v3.insights_dashboard_v3.create_preview_file",
+                "frappe.insights.doctype.insights_dashboard_v3.insights_dashboard_v3.create_preview_file",
                 return_value="/files/preview.jpeg",
             ),
         ):

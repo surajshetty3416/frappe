@@ -24,7 +24,7 @@ import re
 import frappe
 from frappe.model import std_fields
 
-from insights.insights.doctype.insights_data_source_v3.ibis_utils import sanitize_name
+from frappe.insights.doctype.insights_data_source_v3.ibis_utils import sanitize_name
 
 # `owner` and `modified_by` are on every table and in no doctype's field list,
 # so the framework's own list of them is what says where they point

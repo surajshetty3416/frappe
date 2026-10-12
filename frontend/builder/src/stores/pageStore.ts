@@ -197,7 +197,7 @@ const usePageStore = defineStore("pageStore", {
 		async duplicatePage(page: BuilderPage) {
 			toast.promise(
 				createResource({
-					url: "builder.api.duplicate_page",
+					url: "frappe.builder.api.duplicate_page",
 					method: "POST",
 					params: {
 						page_name: page.name,

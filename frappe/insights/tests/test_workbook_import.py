@@ -9,15 +9,15 @@ A whole workbook, a single query and a single chart are all imported this way.
 
 import frappe
 
-from insights.insights.doctype.insights_chart_v3.insights_chart_v3 import import_chart
-from insights.insights.doctype.insights_query_v3.insights_query_v3 import (
+from frappe.insights.doctype.insights_chart_v3.insights_chart_v3 import import_chart
+from frappe.insights.doctype.insights_query_v3.insights_query_v3 import (
     extract_query_deps_from_operations,
     import_query,
 )
-from insights.insights.doctype.insights_workbook.insights_workbook import import_workbook
-from insights.tests.base import InsightsIntegrationTestCase
-from insights.tests.factories import DT, as_user, create_test_workbook, delete_users
-from insights.tests.permissions_utils import USER_1, USER_2, create_test_users
+from frappe.insights.doctype.insights_workbook.insights_workbook import import_workbook
+from frappe.insights.tests.base import InsightsIntegrationTestCase
+from frappe.insights.tests.factories import DT, as_user, create_test_workbook, delete_users
+from frappe.insights.tests.permissions_utils import USER_1, USER_2, create_test_users
 
 OWNER = USER_1
 IMPORTER = USER_2
@@ -524,9 +524,9 @@ class AWorkbookFileIncludesItsMembersAtTheTop(InsightsIntegrationTestCase):
         user pastes on the workbook list, before it asks to import it. The
         released version's Copy JSON writes the wrapped shape, as the sample file
         this app ships does."""
-        from insights.api.workbooks import is_workbook_file
+        from frappe.insights.api.workbooks import is_workbook_file
 
-        with open(frappe.get_app_path("insights", "setup", "sample_workbook.json")) as f:
+        with open(frappe.get_app_path("frappe", "insights", "setup", "sample_workbook.json")) as f:
             shipped = f.read()
 
         with as_user(OWNER):

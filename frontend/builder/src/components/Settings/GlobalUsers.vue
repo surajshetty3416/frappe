@@ -116,12 +116,12 @@ const inviteInputRef = ref<any>(null);
 const builderPath = router.options.history.base || "/builder";
 
 const builderUsers = createResource({
-	url: "builder.api.get_builder_users",
+	url: "frappe.builder.api.get_builder_users",
 	auto: true,
 });
 
 const pendingInvites = createResource({
-	url: "builder.api.get_pending_invitations",
+	url: "frappe.builder.api.get_pending_invitations",
 	auto: true,
 });
 

@@ -106,18 +106,18 @@ function makeChartPreview(chart: Chart, context?: ChartPreviewContext) {
 					),
 				}),
 			fetchData: (force, filterContext, page) =>
-				call('insights.api.authoring.get_chart_data', {
+				call('frappe.insights.api.authoring.get_chart_data', {
 					...request(filterContext),
 					force,
 					page,
 				}),
 			fetchCount: (filterContext, force) => {
 				const { page_size, ...args } = request(filterContext)
-				return call('insights.api.authoring.get_chart_count', { ...args, force })
+				return call('frappe.insights.api.authoring.get_chart_count', { ...args, force })
 			},
 			fetchExport: (format, filterContext) => {
 				const { page_size, ...args } = request(filterContext)
-				return call('insights.api.authoring.download_chart_rows', { ...args, format })
+				return call('frappe.insights.api.authoring.download_chart_rows', { ...args, format })
 			},
 			fetchDrillData: (drill_stack, filterContext, rendered) =>
 				fetchAuthoringDrillData(

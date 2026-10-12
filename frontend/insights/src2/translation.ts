@@ -49,7 +49,7 @@ export function translatedTable<T>(build: () => T): () => T {
 
 function fetchTranslations() {
 	createResource({
-		url: 'insights.api.translations.get_translations',
+		url: 'frappe.insights.api.translations.get_translations',
 		method: 'GET',
 		cache: 'translations',
 		auto: true,

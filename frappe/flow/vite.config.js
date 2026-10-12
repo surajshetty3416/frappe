@@ -20,7 +20,7 @@ export default defineConfig({
 				outDir: here("./flow/public/frontend"),
 				emptyOutDir: true,
 				indexHtmlPath: here("./flow/www/flow/index.html"),
-				baseUrl: "/assets/flow/frontend/",
+				baseUrl: "/assets/frappe/flow/frontend/",
 			},
 		}),
 		vue(),

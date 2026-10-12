@@ -22,7 +22,7 @@ function uploadFile(file: File) {
 	fileUploaded.value = true
 	csvData.loading = true
 	csvData.file = file
-	return call('insights.api.get_file_data', {
+	return call('frappe.insights.api.get_file_data', {
 		filename: file.name,
 	})
 		.then((data: any) => {
@@ -52,7 +52,7 @@ function importCSVData() {
 	if (!csvData.file) return
 
 	importing.value = true
-	return call('insights.api.import_csv_data', {
+	return call('frappe.insights.api.import_csv_data', {
 		filename: csvData.file.name,
 		tablename: csvData.tablename,
 	})

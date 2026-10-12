@@ -45,7 +45,7 @@ async function confirmCalculation() {
 	validationErrors.value = []
 	try {
 		const res: any = await cachedCall(
-			'insights.insights.doctype.insights_data_source_v3.ibis.utils.validate_expression',
+			'frappe.insights.doctype.insights_data_source_v3.ibis.utils.validate_expression',
 			{
 				expression: newMeasure.value.expression,
 				column_options: JSON.stringify(props.columnOptions),

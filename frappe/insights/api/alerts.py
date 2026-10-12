@@ -1,6 +1,6 @@
 import frappe
 
-from insights.decorators import insights_whitelist
+from frappe.insights.decorators import insights_whitelist
 
 
 @insights_whitelist()

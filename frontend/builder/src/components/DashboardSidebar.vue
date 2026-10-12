@@ -139,7 +139,7 @@ const { showTemplatesDialog } = useDashboardState();
 const renamingFolder = ref("");
 
 const apps = createResource({
-	url: "builder.api.get_apps",
+	url: "frappe.builder.api.get_apps",
 	cache: "other_apps",
 	auto: true,
 });
@@ -234,7 +234,7 @@ const deleteFolder = async (folderName: string) => {
 	);
 	if (!confirmed) return;
 	await createResource({
-		url: "builder.api.delete_folder",
+		url: "frappe.builder.api.delete_folder",
 		method: "POST",
 		params: {
 			folder_name: folderName,

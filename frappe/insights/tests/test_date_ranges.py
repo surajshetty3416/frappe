@@ -3,7 +3,7 @@ from unittest.mock import patch
 import ibis
 from frappe.utils.data import get_date_str, getdate
 
-from insights.insights.query_builders.sql_functions import (
+from frappe.insights.query_builders.sql_functions import (
     get_date_range,
     get_fiscal_year_start_date,
     get_window,
@@ -11,12 +11,12 @@ from insights.insights.query_builders.sql_functions import (
     shift_anchor,
     within_days,
 )
-from insights.tests.base import InsightsIntegrationTestCase
+from frappe.insights.tests.base import InsightsIntegrationTestCase
 
 # 2022-11-26 is a Saturday
-NOW = "insights.insights.query_builders.sql_functions.nowdate"
+NOW = "frappe.insights.query_builders.sql_functions.nowdate"
 
-ERPNEXT_FY = "insights.insights.query_builders.sql_functions.get_erpnext_fiscal_year_start"
+ERPNEXT_FY = "frappe.insights.query_builders.sql_functions.get_erpnext_fiscal_year_start"
 
 # 2026-08-10 is a Monday
 ANCHOR = getdate("2026-08-10")

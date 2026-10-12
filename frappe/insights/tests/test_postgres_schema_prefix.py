@@ -15,13 +15,13 @@ import frappe
 import pandas as pd
 from frappe.tests.utils import FrappeTestCase
 
-from insights.insights.doctype.insights_data_source_v3.connectors.frappe_db import (
+from frappe.insights.doctype.insights_data_source_v3.connectors.frappe_db import (
     get_frappedb_table_links,
 )
-from insights.insights.doctype.insights_data_source_v3.insights_data_source_v3 import (
+from frappe.insights.doctype.insights_data_source_v3.insights_data_source_v3 import (
     InsightsDataSourcev3,
 )
-from insights.insights.doctype.insights_table_v3.insights_table_v3 import (
+from frappe.insights.doctype.insights_table_v3.insights_table_v3 import (
     get_permitted_columns_for_table,
     strip_schema_prefix,
 )

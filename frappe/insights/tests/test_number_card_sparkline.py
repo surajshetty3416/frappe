@@ -8,9 +8,9 @@ runs nothing extra.
 
 import frappe
 
-from insights.insights.doctype.insights_data_source_v3.insights_data_source_v3 import db_connections
-from insights.tests.base import InsightsIntegrationTestCase
-from insights.tests.factories import DT, delete_workbooks
+from frappe.insights.doctype.insights_data_source_v3.insights_data_source_v3 import db_connections
+from frappe.insights.tests.base import InsightsIntegrationTestCase
+from frappe.insights.tests.factories import DT, delete_workbooks
 
 WORKBOOK_TITLE = "Sparkline Test Workbook"
 TODO_PREFIX = "Sparkline Test"

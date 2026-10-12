@@ -14,8 +14,7 @@ from pathlib import Path
 
 from frappe.tests import UnitTestCase
 
-import insights
-
+from frappe import insights
 APP = Path(insights.__file__).parent.parent
 
 

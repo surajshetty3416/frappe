@@ -1,8 +1,8 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and Contributors
 # See license.txt
-"""Tests for `insights.http`.
+"""Tests for `frappe.insights.http`.
 
-The point of the connect-time test below: `insights.http` reaches into private
+The point of the connect-time test below: `frappe.insights.http` reaches into private
 urllib3 API to check the address a socket actually opens on. If a urllib3
 upgrade renames `_new_conn`, the override binds to nothing, no error is raised,
 and the rebinding defence quietly stops existing. Only a test that drives a
@@ -16,7 +16,7 @@ from unittest.mock import patch
 
 from frappe.tests import UnitTestCase
 
-from insights.http import (
+from frappe.insights.http import (
     OutboundRequestRefused,
     PublicOnlyAdapter,
     post_to_public_url,
@@ -120,7 +120,7 @@ class TestPostToPublicUrl(UnitTestCase):
         the urllib3 override comes unstuck.
         """
         with (
-            patch("insights.http.validate_public_url"),
+            patch("frappe.insights.http.validate_public_url"),
             # Nothing should get this far. If it does, fail here rather than
             # open a socket to whatever is listening on the test machine.
             patch("urllib3.util.connection.create_connection", side_effect=OSError),

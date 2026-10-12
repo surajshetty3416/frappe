@@ -1,6 +1,6 @@
 import frappe
 
-from builder.builder.doctype.builder_page.builder_page import find_page_with_path
+from frappe.builder.doctype.builder_page.builder_page import find_page_with_path
 
 
 def get_context(context):

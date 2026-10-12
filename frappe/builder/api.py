@@ -20,10 +20,10 @@ from frappe.utils.safe_exec import NamespaceDict, get_safe_globals
 from PIL import Image
 from werkzeug.wrappers import Response
 
-from builder import builder_analytics
-from builder.builder.doctype.builder_page.builder_page import BuilderPageRenderer
-from builder.builder.doctype.builder_snapshot import builder_snapshot
-from builder.utils import compact_json, has_page_read, has_page_write, normalize_renamed_doc
+from frappe.builder import builder_analytics
+from frappe.builder.doctype.builder_page.builder_page import BuilderPageRenderer
+from frappe.builder.doctype.builder_snapshot import builder_snapshot
+from frappe.builder.utils import compact_json, has_page_read, has_page_write, normalize_renamed_doc
 
 
 @frappe.whitelist()
@@ -275,7 +275,7 @@ def convert_to_webp(image_url: str | None = None, file_doc: Document | None = No
 		return new_file.file_url
 
 	def handle_builder_asset(image_url: str) -> str:
-		image_path = os.path.abspath(frappe.get_app_path("builder", "www", image_url.lstrip("/")))
+		image_path = os.path.abspath(frappe.get_app_path("frappe", "www", image_url.lstrip("/")))
 		image_path = image_path.replace("_", "-").replace("/builder-assets", "/builder_assets")
 		extn = get_extension(image_path)
 		if not can_convert_image(extn):
@@ -401,7 +401,7 @@ def get_apps():
 	app_list = [
 		{
 			"name": "frappe",
-			"logo": "/assets/builder/images/desk.png",
+			"logo": "/assets/frappe/builder/images/desk.png",
 			"title": "Desk",
 			"route": "/app",
 		}
@@ -892,7 +892,7 @@ def reorder_client_scripts(script_order: list[str]):
 def get_component_data(
 	component_name: str, props: dict | str | None = None, script: str | None = None
 ) -> dict:
-	from builder.builder.doctype.builder_component.builder_component import (
+	from frappe.builder.doctype.builder_component.builder_component import (
 		get_component_data as _get_component_data,
 	)
 

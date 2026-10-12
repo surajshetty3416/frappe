@@ -16,7 +16,7 @@ import random
 import tempfile
 from datetime import datetime, timedelta
 
-from insights.setup.demo_data.spec import (
+from frappe.insights.setup.demo_data.spec import (
     DEMO_SPEC,
     After,
     Copy,

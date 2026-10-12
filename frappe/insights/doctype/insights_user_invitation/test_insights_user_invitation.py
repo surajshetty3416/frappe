@@ -13,8 +13,8 @@ from urllib.parse import quote
 import frappe
 from frappe.tests import IntegrationTestCase
 
-from insights.api.user import accept_invitation
-from insights.utils import get_app_url
+from frappe.insights.api.user import accept_invitation
+from frappe.insights.utils import get_app_url
 
 
 def make_invitation(email):
@@ -29,7 +29,7 @@ def make_invitation(email):
 class TestInvitationKeyIsStoredHashed(IntegrationTestCase):
     # @feature settings.invite-users
     def test_the_key_is_stored_hashed(self):
-        from insights.insights.doctype.insights_user_invitation.insights_user_invitation import hash_key
+        from frappe.insights.doctype.insights_user_invitation.insights_user_invitation import hash_key
 
         invitation = make_invitation("hashed-key@example.com")
         stored = frappe.db.get_value("Insights User Invitation", invitation.name, "key")
@@ -51,7 +51,7 @@ class TestInvitationKeyIsStoredHashed(IntegrationTestCase):
     # @feature settings.invite-users
     def test_the_stored_value_is_not_the_key(self):
         """What the row holds cannot be redeemed; what was mailed can."""
-        from insights.insights.doctype.insights_user_invitation.insights_user_invitation import (
+        from frappe.insights.doctype.insights_user_invitation.insights_user_invitation import (
             get_invitation_by_key,
         )
 

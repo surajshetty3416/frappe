@@ -12,7 +12,7 @@ convention.
 
 import frappe
 
-from builder.ai.agent.registry import Tool
+from frappe.builder.ai.agent.registry import Tool
 
 RESULT_LIMIT = 6000
 SAVEPOINT = "builder_ai_run_python"

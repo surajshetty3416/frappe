@@ -8,22 +8,22 @@ import frappe
 from frappe.handler import is_valid_http_method, is_whitelisted
 from frappe.monitor import add_data_to_monitor
 
-import insights
-from insights.decorators import insights_whitelist
-from insights.insights.doctype.insights_data_source_v3.ibis_utils import (
+from frappe import insights
+from frappe.insights.decorators import insights_whitelist
+from frappe.insights.doctype.insights_data_source_v3.ibis_utils import (
     get_columns_from_schema,
 )
-from insights.insights.doctype.insights_table_v3.insights_table_v3 import (
+from frappe.insights.doctype.insights_table_v3.insights_table_v3 import (
     InsightsTablev3,
 )
-from insights.insights.doctype.insights_team import insights_team
-from insights.insights.doctype.insights_team.insights_team import (
+from frappe.insights.doctype.insights_team import insights_team
+from frappe.insights.doctype.insights_team.insights_team import (
     check_data_source_permission,
 )
-from insights.insights.query_builders.sql_functions import get_fiscal_year_start_date
-from insights.permissions import can_download
-from insights.telemetry import get_entry
-from insights.utils import get_currency_symbols, get_owned_file
+from frappe.insights.query_builders.sql_functions import get_fiscal_year_start_date
+from frappe.insights.permissions import can_download
+from frappe.insights.telemetry import get_entry
+from frappe.insights.utils import get_currency_symbols, get_owned_file
 
 
 @insights_whitelist()
@@ -119,7 +119,7 @@ def get_user_info():
 
     has_demo_data = False
     if is_admin:
-        from insights.setup.setup_wizard import check_demo_data_exists
+        from frappe.insights.setup.setup_wizard import check_demo_data_exists
 
         has_demo_data = check_demo_data_exists()
 
@@ -245,7 +245,7 @@ def _read_uploaded_table(db, file_path: str, ext: str):
 
 
 # The Builder uses these two generic endpoints. A View does not: it goes
-# through `insights.api.view`, which checks `visibility`. So these grant only
+# through `frappe.insights.api.view`, which checks `visibility`. So these grant only
 # what the caller's own permissions allow, and guests cannot call them.
 
 

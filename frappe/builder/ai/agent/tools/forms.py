@@ -18,8 +18,8 @@ import re
 import frappe
 from frappe.model import child_table_fields, default_fields
 
-from builder.ai.agent import pending
-from builder.ai.agent.registry import Tool
+from frappe.builder.ai.agent import pending
+from frappe.builder.ai.agent.registry import Tool
 
 # Fieldtypes a public form can safely write. Anything else (Link, Table, Attach…)
 # is coerced to Data. Select is deliberately EXCLUDED: an HTML <select> submits its

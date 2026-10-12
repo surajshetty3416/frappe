@@ -9,7 +9,7 @@
 				width="250"
 				height="140"
 				:src="page.meta_image || page.preview"
-				onerror="this.src='/assets/builder/images/fallback.png'"
+				onerror="this.src='/assets/frappe/builder/images/fallback.png'"
 				alt=""
 				class="block aspect-video w-full overflow-hidden rounded-5 object-cover shadow dark:border dark:border-outline-gray-1" />
 			<div class="flex items-center gap-1">

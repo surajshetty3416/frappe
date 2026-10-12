@@ -1,7 +1,7 @@
 import frappe
 from frappe.tests.utils import FrappeTestCase
 
-from builder.ai.block_codec import BlockCodec
+from frappe.builder.ai.block_codec import BlockCodec
 
 
 def block(**overrides):

@@ -7,7 +7,7 @@ from frappe.utils import get_files_path
 from frappe.utils.caching import redis_cache
 from frappe.website.utils import clear_cache
 
-from builder.utils import has_page_read, has_page_write
+from frappe.builder.utils import has_page_read, has_page_write
 
 
 class BuilderSettings(Document):

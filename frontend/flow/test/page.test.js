@@ -58,13 +58,13 @@ const session = {
 	runs: [],
 };
 Object.assign(transport.answers, {
-	"flow.api.boot": boot,
-	"flow.api.list_sessions": [],
-	"flow.api.create_session": session,
-	"flow.api.session": session,
-	"flow.api.entries": { entries: [], latest_seq: 0, preview: [] },
-	"flow.api.run": { status: "running" },
-	"flow.api.skills": { skills: [] },
+	"frappe.flow.api.boot": boot,
+	"frappe.flow.api.list_sessions": [],
+	"frappe.flow.api.create_session": session,
+	"frappe.flow.api.session": session,
+	"frappe.flow.api.entries": { entries: [], latest_seq: 0, preview: [] },
+	"frappe.flow.api.run": { status: "running" },
+	"frappe.flow.api.skills": { skills: [] },
 });
 
 const called = (method) => transport.calls.some(([name]) => name === method);
@@ -86,9 +86,9 @@ test("the agent is picked in a palette, before the model, and a new chat starts 
 		app.unmount();
 		el.remove();
 	});
-	await until(() => called("flow.api.list_sessions"));
+	await until(() => called("frappe.flow.api.list_sessions"));
 	await nextTick();
-	assert.ok(!called("flow.api.boot"), "the page's own boot serves the first load");
+	assert.ok(!called("frappe.flow.api.boot"), "the page's own boot serves the first load");
 
 	assert.ok(el.textContent.includes("What can I help you with?"));
 	assert.equal(el.querySelector("textarea").placeholder, "Ask Flow…");
@@ -122,7 +122,7 @@ test("the agent is picked in a palette, before the model, and a new chat starts 
 	assert.equal(agent.textContent.trim(), "Reviewer");
 	// the skills a new chat may start follow the agent
 	await until(() =>
-		transport.calls.some(([name, a]) => name === "flow.api.skills" && a.agent === "reviewer")
+		transport.calls.some(([name, a]) => name === "frappe.flow.api.skills" && a.agent === "reviewer")
 	);
 	agent.click();
 	await nextTick();
@@ -134,9 +134,9 @@ test("the agent is picked in a palette, before the model, and a new chat starts 
 	textarea.dispatchEvent(new Event("input"));
 	await nextTick();
 	el.querySelector("button[title='Send']").click();
-	await until(() => called("flow.api.run"));
-	assert.equal(args("flow.api.create_session").agent, "reviewer");
-	assert.deepEqual(args("flow.api.run"), { session: "S1", message: "hi", attachments: [] });
+	await until(() => called("frappe.flow.api.run"));
+	assert.equal(args("frappe.flow.api.create_session").agent, "reviewer");
+	assert.deepEqual(args("frappe.flow.api.run"), { session: "S1", message: "hi", attachments: [] });
 	await nextTick();
 	assert.ok(agent.disabled, "the agent is fixed once the conversation starts");
 	assert.equal(agent.textContent.trim(), "Reviewer");
@@ -162,7 +162,7 @@ test("without a model the normal page shows the setup state and a disabled compo
 		app.unmount();
 		el.remove();
 	});
-	await until(() => called("flow.api.list_sessions"));
+	await until(() => called("frappe.flow.api.list_sessions"));
 	await nextTick();
 	assert.ok(el.querySelector("[data-stub=SetupState]"));
 	assert.ok(!el.textContent.includes("What can I help you with?"));
@@ -173,7 +173,7 @@ test("without a model the normal page shows the setup state and a disabled compo
 test("an explicit conversation URL opens even outside the recent session list", async (t) => {
 	await router.replace("/s/older");
 	transport.calls.length = 0;
-	transport.answers["flow.api.session"] = { ...session, name: "older" };
+	transport.answers["frappe.flow.api.session"] = { ...session, name: "older" };
 	const el = document.createElement("div");
 	document.body.append(el);
 	const app = createApp(FlowPage, { boot }).use(router);
@@ -182,12 +182,12 @@ test("an explicit conversation URL opens even outside the recent session list", 
 		app.unmount();
 		el.remove();
 	});
-	await until(() => called("flow.api.session") || routeChanged());
+	await until(() => called("frappe.flow.api.session") || routeChanged());
 	function routeChanged() {
 		return router.currentRoute.value.path !== "/s/older";
 	}
-	assert.equal(called("flow.api.session"), true);
-	assert.equal(args("flow.api.session").session, "older");
+	assert.equal(called("frappe.flow.api.session"), true);
+	assert.equal(args("frappe.flow.api.session").session, "older");
 	assert.equal(router.currentRoute.value.path, "/s/older");
 });
 
@@ -199,9 +199,9 @@ test("the chat list offers the next page on demand and asks for it past the last
 		model: "Sonnet",
 		modified: `t${100 - i}`,
 	}));
-	transport.answers["flow.api.list_sessions"] = (args) =>
+	transport.answers["frappe.flow.api.list_sessions"] = (args) =>
 		args.before ? [{ ...page[0], name: "OLD", title: "Older chat", modified: "t0" }] : page;
-	t.after(() => (transport.answers["flow.api.list_sessions"] = []));
+	t.after(() => (transport.answers["frappe.flow.api.list_sessions"] = []));
 	const el = document.createElement("div");
 	document.body.append(el);
 	const app = createApp(FlowPage, { boot }).use(router);
@@ -216,7 +216,7 @@ test("the chat list offers the next page on demand and asks for it past the last
 	loadMore().click();
 	await until(() => el.textContent.includes("Older chat"));
 	const paged = transport.calls.filter(
-		([name, a]) => name === "flow.api.list_sessions" && a.before
+		([name, a]) => name === "frappe.flow.api.list_sessions" && a.before
 	);
 	assert.deepEqual(
 		paged.map(([, a]) => a.before),
@@ -227,8 +227,8 @@ test("the chat list offers the next page on demand and asks for it past the last
 
 test("a chat the user may only view shows no composer", async (t) => {
 	await router.replace("/s/theirs");
-	transport.answers["flow.api.session"] = { ...session, name: "theirs", read_only: true };
-	t.after(() => (transport.answers["flow.api.session"] = session));
+	transport.answers["frappe.flow.api.session"] = { ...session, name: "theirs", read_only: true };
+	t.after(() => (transport.answers["frappe.flow.api.session"] = session));
 	const el = document.createElement("div");
 	document.body.append(el);
 	const app = createApp(FlowPage, { boot }).use(router);
@@ -267,8 +267,8 @@ test("the thumbs show under a finished run, but not in a chat the user may only 
 test("a chat opened from its link names no agent or model until it loads", async (t) => {
 	await router.replace("/s/slow");
 	let answer;
-	transport.answers["flow.api.session"] = () => new Promise((resolve) => (answer = resolve));
-	t.after(() => (transport.answers["flow.api.session"] = session));
+	transport.answers["frappe.flow.api.session"] = () => new Promise((resolve) => (answer = resolve));
+	t.after(() => (transport.answers["frappe.flow.api.session"] = session));
 	const el = document.createElement("div");
 	document.body.append(el);
 	const app = createApp(FlowPage, { boot }).use(router);
@@ -291,7 +291,7 @@ test("a chat opened from its link names no agent or model until it loads", async
 test("a chat picked in the sidebar shows its agent and model before it loads", async (t) => {
 	await router.replace("/");
 	let answer;
-	transport.answers["flow.api.list_sessions"] = [
+	transport.answers["frappe.flow.api.list_sessions"] = [
 		{
 			name: "listed",
 			title: "Listed chat",
@@ -300,10 +300,10 @@ test("a chat picked in the sidebar shows its agent and model before it loads", a
 			modified: "2026-10-09",
 		},
 	];
-	transport.answers["flow.api.session"] = () => new Promise((resolve) => (answer = resolve));
+	transport.answers["frappe.flow.api.session"] = () => new Promise((resolve) => (answer = resolve));
 	t.after(() => {
-		transport.answers["flow.api.list_sessions"] = [];
-		transport.answers["flow.api.session"] = session;
+		transport.answers["frappe.flow.api.list_sessions"] = [];
+		transport.answers["frappe.flow.api.session"] = session;
 	});
 	const el = document.createElement("div");
 	document.body.append(el);

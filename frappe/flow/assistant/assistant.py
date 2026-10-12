@@ -67,8 +67,8 @@ def ensure_builtin_assistant(model: str) -> None:
 
 def sync_builtin_assistant(model: str | None = None) -> None:
 	"""Ensure the system Assistant agent exists and is up-to-date. Called from after_migrate."""
-	from flow.lib.agent import Agent
-	from flow.tools.builtins import BUILTIN_TOOLS, sync_builtin_tools
+	from frappe.flow.lib.agent import Agent
+	from frappe.flow.tools.builtins import BUILTIN_TOOLS, sync_builtin_tools
 
 	sync_builtin_tools()
 

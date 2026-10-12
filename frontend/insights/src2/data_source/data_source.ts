@@ -9,7 +9,7 @@ const sources = ref<DataSourceListItem[]>([])
 const loading = ref(false)
 async function fetchSources() {
 	loading.value = true
-	sources.value = await call('insights.api.data_sources.get_all_data_sources')
+	sources.value = await call('frappe.insights.api.data_sources.get_all_data_sources')
 	sources.value = sources.value.map((source: any) => ({
 		...source,
 		created_from_now: useTimeAgo(source.creation),
@@ -26,7 +26,7 @@ function getSource(name: string) {
 const testing = ref(false)
 function testConnection(data_source: DataSource) {
 	testing.value = true
-	return call('insights.api.data_sources.test_connection', { data_source })
+	return call('frappe.insights.api.data_sources.test_connection', { data_source })
 		.catch((error: Error) => {
 			showErrorToast(error, false)
 		})
@@ -38,7 +38,7 @@ function testConnection(data_source: DataSource) {
 const creating = ref(false)
 function createDataSource(data_source: DataSource) {
 	creating.value = true
-	return call('insights.api.data_sources.create_data_source', { data_source })
+	return call('frappe.insights.api.data_sources.create_data_source', { data_source })
 		.then(() => {
 			fetchSources()
 		})
@@ -67,7 +67,7 @@ export function getDataSourceOptions() {
 }
 
 function getSchema(data_source: string) {
-	return call('insights.api.data_sources.get_schema', { data_source })
+	return call('frappe.insights.api.data_sources.get_schema', { data_source })
 }
 
 export default function useDataSourceStore() {

@@ -18,14 +18,14 @@ of its own, so this endpoint is closed to anyone without an Insights role.
 Two things are checked: the `Insights User` role `insights_whitelist` requires,
 and read on the source query, because naming a query is how this endpoint says
 what to run. A caller who names a saved chart they may not write is not its
-writer (`is_writer`). `insights.api.view` answers them, as it answers every
+writer (`is_writer`). `frappe.insights.api.view` answers them, as it answers every
 reader of the chart.
 
 The caller already holds the role that lets them build any query, so a pipeline
 they send is one they could have run anyway.
 
 The named chart, not the caller, decides whose permissions the engine applies.
-This module enters `permission_user.runs_as` exactly as `insights.api.view`
+This module enters `permission_user.runs_as` exactly as `frappe.insights.api.view`
 does, so the Builder and a reader's card always agree about one chart.
 """
 
@@ -33,10 +33,10 @@ import frappe
 from frappe import _
 from frappe.utils import getdate
 
-from insights import user_permissions
-from insights.api import view
-from insights.decorators import insights_whitelist
-from insights.insights.doctype.insights_chart_v3.chart_drill import (
+from frappe.insights import user_permissions
+from frappe.insights.api import view
+from frappe.insights.decorators import insights_whitelist
+from frappe.insights.doctype.insights_chart_v3.chart_drill import (
     asks_for_rows,
     drill_data,
     drill_dimensions,
@@ -44,21 +44,21 @@ from insights.insights.doctype.insights_chart_v3.chart_drill import (
     drill_rows_range,
     drill_rows_values,
 )
-from insights.insights.doctype.insights_chart_v3.chart_query import (
+from frappe.insights.doctype.insights_chart_v3.chart_query import (
     column_granularity,
     config_errors,
 )
-from insights.insights.doctype.insights_chart_v3.record_link import record_links
-from insights.insights.doctype.insights_dashboard_v3.insights_dashboard_v3 import (
+from frappe.insights.doctype.insights_chart_v3.record_link import record_links
+from frappe.insights.doctype.insights_dashboard_v3.insights_dashboard_v3 import (
     can_filter_card,
     route_card_filters,
     route_filters,
     routed_filter_links,
 )
-from insights.insights.query_builders.sql_functions import reading_day
-from insights.not_permitted import answers_refusal
-from insights.permission_user import runs_as
-from insights.permissions import can_export, can_read_rows, can_write
+from frappe.insights.query_builders.sql_functions import reading_day
+from frappe.insights.not_permitted import answers_refusal
+from frappe.insights.permission_user import runs_as
+from frappe.insights.permissions import can_export, can_read_rows, can_write
 
 CHART = "Insights Chart v3"
 QUERY = "Insights Query v3"
@@ -87,7 +87,7 @@ def get_chart_data(
 
     A card on the builder's dashboard grid also sends `dashboard_items`, the
     `filters` state and the `chart_name` those items link by. Routing them is
-    `route_filters`' job, the same one `insights.api.view` calls for a saved
+    `route_filters`' job, the same one `frappe.insights.api.view` calls for a saved
     dashboard. The builder is editing items it has not saved, which is the only
     reason it sends them rather than naming a dashboard. It does not widen this
     endpoint: what comes back are filters keyed by the queries the links name,
@@ -193,7 +193,7 @@ def get_chart_count(
 ):
     """The total number of rows behind the pages of `get_chart_data`, under the same filters.
 
-    A caller who is not the author counts the saved chart through `insights.api.view`.
+    A caller who is not the author counts the saved chart through `frappe.insights.api.view`.
     """
     if not is_writer(chart_name):
         return view.get_chart_count(
@@ -222,7 +222,7 @@ def download_chart_rows(
 ):
     """Every row behind the pages of `get_chart_data` as a file, under the same filters.
 
-    A caller who is not the author downloads the saved chart through `insights.api.view`.
+    A caller who is not the author downloads the saved chart through `frappe.insights.api.view`.
     """
     if not is_writer(chart_name):
         return view.download_chart_rows(
@@ -261,7 +261,7 @@ def get_drill_data(
     table, the `operations` it is editing. Neither exists as a document yet,
     which is why this endpoint exists.
 
-    A rows level is read here as `insights.api.view` reads one, with the
+    A rows level is read here as `frappe.insights.api.view` reads one, with the
     reader's `sort`, `find`, `page` and `row_filters`. The answer also includes
     the cut pipeline, because "open as query" adds the level to the workbook as
     a new query. A View must never receive that field (see the module
@@ -272,7 +272,7 @@ def get_drill_data(
     component as a View.
 
     A caller who is not the author of the chart they name drills it as a
-    reader, through `insights.api.view`.
+    reader, through `frappe.insights.api.view`.
     """
     if not is_writer(chart_name):
         return view.get_drill_data(

@@ -5,8 +5,8 @@ this is what it is given. What it needs from the site is the `Site DB` data
 source and the doctypes it names.
 """
 
-from insights.insights.doctype.insights_chart_v3.record_link import record_links
-from insights.tests.base import InsightsIntegrationTestCase
+from frappe.insights.doctype.insights_chart_v3.record_link import record_links
+from frappe.insights.tests.base import InsightsIntegrationTestCase
 
 
 def source(table_name="tabToDo"):

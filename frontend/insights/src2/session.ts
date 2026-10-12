@@ -93,7 +93,7 @@ async function initialize(force: boolean = false) {
 
 async function fetchSessionInfo() {
 	if (!session.isLoggedIn) return
-	const userInfo: SessionUser = await call('insights.api.get_user_info')
+	const userInfo: SessionUser = await call('frappe.insights.api.get_user_info')
 	Object.assign(session.user, {
 		...userInfo,
 		is_admin: Boolean(userInfo.is_admin),
@@ -106,7 +106,7 @@ async function fetchSessionInfo() {
 }
 
 async function fetchSiteInfo() {
-	const siteInfo: SiteInfo = await call('insights.api.get_site_info')
+	const siteInfo: SiteInfo = await call('frappe.insights.api.get_site_info')
 	Object.assign(session.site, siteInfo)
 }
 

@@ -2,13 +2,13 @@ from unittest.mock import patch
 
 import frappe
 
-from insights.permissions import (
+from frappe.insights.permissions import (
     VISIBILITY_LEVELS,
     get_permission_query_conditions,
     has_doc_permission,
 )
-from insights.tests.base import InsightsIntegrationTestCase
-from insights.tests.factories import (
+from frappe.insights.tests.base import InsightsIntegrationTestCase
+from frappe.insights.tests.factories import (
     DT,
     create_test_chart,
     create_test_dashboard,

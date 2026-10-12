@@ -20,8 +20,8 @@ import frappe
 from frappe import _
 from frappe.permissions import has_user_permission
 
-from insights.not_permitted import has_permitted_chart
-from insights.permissions import has_doc_permission
+from frappe.insights.not_permitted import has_permitted_chart
+from frappe.insights.permissions import has_doc_permission
 
 DASHBOARD = "Insights Dashboard v3"
 CHART = "Insights Chart v3"

@@ -3,7 +3,7 @@ from types import SimpleNamespace
 import frappe
 from frappe.tests.utils import FrappeTestCase
 
-from builder.ai.agent.tools.scripts import apply_attach_page_script
+from frappe.builder.ai.agent.tools.scripts import apply_attach_page_script
 
 
 def make_page():

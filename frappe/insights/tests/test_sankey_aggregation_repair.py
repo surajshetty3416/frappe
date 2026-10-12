@@ -10,8 +10,8 @@ every ribbon to width 1. See
 import frappe
 
 from insights.patches.repair_sankey_value_aggregation import execute as repair
-from insights.tests.base import InsightsIntegrationTestCase
-from insights.tests.factories import DT, create_test_workbook
+from frappe.insights.tests.base import InsightsIntegrationTestCase
+from frappe.insights.tests.factories import DT, create_test_workbook
 
 OWNER = "Administrator"
 WORKBOOK_TITLE = "Sankey Repair Test Workbook"

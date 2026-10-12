@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 from frappe.tests.utils import FrappeTestCase
 
-from builder.ai.agent.tools.web import (
+from frappe.builder.ai.agent.tools.web import (
 	MAX_RESEARCH_PER_TURN,
 	MAX_URL_READS_PER_TURN,
 	extract_title,
@@ -62,7 +62,7 @@ class TestReadUrl(FrappeTestCase):
 
 class TestResearch(FrappeTestCase):
 	def test_uses_the_online_variant_of_the_loop_model(self):
-		with patch("builder.ai.llm.complete", return_value="- Finding (https://src)") as complete:
+		with patch("frappe.builder.ai.llm.complete", return_value="- Finding (https://src)") as complete:
 			out = run_research(ctx(), {"question": "What are Café Nine's opening hours?"})
 
 		self.assertEqual(out, "- Finding (https://src)")
@@ -82,7 +82,7 @@ class TestResearch(FrappeTestCase):
 
 class TestPinnedUrl(FrappeTestCase):
 	def test_dials_the_ip_and_keeps_the_host_header(self):
-		from builder.ai.agent.tools.web import pinned_url
+		from frappe.builder.ai.agent.tools.web import pinned_url
 
 		self.assertEqual(
 			pinned_url("https://example.com/a?b=1", "93.184.216.34"),
@@ -90,7 +90,7 @@ class TestPinnedUrl(FrappeTestCase):
 		)
 
 	def test_brackets_ipv6_and_keeps_ports(self):
-		from builder.ai.agent.tools.web import pinned_url
+		from frappe.builder.ai.agent.tools.web import pinned_url
 
 		self.assertEqual(
 			pinned_url("http://example.com:8080/x", "2606:2800:220:1::1"),

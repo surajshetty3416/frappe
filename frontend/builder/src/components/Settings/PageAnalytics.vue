@@ -47,8 +47,8 @@ const {
 	ctr,
 	ctrData,
 } = useAnalytics({
-	apiUrl: "builder.api.get_page_analytics",
-	ctrApiUrl: "builder.api.get_page_ctr",
+	apiUrl: "frappe.builder.api.get_page_analytics",
+	ctrApiUrl: "frappe.builder.api.get_page_ctr",
 	initialRange: "last_30_days",
 	initialRouteFilterType: "exact",
 	initialRoute: pageStore.getResolvedPageURL(false),

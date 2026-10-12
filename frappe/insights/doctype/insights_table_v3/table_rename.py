@@ -10,8 +10,8 @@ the record that already holds the new name, and rewrites the referrers either wa
 
 import frappe
 
-import insights
-from insights.insights.doctype.insights_table_v3.insights_table_v3 import get_table_name
+from frappe import insights
+from frappe.insights.doctype.insights_table_v3.insights_table_v3 import get_table_name
 
 # How a person asked for the table to be imported. A merge keeps these whatever happens to
 # the Data Store copy. Nothing else holds them, and only a person can type them again.
@@ -74,7 +74,7 @@ def clear_permission_caches() -> None:
     built from `get_cached_doc("Insights Team", ...)`, which holds the grant rows
     themselves. `Insights Team.on_change` clears both, and nothing here saves a team.
     """
-    from insights.insights.doctype.insights_team.insights_team import clear_cache
+    from frappe.insights.doctype.insights_team.insights_team import clear_cache
 
     # no name clears every team in one pass, so no team has to be read to be cleared
     frappe.clear_document_cache("Insights Team")
@@ -205,7 +205,7 @@ def move_grants(old_name: str, new_name: str) -> None:
 
 
 def rename_warehouse_table(data_source: str, old_table: str, new_table: str) -> bool:
-    from insights.insights.doctype.insights_data_source_v3.data_warehouse import (
+    from frappe.insights.doctype.insights_data_source_v3.data_warehouse import (
         get_warehouse_schema_name,
         quote_identifier,
     )

@@ -145,7 +145,7 @@
 					fileTypes="image/*"
 					:private="false"
 					folder="Home/Builder Uploads"
-					uploadEndpoint="/api/method/builder.api.upload_builder_asset"
+					uploadEndpoint="/api/method/frappe.builder.api.upload_builder_asset"
 					@success="(file: any) => (uploads[i] = file.file_url)">
 					<template #default="{ openFileSelector, uploading, progress }">
 						<div class="flex items-center gap-2">

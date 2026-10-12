@@ -9,12 +9,12 @@ proven here is that it names them right.
 
 import frappe
 
-from insights.api.authoring import get_chart_data as get_authoring_chart_data
-from insights.api.view import get_chart_data, get_drill_data
-from insights.insights.doctype.insights_data_source_v3.insights_data_source_v3 import db_connections
-from insights.insights.query_builders.sql_functions import read_on
-from insights.tests.base import InsightsIntegrationTestCase
-from insights.tests.factories import DT, delete_workbooks
+from frappe.insights.api.authoring import get_chart_data as get_authoring_chart_data
+from frappe.insights.api.view import get_chart_data, get_drill_data
+from frappe.insights.doctype.insights_data_source_v3.insights_data_source_v3 import db_connections
+from frappe.insights.query_builders.sql_functions import read_on
+from frappe.insights.tests.base import InsightsIntegrationTestCase
+from frappe.insights.tests.factories import DT, delete_workbooks
 
 WORKBOOK_TITLE = "Comparison Rows Test Workbook"
 TODO_PREFIX = "Comparison Rows Test"

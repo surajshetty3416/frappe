@@ -49,6 +49,6 @@ def slugify(value: str) -> str:
 
 
 def clear_registry_cache() -> None:
-	from builder.ai.models import ModelRegistry
+	from frappe.builder.ai.models import ModelRegistry
 
 	ModelRegistry.clear_cache()

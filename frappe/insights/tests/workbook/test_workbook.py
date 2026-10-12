@@ -1,6 +1,6 @@
 import frappe
 
-from insights.api.workbooks import (
+from frappe.insights.api.workbooks import (
     create_folder,
     delete_folder,
     get_share_permissions,
@@ -10,9 +10,9 @@ from insights.api.workbooks import (
     update_share_permissions,
     update_sort_orders,
 )
-from insights.tests.base import InsightsIntegrationTestCase
-from insights.tests.factories import DT, USER_1, create_test_user, delete_users
-from insights.tests.workbook_utils import (
+from frappe.insights.tests.base import InsightsIntegrationTestCase
+from frappe.insights.tests.factories import DT, USER_1, create_test_user, delete_users
+from frappe.insights.tests.workbook_utils import (
     cleanup_test_workbooks,
     create_workbook_bundle,
     get_doc,

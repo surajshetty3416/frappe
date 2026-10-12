@@ -273,7 +273,7 @@ def is_standard_member(doc) -> bool:
 def is_read_only(workbook: str | None) -> bool:
     """Whether the site may change `workbook` and what is in it.
 
-    The part of `insights.permissions.can_write` that depends on the site, not
+    The part of `frappe.insights.permissions.can_write` that depends on the site, not
     the caller.
     """
     if not workbook or frappe.conf.developer_mode:

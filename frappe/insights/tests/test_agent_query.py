@@ -1,6 +1,6 @@
 """What an agent reads when it runs a query or profiles its column, saved or not.
 
-Both are query document methods, so they run through `insights.api.run_doc_method`
+Both are query document methods, so they run through `frappe.insights.api.run_doc_method`
 like the Builder's own calls: on the stored query, or on a pipeline sent under a
 `new-` name. Either way they read what the query would read, and are refused what
 the query would be refused.
@@ -11,18 +11,18 @@ from unittest.mock import patch
 import frappe
 from frappe.utils import set_request
 
-from insights.api import run_doc_method
-from insights.exceptions import TableNotStored, UnknownColumn
-from insights.insights.doctype.insights_data_source_v3.data_warehouse import WarehouseTable
-from insights.insights.doctype.insights_data_source_v3.insights_data_source_v3 import (
+from frappe.insights.api import run_doc_method
+from frappe.insights.exceptions import TableNotStored, UnknownColumn
+from frappe.insights.doctype.insights_data_source_v3.data_warehouse import WarehouseTable
+from frappe.insights.doctype.insights_data_source_v3.insights_data_source_v3 import (
     InsightsDataSourcev3,
     db_connections,
 )
-from insights.insights.doctype.insights_query_v3 import insights_query_v3
-from insights.not_permitted import NotPermitted
-from insights.tests.base import InsightsIntegrationTestCase
-from insights.tests.factories import DT, create_test_query, create_test_workbook
-from insights.tests.permissions_utils import (
+from frappe.insights.doctype.insights_query_v3 import insights_query_v3
+from frappe.insights.not_permitted import NotPermitted
+from frappe.insights.tests.base import InsightsIntegrationTestCase
+from frappe.insights.tests.factories import DT, create_test_query, create_test_workbook
+from frappe.insights.tests.permissions_utils import (
     NON_INSIGHTS_USER,
     USER_1,
     USER_2,
@@ -104,7 +104,7 @@ class TestAgentQuery(InsightsIntegrationTestCase):
 
     def before_test(self):
         self.set_team_permissions(0)
-        set_request(method="GET", path="/api/method/insights.api.run_doc_method")
+        set_request(method="GET", path="/api/method/frappe.insights.api.run_doc_method")
 
     def call_as(self, user, method, operations=None, query=None, use_live_connection=1, **args):
         """What an agent gets through `run_doc_method`: on the stored `query`, or
@@ -202,7 +202,7 @@ class TestAgentQuery(InsightsIntegrationTestCase):
     # @feature data-store.run-without-import
     def test_a_source_other_than_the_site_database_is_named_not_stored_without_a_live_read(self):
         WarehouseTable("Site DB", "tabToDo").drop()
-        not_site_db = "insights.insights.doctype.insights_table_v3.insights_table_v3.is_site_db"
+        not_site_db = "frappe.insights.doctype.insights_table_v3.insights_table_v3.is_site_db"
 
         with (
             patch(not_site_db, return_value=False),

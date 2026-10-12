@@ -11,10 +11,10 @@ column, so they list no values rather than refusing a reader mid-action.
 
 import frappe
 
-from insights.api.view import get_card_range, get_card_values
-from insights.insights.doctype.insights_data_source_v3.insights_data_source_v3 import db_connections
-from insights.tests.base import InsightsIntegrationTestCase
-from insights.tests.factories import DT, as_user, create_user, delete_users, delete_workbooks
+from frappe.insights.api.view import get_card_range, get_card_values
+from frappe.insights.doctype.insights_data_source_v3.insights_data_source_v3 import db_connections
+from frappe.insights.tests.base import InsightsIntegrationTestCase
+from frappe.insights.tests.factories import DT, as_user, create_user, delete_users, delete_workbooks
 
 AUTHOR = "card_filter_author@test.com"
 

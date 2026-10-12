@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 from frappe.tests.utils import FrappeTestCase
 
-from builder.ai.agent.artifact import brief_image_parts, image_url_resolves, reference_geometry
+from frappe.builder.ai.agent.artifact import brief_image_parts, image_url_resolves, reference_geometry
 
 PUBLIC = "https://cdn.example.com/hero.png"
 PRIVATE = "https://internal.example.com/hero.png"
@@ -19,15 +19,15 @@ class Response:
 
 
 def responding(status_code=200):
-	return patch("builder.ai.agent.artifact.requests.head", return_value=Response(status_code))
+	return patch("frappe.builder.ai.agent.artifact.requests.head", return_value=Response(status_code))
 
 
 def allowing():
-	return patch("builder.ai.agent.artifact.assert_not_private_url")
+	return patch("frappe.builder.ai.agent.artifact.assert_not_private_url")
 
 
 def blocking():
-	return patch("builder.ai.agent.artifact.assert_not_private_url", side_effect=Exception("private"))
+	return patch("frappe.builder.ai.agent.artifact.assert_not_private_url", side_effect=Exception("private"))
 
 
 class TestImageUrlResolves(FrappeTestCase):
@@ -55,7 +55,7 @@ class TestImageUrlResolves(FrappeTestCase):
 		with (
 			allowing(),
 			responding(405),
-			patch("builder.ai.agent.artifact.requests.get", return_value=Response(200)) as get,
+			patch("frappe.builder.ai.agent.artifact.requests.get", return_value=Response(200)) as get,
 		):
 			self.assertTrue(image_url_resolves(PUBLIC))
 

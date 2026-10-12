@@ -225,7 +225,7 @@ def execute(query_name, page_size=5):
 
 def run_chart(chart_name):
     """Run a saved chart. Saving does not validate its config, so this is the only check."""
-    return call("method", "call", "insights.api.view.get_chart_data", "-F", f"chart={chart_name}")
+    return call("method", "call", "frappe.insights.api.view.get_chart_data", "-F", f"chart={chart_name}")
 
 
 # --------------------------------------------------------------------------
@@ -233,8 +233,8 @@ def run_chart(chart_name):
 # way the Builder runs one. It writes nothing, so a read-only profile runs it too.
 # --------------------------------------------------------------------------
 
-RUN_DOC_METHOD = "insights.api.run_doc_method"
-VERIFY_WORKBOOK = "insights.api.ai.verify.verify_workbook"
+RUN_DOC_METHOD = "frappe.insights.api.run_doc_method"
+VERIFY_WORKBOOK = "frappe.insights.api.ai.verify.verify_workbook"
 # the query method profile_column arrived with verify_workbook
 PROFILE_COLUMN = VERIFY_WORKBOOK
 # `execute` answers 10,000 rows at most, and a run asks for one more than the page
@@ -895,7 +895,7 @@ def verify_locally():
     stored = {
         (t["data_source"], t["table_name"])
         for t in (
-            call("method", "call", "insights.api.data_store.get_data_store_tables", "-F", "limit=1000") or []
+            call("method", "call", "frappe.insights.api.data_store.get_data_store_tables", "-F", "limit=1000") or []
         )
     }
     operations_by_query = {q["name"]: q["operations"] for q in queries}

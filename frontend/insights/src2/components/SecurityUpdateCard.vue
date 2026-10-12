@@ -16,7 +16,7 @@ type SecurityUpdate = {
 const update = ref<SecurityUpdate | null>(null)
 watchEffect(async () => {
 	if (!session.user.is_admin) return
-	update.value = await call('insights.api.get_security_update')
+	update.value = await call('frappe.insights.api.get_security_update')
 })
 
 // per version, so the next release with fixes shows again

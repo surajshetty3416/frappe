@@ -8,17 +8,17 @@ from unittest.mock import patch
 import frappe
 from frappe.tests import IntegrationTestCase
 
-from flow import api
-from flow.api import attach_file, cleanup_attachments, submit_feedback
-from flow.daemon.client import DaemonClient
-from flow.flow.doctype.flow_session.flow_session import FlowSession
-from flow.flow.doctype.flow_session_attachment.test_flow_session_attachment import png_bytes
-from flow.lib.session import new_session
-from flow.memory import store as memory_store
-from flow.permissions import FLOW_USER_ROLE
-from flow.tests.test_fake_daemon import FakeDaemon, child_pause, pause
-from flow.tests.test_live_server import LiveServerCase
-from flow.tools.builtins import sync_builtin_tools
+from frappe.flow import api
+from frappe.flow.api import attach_file, cleanup_attachments, submit_feedback
+from frappe.flow.daemon.client import DaemonClient
+from frappe.flow.doctype.flow_session.flow_session import FlowSession
+from frappe.flow.doctype.flow_session_attachment.test_flow_session_attachment import png_bytes
+from frappe.flow.lib.session import new_session
+from frappe.flow.memory import store as memory_store
+from frappe.flow.permissions import FLOW_USER_ROLE
+from frappe.flow.tests.test_fake_daemon import FakeDaemon, child_pause, pause
+from frappe.flow.tests.test_live_server import LiveServerCase
+from frappe.flow.tools.builtins import sync_builtin_tools
 
 OTHER = "api-other-user@example.com"
 MANAGER = "api-manager@example.com"
@@ -57,7 +57,7 @@ class TestAttachFile(IntegrationTestCase):
 		).insert()
 
 	def test_attach_file_returns_chip_metadata_and_stages_text(self):
-		from flow.flow.doctype.flow_session_attachment.flow_session_attachment import staged_attachment
+		from frappe.flow.doctype.flow_session_attachment.flow_session_attachment import staged_attachment
 
 		file_doc = self._file()
 		chip = attach_file(file_doc.name)
@@ -81,11 +81,11 @@ class TestAttachFile(IntegrationTestCase):
 			attach_file("   ")
 
 	def test_attach_file_stages_an_image_without_ocr_when_no_model_rules_it_out(self):
-		from flow.flow.doctype.flow_session_attachment.flow_session_attachment import staged_attachment
+		from frappe.flow.doctype.flow_session_attachment.flow_session_attachment import staged_attachment
 
 		file_doc = self._file(file_name="pic.png", content=png_bytes())
 		with patch(
-			"flow.flow.doctype.flow_session_attachment.flow_session_attachment.extract_file"
+			"frappe.flow.doctype.flow_session_attachment.flow_session_attachment.extract_file"
 		) as extract:
 			self.assertEqual(attach_file(file_doc.name)["file_name"], "pic.png")
 		extract.assert_not_called()
@@ -95,7 +95,7 @@ class TestAttachFile(IntegrationTestCase):
 
 	def test_attach_file_hands_the_pickers_model_to_staging(self):
 		with patch(
-			"flow.flow.doctype.flow_session_attachment.flow_session_attachment.stage_attachment",
+			"frappe.flow.doctype.flow_session_attachment.flow_session_attachment.stage_attachment",
 			return_value={},
 		) as stage:
 			attach_file(" F ", "GPT")
@@ -256,7 +256,7 @@ class ApiCase(IntegrationTestCase):
 	def setUp(self):
 		sync_builtin_tools()
 		self.enterContext(patch.dict(frappe.local.conf, {"flow_server_secret": "site-token"}))
-		self.enterContext(patch("flow.lib.model.resolve_provider_credentials", return_value={}))
+		self.enterContext(patch("frappe.flow.lib.model.resolve_provider_credentials", return_value={}))
 		self.daemon = FakeDaemon()
 		self.enterContext(patch.object(DaemonClient, "for_site", return_value=self.daemon))
 		self.model = frappe.get_doc(_model_doc(title="Endpoint Model")).insert()
@@ -276,7 +276,7 @@ class ApiCase(IntegrationTestCase):
 class TestSessionEndpoints(ApiCase):
 	def test_every_endpoint_is_whitelisted(self):
 		for name in api.__all__:
-			frappe.is_whitelisted(frappe.get_attr(f"flow.api.{name}"))
+			frappe.is_whitelisted(frappe.get_attr(f"frappe.flow.api.{name}"))
 
 	def test_boot_lists_enabled_agents_and_models(self):
 		hidden = frappe.get_doc(_agent_doc(self.model.name, title="Hidden Agent", enabled=0)).insert()
@@ -376,7 +376,7 @@ class TestSessionEndpoints(ApiCase):
 		self.assertFalse(frappe.db.exists("Flow Session Attachment", {"parent": name, "file": file.name}))
 
 	def test_create_session_defaults_to_the_assistant(self):
-		from flow.assistant import ASSISTANT_AGENT_TITLE, sync_builtin_assistant
+		from frappe.flow.assistant import ASSISTANT_AGENT_TITLE, sync_builtin_assistant
 
 		sync_builtin_assistant(self.model.name)
 		self.assertEqual(api.create_session()["agent"], ASSISTANT_AGENT_TITLE)
@@ -654,7 +654,7 @@ class TestSessionEndpoints(ApiCase):
 
 	def test_delete_session_removes_the_session_and_its_server_copy(self):
 		name = self.create()
-		with patch("flow.knowledge.attachment_store.delete"):
+		with patch("frappe.flow.knowledge.attachment_store.delete"):
 			self.assertEqual(api.delete_session(name), {"status": "deleted"})
 		self.assertFalse(frappe.db.exists("Flow Session", name))
 		self.assertIn(("delete_session", name), self.daemon.calls)
@@ -663,7 +663,7 @@ class TestSessionEndpoints(ApiCase):
 class TestLiveEndpoints(LiveServerCase):
 	def test_a_run_returns_its_placeholder_and_a_terminal_sync_completes_it(self):
 		name = api.create_session(self.agent.name)["name"]
-		started = frappe.call("flow.api.run", session=name, message="hello there")
+		started = frappe.call("frappe.flow.api.run", session=name, message="hello there")
 		self.assertEqual(started["status"], "started")
 		self.assertEqual(frappe.db.get_value("Flow Run", started["run"], "status"), "Running")
 

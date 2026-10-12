@@ -121,7 +121,7 @@ A filter item declares `links`: which charts it affects and, per chart, which **
 
 ### Run a chart under the dashboard filters
 
-`insights.api.view.get_chart_data` takes the filter state as `filters`, keyed by filter name, one `{"operator", "value"}` per filter. It routes that state through the dashboard's links, so it needs `dashboard`. Without `dashboard` it ignores `filters`, and the chart runs unfiltered.
+`frappe.insights.api.view.get_chart_data` takes the filter state as `filters`, keyed by filter name, one `{"operator", "value"}` per filter. It routes that state through the dashboard's links, so it needs `dashboard`. Without `dashboard` it ignores `filters`, and the chart runs unfiltered.
 
 ```sh
 frappectl -s $SITE method call insights.api.view.get_chart_data -F chart=<chart> -F dashboard=<dashboard> \

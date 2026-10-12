@@ -4,7 +4,7 @@ import { toast } from "frappe-ui";
 import { __ } from "@/translation";
 import { getErrorMessage } from "@/utils/helpers";
 
-const API = "builder.domain";
+const API = "frappe.builder.domain";
 
 export function useDomains() {
 	const domains = ref<any[]>([]);

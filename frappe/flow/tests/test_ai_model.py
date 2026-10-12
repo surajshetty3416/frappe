@@ -4,7 +4,7 @@
 import frappe
 from frappe.tests import IntegrationTestCase
 
-from flow.lib.model import model_config
+from frappe.flow.lib.model import model_config
 
 
 class TestModelConfig(IntegrationTestCase):

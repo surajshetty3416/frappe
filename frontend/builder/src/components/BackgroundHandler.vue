@@ -62,7 +62,7 @@
 					:private="false"
 					folder="Home/Builder Uploads"
 					:optimize="true"
-					uploadEndpoint="/api/method/builder.api.upload_builder_asset">
+					uploadEndpoint="/api/method/frappe.builder.api.upload_builder_asset">
 					<template v-slot="{ openFileSelector }">
 						<div class="space-y-3">
 							<TabButtons

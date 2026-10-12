@@ -1,6 +1,6 @@
 """A document method is decided against the stored document.
 
-`insights.api.run_doc_method` builds the document it runs from the request body,
+`frappe.insights.api.run_doc_method` builds the document it runs from the request body,
 so the body cannot also be what says who may run the method. Every rule here
 names a stored document and then sends a body that claims otherwise.
 """
@@ -8,15 +8,15 @@ names a stored document and then sends a body that claims otherwise.
 import frappe
 from frappe.utils import set_request
 
-from insights.api import run_doc_method
-from insights.tests.base import InsightsIntegrationTestCase
-from insights.tests.factories import (
+from frappe.insights.api import run_doc_method
+from frappe.insights.tests.base import InsightsIntegrationTestCase
+from frappe.insights.tests.factories import (
     DT,
     create_test_query,
     create_test_workbook,
     delete_users,
 )
-from insights.tests.permissions_utils import USER_1, USER_2, create_test_users
+from frappe.insights.tests.permissions_utils import USER_1, USER_2, create_test_users
 
 OWNER = USER_1
 OTHER = USER_2
@@ -43,7 +43,7 @@ class StoredDocumentDecides:
     def before_test(self):
         self.set_team_permissions(self.ENABLE_PERMISSIONS)
         # the method surface reads the request to check the HTTP verb
-        set_request(method="POST", path="/api/method/insights.api.run_doc_method")
+        set_request(method="POST", path="/api/method/frappe.insights.api.run_doc_method")
 
     def export_workbook(self, name, **claims):
         return run_doc_method("export", {"doctype": DT.WORKBOOK, "name": name, **claims})
@@ -119,7 +119,7 @@ class StoredDocumentDecides:
 
         A guest holds no permission on the doctype and no Insights role, so the
         call fails before a document is built. A guest reads only through
-        `insights.api.view`.
+        `frappe.insights.api.view`.
         """
         with self.as_user("Guest"), self.assertRaises(frappe.PermissionError):
             run_doc_method(

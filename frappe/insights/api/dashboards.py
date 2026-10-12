@@ -1,15 +1,15 @@
 import frappe
 from frappe.query_builder.functions import Count
 
-from insights.api.list_filters import (
+from frappe.insights.api.list_filters import (
     get_content_filters,
     get_last_opened,
     get_source_filters,
     match_records,
 )
-from insights.decorators import insights_whitelist
-from insights.insights.query_utils import source_tables
-from insights.permissions import can_write
+from frappe.insights.decorators import insights_whitelist
+from frappe.insights.query_utils import source_tables
+from frappe.insights.permissions import can_write
 
 DASHBOARD = "Insights Dashboard v3"
 DASHBOARD_CHART = "Insights Dashboard Chart v3"

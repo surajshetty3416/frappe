@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 import frappe
 
-from insights.api.view import (
+from frappe.insights.api.view import (
     download_chart_rows,
     get_chart,
     get_chart_count,
@@ -11,12 +11,12 @@ from insights.api.view import (
     get_dashboard,
     get_filter_values,
 )
-from insights.insights.doctype.insights_data_source_v3.insights_data_source_v3 import db_connections
-from insights.not_permitted import NotPermitted
-from insights.permission_user import permission_user, permission_user_for
-from insights.resolver import may_read
-from insights.tests.base import InsightsIntegrationTestCase
-from insights.tests.factories import DT, as_user, create_user, delete_users, delete_workbooks
+from frappe.insights.doctype.insights_data_source_v3.insights_data_source_v3 import db_connections
+from frappe.insights.not_permitted import NotPermitted
+from frappe.insights.permission_user import permission_user, permission_user_for
+from frappe.insights.resolver import may_read
+from frappe.insights.tests.base import InsightsIntegrationTestCase
+from frappe.insights.tests.factories import DT, as_user, create_user, delete_users, delete_workbooks
 
 OWNER = "view_api_owner@test.com"
 # has no Insights role and reads content through its visibility level
@@ -1065,8 +1065,8 @@ class TestViewAPI(InsightsIntegrationTestCase):
         owner is disabled. A guest then gets no row count, and no `can_read_rows`
         or `can_filter` from `view.get_chart_data`. A signed-in reader of the
         same chart still reads their own rows."""
-        from insights.insights.doctype.insights_dashboard_v3.insights_dashboard_v3 import can_filter_card
-        from insights.permissions import can_read_rows
+        from frappe.insights.doctype.insights_dashboard_v3.insights_dashboard_v3 import can_filter_card
+        from frappe.insights.permissions import can_read_rows
 
         chart, _ = self.paged_content(visibility="Public")
         # the dashboard is Not Found for a guest with no permitted chart

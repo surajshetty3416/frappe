@@ -12,7 +12,7 @@ from frappe.utils.safe_exec import SERVER_SCRIPT_FILE_PREFIX, NamespaceDict, saf
 from ibis import selectors as s
 from jedi import Script
 
-from insights.exceptions import ExpressionSyntaxError
+from frappe.insights.exceptions import ExpressionSyntaxError
 
 # An expression describes a query. It does not move data in or out, so the
 # context holds no name that opens a path, a URL or a backend connection.
@@ -146,7 +146,7 @@ def item_reads(expression: str) -> set[tuple[str, str]]:
 
 
 def get_functions():
-    import insights.insights.doctype.insights_data_source_v3.ibis.functions as functions
+    import frappe.insights.doctype.insights_data_source_v3.ibis.functions as functions
 
     context = frappe._dict()
     exclude_keys = [
@@ -551,7 +551,7 @@ def validate_types(expression: str, columns: list[dict]):
         return {"is_valid": True, "errors": []}
 
     try:
-        from insights.insights.doctype.insights_data_source_v3.sandbox import expression_globals
+        from frappe.insights.doctype.insights_data_source_v3.sandbox import expression_globals
 
         eval_context = eval_script(validation_table, expression)
         safe_exec(expression, {**expression_globals(), **eval_context})  # nosemgrep

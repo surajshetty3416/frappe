@@ -4,11 +4,11 @@ import tempfile
 
 import frappe
 
-from insights.insights.doctype.insights_table_import_job.insights_table_import_job import (
+from frappe.insights.doctype.insights_table_import_job.insights_table_import_job import (
     JobState,
     TableImportJobRun,
 )
-from insights.tests.base import InsightsIntegrationTestCase
+from frappe.insights.tests.base import InsightsIntegrationTestCase
 
 DATA_SOURCE = "Site DB"
 

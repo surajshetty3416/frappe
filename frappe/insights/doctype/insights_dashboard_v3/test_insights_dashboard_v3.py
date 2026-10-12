@@ -3,16 +3,16 @@
 
 import frappe
 
-from insights.insights.doctype.insights_workbook.insights_workbook import import_workbook
-from insights.tests.base import InsightsIntegrationTestCase
-from insights.tests.factories import (
+from frappe.insights.doctype.insights_workbook.insights_workbook import import_workbook
+from frappe.insights.tests.base import InsightsIntegrationTestCase
+from frappe.insights.tests.factories import (
     DT,
     create_test_chart,
     create_test_workbook,
     delete_users,
     delete_workbooks,
 )
-from insights.tests.permissions_utils import USER_1, create_test_users
+from frappe.insights.tests.permissions_utils import USER_1, create_test_users
 
 OWNER = USER_1
 WORKBOOK_TITLE = "Dashboard Layout Ids"

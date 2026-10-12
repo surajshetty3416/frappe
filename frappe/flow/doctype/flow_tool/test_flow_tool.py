@@ -9,9 +9,9 @@ from unittest.mock import patch
 import frappe
 from frappe.tests import IntegrationTestCase
 
-from flow.daemon import lifecycle
-from flow.flow.doctype.flow_tool.flow_tool import sync_server_tools
-from flow.tools.builtins import sync_builtin_tools
+from frappe.flow.daemon import lifecycle
+from frappe.flow.doctype.flow_tool.flow_tool import sync_server_tools
+from frappe.flow.tools.builtins import sync_builtin_tools
 
 EXTRA_TEST_RECORD_DEPENDENCIES = []
 IGNORE_TEST_RECORD_DEPENDENCIES = []
@@ -26,7 +26,7 @@ def _module(**overrides: Any) -> dict:
 		"slug": "get_weather",
 		"type": "Imported",
 		"description": "Returns weather for a city.",
-		"import_path": "flow.tools.builtins.get_weather",
+		"import_path": "frappe.flow.tools.builtins.get_weather",
 	}
 	doc.update(overrides)
 	return doc
@@ -155,16 +155,16 @@ class TestFlowToolSystemGenerated(IntegrationTestCase):
 
 	def test_cannot_change_import_path(self):
 		tool = self._tool()
-		tool.import_path = "flow.tools.builtins.execute"
+		tool.import_path = "frappe.flow.tools.builtins.execute"
 		with self.assertRaisesRegex(frappe.ValidationError, "Cannot change Import Path"):
 			tool.save()
 
 	def test_owning_app_can_change_import_path(self):
 		tool = self._tool()
-		tool.import_path = "flow.tools.builtins.execute"
+		tool.import_path = "frappe.flow.tools.builtins.execute"
 		tool.save(ignore_permissions=True)
 		self.assertEqual(
-			frappe.db.get_value("Flow Tool", tool.name, "import_path"), "flow.tools.builtins.execute"
+			frappe.db.get_value("Flow Tool", tool.name, "import_path"), "frappe.flow.tools.builtins.execute"
 		)
 
 	def test_description_is_locked_but_enabled_stays_editable(self):

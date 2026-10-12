@@ -3,7 +3,7 @@ from types import SimpleNamespace
 import frappe
 from frappe.tests.utils import FrappeTestCase
 
-from builder.ai.agent.tools.settings import set_page_settings
+from frappe.builder.ai.agent.tools.settings import set_page_settings
 
 
 def make_page(**fields):

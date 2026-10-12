@@ -3,7 +3,7 @@ import { useTelemetry as useFrameworkTelemetry } from '@framework/ui/telemetry/i
 import session from './session'
 
 // The properties `docs/telemetry.md` puts on every event. The backend reads them
-// from the site. The browser reads them from `insights.api.get_site_info`.
+// from the site. The browser reads them from `frappe.insights.api.get_site_info`.
 export function useTelemetry() {
 	const telemetry = useFrameworkTelemetry()
 	return {

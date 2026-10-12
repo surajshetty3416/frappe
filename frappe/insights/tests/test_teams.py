@@ -7,10 +7,10 @@ exception at both ends — it keeps its name, and it cannot be deleted.
 
 import frappe
 
-from insights.api.user import create_team, delete_team, update_team
-from insights.tests.base import InsightsIntegrationTestCase
-from insights.tests.factories import DT, delete_users
-from insights.tests.permissions_utils import (
+from frappe.insights.api.user import create_team, delete_team, update_team
+from frappe.insights.tests.base import InsightsIntegrationTestCase
+from frappe.insights.tests.factories import DT, delete_users
+from frappe.insights.tests.permissions_utils import (
     ADMIN,
     USER_1,
     USER_2,

@@ -6,7 +6,7 @@ from typing import Any
 import frappe
 from frappe.tests import IntegrationTestCase
 
-from flow.flow.doctype.flow_skill.flow_skill import MAX_GLOBAL_SKILLS, skill_command
+from frappe.flow.doctype.flow_skill.flow_skill import MAX_GLOBAL_SKILLS, skill_command
 
 EXTRA_TEST_RECORD_DEPENDENCIES = []
 IGNORE_TEST_RECORD_DEPENDENCIES = []

@@ -379,7 +379,7 @@ watch(
 		if (value && canvasStore.fragmentData.fragmentId && canvasStore.fragmentData.showUsageCount) {
 			const usageCountResource = createResource({
 				method: "POST",
-				url: "builder.builder.doctype.builder_settings.builder_settings.get_component_usage_count",
+				url: "frappe.builder.doctype.builder_settings.builder_settings.get_component_usage_count",
 				params: {
 					component_id: canvasStore.fragmentData.fragmentId,
 				},

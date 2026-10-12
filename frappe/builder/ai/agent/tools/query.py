@@ -16,8 +16,8 @@ import re
 
 import frappe
 
-from builder.ai.agent.registry import Tool
-from builder.ai.agent.selectors import (
+from frappe.builder.ai.agent.registry import Tool
+from frappe.builder.ai.agent.selectors import (
 	block_text,
 	design_digest,
 	find_block,
@@ -25,8 +25,8 @@ from builder.ai.agent.selectors import (
 	render_skeleton,
 	walk_blocks,
 )
-from builder.ai.block_codec import BlockCodec
-from builder.utils import to_compact_yaml
+from frappe.builder.ai.block_codec import BlockCodec
+from frappe.builder.utils import to_compact_yaml
 
 
 def run_query_blocks(ctx, args: dict) -> str:
@@ -121,7 +121,7 @@ def run_read_block(ctx, args: dict) -> str:
 	detail = to_compact_yaml(BlockCodec.compress(block, depth=0, task_tier="complex"))
 	result = f"Block {ref} (full styles/attributes/children):\n{detail}"
 	if args.get("show_image"):
-		from builder.ai.agent.tools.preview import attach_block_images
+		from frappe.builder.ai.agent.tools.preview import attach_block_images
 
 		result += "\n" + attach_block_images(ctx, block)
 	return result
@@ -205,7 +205,7 @@ def run_read_page(ctx, args: dict) -> str:
 		return "Page-read limit reached for this turn — work with the references you have."
 	ctx.page_read_count += 1
 
-	from builder.ai.page_writer import load_page_root
+	from frappe.builder.ai.page_writer import load_page_root
 
 	title, route = frappe.db.get_value("Builder Page", page_id, ["page_title", "route"])
 	label = f"Page '{title or page_id}' (route: {route})"
@@ -315,8 +315,8 @@ def render_components(root: dict, on_open_page: bool = False) -> str:
 	are what the page must NOT fight with wrappers and constraints. Honours each
 	instance's pinned version: the contract must describe what THIS page renders,
 	which is not always the live component."""
-	from builder.builder.component_versions import resolve_component
-	from builder.builder.doctype.builder_component.builder_component import get_component_prop_values
+	from frappe.builder.component_versions import resolve_component
+	from frappe.builder.doctype.builder_component.builder_component import get_component_prop_values
 
 	# Deduped by (component, pinned version) — two instances of the SAME component
 	# can validly pin different versions, and each renders its own. The FIRST
@@ -412,7 +412,7 @@ def component_texts(block: dict) -> list[str]:
 
 def instance_overrides(instance: dict) -> list[str]:
 	"""Per-instance adjustments: replaced text, hidden parts, props, attributes."""
-	from builder.builder.doctype.builder_component.builder_component import get_component_prop_values
+	from frappe.builder.doctype.builder_component.builder_component import get_component_prop_values
 
 	notes = []
 	if props := get_component_prop_values(instance):
@@ -557,7 +557,7 @@ def unavailable_fonts(root: dict) -> list[str]:
 			families.add(family)
 	if not families:
 		return []
-	from builder.builder.doctype.user_font.user_font import get_all_user_fonts
+	from frappe.builder.doctype.user_font.user_font import get_all_user_fonts
 
 	user_fonts = {font.font_name for font in get_all_user_fonts()}
 	missing, unknown = [], []
@@ -602,7 +602,7 @@ def font_warning(root: dict) -> str:
 
 def render_scripts(page_id: str) -> str:
 	"""A reference page's look can live in its attached CSS as much as its blocks."""
-	from builder.ai.agent.tools.scripts import page_scripts
+	from frappe.builder.ai.agent.tools.scripts import page_scripts
 
 	parts = []
 	for script in page_scripts(page_id):

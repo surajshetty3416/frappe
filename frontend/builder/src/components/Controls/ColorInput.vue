@@ -51,7 +51,7 @@
 										:style="{
 											background: modelValue
 												? resolvedColor
-												: `url(/assets/builder/images/color-circle.png) center / contain`,
+												: `url(/assets/frappe/builder/images/color-circle.png) center / contain`,
 										}"></button>
 								</template>
 							</Autocomplete>

@@ -18,7 +18,7 @@ const storedTables = ref<Record<string, DataStoreTable[]>>({})
 const loading = ref(false)
 async function getTables(data_source?: string, search_term?: string, limit: number = 100) {
 	loading.value = true
-	return call('insights.api.data_store.get_data_store_tables', {
+	return call('frappe.insights.api.data_store.get_data_store_tables', {
 		data_source,
 		search_term,
 		limit,
@@ -46,7 +46,7 @@ async function getTables(data_source?: string, search_term?: string, limit: numb
 const importingTable = ref(false)
 async function importTable(data_source: string, table_name: string, row_limit?: number) {
 	importingTable.value = true
-	return call('insights.api.data_store.import_table', {
+	return call('frappe.insights.api.data_store.import_table', {
 		data_source,
 		table_name,
 		row_limit,

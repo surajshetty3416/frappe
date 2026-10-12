@@ -11,7 +11,7 @@ from frappe.model.document import Document
 from frappe.modules import scrub
 from frappe.modules.export_file import export_to_files
 
-from builder.utils import copy_img_to_asset_folder, get_template_assets_folder_path
+from frappe.builder.utils import copy_img_to_asset_folder, get_template_assets_folder_path
 
 
 class BlockTemplate(Document):
@@ -46,7 +46,7 @@ class BlockTemplate(Document):
 
 	def on_trash(self):
 		block_template_folder = os.path.join(
-			frappe.get_app_path("builder"), "builder", "builder_block_template", scrub(self.name)
+			frappe.get_app_path("frappe"), "builder", "builder_block_template", scrub(self.name)
 		)
 		shutil.rmtree(block_template_folder, ignore_errors=True)
 		assets_folder_path = get_template_assets_folder_path(self, app="builder")

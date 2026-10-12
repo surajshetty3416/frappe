@@ -247,7 +247,7 @@ watch(
 	() => (props.field.type === "model_id" ? props.doc.provider : null),
 	async (provider) => {
 		known.value = provider
-			? await call("flow.flow.doctype.flow_model.flow_model.get_provider_models", {
+			? await call("frappe.flow.doctype.flow_model.flow_model.get_provider_models", {
 					provider,
 			  }).catch(() => [])
 			: [];

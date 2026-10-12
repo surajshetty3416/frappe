@@ -15,7 +15,7 @@ const demoLoading = ref(false)
 async function setupDemoData() {
 	demoLoading.value = true
 	try {
-		await call('insights.setup.setup_wizard.setup_demo_data')
+		await call('frappe.insights.setup.setup_wizard.setup_demo_data')
 		session.user.has_demo_data = true
 		toast.success(__('Demo Data Ready'), {
 			description: __('Sample data and workbook have been set up successfully'),

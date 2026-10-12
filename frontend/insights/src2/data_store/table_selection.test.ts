@@ -6,7 +6,7 @@ const counts = vi.hoisted(() => new Map<string, (count: number) => void>())
 vi.mock('frappe-ui', async (importOriginal) => ({
 	...(await importOriginal<object>()),
 	call: (method: string, args: any) => {
-		if (method !== 'insights.api.data_sources.get_data_source_table_row_count') {
+		if (method !== 'frappe.insights.api.data_sources.get_data_source_table_row_count') {
 			return Promise.resolve([])
 		}
 		return new Promise((resolve) =>

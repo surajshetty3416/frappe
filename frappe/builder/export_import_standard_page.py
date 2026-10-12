@@ -5,7 +5,7 @@ import shutil
 import frappe
 from frappe.modules.export_file import strip_default_fields
 
-from builder.utils import (
+from frappe.builder.utils import (
 	copy_asset_file,
 	copy_assets_from_blocks,
 	create_export_directories,
@@ -257,7 +257,7 @@ def copy_font_file(file_url, assets_path, target_app="builder"):
 			else:
 				return None
 		elif file_url.startswith("/builder_assets/"):
-			source_path = os.path.join(frappe.get_app_path("builder"), "www", file_url.lstrip("/"))
+			source_path = os.path.join(frappe.get_app_path("frappe"), "www", file_url.lstrip("/"))
 		else:
 			return None
 

@@ -9,7 +9,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from insights.tests import features
+from frappe.insights.tests import features
 
 FEATURES_MD = """# Features
 

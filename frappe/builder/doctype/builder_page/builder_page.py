@@ -21,25 +21,25 @@ from frappe.website.utils import clear_cache
 from frappe.website.website_generator import WebsiteGenerator
 from werkzeug.routing import Map
 
-from builder.builder.component_versions import (
+from frappe.builder.component_versions import (
 	collect_restore_warnings,
 	ensure_component_version,
 	is_pin_outdated,
 	pin_components_in_page_data,
 	resolve_component,
 )
-from builder.builder.doctype.builder_project_folder.builder_project_folder import is_system_activity
-from builder.builder.doctype.builder_snapshot.builder_snapshot import (
+from frappe.builder.doctype.builder_project_folder.builder_project_folder import is_system_activity
+from frappe.builder.doctype.builder_snapshot.builder_snapshot import (
 	prune_snapshots,
 	take_snapshot,
 )
-from builder.builder.doctype.user_font.user_font import get_all_user_fonts
-from builder.editor_demo import is_demo_page
-from builder.export_import_standard_page import export_page_as_standard
-from builder.hooks import builder_path
-from builder.html_preview_image import generate_preview
-from builder.template_sync import delete_template_page_fixture, export_template_group
-from builder.utils import (
+from frappe.builder.doctype.user_font.user_font import get_all_user_fonts
+from frappe.builder.editor_demo import is_demo_page
+from frappe.builder.export_import_standard_page import export_page_as_standard
+from frappe.builder.hooks import builder_path
+from frappe.builder.html_preview_image import generate_preview
+from frappe.builder.template_sync import delete_template_page_fixture, export_template_group
+from frappe.builder.utils import (
 	ColonRule,
 	camel_case_to_kebab_case,
 	clean_data,
@@ -118,7 +118,7 @@ class BuilderPage(WebsiteGenerator):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
-		from builder.builder.doctype.builder_page_client_script.builder_page_client_script import (
+		from frappe.builder.doctype.builder_page_client_script.builder_page_client_script import (
 			BuilderPageClientScript,
 		)
 
@@ -187,7 +187,7 @@ class BuilderPage(WebsiteGenerator):
 
 	def set_preview(self):
 		if not self.preview:
-			self.preview = "/assets/builder/images/fallback.png"
+			self.preview = "/assets/frappe/builder/images/fallback.png"
 		else:
 			self.flags.skip_preview = True
 
@@ -312,7 +312,7 @@ class BuilderPage(WebsiteGenerator):
 			return
 		doc_before = self.get_doc_before_save()
 
-		from builder.export_import_standard_page import (
+		from frappe.builder.export_import_standard_page import (
 			delete_standard_client_script_files,
 			delete_standard_component_files,
 			delete_standard_font_files,
@@ -378,7 +378,7 @@ class BuilderPage(WebsiteGenerator):
 	def after_rename(self, old: str, new: str, merge: bool = False) -> None:
 		if not (self.is_standard and self.app and frappe.conf.developer_mode):
 			return
-		from builder.export_import_standard_page import delete_standard_page_files
+		from frappe.builder.export_import_standard_page import delete_standard_page_files
 
 		# rename_doc skips on_update, and the exported JSON holds the old name
 		delete_standard_page_files(old, self.app)
@@ -549,7 +549,7 @@ class BuilderPage(WebsiteGenerator):
 			context.disable_auto_dark_mode = 0
 			# /builder_assets/tokens.css is a rendered route, not a real file, so
 			# the preview/PDF generator can't fetch it. Inline the variables instead.
-			from builder.builder.doctype.builder_token.builder_token import get_variables_css
+			from frappe.builder.doctype.builder_token.builder_token import get_variables_css
 
 			context.inline_tokens_css = get_variables_css()
 			# Honour the dark/light mode the editor previews in (canvasDarkMode), so the
@@ -602,7 +602,7 @@ class BuilderPage(WebsiteGenerator):
 			context.editor_demo_url = f"/{builder_path}/demo/{self.name}"
 			# the file is served immutable for a year, so a build has to change its URL
 			version = frappe.utils.get_build_version()
-			context.editor_demo_script = f"/assets/builder/js/editor_demo.js?v={version}"
+			context.editor_demo_script = f"/assets/frappe/builder/js/editor_demo.js?v={version}"
 		if context.preview:
 			if self.dynamic_route and hasattr(frappe.local, "request"):
 				context.base_url = frappe.utils.get_url(frappe.local.request.path or self.route)
@@ -1631,7 +1631,7 @@ def resolve_font_token(font: str) -> str:
 	match = re.match(r"\s*var\(\s*(--[^),\s]+)", font or "")
 	if not match:
 		return font
-	from builder.builder.doctype.builder_token.builder_token import get_css_variables
+	from frappe.builder.doctype.builder_token.builder_token import get_css_variables
 
 	# the cached token map, so a page full of tokenized fonts is not a query each
 	css_variables, _ = get_css_variables()

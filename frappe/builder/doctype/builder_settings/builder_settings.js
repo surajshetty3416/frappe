@@ -6,7 +6,7 @@ frappe.ui.form.on("Builder Settings", {
     frm.add_custom_button(__("Replace Component"), () => {
       frappe.call({
         method:
-          "builder.builder.doctype.builder_settings.builder_settings.get_components",
+          "frappe.builder.doctype.builder_settings.builder_settings.get_components",
         callback: (r) => {
           const components = r.message;
           let filter_group = null;
@@ -29,7 +29,7 @@ frappe.ui.form.on("Builder Settings", {
                 onchange: function () {
                   frappe.call({
                     method:
-                      "builder.builder.doctype.builder_settings.builder_settings.get_component_usage_count",
+                      "frappe.builder.doctype.builder_settings.builder_settings.get_component_usage_count",
                     args: {
                       component_id: this.get_value(),
                       filters: filter_group?.get_filters(),
@@ -76,7 +76,7 @@ frappe.ui.form.on("Builder Settings", {
               () => {
                 frappe.call({
                   method:
-                    "builder.builder.doctype.builder_settings.builder_settings.replace_component",
+                    "frappe.builder.doctype.builder_settings.builder_settings.replace_component",
                   args: {
                     target_component: values.target_component,
                     replace_with: values.replace_with,

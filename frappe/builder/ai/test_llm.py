@@ -1,6 +1,6 @@
 from frappe.tests.utils import FrappeTestCase
 
-from builder.ai.llm import (
+from frappe.builder.ai.llm import (
 	GENERIC_FAILURE,
 	is_retryable,
 	loads_tolerant,
@@ -51,7 +51,7 @@ class TestUserFacingError(FrappeTestCase):
 		self.assertIn("API key", user_facing_error(ProviderAuthError()))
 
 	def test_a_chatgpt_sign_in_problem_asks_to_sign_in_again(self):
-		from builder.ai.codex import CodexCredentialError, CodexError
+		from frappe.builder.ai.codex import CodexCredentialError, CodexError
 
 		self.assertIn("Sign in with ChatGPT", user_facing_error(CodexCredentialError("expired")))
 		self.assertEqual(user_facing_error(CodexError("stream failed")), GENERIC_FAILURE)

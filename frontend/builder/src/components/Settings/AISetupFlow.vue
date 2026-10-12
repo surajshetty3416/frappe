@@ -313,7 +313,7 @@ const load = async () => {
 	loading.value = true;
 	try {
 		const state: AISetupState =
-			props.state ?? (await createResource({ url: "builder.ai.api.ai_setup_state" }).submit());
+			props.state ?? (await createResource({ url: "frappe.builder.ai.api.ai_setup_state" }).submit());
 		presets.value = state.presets || [];
 		if (state.needs_migrate) {
 			loadError.value = "This site is missing Builder's AI tables. Run bench migrate on it, then reopen.";
@@ -369,7 +369,7 @@ const verify = async () => {
 	}
 	busy.value = true;
 	try {
-		result.value = (await createResource({ url: "builder.ai.api.verify_ai_key" }).submit({
+		result.value = (await createResource({ url: "frappe.builder.ai.api.verify_ai_key" }).submit({
 			preset: active.value.id,
 			api_key: apiKey.value,
 			api_base: apiBase.value,
@@ -389,7 +389,7 @@ const verify = async () => {
 const signIn = async () => {
 	result.value = null;
 	try {
-		const res: any = await createResource({ url: "builder.ai.api.start_codex_login" }).submit();
+		const res: any = await createResource({ url: "frappe.builder.ai.api.start_codex_login" }).submit();
 		loginState = res.state;
 		window.open(res.url, "_blank", "noopener");
 		oauthStatus.value = "waiting";
@@ -401,7 +401,7 @@ const signIn = async () => {
 
 const pollLogin = async () => {
 	try {
-		const res: any = await createResource({ url: "builder.ai.api.poll_codex_login" }).submit({
+		const res: any = await createResource({ url: "frappe.builder.ai.api.poll_codex_login" }).submit({
 			state: loginState,
 		});
 		if (res.status === "connected") loginDone();
@@ -415,7 +415,7 @@ const pollLogin = async () => {
 const connectPasted = async () => {
 	busy.value = true;
 	try {
-		const res: any = await createResource({ url: "builder.ai.api.finish_codex_login" }).submit({
+		const res: any = await createResource({ url: "frappe.builder.ai.api.finish_codex_login" }).submit({
 			redirect_url: pasteUrl.value.trim(),
 		});
 		if (res.status === "connected") loginDone();
@@ -456,7 +456,7 @@ const toggle = (id: string) => {
 const finish = async () => {
 	busy.value = true;
 	try {
-		const res: any = await createResource({ url: "builder.ai.api.setup_ai_provider" }).submit({
+		const res: any = await createResource({ url: "frappe.builder.ai.api.setup_ai_provider" }).submit({
 			preset: active.value.id,
 			api_key: apiKey.value,
 			api_base: apiBase.value,

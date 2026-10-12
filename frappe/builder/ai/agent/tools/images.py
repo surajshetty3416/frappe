@@ -9,7 +9,7 @@ blocks / generation briefs) and a `thumb` (for present_ui image options).
 import frappe
 import requests
 
-from builder.ai.agent.registry import Tool
+from frappe.builder.ai.agent.registry import Tool
 
 SEARCH_TIMEOUT = 10
 MAX_RESULTS = 6
@@ -102,7 +102,7 @@ def run_search_images(ctx, args: dict) -> str:
 		try:
 			results = search(query, orientation)
 		except Exception as e:
-			frappe.logger("builder.ai").warning(f"search_images via {name} failed: {e}")
+			frappe.logger("frappe.builder.ai").warning(f"search_images via {name} failed: {e}")
 			continue
 		if results:
 			# Hand the generator the results directly (see artifact.generate_page_yaml).

@@ -5,7 +5,7 @@ from collections.abc import Callable
 import frappe
 from frappe.query_builder.functions import Max
 
-from insights.permissions import InsightsPermissions
+from frappe.insights.permissions import InsightsPermissions
 
 DEFAULT_SOURCES = ("created", "shared")
 NEGATED_OPERATORS = {"!=": "=", "not like": "like", "not in": "in"}

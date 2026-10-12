@@ -33,7 +33,7 @@ import click
 import frappe
 from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
 
-from insights.hooks import insights_path
+from frappe.insights.hooks import insights_path
 
 # desk doctype -> the Custom Field that links it to Insights content, and the
 # island that renders it. Another desk doctype needs one entry here and one
@@ -67,7 +67,7 @@ def boot_app_path(bootinfo) -> None:
     chart's own page, the workbook behind a card. The app's www page gets the
     value in its own boot. A desk page has only this.
 
-    `insights.hooks.insights_path` reads the path from site config.
+    `frappe.insights.hooks.insights_path` reads the path from site config.
     """
     bootinfo.insights_path = f"/{insights_path}"
 

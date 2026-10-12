@@ -4,7 +4,7 @@
 import frappe
 from frappe.model.document import Document
 
-from builder.utils import compact_json
+from frappe.builder.utils import compact_json
 
 
 class BuilderSnapshot(Document):

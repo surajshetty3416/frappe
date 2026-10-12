@@ -176,7 +176,7 @@ export function promptSelectFolder() {
 			if (folder === builderStore.activeFolder) return;
 			await createResource({
 				method: "POST",
-				url: "builder.api.update_page_folder",
+				url: "frappe.builder.api.update_page_folder",
 			}).submit({
 				pages: Array.from(selectedPages.value),
 				folder_name: folder,

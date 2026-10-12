@@ -11,15 +11,15 @@ from unittest.mock import MagicMock, patch
 
 import frappe
 
-import insights
-from insights.insights.doctype.insights_data_source_v3.data_warehouse import (
+from frappe import insights
+from frappe.insights.doctype.insights_data_source_v3.data_warehouse import (
     WarehouseTable,
     WarehouseTableImporter,
 )
-from insights.insights.doctype.insights_data_source_v3.insights_data_source_v3 import db_connections
-from insights.telemetry import duration_bucket, rows_bucket
-from insights.tests.base import InsightsIntegrationTestCase
-from insights.tests.factories import DT
+from frappe.insights.doctype.insights_data_source_v3.insights_data_source_v3 import db_connections
+from frappe.insights.telemetry import duration_bucket, rows_bucket
+from frappe.insights.tests.base import InsightsIntegrationTestCase
+from frappe.insights.tests.factories import DT
 
 SECRET = "hunter2"
 DRIVER_ERROR = OSError(f'connection to "postgresql://svc:{SECRET}@warehouse.internal" failed')

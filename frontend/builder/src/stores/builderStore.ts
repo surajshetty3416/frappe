@@ -85,7 +85,7 @@ const useBuilderStore = defineStore("builderStore", {
 	},
 	actions: {
 		async refreshAIState() {
-			const state = (await createResource({ url: "builder.ai.api.ai_setup_state" })
+			const state = (await createResource({ url: "frappe.builder.ai.api.ai_setup_state" })
 				.submit()
 				.catch(() => null)) as AISetupState | null;
 			this.aiConfigured = !!state?.configured;

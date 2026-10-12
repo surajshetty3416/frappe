@@ -21,7 +21,7 @@ from sqlalchemy import Column, select, table
 from sqlalchemy import column as sa_column
 from sqlalchemy.sql import and_, case, distinct, func, or_, text
 
-from insights.exceptions import QueryRefused
+from frappe.insights.exceptions import QueryRefused
 
 DATE_TYPES = ("Date", "Datetime")
 

@@ -109,7 +109,7 @@ def verify_credential(raw: str) -> dict:
 	except CodexError as e:
 		return {"success": False, "severity": "error", "message": str(e)}
 	except Exception as e:
-		from builder.ai.presets import readable_error
+		from frappe.builder.ai.presets import readable_error
 
 		message, severity = readable_error(str(e))
 		return {"success": False, "severity": severity, "message": message}
@@ -582,6 +582,6 @@ def jwt_claims(token: str) -> dict:
 
 def log(message: str) -> None:
 	# lazy: frappe.logger opens a site log file, which import-time code must not
-	logger = frappe.logger("builder.ai.codex")
+	logger = frappe.logger("frappe.builder.ai.codex")
 	logger.setLevel(logging.INFO)
 	logger.info(message)

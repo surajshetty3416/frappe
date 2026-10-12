@@ -14,11 +14,11 @@ import re
 import frappe
 import yaml
 
-from builder.ai.block_codec import BlockCodec
-from builder.ai.lucide import lucide_svg
-from builder.utils import compact_json
+from frappe.builder.ai.block_codec import BlockCodec
+from frappe.builder.ai.lucide import lucide_svg
+from frappe.builder.utils import compact_json
 
-logger = frappe.logger("builder.ai.page_writer")
+logger = frappe.logger("frappe.builder.ai.page_writer")
 
 # --- style normalization — port of frontend/src/components/ai/normalizeStyles.ts ---
 

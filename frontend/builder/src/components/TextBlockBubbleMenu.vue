@@ -120,7 +120,7 @@
 										background:
 											editor?.isActive('textStyle') && editor?.getAttributes('textStyle').color
 												? editor?.getAttributes('textStyle').color
-												: `url(/assets/builder/images/color-circle.png) center / contain`,
+												: `url(/assets/frappe/builder/images/color-circle.png) center / contain`,
 									}"></div>
 							</div>
 						</button>

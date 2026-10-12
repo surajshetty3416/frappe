@@ -1,6 +1,6 @@
 from frappe.tests.utils import FrappeTestCase
 
-from builder.ai.agent.selectors import (
+from frappe.builder.ai.agent.selectors import (
 	block_text,
 	design_digest,
 	find_block,

@@ -62,7 +62,7 @@ const pageCreators = createListResource({
 });
 
 const templateGroups = createResource({
-	url: "builder.api.get_template_groups",
+	url: "frappe.builder.api.get_template_groups",
 	cache: "template-groups",
 });
 

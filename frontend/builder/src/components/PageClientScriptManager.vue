@@ -347,7 +347,7 @@ const updateScript = async (value: string) => {
 
 const saveScript = async (target: attachedScript, value: string, overwrite = false): Promise<void> => {
 	try {
-		await createResource({ url: "builder.api.save_client_script" }).submit({
+		await createResource({ url: "frappe.builder.api.save_client_script" }).submit({
 			name: target.script_name,
 			script: value,
 			modified: overwrite ? undefined : target.script_modified,
@@ -380,7 +380,7 @@ const isStaleSave = (error: unknown) =>
 const saveScriptAsCopy = async (source: attachedScript, value: string) => {
 	const pageName = props.page.name;
 	try {
-		const copyName: string = await createResource({ url: "builder.api.save_client_script_as_copy" }).submit({
+		const copyName: string = await createResource({ url: "frappe.builder.api.save_client_script_as_copy" }).submit({
 			page_name: pageName,
 			script_name: source.script_name,
 			script: value,
@@ -475,7 +475,7 @@ const clientScriptOptions = computed(() => {
 const onScriptReorder = () => {
 	syncPageStore(attachedScripts.value);
 	createResource({
-		url: "builder.api.reorder_client_scripts",
+		url: "frappe.builder.api.reorder_client_scripts",
 	})
 		.submit({
 			script_order: attachedScripts.value.map((script) => script.name),

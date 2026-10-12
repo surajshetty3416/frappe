@@ -1,21 +1,21 @@
 import frappe
 
-from insights.insights.doctype.insights_team.insights_team import clear_cache as clear_team_cache
-from insights.resolver import (
+from frappe.insights.doctype.insights_team.insights_team import clear_cache as clear_team_cache
+from frappe.insights.resolver import (
     CHART,
     DASHBOARD,
     resolve,
     resolve_for_read,
 )
-from insights.tests.base import InsightsIntegrationTestCase
-from insights.tests.factories import (
+from frappe.insights.tests.base import InsightsIntegrationTestCase
+from frappe.insights.tests.factories import (
     DT,
     create_test_chart,
     create_test_dashboard,
     create_test_query,
     create_test_workbook,
 )
-from insights.tests.permissions_utils import (
+from frappe.insights.tests.permissions_utils import (
     USER_1,
     USER_2,
     cleanup_test_fixtures,

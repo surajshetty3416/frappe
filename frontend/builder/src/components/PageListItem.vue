@@ -11,7 +11,7 @@
 					height="82"
 					:src="page.meta_image || page.preview"
 					alt=""
-					onerror="this.src='/assets/builder/images/fallback.png'"
+					onerror="this.src='/assets/frappe/builder/images/fallback.png'"
 					class="block aspect-video w-36 flex-shrink-0 overflow-hidden rounded-6 bg-surface-gray-1 object-cover shadow-md" />
 				<div class="flex flex-1 items-start justify-between overflow-hidden">
 					<span class="flex h-full w-full flex-col justify-between text-base">

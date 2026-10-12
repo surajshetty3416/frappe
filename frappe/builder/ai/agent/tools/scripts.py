@@ -13,9 +13,9 @@ import logging
 
 import frappe
 
-from builder.ai.agent.registry import Tool
+from frappe.builder.ai.agent.registry import Tool
 
-logger = frappe.logger("builder.ai.agent.scripts")
+logger = frappe.logger("frappe.builder.ai.agent.scripts")
 logger.setLevel(logging.INFO)
 
 
@@ -54,7 +54,7 @@ def fetch_page_scripts(ctx, args: dict) -> str:
 def apply_set_page_script(ctx, args: dict) -> str:
 	"""Headless twin of the editor's set_page_script apply (toolDispatch.ts): create
 	the Builder Client Script (model's descriptive name when free) and attach it."""
-	from builder.ai.agent.tree import validate_script
+	from frappe.builder.ai.agent.tree import validate_script
 
 	if not ctx.page_id:
 		return "FAILED: no page is open."
@@ -109,7 +109,7 @@ def apply_attach_page_script(ctx, args: dict) -> str:
 
 def apply_update_script(ctx, args: dict) -> str:
 	"""Headless twin of the editor's update_script apply."""
-	from builder.ai.agent.tree import validate_script
+	from frappe.builder.ai.agent.tree import validate_script
 
 	name = (args.get("script_name") or "").strip()
 	if not name or not frappe.db.exists("Builder Client Script", name):

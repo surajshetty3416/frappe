@@ -4,7 +4,7 @@
 import frappe
 from frappe.tests import IntegrationTestCase
 
-from flow.utils.conditions import evaluate_condition, validate_condition
+from frappe.flow.utils.conditions import evaluate_condition, validate_condition
 
 
 class TestValidateCondition(IntegrationTestCase):

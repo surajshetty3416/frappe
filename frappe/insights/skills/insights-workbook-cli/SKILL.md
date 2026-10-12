@@ -76,7 +76,7 @@ A develop site can still be older than this file, so an endpoint this file names
 frappectl -s $SITE method call insights.api.ai.lineage.describe_query
 ```
 
-Only a missing method answers `Failed to get method`, such as `error: Failed to get method insights.api.ai.lineage.describe_query with No module named 'insights.api.ai.lineage'`. Any other answer, a missing-argument error too, means the method is there. Probe each endpoint once per session. Do not use `method search`. It returns no results even for a method that exists.
+Only a missing method answers `Failed to get method`, such as `error: Failed to get method insights.api.ai.lineage.describe_query with No module named 'frappe.insights.api.ai.lineage'`. Any other answer, a missing-argument error too, means the method is there. Probe each endpoint once per session. Do not use `method search`. It returns no results even for a method that exists.
 
 A query document method, such as `profile_column`, has no path to probe. `profile_column` arrived with `describe_query` and `verify_workbook`, so a site that has one has all three.
 
@@ -415,7 +415,7 @@ Saving a chart does not validate its config. A broken config shows only when the
 frappectl -s $SITE method call insights.api.view.get_chart_data -F chart=<chart_name>
 ```
 
-The response includes `columns` and `rows`, one page at the chart's own `limit`. To test a config before you create the chart, send it to `insights.api.authoring.get_chart_data` (`chart_type`, `query`, `-F 'config:=<json>'`). A config it cannot render comes back as `{"errors": [...]}`, not as an exception.
+The response includes `columns` and `rows`, one page at the chart's own `limit`. To test a config before you create the chart, send it to `frappe.insights.api.authoring.get_chart_data` (`chart_type`, `query`, `-F 'config:=<json>'`). A config it cannot render comes back as `{"errors": [...]}`, not as an exception.
 
 When a chart fails, compare its config with its base query. Every column the config names, in dimensions, measures and chart filters, must be in the query's `columns` from check 1. Report any that is not, with the columns the query does have. A count measure and an expression measure name no column.
 

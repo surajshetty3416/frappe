@@ -33,7 +33,7 @@ Shipping events exist to answer these. An event that answers none of them is pla
 - Names of tables and apps leave the site only when they are standard: an app Frappe publishes, which the app declares itself in its `app_publisher` hook, or a doctype with `custom = 0` that such an app ships. Everything else is counted, never named.
 - Numbers on an event are buckets unless they are small counts: `rows_bucket: under_10k, 10k_to_100k, 100k_to_1m, over_1m`, `duration_bucket: under_1s, 1_to_5s, 5_to_30s, over_30s`. Counts under 100 may stay exact.
 - Facts about the site are a daily scan from the scheduler, never a click and never on the query or import path. The scan reports history from `creation` timestamps and the core `View Log`, so the first send covers every existing site.
-- Frontend sends through `frontend/src2/telemetry.ts`'s `useTelemetry().capture(event, props)`. Backend sends through `insights.telemetry.capture(event, **props)`. Both add the properties every event includes. Daily events pass `interval="1d"`, which keeps one row per user per day and ignores properties.
+- Frontend sends through `frontend/src2/telemetry.ts`'s `useTelemetry().capture(event, props)`. Backend sends through `frappe.insights.telemetry.capture(event, **props)`. Both add the properties every event includes. Daily events pass `interval="1d"`, which keeps one row per user per day and ignores properties.
 - Milestones and outcomes belong on the backend. The frontend sends only the five creation events.
 - `error_kind` is a closed list mapped from exception classes in one function. Add a value when `other` passes a tenth of failures.
 - A new event or property lands in this file in the same PR as the code.
@@ -42,8 +42,8 @@ Shipping events exist to answer these. An event that answers none of them is pla
 
 | Property | Source | Value |
 |---|---|---|
-| `app_version` | backend default; frontend from `insights.api.get_site_info` | `insights.__version__` |
-| `entry` | backend, derived daily and cached; frontend from `insights.api.get_site_info` | `erpnext_site` when ERPNext is installed, else `insights_site` |
+| `app_version` | backend default; frontend from `frappe.insights.api.get_site_info` | `insights.__version__` |
+| `entry` | backend, derived daily and cached; frontend from `frappe.insights.api.get_site_info` | `erpnext_site` when ERPNext is installed, else `insights_site` |
 | site, user, team, timestamp | Pulse client | automatic |
 
 ## Shipping

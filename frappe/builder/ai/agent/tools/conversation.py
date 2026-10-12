@@ -17,8 +17,8 @@ import re
 
 import frappe
 
-from builder.ai.agent.registry import Tool
-from builder.ai.session import AISession
+from frappe.builder.ai.agent.registry import Tool
+from frappe.builder.ai.session import AISession
 
 ELEMENT_KINDS = frozenset(
 	{

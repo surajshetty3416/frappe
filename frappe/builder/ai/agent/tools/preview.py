@@ -13,9 +13,9 @@ import logging
 
 import frappe
 
-from builder.ai.agent.registry import Tool
+from frappe.builder.ai.agent.registry import Tool
 
-logger = frappe.logger("builder.ai.agent.preview")
+logger = frappe.logger("frappe.builder.ai.agent.preview")
 logger.setLevel(logging.INFO)
 
 MAX_PREVIEWS_PER_TURN = 2  # hard cost bound — a screenshot loop can't run away
@@ -37,7 +37,7 @@ MAX_TILES = 3
 
 
 def render_page_image(page, viewport: str = "desktop", color_scheme: str | None = None) -> bytes:
-	from builder.html_preview_image import render
+	from frappe.builder.html_preview_image import render
 
 	markup = page.get_preview_html(color_scheme=color_scheme)
 	return render(markup, width=VIEWPORT_WIDTHS[viewport], height=CAPTURE_HEIGHT)
@@ -122,7 +122,7 @@ def attach_to_model(ctx, page, image: bytes, variant: str) -> tuple[int, bool]:
 
 
 def run_preview_page(ctx, args: dict) -> str:
-	from builder.ai.agent.tools.query import resolve_page_reference
+	from frappe.builder.ai.agent.tools.query import resolve_page_reference
 
 	page_id = ctx.page_id
 	if ref := (args.get("page_id") or "").strip():
@@ -150,7 +150,7 @@ def run_preview_page(ctx, args: dict) -> str:
 	# A text-only model can't receive the image — attaching it kills the whole turn
 	# (OpenRouter: "No endpoints found that support image input"). The screenshot
 	# still refreshed the page thumbnail above; just skip the visual review.
-	from builder.ai.models import ModelRegistry
+	from frappe.builder.ai.models import ModelRegistry
 
 	if not ModelRegistry.supports_vision(ctx.loop_model):
 		return (
@@ -275,7 +275,7 @@ def inline_remote_image(src: str) -> str | None:
 	"""Fetched through read_url's guarded fetch (every redirect hop checked, the
 	connection pinned to the checked address), so neither a redirect nor a DNS
 	rebind can point the renderer at an internal host."""
-	from builder.ai.agent.tools.web import fetch_public
+	from frappe.builder.ai.agent.tools.web import fetch_public
 
 	try:
 		response, _ = fetch_public(src)
@@ -293,7 +293,7 @@ def inline_remote_image(src: str) -> str | None:
 def render_block_images(sources: dict[str, str]) -> list[dict] | None:
 	"""All the block's pictures, or None if any one fails: a half-attached pair would
 	leave the model unsure which variant it actually saw."""
-	from builder.html_preview_image import render
+	from frappe.builder.html_preview_image import render
 
 	attachments = []
 	for label, src in sources.items():
@@ -311,7 +311,7 @@ def attach_block_images(ctx, block: dict) -> str:
 	"""Render an image block's picture, and its dark-mode variant, for the model to
 	look at. Goes through the page renderer, so SVG, data: and remote images work
 	too. Returns a line for the read_block result saying what was attached."""
-	from builder.ai.models import ModelRegistry
+	from frappe.builder.ai.models import ModelRegistry
 
 	attributes = block.get("attributes") or {}
 	sources = {"image": attributes.get("src"), "dark-mode image": attributes.get("darkSrc")}

@@ -31,7 +31,7 @@ import secrets
 
 from frappe import _
 
-from insights.insights.query_builders.sql_functions import span_unit
+from frappe.insights.query_builders.sql_functions import span_unit
 
 AXIS_CHARTS = ("Bar", "Line", "Row")
 CHART_TYPES = (

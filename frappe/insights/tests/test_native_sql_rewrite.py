@@ -2,12 +2,12 @@ import frappe
 import ibis
 import sqlglot as sg
 
-from insights.insights.doctype.insights_data_source_v3.ibis_utils import IbisQueryBuilder
-from insights.insights.doctype.insights_data_source_v3.insights_data_source_v3 import db_connections
-from insights.insights.doctype.insights_table_v3.insights_table_v3 import InsightsTablev3
-from insights.insights.query_utils import extract_sql_table_refs
-from insights.tests.base import InsightsIntegrationTestCase
-from insights.tests.factories import as_user, create_user, delete_users
+from frappe.insights.doctype.insights_data_source_v3.ibis_utils import IbisQueryBuilder
+from frappe.insights.doctype.insights_data_source_v3.insights_data_source_v3 import db_connections
+from frappe.insights.doctype.insights_table_v3.insights_table_v3 import InsightsTablev3
+from frappe.insights.query_utils import extract_sql_table_refs
+from frappe.insights.tests.base import InsightsIntegrationTestCase
+from frappe.insights.tests.factories import as_user, create_user, delete_users
 
 SITE_DB = "Site DB"
 

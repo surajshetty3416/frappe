@@ -196,7 +196,7 @@ const useTemplate = (page: TemplatePageSummary) => {
 	if (creatingPage.value) return;
 	creatingPage.value = true;
 	const promise = createResource({
-		url: "builder.api.create_page_from_template",
+		url: "frappe.builder.api.create_page_from_template",
 	})
 		.submit({
 			template_page: page.name,
@@ -228,7 +228,7 @@ const importAll = () => {
 	if (importingAll.value || !activeGroup.value) return;
 	importingAll.value = true;
 	const promise = createResource({
-		url: "builder.api.import_template_group",
+		url: "frappe.builder.api.import_template_group",
 	})
 		.submit({ template_group: activeGroup.value.name })
 		.then(({ folder, pages }: { folder: string; pages: string[] }) => {

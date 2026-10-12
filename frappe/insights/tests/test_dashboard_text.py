@@ -10,9 +10,9 @@ any `<iframe>` the editor put there, and there is no way back from that.
 
 import frappe
 
-from insights.tests.base import InsightsIntegrationTestCase
-from insights.tests.factories import DT, create_test_workbook, delete_users
-from insights.tests.permissions_utils import USER_1, create_test_users
+from frappe.insights.tests.base import InsightsIntegrationTestCase
+from frappe.insights.tests.factories import DT, create_test_workbook, delete_users
+from frappe.insights.tests.permissions_utils import USER_1, create_test_users
 
 OWNER = USER_1
 PAYLOAD = "<img src=x onerror=alert(document.domain)>"

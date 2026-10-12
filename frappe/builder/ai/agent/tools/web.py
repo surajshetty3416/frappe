@@ -14,7 +14,7 @@ import re
 import frappe
 import requests
 
-from builder.ai.agent.registry import Tool
+from frappe.builder.ai.agent.registry import Tool
 
 MAX_URL_READS_PER_TURN = 5
 MAX_RESEARCH_PER_TURN = 2
@@ -60,7 +60,7 @@ def fetch_public(url: str):
 	one for the connect)."""
 	from urllib.parse import urljoin
 
-	from builder.api import assert_not_private_url
+	from frappe.builder.api import assert_not_private_url
 
 	for _ in range(MAX_REDIRECTS + 1):
 		ips = assert_not_private_url(url)
@@ -159,7 +159,7 @@ def run_research(ctx, args: dict) -> str:
 		return "FAILED: pass `question` — what to find out."
 	if ctx.research_count >= MAX_RESEARCH_PER_TURN:
 		return "Research limit reached for this turn — work with the findings you have."
-	from builder.ai import llm
+	from frappe.builder.ai import llm
 
 	routed, _overrides, api_key = llm.route(ctx.loop_model or ctx.model, ctx.api_key)
 	if not routed.startswith("openrouter/"):

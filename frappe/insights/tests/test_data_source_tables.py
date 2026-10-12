@@ -5,11 +5,11 @@ import duckdb
 import frappe
 from frappe.utils import get_files_path
 
-from insights.insights.doctype.insights_data_source_v3.connectors.frappe_db import get_primary_data_source
-from insights.insights.doctype.insights_data_source_v3.connectors.rest_api import RestAPIClient
-from insights.insights.doctype.insights_data_source_v3.insights_data_source_v3 import db_connections
-from insights.tests.base import InsightsIntegrationTestCase
-from insights.tests.factories import DT
+from frappe.insights.doctype.insights_data_source_v3.connectors.frappe_db import get_primary_data_source
+from frappe.insights.doctype.insights_data_source_v3.connectors.rest_api import RestAPIClient
+from frappe.insights.doctype.insights_data_source_v3.insights_data_source_v3 import db_connections
+from frappe.insights.tests.base import InsightsIntegrationTestCase
+from frappe.insights.tests.factories import DT
 
 DATABASE_NAME = "test_new_source_tables"
 CHANGED_DATABASE_NAME = "test_changed_source_tables"

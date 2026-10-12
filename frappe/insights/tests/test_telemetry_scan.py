@@ -13,10 +13,10 @@ import duckdb
 import frappe
 from frappe.utils import add_days, now_datetime
 
-from insights import telemetry_scan
-from insights.insights.doctype.insights_data_source_v3.connectors.duckdb import get_duckdb_path
-from insights.telemetry import default_properties, is_standard_app
-from insights.telemetry_scan import (
+from frappe.insights import telemetry_scan
+from frappe.insights.doctype.insights_data_source_v3.connectors.duckdb import get_duckdb_path
+from frappe.insights.telemetry import default_properties, is_standard_app
+from frappe.insights.telemetry_scan import (
     LIST_LIMIT,
     PROPERTY_CAP,
     read_catalog,
@@ -29,8 +29,8 @@ from insights.telemetry_scan import (
     tables_queries_read,
     within_cap,
 )
-from insights.tests.base import InsightsIntegrationTestCase
-from insights.tests.factories import (
+from frappe.insights.tests.base import InsightsIntegrationTestCase
+from frappe.insights.tests.factories import (
     DT,
     create_test_chart,
     create_test_dashboard,
@@ -353,7 +353,7 @@ class TestSiteScan(InsightsIntegrationTestCase):
         ]
         source._get_ibis_backend = lambda: backend
 
-        with patch("insights.utils.InsightsDataSourcev3.get_doc", return_value=source):
+        with patch("frappe.insights.utils.InsightsDataSourcev3.get_doc", return_value=source):
             estimates = read_catalog("pg", {"public.orders", "sales.orders"})
 
         self.assertEqual(estimates, {"public.orders": 12, "sales.orders": 3400})

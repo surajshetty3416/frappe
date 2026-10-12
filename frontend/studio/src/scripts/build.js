@@ -313,7 +313,7 @@ async function buildWithVite(
 	tailwindContent = [],
 ) {
 	outDir = outDir || path.resolve(__dirname, `../../../studio/public/app_builds/${appName}`)
-	basePath = basePath || `/assets/studio/app_builds/${appName}/`
+	basePath = basePath || `/assets/frappe/studio/app_builds/${appName}/`
 
 	console.log(`Building ${appName} with Vite`)
 	await build({

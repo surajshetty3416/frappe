@@ -10,11 +10,11 @@ import logging
 import frappe
 import litellm
 
-from builder.ai.models import ModelRegistry
+from frappe.builder.ai.models import ModelRegistry
 
 litellm.drop_params = True
 
-logger = frappe.logger("builder.ai.llm")
+logger = frappe.logger("frappe.builder.ai.llm")
 logger.setLevel(logging.INFO)
 
 
@@ -198,7 +198,7 @@ def complete(model: str, messages: list, params: dict, *, stream: bool, api_key:
 	text content. Transient failures are retried by litellm (and, for streaming
 	rounds, by the agent loop's own retry layer — litellm can't fall back mid-stream)."""
 	if target := codex_route(model):
-		from builder.ai import codex
+		from frappe.builder.ai import codex
 
 		return codex.complete(target[1], messages, params, provider=target[0], stream=stream)
 	model, overrides, api_key = route(model, api_key)
@@ -243,7 +243,7 @@ def complete_with_tools(
 ):
 	"""Tool-calling completion. Returns the raw response (iterator when streaming)."""
 	if target := codex_route(model):
-		from builder.ai import codex
+		from frappe.builder.ai import codex
 
 		return codex.complete(target[1], messages, params, provider=target[0], tools=tools, stream=stream)
 	model, overrides, api_key = route(model, api_key)

@@ -21,7 +21,7 @@ from urllib.parse import parse_qs, urlencode, urlparse
 import frappe
 import requests
 
-from builder.ai.codex import CLIENT_ID, ORIGINATOR, TOKEN_URL, CodexError, account_id_from_tokens
+from frappe.builder.ai.codex import CLIENT_ID, ORIGINATOR, TOKEN_URL, CodexError, account_id_from_tokens
 
 AUTHORIZE_URL = "https://auth.openai.com/oauth/authorize"
 REDIRECT_URI = "http://localhost:1455/auth/callback"
@@ -77,7 +77,7 @@ def finish(redirect_url: str) -> dict:
 
 def install_provider(credential: dict) -> None:
 	# models come later from the setup flow's normal finish step
-	from builder.ai import presets
+	from frappe.builder.ai import presets
 
 	preset = presets.find_preset("codex")
 	presets.install_preset(preset, json.dumps(credential), "", [])

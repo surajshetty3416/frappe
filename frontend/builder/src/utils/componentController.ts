@@ -118,7 +118,7 @@ const componentController = {
 		const requestKey = `${componentId}::preview`;
 		const result = await runLatestRequest(requestKey, () =>
 			createResource({
-				url: "builder.api.get_component_data",
+				url: "frappe.builder.api.get_component_data",
 				method: "POST",
 				auto: false,
 			})

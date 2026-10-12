@@ -1,7 +1,7 @@
 import { call } from 'frappe-ui'
 import session from '../session'
 
-/** A module a workbook can ship in, as returned by `insights.api.workbooks.get_export_modules`. */
+/** A module a workbook can ship in, as returned by `frappe.insights.api.workbooks.get_export_modules`. */
 export type ExportModule = {
 	module: string
 	app: string
@@ -20,7 +20,7 @@ export function canExportToApp(workbook: { is_standard?: boolean | number }) {
 }
 
 export function getExportModules(): Promise<ExportModule[]> {
-	return call('insights.api.workbooks.get_export_modules')
+	return call('frappe.insights.api.workbooks.get_export_modules')
 }
 
 /** The names `mark_as_standard` accepts, which is what `cleanup_page_name` produces. */

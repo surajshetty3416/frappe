@@ -4,9 +4,9 @@ import json
 import frappe
 from frappe.tests.utils import FrappeTestCase
 
-from builder.ai.agent.artifact import read_site_image
-from builder.ai.api import save_attached_image
-from builder.ai.session import AISession
+from frappe.builder.ai.agent.artifact import read_site_image
+from frappe.builder.ai.api import save_attached_image
+from frappe.builder.ai.session import AISession
 
 PNG_BYTES = base64.b64decode(
 	"iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="

@@ -28,7 +28,7 @@ const teams = ref<Team[]>([])
 const loading = ref(false)
 async function getTeams(search_term = '') {
 	loading.value = true
-	return call('insights.api.user.get_teams', { search_term }).then((res: Team[]) => {
+	return call('frappe.insights.api.user.get_teams', { search_term }).then((res: Team[]) => {
 		teams.value = res.map((t: any) => {
 			return {
 				...t,
@@ -49,7 +49,7 @@ async function getTeams(search_term = '') {
 const creatingTeam = ref(false)
 async function createTeam(team_name: string) {
 	creatingTeam.value = true
-	return call('insights.api.user.create_team', { team_name })
+	return call('frappe.insights.api.user.create_team', { team_name })
 		.then(() => {
 			getTeams()
 			toast.success(__('Team created'))
@@ -70,7 +70,7 @@ function deleteTeam(team_name: string) {
 			message: __('Are you sure you want to delete this team?'),
 			onSuccess: () => {
 				deletingTeam.value = true
-				call('insights.api.user.delete_team', { team_name })
+				call('frappe.insights.api.user.delete_team', { team_name })
 					.then(() => {
 						getTeams()
 						toast.success(__('Team deleted'))
@@ -91,7 +91,7 @@ function deleteTeam(team_name: string) {
 const updatingTeam = ref(false)
 async function updateTeam(team: Team) {
 	updatingTeam.value = true
-	return call('insights.api.user.update_team', { team })
+	return call('frappe.insights.api.user.update_team', { team })
 		.then(() => {
 			getTeams()
 			toast.success(__('Team updated'))

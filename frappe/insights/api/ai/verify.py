@@ -6,7 +6,7 @@
 Saving a query, a chart or a dashboard runs nothing: a chart config fails only
 when the chart runs, and a filter link names a query and a column nobody
 follows. The faults show only when a reader opens the dashboard. So this runs
-what a reader runs: each query, each chart through `insights.api.view`, and
+what a reader runs: each query, each chart through `frappe.insights.api.view`, and
 each dashboard's charts with its filters routed, and it answers which of them
 failed and why.
 
@@ -20,16 +20,16 @@ import html
 import frappe
 from frappe.utils import strip_html
 
-from insights.api import view
-from insights.decorators import insights_whitelist
-from insights.exceptions import TableNotStored
-from insights.insights.doctype.insights_dashboard_v3.insights_dashboard_v3 import (
+from frappe.insights.api import view
+from frappe.insights.decorators import insights_whitelist
+from frappe.insights.exceptions import TableNotStored
+from frappe.insights.doctype.insights_dashboard_v3.insights_dashboard_v3 import (
     LINK_COLUMN,
     chart_reads,
     routed_filter_links,
 )
-from insights.permission_user import runs_as
-from insights.resolver import not_found
+from frappe.insights.permission_user import runs_as
+from frappe.insights.resolver import not_found
 
 WORKBOOK = "Insights Workbook"
 QUERY = "Insights Query v3"
@@ -44,7 +44,7 @@ def verify_workbook(workbook: str, filters: dict | None = None) -> dict:
     """Run every query, chart and dashboard of a workbook, and report what fails.
 
     `filters` is dashboard filter state keyed by filter name, the shape
-    `insights.api.view.get_chart_data` takes. When given, every chart on every
+    `frappe.insights.api.view.get_chart_data` takes. When given, every chart on every
     dashboard also renders through that dashboard, with the filters that
     dashboard has routed. A filter no dashboard has is an error of the workbook.
 

@@ -9,9 +9,9 @@ can write both fields and ignores `read_only`, so the document refuses both.
 
 import frappe
 
-from insights.insights.doctype.insights_workbook.insights_workbook import _rename_members
-from insights.tests.base import InsightsIntegrationTestCase
-from insights.tests.factories import DT, create_test_dashboard, create_test_workbook
+from frappe.insights.doctype.insights_workbook.insights_workbook import _rename_members
+from frappe.insights.tests.base import InsightsIntegrationTestCase
+from frappe.insights.tests.factories import DT, create_test_dashboard, create_test_workbook
 
 OWNER = "Administrator"
 PREFIX = "Standard Guard Test"

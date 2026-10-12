@@ -3,7 +3,7 @@
 
 from frappe.model.document import Document
 
-from flow.utils.system_generated import block_delete, block_rename, validate_immutable
+from frappe.flow.utils.system_generated import block_delete, block_rename, validate_immutable
 
 
 class FlowKnowledgeBase(Document):
@@ -23,7 +23,7 @@ class FlowKnowledgeBase(Document):
 
 	def validate(self):
 		if self.is_new():
-			from flow.flow.doctype.flow_knowledge_settings.flow_knowledge_settings import (
+			from frappe.flow.doctype.flow_knowledge_settings.flow_knowledge_settings import (
 				require_embedding_model,
 			)
 

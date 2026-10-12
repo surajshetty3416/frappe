@@ -30,4 +30,4 @@ The glossary holds the words this rule produced: Visibility and its four levels,
 
 - **The granularity ladder in `chart_drill.py`.** Grains are ordered by the time span they cover, and a derived grain moves up them. So "ladder" describes the thing itself. It is not a metaphor for a permission model.
 - **The e2e `viewer` persona** (`frontend/e2e/.auth/viewer.json`, `permissions.spec.ts`). A persona is a person, here one with read access and no Insights role. "View user" does not name a person.
-- **`insights.api.authoring`.** The module holds the endpoints the Builder writes through, and it is the counterpart of `api/view.py`. The name `builder` would name the client that calls the endpoints, not what they do.
+- **`frappe.insights.api.authoring`.** The module holds the endpoints the Builder writes through, and it is the counterpart of `api/view.py`. The name `builder` would name the client that calls the endpoints, not what they do.

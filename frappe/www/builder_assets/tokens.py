@@ -1,4 +1,4 @@
-from builder.builder.doctype.builder_token.builder_token import get_css_variables
+from frappe.builder.doctype.builder_token.builder_token import get_css_variables
 
 
 def get_context(context):

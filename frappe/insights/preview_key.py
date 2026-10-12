@@ -3,7 +3,7 @@
 Generating a dashboard's preview image starts a browser on this server and hands
 it a key, because the dashboard it renders is usually not public. The key is a
 read grant and nothing wider: it opens the documents the image already shows.
-`insights.permissions` reads it as that grant, and `insights.permission_user`
+`frappe.insights.permissions` reads it as that grant, and `frappe.insights.permission_user`
 reads the user it was cut for, so the render shows rows instead of empty cards.
 """
 

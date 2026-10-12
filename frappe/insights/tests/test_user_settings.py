@@ -9,11 +9,11 @@ from unittest.mock import patch
 
 import frappe
 
-from insights.api.translations import get_translations
-from insights.api.user import update_user
-from insights.tests.base import InsightsIntegrationTestCase
-from insights.tests.factories import delete_users
-from insights.tests.permissions_utils import ADMIN, USER_1, USER_2, create_test_users
+from frappe.insights.api.translations import get_translations
+from frappe.insights.api.user import update_user
+from frappe.insights.tests.base import InsightsIntegrationTestCase
+from frappe.insights.tests.factories import delete_users
+from frappe.insights.tests.permissions_utils import ADMIN, USER_1, USER_2, create_test_users
 
 
 def name_of(email):
@@ -66,7 +66,7 @@ class TestTranslations(InsightsIntegrationTestCase):
         self.addCleanup(frappe.db.set_value, "User", USER_1, "language", None)
 
     def language_asked_for(self):
-        with patch("insights.api.translations.get_all_translations") as get_all:
+        with patch("frappe.insights.api.translations.get_all_translations") as get_all:
             get_all.return_value = {}
             get_translations()
         return get_all.call_args.args[0]

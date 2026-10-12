@@ -395,7 +395,7 @@ def cmd_publish(ctl: Frappectl, args):
 
 
 def cmd_sync(ctl: Frappectl, args):
-	ctl.run("method", "call", "builder.api.sync_component", "-F", f"component_id={args.component}")
+	ctl.run("method", "call", "frappe.builder.api.sync_component", "-F", f"component_id={args.component}")
 	print(
 		f"synced {args.component} on {len(ctl.embedding_pages(args.component))} page(s), live blocks included"
 	)

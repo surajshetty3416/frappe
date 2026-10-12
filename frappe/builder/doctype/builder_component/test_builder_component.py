@@ -4,8 +4,8 @@
 import frappe
 from frappe.tests.utils import FrappeTestCase
 
-from builder.builder.component_versions import ensure_component_version, resolve_component
-from builder.builder.doctype.builder_component.builder_component import get_component_data
+from frappe.builder.component_versions import ensure_component_version, resolve_component
+from frappe.builder.doctype.builder_component.builder_component import get_component_data
 
 
 def header_block(title: str) -> str:

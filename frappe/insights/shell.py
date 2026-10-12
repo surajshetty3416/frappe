@@ -4,7 +4,7 @@
 
 import frappe
 
-from insights.hooks import insights_path
+from frappe.insights.hooks import insights_path
 
 no_cache = 1
 

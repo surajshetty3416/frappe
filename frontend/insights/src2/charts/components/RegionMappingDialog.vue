@@ -37,12 +37,12 @@ async function loadData() {
 	loading.value = true
 	try {
 		const [mappingResponse, regionsResponse] = await Promise.all([
-			call('insights.api.maps.find_unresolved_regions', {
+			call('frappe.insights.api.maps.find_unresolved_regions', {
 				map_type: props.mapType,
 				user_regions: props.userRegions,
 				chart_name: props.chartName,
 			}),
-			call('insights.api.maps.get_available_regions', {
+			call('frappe.insights.api.maps.get_available_regions', {
 				map_type: props.mapType,
 			}),
 		])
@@ -91,7 +91,7 @@ async function save() {
 			}
 		})
 
-		await call('insights.api.maps.save_region_mappings', {
+		await call('frappe.insights.api.maps.save_region_mappings', {
 			chart_name: props.chartName,
 			map_type: props.mapType,
 			mappings: changes,

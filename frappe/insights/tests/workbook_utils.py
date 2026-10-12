@@ -1,10 +1,10 @@
 import frappe
 from frappe.utils import set_request
 
-from insights.api import get_doc as get_public_doc
-from insights.api import run_doc_method as run_public_doc_method
-from insights.api.workbooks import create_folder, move_item_to_folder
-from insights.tests.factories import (
+from frappe.insights.api import get_doc as get_public_doc
+from frappe.insights.api import run_doc_method as run_public_doc_method
+from frappe.insights.api.workbooks import create_folder, move_item_to_folder
+from frappe.insights.tests.factories import (
     as_user,
     create_test_chart,
     create_test_dashboard,
@@ -20,12 +20,12 @@ def cleanup_test_workbooks(*owners):
 
 
 def get_doc(doctype, name):
-    set_request(method="GET", path="/api/method/insights.api.get_doc")
+    set_request(method="GET", path="/api/method/frappe.insights.api.get_doc")
     return get_public_doc(doctype, name)
 
 
 def run_doc_method(method, doc, args=None):
-    set_request(method="POST", path="/api/method/insights.api.run_doc_method")
+    set_request(method="POST", path="/api/method/frappe.insights.api.run_doc_method")
     return run_public_doc_method(method, doc, args=args)
 
 

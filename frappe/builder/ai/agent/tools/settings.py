@@ -11,8 +11,8 @@ import re
 
 import frappe
 
-from builder.ai.agent import pending
-from builder.ai.agent.registry import Tool
+from frappe.builder.ai.agent import pending
+from frappe.builder.ai.agent.registry import Tool
 
 PAGE_SETTING_FIELDS = {
 	"page_title",

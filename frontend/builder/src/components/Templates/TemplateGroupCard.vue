@@ -8,7 +8,7 @@
 			<img
 				:src="group.thumbnail || group.preview || fallbackImage"
 				:alt="group.title"
-				onerror="this.src='/assets/builder/images/fallback.png'"
+				onerror="this.src='/assets/frappe/builder/images/fallback.png'"
 				class="aspect-video w-full rounded-5 bg-surface-gray-1 object-cover object-top" />
 			<div
 				class="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/40 opacity-0 transition-opacity duration-150 group-hover:opacity-100">
@@ -46,7 +46,7 @@ const props = defineProps<{
 
 defineEmits(["select", "preview"]);
 
-const fallbackImage = "/assets/builder/images/fallback.png";
+const fallbackImage = "/assets/frappe/builder/images/fallback.png";
 
 // preview the group's first page (its card image represents this page)
 const previewPage = computed(() => props.group.pages[0] || null);

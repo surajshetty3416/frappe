@@ -12,7 +12,7 @@ import frappe
 
 from insights.patches import resize_dashboard_cells
 from insights.patches.resize_dashboard_cells import already_rescaled, rescale_items
-from insights.tests.base import InsightsIntegrationTestCase
+from frappe.insights.tests.base import InsightsIntegrationTestCase
 
 
 def chart_cell(i, chart="c", **layout):

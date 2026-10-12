@@ -16,11 +16,11 @@ from frappe.model.sync import get_doc_files
 from frappe.modules import get_module_path
 from frappe.modules.import_file import import_doc
 
-from insights import standard
-from insights.api import get_site_info
-from insights.migrate import after_app_install, sync_standard_workbooks
-from insights.tests.base import InsightsIntegrationTestCase
-from insights.tests.factories import DT
+from frappe.insights import standard
+from frappe.insights.api import get_site_info
+from frappe.insights.migrate import after_app_install, sync_standard_workbooks
+from frappe.insights.tests.base import InsightsIntegrationTestCase
+from frappe.insights.tests.factories import DT
 
 MODULE = "Insights"
 WORKBOOK = "test-standard-workbook"
@@ -247,7 +247,7 @@ class AShippedFileRestoresItsMembersUnderTheirOwnNames(InsightsIntegrationTestCa
         """For a new workbook, `after_insert` sends a telemetry event and restores
         the backup of a deleted workbook. An import needs neither, and the file
         already has the members."""
-        with patch("insights.insights.doctype.insights_workbook.insights_workbook.capture") as reported:
+        with patch("frappe.insights.doctype.insights_workbook.insights_workbook.capture") as reported:
             self.import_file()
 
         reported.assert_not_called()
@@ -843,7 +843,7 @@ class AMemberKeptForDeskLeavesWithItsClaim(InsightsIntegrationTestCase):
     it."""
 
     def before_test(self):
-        from insights.desk import install_custom_fields
+        from frappe.insights.desk import install_custom_fields
 
         install_custom_fields()
         delete_standard_workbooks()

@@ -105,7 +105,7 @@ Two senses.
    summarize or pivot operation (`chart_drill.py`). This surface is the exposure
    bound. A drill may name only its columns, so a drill never reaches past what
    the chart already published.
-2. The page a View is read on. It is the `surface` argument of `insights.api.view.get_dashboard` and the `surface` of the `dashboard_viewed` telemetry event: `dashboards`, `shared` or `desk`, and `workbook` for the Builder (`VIEW_SURFACES`).
+2. The page a View is read on. It is the `surface` argument of `frappe.insights.api.view.get_dashboard` and the `surface` of the `dashboard_viewed` telemetry event: `dashboards`, `shared` or `desk`, and `workbook` for the Builder (`VIEW_SURFACES`).
 
 Say which sense when a sentence could take both.
 _Avoid_: view, canvas, pane (for sense 2); surface for `ChartReadContext`, the object that holds a read's id and filters
@@ -193,15 +193,15 @@ _Avoid_: mapper, translator, transformer
 ### Reading and building
 
 **View**:
-The read side of a dashboard or a chart: what a reader gets. It is the same on the public page, in the desk island and on the app's own dashboard page. A View sends only the name of the content, and the server decides what runs. The operations, the SQL and the query behind a chart never reach the client. On the server, a View is `insights.api.view.*`, and every reference goes through `resolve_for_read`. On the client, it is `dashboard/view.ts`, `useChartView` in `charts/chart_view.ts`, `ViewDrillDown.vue` and `DashboardItemView.vue`. The View and the Builder both use the card, `ChartView.vue`, and its store, `ChartRead`.
+The read side of a dashboard or a chart: what a reader gets. It is the same on the public page, in the desk island and on the app's own dashboard page. A View sends only the name of the content, and the server decides what runs. The operations, the SQL and the query behind a chart never reach the client. On the server, a View is `frappe.insights.api.view.*`, and every reference goes through `resolve_for_read`. On the client, it is `dashboard/view.ts`, `useChartView` in `charts/chart_view.ts`, `ViewDrillDown.vue` and `DashboardItemView.vue`. The View and the Builder both use the card, `ChartView.vue`, and its store, `ChartRead`.
 _Avoid_: viewer (neither the reader, nor the module, nor the endpoints), read surface, feed (a card is filled from a source), one door
 
 **Builder**:
-The write side: the workbook's stores, forms and grid editing. It renders content that has no name yet. So it sends the content it is editing to `insights.api.authoring`, and gets back the derived operations and the SQL. That is why those endpoints need an Insights role and the View endpoints do not. On the client, it is `dashboard/builder.ts`, `charts/chart_preview.ts` and `BuilderDrillDown.vue`. To edit, a user needs write permission on the document and an Insights role. `can_write` in `insights/permissions.py` is the one place that checks both.
-_Avoid_: authoring (as the name of a page, a store or a prop — `insights.api.authoring` keeps the word), seat (the gate is a role)
+The write side: the workbook's stores, forms and grid editing. It renders content that has no name yet. So it sends the content it is editing to `frappe.insights.api.authoring`, and gets back the derived operations and the SQL. That is why those endpoints need an Insights role and the View endpoints do not. On the client, it is `dashboard/builder.ts`, `charts/chart_preview.ts` and `BuilderDrillDown.vue`. To edit, a user needs write permission on the document and an Insights role. `can_write` in `insights/permissions.py` is the one place that checks both.
+_Avoid_: authoring (as the name of a page, a store or a prop — `frappe.insights.api.authoring` keeps the word), seat (the gate is a role)
 
 **Route**:
-A dashboard's human-readable key, for its URL. It is made from the title only while it is empty, so a published link keeps working after the dashboard is renamed. `insights.resolver` accepts three references, in this order: the docname, the route and the v2 `old_name`. Charts have no route.
+A dashboard's human-readable key, for its URL. It is made from the title only while it is empty, so a published link keeps working after the dashboard is renamed. `frappe.insights.resolver` accepts three references, in this order: the docname, the route and the v2 `old_name`. Charts have no route.
 _Avoid_: slug, permalink
 
 **Not Found**:

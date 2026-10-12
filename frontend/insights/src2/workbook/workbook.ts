@@ -194,7 +194,7 @@ function makeWorkbook(name: string) {
 	const canShare = computed(() => isOwner.value)
 
 	async function getSharePermissions(): Promise<UpdateSharePermissionsArgs> {
-		const method = 'insights.api.workbooks.get_share_permissions'
+		const method = 'frappe.insights.api.workbooks.get_share_permissions'
 		return call(method, { workbook_name: workbook.name }).then((permissions: any) => {
 			return {
 				user_permissions: permissions.user_permissions.map((p: any) => {
@@ -215,7 +215,7 @@ function makeWorkbook(name: string) {
 		organization_access?: 'view' | 'edit'
 	}
 	async function updateSharePermissions(args: UpdateSharePermissionsArgs) {
-		const method = 'insights.api.workbooks.update_share_permissions'
+		const method = 'frappe.insights.api.workbooks.update_share_permissions'
 		return call(method, {
 			workbook_name: workbook.name,
 			organization_access: args.organization_access,
@@ -294,7 +294,7 @@ function makeWorkbook(name: string) {
 	}
 
 	async function addFolder(title: string = 'New Folder', folderType: 'query' | 'chart') {
-		const method = 'insights.api.workbooks.create_folder'
+		const method = 'frappe.insights.api.workbooks.create_folder'
 		return call(method, { workbook: workbook.name, title, folder_type: folderType })
 			.then(() => {
 				workbook.load()
@@ -304,7 +304,7 @@ function makeWorkbook(name: string) {
 
 	function removeFolder(folderName: string) {
 		function _remove() {
-			const method = 'insights.api.workbooks.delete_folder'
+			const method = 'frappe.insights.api.workbooks.delete_folder'
 			call(method, { folder_name: folderName, move_items_to_root: true })
 				.then(() => {
 					workbook.load()
@@ -320,7 +320,7 @@ function makeWorkbook(name: string) {
 	}
 
 	async function renameFolder(folderName: string, newTitle: string) {
-		const method = 'insights.api.workbooks.rename_folder'
+		const method = 'frappe.insights.api.workbooks.rename_folder'
 		return call(method, { folder_name: folderName, new_title: newTitle })
 			.then(() => {
 				workbook.load()
@@ -333,7 +333,7 @@ function makeWorkbook(name: string) {
 		itemName: string,
 		folderName?: string,
 	) {
-		const method = 'insights.api.workbooks.move_item_to_folder'
+		const method = 'frappe.insights.api.workbooks.move_item_to_folder'
 		return call(method, {
 			item_type: itemType,
 			item_name: itemName,
@@ -346,7 +346,7 @@ function makeWorkbook(name: string) {
 	async function updateSortOrder(
 		items: Array<{ type: string; name: string; sort_order: number; folder?: string | null }>,
 	) {
-		const method = 'insights.api.workbooks.update_sort_orders'
+		const method = 'frappe.insights.api.workbooks.update_sort_orders'
 		return call(method, { workbook: workbook.name, items }).catch(showErrorToast)
 	}
 

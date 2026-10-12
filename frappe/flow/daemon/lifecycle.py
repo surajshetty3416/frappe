@@ -28,8 +28,8 @@ from frappe.installer import update_site_config
 from frappe.utils import get_bench_path
 from frappe.utils.synchronization import filelock
 
-from flow.daemon.client import DaemonClient, DaemonError
-from flow.flow.doctype.flow_tool.flow_tool import sync_server_tools
+from frappe.flow.daemon.client import DaemonClient, DaemonError
+from frappe.flow.doctype.flow_tool.flow_tool import sync_server_tools
 
 START_TIMEOUT = 30
 EXTENSIONS_DIR = "extensions"
@@ -185,7 +185,7 @@ def callback_url() -> str:
 	"""The site's own web server on loopback, or flow_server_url from site config."""
 	local = f"http://127.0.0.1:{frappe.conf.webserver_port or 8000}"
 	base = (frappe.conf.flow_server_url or local).rstrip("/")
-	return f"{base}/api/method/flow.daemon.callback.callback"
+	return f"{base}/api/method/frappe.flow.daemon.callback.callback"
 
 
 def callback_headers() -> dict[str, str]:

@@ -8,7 +8,7 @@ working (frappe/insights#1193).
 
 import frappe
 
-from insights.tests.base import InsightsIntegrationTestCase
+from frappe.insights.tests.base import InsightsIntegrationTestCase
 
 
 class TestWorkbookNaming(InsightsIntegrationTestCase):

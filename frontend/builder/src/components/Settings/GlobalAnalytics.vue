@@ -69,7 +69,7 @@ const {
 	analytics,
 	onPageRowClick,
 } = useAnalytics({
-	apiUrl: "builder.api.get_overall_analytics",
+	apiUrl: "frappe.builder.api.get_overall_analytics",
 	initialRange: "last_30_days",
 	routePersistKey: "builderGlobalAnalyticsRoute",
 });

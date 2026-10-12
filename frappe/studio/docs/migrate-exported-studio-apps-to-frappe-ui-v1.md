@@ -84,7 +84,7 @@ import sys
 
 import frappe
 
-from studio.studio.doctype.studio_page.patches import (
+from frappe.studio.doctype.studio_page.patches import (
 	migrate_blocks_to_frappe_ui_v1 as frappe_ui_v1,
 	migrate_charts_to_frappe_ui_charts as charts,
 	migrate_get_icon_calls as get_icon,

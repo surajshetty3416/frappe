@@ -119,7 +119,7 @@ const useComponentStore = defineStore("componentStore", {
 							label: __("Sync in all pages"),
 							onClick: async () => {
 								const componentResource = createResource({
-									url: "builder.api.sync_component",
+									url: "frappe.builder.api.sync_component",
 									method: "POST",
 									params: {
 										component_id: data.name,
@@ -473,7 +473,7 @@ const useComponentStore = defineStore("componentStore", {
 			const script = versionedDoc?.component_data_script ?? undefined;
 			const result = await runLatestRequest(requestKey, () =>
 				createResource({
-					url: "builder.api.get_component_data",
+					url: "frappe.builder.api.get_component_data",
 					method: "POST",
 					auto: false,
 				})

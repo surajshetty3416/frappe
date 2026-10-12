@@ -6,10 +6,10 @@ import copy
 
 import frappe
 
-from insights.insights.doctype.insights_data_source_v3.ibis_utils import is_hidden_column
-from insights.tests.base import InsightsIntegrationTestCase
-from insights.tests.factories import DT, as_user, create_test_query, create_test_workbook, delete_users
-from insights.tests.permissions_utils import ADMIN, create_test_users
+from frappe.insights.doctype.insights_data_source_v3.ibis_utils import is_hidden_column
+from frappe.insights.tests.base import InsightsIntegrationTestCase
+from frappe.insights.tests.factories import DT, as_user, create_test_query, create_test_workbook, delete_users
+from frappe.insights.tests.permissions_utils import ADMIN, create_test_users
 
 SITE_DB = {"type": "table", "data_source": "Site DB", "table_name": "tabToDo"}
 

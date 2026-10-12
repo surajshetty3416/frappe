@@ -1,7 +1,7 @@
 import frappe
 from frappe.tests.utils import FrappeTestCase
 
-from builder.ai import locks
+from frappe.builder.ai import locks
 
 
 class TestLocks(FrappeTestCase):

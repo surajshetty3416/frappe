@@ -713,7 +713,7 @@ def copy_from_builder_assets(file_url, assets_path, target_app="builder"):
 			app_name = parts[2]
 			source_path = os.path.join(frappe.get_app_path(app_name), "public", "/".join(parts[3:]))
 	else:
-		source_path = os.path.join(frappe.get_app_path("builder"), "www", file_url.lstrip("/"))
+		source_path = os.path.join(frappe.get_app_path("frappe"), "www", file_url.lstrip("/"))
 	if os.path.exists(source_path):
 		return copy_file_to_assets(source_path, file_url, assets_path, target_app)
 	return None

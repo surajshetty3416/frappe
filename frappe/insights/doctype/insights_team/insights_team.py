@@ -10,17 +10,17 @@ from frappe.core.doctype.role.role import get_users as get_users_with_role
 from frappe.model.document import Document
 from frappe.utils.caching import site_cache
 
-from insights import user_permissions
-from insights.insights.doctype.insights_data_source_v3.ibis_utils import (
+from frappe.insights import user_permissions
+from frappe.insights.doctype.insights_data_source_v3.ibis_utils import (
     exec_with_return,
 )
-from insights.insights.doctype.insights_table_v3.insights_table_v3 import (
+from frappe.insights.doctype.insights_table_v3.insights_table_v3 import (
     desk_reads_table,
     get_table_name,
     is_site_db,
 )
-from insights.not_permitted import refuse
-from insights.telemetry import capture_share_granted
+from frappe.insights.not_permitted import refuse
+from frappe.insights.telemetry import capture_share_granted
 
 # the resource types a team grant may name, and the `object` each reports as
 SHARED_OBJECT = {
@@ -40,10 +40,10 @@ class InsightsTeam(Document):
     if TYPE_CHECKING:
         from frappe.types import DF
 
-        from insights.insights.doctype.insights_resource_permission.insights_resource_permission import (
+        from frappe.insights.doctype.insights_resource_permission.insights_resource_permission import (
             InsightsResourcePermission,
         )
-        from insights.insights.doctype.insights_team_member.insights_team_member import (
+        from frappe.insights.doctype.insights_team_member.insights_team_member import (
             InsightsTeamMember,
         )
 
@@ -297,7 +297,7 @@ def check_table_permission(data_source, table, user=None, raise_error=True):
     other check here does: this reader may not read this data.
     """
     # permissions imports this module
-    from insights.permissions import check_app_permission
+    from frappe.insights.permissions import check_app_permission
 
     user = user or frappe.session.user
     if is_site_db(data_source):

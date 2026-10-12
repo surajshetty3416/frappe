@@ -9,9 +9,9 @@ from unittest.mock import patch
 
 import frappe
 
-from insights.api.workbooks import update_share_permissions
-from insights.tests.base import InsightsIntegrationTestCase
-from insights.tests.factories import (
+from frappe.insights.api.workbooks import update_share_permissions
+from frappe.insights.tests.base import InsightsIntegrationTestCase
+from frappe.insights.tests.factories import (
     DT,
     create_test_chart,
     create_test_dashboard,
@@ -46,7 +46,7 @@ class TestShareGranted(InsightsIntegrationTestCase):
 
     def granted(self, action):
         """Return the `share_granted` properties each capture sent."""
-        with patch("insights.telemetry.capture") as sender:
+        with patch("frappe.insights.telemetry.capture") as sender:
             action()
         return [call.kwargs for call in sender.call_args_list if call.args == ("share_granted",)]
 

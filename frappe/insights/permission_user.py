@@ -10,7 +10,7 @@ Content can declare it. With `run_as_owner` checked, a chart runs as its owner,
 so a reader sees the rows the owner would see. Unchecked, it names nobody, and
 the execution keeps its current user. At the `Public` level the box must be
 checked, so a guest read always runs as the owner. `validate_run_as_owner` in
-`insights.permissions` enforces that.
+`frappe.insights.permissions` enforces that.
 
 An unattended execution can name it. A dashboard preview (Guest with a minted
 key) and the alert scheduler (Administrator) have no caller of their own. So
@@ -30,7 +30,7 @@ from contextlib import contextmanager
 
 import frappe
 
-from insights.preview_key import get_preview_key, is_being_previewed
+from frappe.insights.preview_key import get_preview_key, is_being_previewed
 
 
 def get_permission_user() -> str:

@@ -4,9 +4,9 @@ why `Insights Workbook` now names itself as a string instead of via `autoincreme
 
 import frappe
 
-from insights.tests.base import InsightsIntegrationTestCase
-from insights.tests.factories import DT, USER_1, create_test_user, create_test_workbook, delete_users
-from insights.tests.workbook_utils import cleanup_test_workbooks
+from frappe.insights.tests.base import InsightsIntegrationTestCase
+from frappe.insights.tests.factories import DT, USER_1, create_test_user, create_test_workbook, delete_users
+from frappe.insights.tests.workbook_utils import cleanup_test_workbooks
 
 
 class TestWorkbookNaming(InsightsIntegrationTestCase):

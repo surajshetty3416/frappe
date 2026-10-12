@@ -11,7 +11,7 @@ the model can only *propose*.
 
 import frappe
 
-from builder.ai.session import AISession
+from frappe.builder.ai.session import AISession
 
 # Sensitive action kinds the confirm card understands. Kept explicit so an unknown
 # kind can never be applied.
@@ -150,7 +150,7 @@ def apply_connect_form(payload: dict) -> str:
 	Web Form (the trusted, rate-limited, field-whitelisted boundary) + a client
 	script that POSTs the form's fields to the Web Form's accept endpoint. Reused
 	if the doctype/web form already exist. Returns the Desk link to the entries."""
-	from builder.ai.agent.tools.forms import desk_slug
+	from frappe.builder.ai.agent.tools.forms import desk_slug
 
 	doctype = (payload.get("doctype_name") or "").strip()
 	fields = payload.get("fields") or []

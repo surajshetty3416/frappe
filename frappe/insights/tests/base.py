@@ -9,9 +9,9 @@ from frappe.database.database import Database
 from frappe.tests import IntegrationTestCase
 from frappe.utils import background_jobs
 
-from insights.insights.doctype.insights_data_source_v3 import data_warehouse
-from insights.insights.doctype.insights_data_source_v3.connectors import duckdb
-from insights.tests.factories import as_user, is_visible
+from frappe.insights.doctype.insights_data_source_v3 import data_warehouse
+from frappe.insights.doctype.insights_data_source_v3.connectors import duckdb
+from frappe.insights.tests.factories import as_user, is_visible
 
 
 def get_whitelisted_caller():
@@ -160,7 +160,7 @@ class InsightsIntegrationTestCase(IntegrationTestCase):
         a workbook's contents, so a rule over those has to hold either way. The
         allowed-resource lookup is site-cached, so the cache goes with it.
         """
-        from insights.insights.doctype.insights_team.insights_team import clear_cache
+        from frappe.insights.doctype.insights_team.insights_team import clear_cache
 
         original = frappe.db.get_single_value("Insights Settings", "enable_permissions")
         frappe.db.set_single_value("Insights Settings", "enable_permissions", enabled)

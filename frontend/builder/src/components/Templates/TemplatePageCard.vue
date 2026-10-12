@@ -6,7 +6,7 @@
 			<img
 				:src="page.thumbnail || page.preview || fallbackImage"
 				:alt="page.page_title || page.name"
-				onerror="this.src='/assets/builder/images/fallback.png'"
+				onerror="this.src='/assets/frappe/builder/images/fallback.png'"
 				class="aspect-video w-full rounded-5 bg-surface-gray-1 object-cover object-top" />
 			<div
 				class="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/40 opacity-0 transition-opacity duration-150 group-hover:opacity-100">
@@ -40,6 +40,6 @@ defineProps<{
 
 defineEmits(["select", "edit", "preview"]);
 
-const fallbackImage = "/assets/builder/images/fallback.png";
+const fallbackImage = "/assets/frappe/builder/images/fallback.png";
 const isDeveloperMode = Boolean(window.is_developer_mode);
 </script>

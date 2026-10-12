@@ -7,7 +7,7 @@ from babel.messages.extract import DEFAULT_KEYWORDS, extract_from_dir
 from frappe.gettext.translate import get_method_map
 from frappe.tests.utils import FrappeTestCase
 
-from builder.www._builder import get_boot
+from frappe.builder.shell import get_boot
 
 FRONTEND_SRC = os.path.join("frontend", "src")
 
@@ -59,13 +59,13 @@ class TestI18n(FrappeTestCase):
 		They score as fully translated, so nothing upstream rejects them, and compiling one
 		shows those ids across the whole editor.
 		"""
-		locale_dir = Path(frappe.get_app_path("builder")) / "locale"
+		locale_dir = Path(frappe.get_app_path("frappe", "builder")) / "locale"
 		polluted = [po.name for po in locale_dir.glob("*.po") if "crwdns" in po.read_text(encoding="utf-8")]
 
 		self.assertEqual(polluted, [], f"Crowdin in-context placeholders found in: {polluted}")
 
 	def test_boot_carries_only_builder_translations(self):
-		with patch("builder.www._builder.get_translations_from_apps", return_value={}) as from_apps:
+		with patch("frappe.builder.shell.get_translations_from_apps", return_value={}) as from_apps:
 			get_boot()
 
 		from_apps.assert_called_once_with(frappe.local.lang, ["builder"])

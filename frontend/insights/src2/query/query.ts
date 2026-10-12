@@ -606,7 +606,7 @@ export function makeQuery(name: string) {
 
 	const { downloading, exportResults, cancelDownload } = useResultExport(
 		(format) =>
-			call('insights.api.run_doc_method', {
+			call('frappe.insights.api.run_doc_method', {
 				method: 'download_results',
 				docs: {
 					...(query.doc || {}),

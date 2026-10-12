@@ -13,8 +13,8 @@ applyToolOperation), which replays the same accepted ops on the canvas.
 
 import re
 
-from builder.ai.agent.selectors import find_block, walk_blocks
-from builder.ai.block_codec import STANDARD_ATTRS
+from frappe.builder.ai.agent.selectors import find_block, walk_blocks
+from frappe.builder.ai.block_codec import STANDARD_ATTRS
 
 # A binding key is a PLAIN field/data key (dots allow nesting). Models sometimes try
 # expressions ("'$' + item.price", "in_stock ? 'In Stock' : '…'") — those can never
@@ -26,7 +26,7 @@ def bad_bind_keys(op: dict) -> list[str]:
 	bind = op.get("bind")
 	if not isinstance(bind, dict):
 		return []
-	from builder.ai.page_writer import strip_binding_prefix
+	from frappe.builder.ai.page_writer import strip_binding_prefix
 
 	return [str(v) for v in bind.values() if v is not None and not BIND_KEY_RE.match(strip_binding_prefix(v))]
 
@@ -89,7 +89,7 @@ def json_dumps_safe(value) -> str:
 
 
 def merge_styles(block: dict, args: dict) -> None:
-	from builder.ai.page_writer import normalize_styles
+	from frappe.builder.ai.page_writer import normalize_styles
 
 	for arg_key, block_key in (
 		("base_styles", "baseStyles"),
@@ -188,7 +188,7 @@ def live_declared_props(component: str) -> dict:
 def resolve_declared_props(component: str, version) -> dict:
 	import frappe
 
-	from builder.builder.component_versions import resolve_component
+	from frappe.builder.component_versions import resolve_component
 
 	resolved = resolve_component(component, version)
 	definition = frappe.parse_json((resolved or {}).get("block") or "{}")
@@ -259,7 +259,7 @@ def update_definition(component: str, mutate) -> None:
 def merge_bindings(block: dict, bind: dict) -> None:
 	"""Merge {property: item_key} bindings into dynamicValues — one entry per bound
 	property (a re-bind replaces, a None value unbinds)."""
-	from builder.ai.page_writer import bind_to_dynamic_values
+	from frappe.builder.ai.page_writer import bind_to_dynamic_values
 
 	incoming = {prop: field for prop, field in bind.items() if field is not None}
 	dropped = {("innerHTML" if p in ("innerHTML", "text") else p) for p in bind}
@@ -301,7 +301,7 @@ def merge_block_update(block: dict, args: dict) -> None:
 	if args.get("inner_html") is not None:  # html wins when both are given
 		block["innerHTML"] = args["inner_html"]
 	if args.get("element") is not None:
-		from builder.ai.page_writer import FORBIDDEN_ELEMENTS
+		from frappe.builder.ai.page_writer import FORBIDDEN_ELEMENTS
 
 		# Silently keep the old element rather than fail the whole (multi-field)
 		# update; code belongs in the script tools, not the block tree.
@@ -508,7 +508,7 @@ class WorkingTree:
 			return f"FAILED: {fields} — {MOUSTACHE_HINT}"
 		if not isinstance(args.get("block"), dict):
 			return "FAILED: no block definition supplied."
-		from builder.ai.page_writer import convert_yaml_block
+		from frappe.builder.ai.page_writer import convert_yaml_block
 
 		block = convert_yaml_block(args["block"], is_root=False)
 		if not block:

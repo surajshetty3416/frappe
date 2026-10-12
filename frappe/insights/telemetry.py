@@ -8,8 +8,8 @@ import frappe
 from frappe.utils import telemetry as frappe_telemetry
 from frappe.utils.caching import site_cache
 
-import insights
-from insights.exceptions import (
+from frappe import insights
+from frappe.insights.exceptions import (
     ExpressionSyntaxError,
     QueryRefused,
     QueryTimeout,
@@ -123,10 +123,10 @@ def error_kind(exc: BaseException) -> str:
     """
     from ibis.common.exceptions import OperationNotDefinedError
 
-    from insights.insights.doctype.insights_data_source_v3.ibis_utils import (
+    from frappe.insights.doctype.insights_data_source_v3.ibis_utils import (
         CircularQueryReferenceError,
     )
-    from insights.insights.doctype.insights_data_source_v3.insights_data_source_v3 import (
+    from frappe.insights.doctype.insights_data_source_v3.insights_data_source_v3 import (
         DataSourceConnectionError,
     )
 

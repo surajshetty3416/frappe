@@ -8,16 +8,16 @@ neither its name nor a line of its content.
 import frappe
 from frappe.utils import add_days, now_datetime
 
-from insights.api.ai.search import search_columns, search_content
-from insights.tests.base import InsightsIntegrationTestCase
-from insights.tests.factories import (
+from frappe.insights.api.ai.search import search_columns, search_content
+from frappe.insights.tests.base import InsightsIntegrationTestCase
+from frappe.insights.tests.factories import (
     DT,
     create_test_chart,
     create_test_dashboard,
     create_test_query,
     create_test_workbook,
 )
-from insights.tests.permissions_utils import (
+from frappe.insights.tests.permissions_utils import (
     ADMIN,
     TEST_DS,
     TEST_TABLE1,

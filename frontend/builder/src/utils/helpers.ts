@@ -367,7 +367,7 @@ async function uploadBuilderAsset(file: File, silent = false) {
 	const upload = uploader.upload(file, {
 		private: false,
 		folder: "Home/Builder Uploads",
-		upload_endpoint: "/api/method/builder.api.upload_builder_asset",
+		upload_endpoint: "/api/method/frappe.builder.api.upload_builder_asset",
 	});
 	await new Promise((resolve) => {
 		if (silent) {

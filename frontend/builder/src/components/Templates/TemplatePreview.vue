@@ -76,6 +76,6 @@ const frameStyle = computed(() => ({
 const src = computed(
 	() =>
 		props.page.live_url ||
-		`/api/method/builder.api.get_page_preview_html?page=${encodeURIComponent(props.page.name)}`,
+		`/api/method/frappe.builder.api.get_page_preview_html?page=${encodeURIComponent(props.page.name)}`,
 );
 </script>

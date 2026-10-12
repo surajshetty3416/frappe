@@ -15,25 +15,25 @@ from ibis.backends.sql.compilers.bigquery import BigQueryCompiler
 from ibis.backends.sql.compilers.clickhouse import ClickHouseCompiler
 from ibis.backends.sql.compilers.duckdb import DuckDBCompiler
 
-import insights
-from insights.exceptions import QueryRefused
-from insights.insights.doctype.insights_chart_v3.chart_drill import _bucket_filters
-from insights.insights.doctype.insights_chart_v3.chart_query import (
+from frappe import insights
+from frappe.insights.exceptions import QueryRefused
+from frappe.insights.doctype.insights_chart_v3.chart_drill import _bucket_filters
+from frappe.insights.doctype.insights_chart_v3.chart_query import (
     derive_operations,
     sparkline_operations,
 )
-from insights.insights.doctype.insights_data_source_v3.connectors.bigquery import get_bigquery_connection
-from insights.insights.doctype.insights_data_source_v3.connectors.clickhouse import get_clickhouse_connection
-from insights.insights.doctype.insights_data_source_v3.connectors.duckdb import connect_duckdb
-from insights.insights.doctype.insights_data_source_v3.connectors.postgresql import get_postgres_connection
-from insights.insights.doctype.insights_data_source_v3.ibis.functions import (
+from frappe.insights.doctype.insights_data_source_v3.connectors.bigquery import get_bigquery_connection
+from frappe.insights.doctype.insights_data_source_v3.connectors.clickhouse import get_clickhouse_connection
+from frappe.insights.doctype.insights_data_source_v3.connectors.duckdb import connect_duckdb
+from frappe.insights.doctype.insights_data_source_v3.connectors.postgresql import get_postgres_connection
+from frappe.insights.doctype.insights_data_source_v3.ibis.functions import (
     date_diff,
     percentage_change,
     previous_period_value,
 )
-from insights.insights.doctype.insights_data_source_v3.ibis_utils import IbisQueryBuilder
-from insights.tests.base import FakeDataSource, InsightsIntegrationTestCase
-from insights.utils import deep_convert_dict_to_dict as _dict
+from frappe.insights.doctype.insights_data_source_v3.ibis_utils import IbisQueryBuilder
+from frappe.insights.tests.base import FakeDataSource, InsightsIntegrationTestCase
+from frappe.insights.utils import deep_convert_dict_to_dict as _dict
 
 
 class IbisQueryBuilderTestCase(InsightsIntegrationTestCase):
@@ -509,9 +509,10 @@ class TestIbisDivision(IbisQueryBuilderTestCase):
 def picker_operators(kind):
     """The operators the filter picker offers a column of `kind`, read off its table."""
     path = os.path.join(
-        frappe.get_app_path("insights"),
+        frappe.get_app_path("frappe"),
         "..",
         "frontend",
+        "insights",
         "src2",
         "components",
         "filter_picker",

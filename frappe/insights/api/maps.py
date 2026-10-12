@@ -4,7 +4,7 @@ from difflib import SequenceMatcher
 
 import frappe
 
-from insights.decorators import insights_whitelist
+from frappe.insights.decorators import insights_whitelist
 
 
 def get_map_json_path(map_type: str) -> str:
@@ -13,7 +13,7 @@ def get_map_json_path(map_type: str) -> str:
         frappe.throw("Invalid map type")
 
     filename = "india.json" if map_type == "india" else "world_map.json"
-    return os.path.join(frappe.get_app_path("insights"), "public", "maps", filename)
+    return os.path.join(frappe.get_app_path("frappe"), "public", "insights", "maps", filename)
 
 
 def extract_regions_from_geojson(map_type: str) -> list:

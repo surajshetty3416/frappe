@@ -3,7 +3,7 @@ import json
 import frappe
 from frappe import _
 
-from builder.ai import locks
+from frappe.builder.ai import locks
 
 # How far back to look for a session worth reopening. Deep enough to see past a
 # run of empty "New chat" sessions, shallow enough to stay one small query.
@@ -236,7 +236,7 @@ class AISession:
 		if url.startswith("data:image/"):
 			return {"type": "image_url", "image_url": {"url": url}}
 		if url.startswith(("/files/", "/private/files/")):
-			from builder.ai.agent.artifact import read_site_image
+			from frappe.builder.ai.agent.artifact import read_site_image
 
 			if data_url := read_site_image(url):
 				return {"type": "image_url", "image_url": {"url": data_url}}

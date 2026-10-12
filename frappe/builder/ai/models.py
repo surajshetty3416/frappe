@@ -3,7 +3,7 @@
 Which models are offered is a configuration decision, not a code one. Providers
 and models are DocTypes, so a new gateway (OpenRouter, any OpenAI-compatible
 endpoint, a local Ollama) or a new model is added from the desk UI without a
-deploy; `builder.builder.patches.seed_ai_providers_and_models` seeds the shipped
+deploy; `frappe.builder.patches.seed_ai_providers_and_models` seeds the shipped
 shortlist on migrate.
 
 Everything factual about an OpenRouter model — context window, pricing (incl.
@@ -18,7 +18,7 @@ import frappe
 import requests
 from frappe.utils.caching import redis_cache
 
-logger = frappe.logger("builder.ai.models")
+logger = frappe.logger("frappe.builder.ai.models")
 logger.setLevel(logging.INFO)
 
 CATALOG_TTL = 6 * 3600
@@ -116,7 +116,7 @@ def lookup_metadata(qualified_name: str, model_id: str) -> dict:
 	map, which knows the mainstream hosted models. An unknown model returns {} and
 	keeps whatever defaults it was given."""
 	if qualified_name.startswith("codex/"):
-		from builder.ai.codex import model_metadata
+		from frappe.builder.ai.codex import model_metadata
 
 		if found := model_metadata(model_id):
 			return found
@@ -172,7 +172,7 @@ class ModelRegistry:
 		key, or the shared one in Builder Settings. Computed here rather than in the
 		cached row loader, so key state is never held in redis, and so the picker can
 		say a model is unusable BEFORE someone writes a prompt for it."""
-		from builder.ai.llm import provider_api_key
+		from frappe.builder.ai.llm import provider_api_key
 
 		fallback = bool(
 			frappe.get_single("Builder Settings").get_password("ai_api_key", raise_exception=False)

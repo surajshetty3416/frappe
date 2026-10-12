@@ -251,7 +251,7 @@ function finishQuestions(skipped = false) {
 	} catch (e) {
 		console.error("[persona-survey] failed to capture", e);
 	}
-	call("builder.api.identify_persona", {
+	call("frappe.builder.api.identify_persona", {
 		role: props.role,
 		use_case: props.use_case,
 		source: props.source,

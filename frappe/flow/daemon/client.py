@@ -38,7 +38,7 @@ class DaemonClient:
 		"""This site's client: the bench daemon's socket and the site's own secret."""
 		import frappe
 
-		from flow.daemon import lifecycle
+		from frappe.flow.daemon import lifecycle
 
 		if not frappe.conf.flow_server_secret:
 			raise DaemonError(None, "this site is not provisioned; run `bench flow-server setup`")

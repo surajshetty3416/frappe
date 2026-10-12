@@ -310,7 +310,7 @@ const setPreviewURL = () => {
 		prefers_color_scheme: isDark.value ? "dark" : "light",
 		reloaded_at: Date.now(),
 	};
-	previewRoute.value = `/api/method/builder.api.get_page_preview_html?${Object.entries(queryParams)
+	previewRoute.value = `/api/method/frappe.builder.api.get_page_preview_html?${Object.entries(queryParams)
 		.map(([key, value]) => `${key}=${value}`)
 		.join("&")}`;
 };

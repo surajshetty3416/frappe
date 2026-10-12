@@ -85,7 +85,7 @@ class ToolRegistry:
 def build_default_registry() -> ToolRegistry:
 	"""Assemble the registry from the tool modules. Imported lazily to avoid
 	import cycles (tool handlers reference the agent context type)."""
-	from builder.ai.agent.tools import (
+	from frappe.builder.ai.agent.tools import (
 		blocks,
 		components,
 		conversation,

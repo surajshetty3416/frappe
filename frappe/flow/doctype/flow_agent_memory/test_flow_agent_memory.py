@@ -7,9 +7,9 @@ from unittest.mock import patch
 import frappe
 from frappe.tests import IntegrationTestCase
 
-from flow.memory import store
-from flow.memory.memory import memory_block, save_memory
-from flow.tools.builtins import sync_builtin_tools
+from frappe.flow.memory import store
+from frappe.flow.memory.memory import memory_block, save_memory
+from frappe.flow.tools.builtins import sync_builtin_tools
 
 EXTRA_TEST_RECORD_DEPENDENCIES = []
 IGNORE_TEST_RECORD_DEPENDENCIES = []
@@ -159,14 +159,14 @@ class TestSaveMemory(MemoryCase):
 			save_memory(self.agent.name, content="Revive.", scope="agent", memory_id=doc.name)
 
 	def test_add_refuses_past_limit(self):
-		with patch("flow.memory.memory.MAX_ACTIVE_MEMORIES", 1):
+		with patch("frappe.flow.memory.memory.MAX_ACTIVE_MEMORIES", 1):
 			save_memory(self.agent.name, content="First.", scope="agent")
 			with self.assertRaises(frappe.ValidationError):
 				save_memory(self.agent.name, content="Second.", scope="agent")
 
 	def test_an_index_failure_fails_the_write(self):
 		with (
-			patch("flow.memory.store.ensure_table", side_effect=RuntimeError("lance down")),
+			patch("frappe.flow.memory.store.ensure_table", side_effect=RuntimeError("lance down")),
 			self.assertRaises(RuntimeError),
 		):
 			save_memory(self.agent.name, content=ACME, scope="agent")
@@ -217,14 +217,14 @@ class TestKeywordRetrieval(MemoryCase):
 
 	def test_a_search_failure_is_logged_and_sends_nothing(self):
 		save_memory(self.agent.name, content=ACME, scope="agent")
-		with patch("flow.memory.store.search", side_effect=RuntimeError("index broken")):
+		with patch("frappe.flow.memory.store.search", side_effect=RuntimeError("index broken")):
 			self.assertEqual(self.block("Where do we bill Acme?"), "")
 		self.assertTrue(frappe.db.exists("Error Log", {"method": "Agent memory search failed"}))
 
 	def test_configuring_embeddings_later_rebuilds_the_index(self):
 		added = save_memory(self.agent.name, content=ACME, scope="agent")
 		_settings(embedding_model=self.model.name, embedding_dimension=DIM)
-		with patch("flow.knowledge.embedder.embed_texts", side_effect=_embed) as embed:
+		with patch("frappe.flow.knowledge.embedder.embed_texts", side_effect=_embed) as embed:
 			block = self.block("Where do that customer's invoices go?")
 		self.assertIn(added["memory_id"], block)
 		self.assertEqual(
@@ -239,7 +239,7 @@ class TestHybridRetrieval(MemoryCase):
 	def setUp(self):
 		super().setUp()
 		_settings(embedding_model=self.model.name, embedding_dimension=DIM)
-		self.embed = self.enterContext(patch("flow.knowledge.embedder.embed_texts", side_effect=_embed))
+		self.embed = self.enterContext(patch("frappe.flow.knowledge.embedder.embed_texts", side_effect=_embed))
 
 	def test_a_similar_memory_is_sent_without_a_shared_word(self):
 		added = save_memory(self.agent.name, content=ACME, scope="agent")
@@ -261,7 +261,7 @@ class TestHybridRetrieval(MemoryCase):
 		acme = save_memory(self.agent.name, content=ACME, scope="agent")
 		block = self.block("Bill Acme for the widgets.")
 		self.assertLess(block.index(acme["memory_id"]), block.index(widget["memory_id"]))
-		with patch("flow.memory.store.TOP_K", 1):
+		with patch("frappe.flow.memory.store.TOP_K", 1):
 			block = self.block("Bill Acme for the widgets.")
 		self.assertIn(acme["memory_id"], block)
 		self.assertNotIn(widget["memory_id"], block)

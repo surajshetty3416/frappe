@@ -23,7 +23,7 @@ const pageStore = usePageStore();
 const duplicateToEdit = async () => {
 	toast.promise(
 		createResource({
-			url: "builder.api.create_page_from_template",
+			url: "frappe.builder.api.create_page_from_template",
 		})
 			.submit({ template_page: pageStore.activePage?.name })
 			.then((newPageName: string) => {

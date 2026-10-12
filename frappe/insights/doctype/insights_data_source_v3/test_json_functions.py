@@ -6,7 +6,7 @@ import unittest
 import frappe
 import ibis
 
-from insights.insights.doctype.insights_data_source_v3.ibis.functions import (
+from frappe.insights.doctype.insights_data_source_v3.ibis.functions import (
     json_extract,
     json_value,
     null_if,

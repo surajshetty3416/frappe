@@ -7,7 +7,7 @@ write-only here: the model never needs a read tool."""
 
 import frappe
 
-from builder.ai.agent.registry import Tool
+from frappe.builder.ai.agent.registry import Tool
 
 DOCTYPE = "Builder AI Memory"
 MAX_MEMORIES = 50

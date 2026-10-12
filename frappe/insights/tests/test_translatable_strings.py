@@ -10,9 +10,9 @@ import frappe
 from babel.messages.extract import extract_from_dir
 from frappe.gettext.translate import PYTHON_KEYWORDS, get_method_map
 
-from insights.tests.base import InsightsIntegrationTestCase
+from frappe.insights.tests.base import InsightsIntegrationTestCase
 
-FRONTEND = Path(frappe.get_app_path("insights")).parent / "frontend" / "src2"
+FRONTEND = Path(frappe.get_app_path("frappe")).parent / "frontend" / "insights" / "src2"
 
 # `__('...')` and `__("...")`, escapes included. A call with a non-literal first
 # argument has nothing to extract, so the pattern skips it.

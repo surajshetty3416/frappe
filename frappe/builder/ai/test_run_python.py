@@ -4,7 +4,7 @@ from unittest.mock import patch
 import frappe
 from frappe.tests.utils import FrappeTestCase
 
-from builder.ai.agent.tools.python import run_python
+from frappe.builder.ai.agent.tools.python import run_python
 
 
 def run(script, page_id="the-open-page"):

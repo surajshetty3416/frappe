@@ -9,7 +9,7 @@ from glob import glob
 
 import frappe
 
-from builder.builder.component_versions import resolve_component, walk_blocks
+from frappe.builder.component_versions import resolve_component, walk_blocks
 
 CACHE_SECONDS = 300
 

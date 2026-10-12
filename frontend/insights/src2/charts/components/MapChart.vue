@@ -38,7 +38,7 @@ async function loadGeography(name: string) {
 	if (getMap(name)) return true
 	try {
 		const file = name === 'india' ? 'india' : 'world_map'
-		registerMap(name, await (await fetch(`/assets/insights/maps/${file}.json`)).json())
+		registerMap(name, await (await fetch(`/assets/frappe/insights/maps/${file}.json`)).json())
 		return true
 	} catch (error) {
 		console.error(`Could not load the ${name} map`, error)

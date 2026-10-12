@@ -34,7 +34,7 @@ describe('a drill level', () => {
 		)
 
 		const [method, args] = calls[calls.length - 1]
-		expect(method).toBe('insights.api.authoring.get_drill_data')
+		expect(method).toBe('frappe.insights.api.authoring.get_drill_data')
 		expect(args.chart_name).toBe('chart-1')
 		expect(args.card_filters).toEqual([{ column: 'city', operator: '=', value: 'delhi' }])
 	})
@@ -102,12 +102,12 @@ describe('a drill level', () => {
 
 		await rows.read(state)
 		const [read, readArgs] = calls[calls.length - 1]
-		expect(read).toBe('insights.api.authoring.get_drill_data')
+		expect(read).toBe('frappe.insights.api.authoring.get_drill_data')
 		expect(readArgs).toMatchObject({ chart_name: 'chart-1', ...state })
 
 		await rows.download(state, 'csv')
 		const [download, downloadArgs] = calls[calls.length - 1]
-		expect(download).toBe('insights.api.authoring.download_drill_rows')
+		expect(download).toBe('frappe.insights.api.authoring.download_drill_rows')
 		expect(downloadArgs).toMatchObject({ chart_name: 'chart-1', find: 'north', format: 'csv' })
 		expect(downloadArgs.page).toBeUndefined()
 	})

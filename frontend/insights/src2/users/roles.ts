@@ -7,7 +7,7 @@ const loading = ref(false)
 
 function getRoles() {
 	loading.value = true
-	return call('insights.api.user.get_roles')
+	return call('frappe.insights.api.user.get_roles')
 		.then((res: unknown) => {
 			roles.value = res as string[]
 			return roles.value

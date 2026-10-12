@@ -18,10 +18,10 @@ import frappe
 import pandas as pd
 from frappe.tests import UnitTestCase
 
-from insights.tests.base import InsightsIntegrationTestCase
-from insights.tests.factories import DT, create_test_query, create_test_workbook, delete_users
-from insights.tests.permissions_utils import ADMIN, create_test_users
-from insights.utils import as_text
+from frappe.insights.tests.base import InsightsIntegrationTestCase
+from frappe.insights.tests.factories import DT, create_test_query, create_test_workbook, delete_users
+from frappe.insights.tests.permissions_utils import ADMIN, create_test_users
+from frappe.insights.utils import as_text
 
 PAYLOAD = "=cmd|'/c calc'!A1"
 
@@ -144,7 +144,7 @@ class TestQueryExportAppliesTheRule(InsightsIntegrationTestCase):
         with (
             patch.object(type(doc), "build", return_value=built),
             patch(
-                "insights.insights.doctype.insights_query_v3.insights_query_v3.execute_ibis_query",
+                "frappe.insights.doctype.insights_query_v3.insights_query_v3.execute_ibis_query",
                 return_value=(rows, 0),
             ),
         ):

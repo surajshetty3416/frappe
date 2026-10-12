@@ -13,11 +13,11 @@ import frappe
 from frappe.desk.like import toggle_like
 from frappe.desk.search import search_link
 
-from insights.api.dashboards import get_dashboards
-from insights.api.data_store import get_data_store_tables
-from insights.api.workbooks import get_workbooks, update_share_permissions
-from insights.tests.base import InsightsIntegrationTestCase
-from insights.tests.factories import (
+from frappe.insights.api.dashboards import get_dashboards
+from frappe.insights.api.data_store import get_data_store_tables
+from frappe.insights.api.workbooks import get_workbooks, update_share_permissions
+from frappe.insights.tests.base import InsightsIntegrationTestCase
+from frappe.insights.tests.factories import (
     DT,
     as_user,
     create_test_chart,
@@ -26,7 +26,7 @@ from insights.tests.factories import (
     create_test_workbook,
     delete_users,
 )
-from insights.tests.permissions_utils import (
+from frappe.insights.tests.permissions_utils import (
     ADMIN,
     TEST_DS,
     USER_1,
@@ -232,8 +232,8 @@ class TestDashboardList(InsightsIntegrationTestCase):
         the rows of whoever refreshes it, and every reader of the list sees it."""
         from unittest.mock import patch
 
-        from insights.api.dashboards import update_dashboard_preview
-        from insights.insights.doctype.insights_dashboard_v3.insights_dashboard_v3 import (
+        from frappe.insights.api.dashboards import update_dashboard_preview
+        from frappe.insights.doctype.insights_dashboard_v3.insights_dashboard_v3 import (
             InsightsDashboardv3,
         )
 

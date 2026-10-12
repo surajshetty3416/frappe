@@ -2,7 +2,7 @@ from contextlib import contextmanager
 
 import frappe
 
-from insights.insights.doctype.insights_data_source_v3.insights_data_source_v3 import db_connections
+from frappe.insights.doctype.insights_data_source_v3.insights_data_source_v3 import db_connections
 
 
 class DT:

@@ -8,11 +8,11 @@ from unittest.mock import patch
 import frappe
 from frappe.tests import IntegrationTestCase
 
-from flow import ToolContext
-from flow.knowledge import Knowledge, attachment_store, store
-from flow.knowledge.chunker import chunk_text
-from flow.knowledge.embedder import embed_texts, probe_dimension
-from flow.knowledge.extract import (
+from frappe.flow import ToolContext
+from frappe.flow.knowledge import Knowledge, attachment_store, store
+from frappe.flow.knowledge.chunker import chunk_text
+from frappe.flow.knowledge.embedder import embed_texts, probe_dimension
+from frappe.flow.knowledge.extract import (
 	_extract_by_extension,
 	_extract_docx,
 	_extract_html,
@@ -23,13 +23,13 @@ from flow.knowledge.extract import (
 	_validate_public_url,
 	extract,
 )
-from flow.knowledge.ingest import (
+from frappe.flow.knowledge.ingest import (
 	ingest_source,
 	purge_source,
 	reconcile_source,
 	sync_due_sources,
 )
-from flow.knowledge.retriever import retrieve, retrieve_attachments
+from frappe.flow.knowledge.retriever import retrieve, retrieve_attachments
 
 DIM = 4
 CTX = ToolContext(session_id="test", agent="Test Agent", user="Administrator")
@@ -286,52 +286,52 @@ class TestKnowledgeSettings(IntegrationTestCase):
 		).insert()
 
 	def test_save_probes_dimension(self):
-		with patch("flow.knowledge.embedder.probe_dimension", return_value=1536) as probe:
+		with patch("frappe.flow.knowledge.embedder.probe_dimension", return_value=1536) as probe:
 			settings = self._save_settings(embedding_model=self.model.name)
 		self.assertEqual(settings.embedding_dimension, 1536)
 		probe.assert_called_once_with(self.model.name)
 
 	def test_save_unchanged_model_does_not_reprobe(self):
-		with patch("flow.knowledge.embedder.probe_dimension", return_value=1536):
+		with patch("frappe.flow.knowledge.embedder.probe_dimension", return_value=1536):
 			self._save_settings(embedding_model=self.model.name)
-		with patch("flow.knowledge.embedder.probe_dimension") as probe:
+		with patch("frappe.flow.knowledge.embedder.probe_dimension") as probe:
 			self._save_settings(chunk_size=500)
 		probe.assert_not_called()
 
 	def test_model_change_reprobes_without_chunks(self):
-		with patch("flow.knowledge.embedder.probe_dimension", return_value=1536):
+		with patch("frappe.flow.knowledge.embedder.probe_dimension", return_value=1536):
 			self._save_settings(embedding_model=self.model.name)
-		with patch("flow.knowledge.embedder.probe_dimension", return_value=3072):
+		with patch("frappe.flow.knowledge.embedder.probe_dimension", return_value=3072):
 			settings = self._save_settings(embedding_model=self.alt_model.name)
 		self.assertEqual(settings.embedding_dimension, 3072)
 
 	def test_model_change_blocked_while_chunks_exist(self):
-		with patch("flow.knowledge.embedder.probe_dimension", return_value=1536):
+		with patch("frappe.flow.knowledge.embedder.probe_dimension", return_value=1536):
 			self._save_settings(embedding_model=self.model.name)
 		self._make_chunk()
 		with self.assertRaisesRegex(frappe.ValidationError, "Delete all knowledge sources"):
 			self._save_settings(embedding_model=self.alt_model.name)
 
 	def test_clear_model_blocked_while_chunks_exist(self):
-		with patch("flow.knowledge.embedder.probe_dimension", return_value=1536):
+		with patch("frappe.flow.knowledge.embedder.probe_dimension", return_value=1536):
 			self._save_settings(embedding_model=self.model.name)
 		self._make_chunk()
 		with self.assertRaisesRegex(frappe.ValidationError, "Delete all knowledge sources"):
 			self._save_settings(embedding_model="")
 
 	def test_model_change_flag_bypasses_guard(self):
-		with patch("flow.knowledge.embedder.probe_dimension", return_value=1536):
+		with patch("frappe.flow.knowledge.embedder.probe_dimension", return_value=1536):
 			self._save_settings(embedding_model=self.model.name)
 		self._make_chunk()
 		settings = frappe.get_doc("Flow Knowledge Settings")
 		settings.embedding_model = self.alt_model.name
 		settings.flags.allow_embedding_model_change = True
-		with patch("flow.knowledge.embedder.probe_dimension", return_value=3072):
+		with patch("frappe.flow.knowledge.embedder.probe_dimension", return_value=3072):
 			settings.save()
 		self.assertEqual(settings.embedding_dimension, 3072)
 
 	def test_clear_model_resets_dimension(self):
-		with patch("flow.knowledge.embedder.probe_dimension", return_value=1536):
+		with patch("frappe.flow.knowledge.embedder.probe_dimension", return_value=1536):
 			self._save_settings(embedding_model=self.model.name)
 		settings = self._save_settings(embedding_model="")
 		self.assertEqual(settings.embedding_dimension, 0)
@@ -544,8 +544,8 @@ class TestExtract(IntegrationTestCase):
 			crop=lambda bbox: object(),
 		)
 		with (
-			patch("flow.knowledge.extract._render_page_png", return_value=b"page"),
-			patch("flow.knowledge.extract._ocr_image", return_value="Text in images") as ocr,
+			patch("frappe.flow.knowledge.extract._render_page_png", return_value=b"page"),
+			patch("frappe.flow.knowledge.extract._ocr_image", return_value="Text in images") as ocr,
 		):
 			text = _extract_pdf_page(page)
 		self.assertIn("Searchable text", text)
@@ -614,7 +614,7 @@ class TestIngest(IntegrationTestCase):
 	def _make_source(self, **values):
 		values.setdefault("source_type", "Text")
 		values.setdefault("title", "Ingest Source")
-		with patch("flow.knowledge.ingest.enqueue_ingestion"):
+		with patch("frappe.flow.knowledge.ingest.enqueue_ingestion"):
 			return frappe.get_doc(
 				{"doctype": "Flow Knowledge Source", "knowledge_base": self.kb.name, **values}
 			).insert()
@@ -707,7 +707,7 @@ class TestIngest(IntegrationTestCase):
 		self.assertEqual(frappe.db.count("Flow Knowledge Chunk", {"source": source.name}), 0)
 
 	def test_after_insert_enqueues_ingestion(self):
-		with patch("flow.knowledge.ingest.enqueue_ingestion") as mock:
+		with patch("frappe.flow.knowledge.ingest.enqueue_ingestion") as mock:
 			source = frappe.get_doc(
 				{
 					"doctype": "Flow Knowledge Source",
@@ -743,7 +743,7 @@ class TestIngest(IntegrationTestCase):
 
 	def test_resync_rebuild_enqueues_full_rebuild(self):
 		source = self._make_source(content="Reset your password from the account settings page. " * 4)
-		with patch("flow.knowledge.ingest.enqueue_ingestion") as mock:
+		with patch("frappe.flow.knowledge.ingest.enqueue_ingestion") as mock:
 			source.resync(rebuild=True)
 		mock.assert_called_once_with(source.name, rebuild=True)
 
@@ -769,7 +769,7 @@ class TestDoctypeSync(IntegrationTestCase):
 
 	def _source(self, filters=None):
 		filters = filters or {"description": ["like", "SYNCTEST%"]}
-		with patch("flow.knowledge.ingest.enqueue_ingestion"):
+		with patch("frappe.flow.knowledge.ingest.enqueue_ingestion"):
 			return frappe.get_doc(
 				{
 					"doctype": "Flow Knowledge Source",
@@ -832,7 +832,7 @@ class TestDoctypeSync(IntegrationTestCase):
 		self.assertNotIn("Status", " ".join(self._content(source.name, todo.name)))
 
 		source.content_fields = "description, status"
-		with patch("flow.knowledge.ingest.enqueue_ingestion") as enqueue:
+		with patch("frappe.flow.knowledge.ingest.enqueue_ingestion") as enqueue:
 			source.save()
 		enqueue.assert_called_once_with(source.name, rebuild=True)
 
@@ -842,7 +842,7 @@ class TestDoctypeSync(IntegrationTestCase):
 	def test_saving_a_source_unchanged_does_not_reindex(self):
 		source = self._source()
 		source.title = "Renamed source"
-		with patch("flow.knowledge.ingest.enqueue_ingestion") as enqueue:
+		with patch("frappe.flow.knowledge.ingest.enqueue_ingestion") as enqueue:
 			source.save()
 		enqueue.assert_not_called()
 
@@ -957,7 +957,7 @@ class TestDoctypeSync(IntegrationTestCase):
 		auto = self._source()
 		auto.db_set("auto_sync", 1, update_modified=False)
 		manual = self._source()
-		with patch("flow.knowledge.ingest.enqueue_ingestion"):
+		with patch("frappe.flow.knowledge.ingest.enqueue_ingestion"):
 			text = frappe.get_doc(
 				{
 					"doctype": "Flow Knowledge Source",
@@ -969,7 +969,7 @@ class TestDoctypeSync(IntegrationTestCase):
 				}
 			).insert()
 
-		with patch("flow.knowledge.ingest.enqueue_ingestion") as mock:
+		with patch("frappe.flow.knowledge.ingest.enqueue_ingestion") as mock:
 			sync_due_sources()
 		enqueued = {call.args[0] for call in mock.call_args_list}
 
@@ -1006,7 +1006,7 @@ class TestRetriever(IntegrationTestCase):
 			ingest_source(source_name)
 
 	def _text_source(self, kb, content, title="Doc"):
-		with patch("flow.knowledge.ingest.enqueue_ingestion"):
+		with patch("frappe.flow.knowledge.ingest.enqueue_ingestion"):
 			source = frappe.get_doc(
 				{
 					"doctype": "Flow Knowledge Source",
@@ -1062,14 +1062,14 @@ class TestRetriever(IntegrationTestCase):
 	def test_retrieve_vector_mode_omits_text(self):
 		self._text_source(self.kb.name, "laptop setup guide. " * 4)
 		frappe.db.set_single_value("Flow Knowledge Settings", "search_type", "Vector")
-		with patch("flow.knowledge.store.search", return_value=[]) as mock:
+		with patch("frappe.flow.knowledge.store.search", return_value=[]) as mock:
 			self._retrieve("laptop", kbs=[self.kb.name])
 		self.assertIsNone(mock.call_args.kwargs["text"])
 
 	def test_retrieve_hybrid_mode_passes_text(self):
 		self._text_source(self.kb.name, "laptop setup guide. " * 4)
 		frappe.db.set_single_value("Flow Knowledge Settings", "search_type", "Hybrid")
-		with patch("flow.knowledge.store.search", return_value=[]) as mock:
+		with patch("frappe.flow.knowledge.store.search", return_value=[]) as mock:
 			self._retrieve("laptop", kbs=[self.kb.name])
 		self.assertEqual(mock.call_args.kwargs["text"], "laptop")
 
@@ -1148,13 +1148,13 @@ class TestKnowledgeBuilder(IntegrationTestCase):
 
 	def test_add_text_does_not_enqueue_async_ingestion(self):
 		kb = Knowledge("Sync KB")
-		with patch("flow.knowledge.ingest.enqueue_ingestion") as enqueue:
+		with patch("frappe.flow.knowledge.ingest.enqueue_ingestion") as enqueue:
 			self._add_text(kb, "synchronous ingestion content. " * 4)
 		enqueue.assert_not_called()
 
 	def test_add_doctype_translates_fields_and_filters(self):
 		kb = Knowledge("DocType KB")
-		with patch("flow.knowledge.ingest.ingest_source") as ingest:
+		with patch("frappe.flow.knowledge.ingest.ingest_source") as ingest:
 			source_name = kb.add_doctype(
 				"ToDo",
 				content_fields=["description", "status"],
@@ -1177,7 +1177,7 @@ class TestKnowledgeSearchTool(IntegrationTestCase):
 		frappe.db.rollback()
 
 	def _search_tool(self, knowledge):
-		from flow.tools.builtins import bind_search_knowledge
+		from frappe.flow.tools.builtins import bind_search_knowledge
 
 		items = knowledge if isinstance(knowledge, list) else [knowledge]
 		return bind_search_knowledge([kb.name for kb in items])
@@ -1189,7 +1189,7 @@ class TestKnowledgeSearchTool(IntegrationTestCase):
 	def test_knowledge_scopes_search_to_given_bases(self):
 		kb = Knowledge("Scoped KB")
 		search = self._search_tool([kb])
-		with patch("flow.knowledge.retriever.retrieve", return_value=[]) as mock:
+		with patch("frappe.flow.knowledge.retriever.retrieve", return_value=[]) as mock:
 			search(query="hi", ctx=CTX)
 		mock.assert_called_once_with("hi", kbs=[kb.name])
 
@@ -1197,7 +1197,7 @@ class TestKnowledgeSearchTool(IntegrationTestCase):
 		first = Knowledge("KB One")
 		second = Knowledge("KB Two")
 		search = self._search_tool([first, second])
-		with patch("flow.knowledge.retriever.retrieve", return_value=[]) as mock:
+		with patch("frappe.flow.knowledge.retriever.retrieve", return_value=[]) as mock:
 			search(query="hi", ctx=CTX)
 		mock.assert_called_once_with("hi", kbs=[first.name, second.name])
 

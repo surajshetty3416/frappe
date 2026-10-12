@@ -10,7 +10,7 @@ import unittest.mock as mock
 import frappe
 from frappe.tests.utils import FrappeTestCase
 
-from builder.utils import Block
+from frappe.builder.utils import Block
 
 
 class TestStandardPageSync(FrappeTestCase):
@@ -22,9 +22,9 @@ class TestStandardPageSync(FrappeTestCase):
 
 	# builder is always installed, so frappe.get_app_path succeeds
 	FIXTURE_APP = "builder"
-	EXPORT_MODULE = "builder.export_import_standard_page"
+	EXPORT_MODULE = "frappe.builder.export_import_standard_page"
 	# export_page_as_standard is imported into builder_page, so patch it there
-	PAGE_MODULE = "builder.builder.doctype.builder_page.builder_page"
+	PAGE_MODULE = "frappe.builder.doctype.builder_page.builder_page"
 
 	# ------------------------------------------------------------------ helpers
 
@@ -209,7 +209,7 @@ class TestStandardPageSync(FrappeTestCase):
 
 	def test_export_page_without_data_script(self):
 		"""A page with no data script exports an empty data_script.py."""
-		from builder.export_import_standard_page import export_page_as_standard
+		from frappe.builder.export_import_standard_page import export_page_as_standard
 
 		page = self.make_secondary_standard_page("export-without-data-script")
 		export_root = tempfile.mkdtemp()
@@ -229,7 +229,7 @@ class TestStandardPageSync(FrappeTestCase):
 
 	def test_export_client_script_without_body(self):
 		"""A script with no body exports, and a CSS script lands in a .css file."""
-		from builder.utils import export_client_scripts
+		from frappe.builder.utils import export_client_scripts
 
 		# script is mandatory, so only a fixture import or ignore_mandatory gets here
 		script = frappe.get_doc(
@@ -506,7 +506,7 @@ class TestStandardPageSync(FrappeTestCase):
 		variable.save(ignore_permissions=True)
 		try:
 			with mock.patch(
-				"builder.builder.doctype.builder_token.builder_token.delete_folder"
+				"frappe.builder.doctype.builder_token.builder_token.delete_folder"
 			) as mock_delete_folder:
 				with self.with_developer_mode():
 					variable.is_standard = 0

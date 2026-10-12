@@ -6,14 +6,14 @@ type Doc = Record<string, any>;
 // lookups the editor makes that the demo answers the same way every time
 const STUBS: Record<string, unknown> = {
 	"frappe.client.has_permission": { has_permission: true },
-	"builder.api.get_component_data": {},
-	"builder.api.get_template_groups": [],
-	"builder.api.get_codemirror_completions": [],
-	"builder.api.is_site_read_only": false,
-	"builder.ai.api.ai_setup_state": { configured: false },
-	"builder.ai.api.get_ai_models": [],
-	"builder.ai.api.get_ai_session": null,
-	"builder.ai.api.list_page_ai_sessions": [],
+	"frappe.builder.api.get_component_data": {},
+	"frappe.builder.api.get_template_groups": [],
+	"frappe.builder.api.get_codemirror_completions": [],
+	"frappe.builder.api.is_site_read_only": false,
+	"frappe.builder.ai.api.ai_setup_state": { configured: false },
+	"frappe.builder.ai.api.get_ai_models": [],
+	"frappe.builder.ai.api.get_ai_session": null,
+	"frappe.builder.ai.api.list_page_ai_sessions": [],
 };
 
 // the page methods the editor only reads through; every other one would save or publish
@@ -63,7 +63,7 @@ export function createEditorDemoBackend(payload: EditorDemoPayload) {
 		},
 		run_doc_method: ({ method }) =>
 			method in PAGE_READS ? { message: PAGE_READS[method], docs: [] } : refuse(),
-		"builder.api.get_versioned_doc": ({ snapshot }) =>
+		"frappe.builder.api.get_versioned_doc": ({ snapshot }) =>
 			payload.componentVersions[snapshot] ?? refuse(__("Version not found")),
 	};
 

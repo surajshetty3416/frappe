@@ -12,18 +12,18 @@ from frappe.query_builder.functions import Now
 from frappe.utils.html_utils import sanitize_html
 from frappe.website.utils import cleanup_page_name
 
-from insights import standard
-from insights.insights.doctype.insights_chart_v3.chart_query import (
+from frappe.insights import standard
+from frappe.insights.doctype.insights_chart_v3.chart_query import (
     config_filter_group,
     derive_operations,
     result_column,
 )
-from insights.insights.query_utils import transitive_closure
-from insights.not_permitted import answers_refusal
-from insights.permission_user import runs_as
-from insights.preview_key import generate_preview_key
-from insights.telemetry import capture, capture_share_granted
-from insights.utils import DocShare, File, get_app_url
+from frappe.insights.query_utils import transitive_closure
+from frappe.insights.not_permitted import answers_refusal
+from frappe.insights.permission_user import runs_as
+from frappe.insights.preview_key import generate_preview_key
+from frappe.insights.telemetry import capture, capture_share_granted
+from frappe.insights.utils import DocShare, File, get_app_url
 
 # a filter links a column as "links": { '<chart>': "`<query>`.`<column>`" }
 LINK_COLUMN = re.compile(r"^`([^`]+)`\.`([^`]+)`$")
@@ -48,7 +48,7 @@ class InsightsDashboardv3(Document):
         from frappe.core.doctype.has_role.has_role import HasRole
         from frappe.types import DF
 
-        from insights.insights.doctype.insights_dashboard_chart_v3.insights_dashboard_chart_v3 import (
+        from frappe.insights.doctype.insights_dashboard_chart_v3.insights_dashboard_chart_v3 import (
             InsightsDashboardChartv3,
         )
 
@@ -176,7 +176,7 @@ class InsightsDashboardv3(Document):
             self.items = items
 
     def validate(self):
-        from insights.permissions import (
+        from frappe.insights.permissions import (
             check_dashboard_chart_access,
             check_dashboard_publishes,
             validate_visibility,
@@ -191,7 +191,7 @@ class InsightsDashboardv3(Document):
         check_dashboard_publishes(self)
 
     def on_update(self):
-        from insights.permissions import capture_visibility_widened
+        from frappe.insights.permissions import capture_visibility_widened
 
         standard.export_member(self)
         capture_visibility_widened(self)
@@ -234,7 +234,7 @@ class InsightsDashboardv3(Document):
         return super().get_valid_dict(*args, **kwargs)
 
     def as_dict(self, *args, **kwargs):
-        from insights.permissions import can_share, can_write
+        from frappe.insights.permissions import can_share, can_write
 
         d = super().as_dict(*args, **kwargs)
 
@@ -325,7 +325,7 @@ class InsightsDashboardv3(Document):
         reads `owner` and `__islocal` from the document it gets, and
         `BaseDocument.update` copies both from the request. So
         `self.has_permission` would allow anyone who sends them. This follows
-        `insights.api.check_stored_document`: decide against the stored row.
+        `frappe.insights.api.check_stored_document`: decide against the stored row.
         """
         if frappe.has_permission(self.doctype, ptype="write", doc=self.name):
             return self.items
@@ -361,8 +361,8 @@ class InsightsDashboardv3(Document):
         answers like any other refusal on a dashboard the caller may read: an
         empty list. A filter with no usable link calls `missing()`.
         """
-        from insights.not_permitted import NotPermitted, forget_refusal, refuse
-        from insights.permissions import can_read_chart
+        from frappe.insights.not_permitted import NotPermitted, forget_refusal, refuse
+        from frappe.insights.permissions import can_read_chart
 
         stored = frappe.db.get_value(self.doctype, self.name, "items")
         items = frappe.parse_json(stored) or []
@@ -406,13 +406,13 @@ class InsightsDashboardv3(Document):
 
         Read access to the dashboard is checked before this runs. The builder
         calls it through `run_doc_method`, and a reader through
-        `insights.api.view.get_filter_values`. That check is the only gate, so
+        `frappe.insights.api.view.get_filter_values`. That check is the only gate, so
         this calls the query's method directly. A reader of this dashboard may
         have no Insights role.
 
         `answers_refusal` is here because the method is whitelisted. A card
         over a table the caller may not read then answers an empty list, the
-        same as through `insights.api.view`.
+        same as through `frappe.insights.api.view`.
         """
         adhoc_filters = self._filter_context_filters(filter_name, filter_context)
         return self.lookup_filter(
@@ -534,7 +534,7 @@ class InsightsDashboardv3(Document):
         it, only the client's user picker stopped a share to a portal user, who
         could then download the owner's rows.
         """
-        from insights.permissions import validate_shareable_users
+        from frappe.insights.permissions import validate_shareable_users
 
         if not frappe.has_permission("Insights Dashboard v3", ptype="share", doc=self.name):
             frappe.throw("You do not have permission to share this dashboard")
@@ -751,13 +751,13 @@ def can_filter_card(chart: str) -> bool:
     does, so `can_read_rows` decides. Dashboard filters are set by the author
     and go through `route_filters` instead.
     """
-    from insights.permissions import can_read_rows
+    from frappe.insights.permissions import can_read_rows
 
     return can_read_rows(frappe._dict(doctype="Insights Chart v3", name=chart))
 
 
 def check_card_filter(chart: str) -> None:
-    from insights.not_permitted import refuse
+    from frappe.insights.not_permitted import refuse
 
     if not can_filter_card(chart):
         refuse(message=frappe._("This chart shows only what its owner saved, so it cannot be filtered"))

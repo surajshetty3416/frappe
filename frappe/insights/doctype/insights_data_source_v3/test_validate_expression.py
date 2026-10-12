@@ -8,9 +8,9 @@ import frappe
 import ibis
 from frappe.utils.safe_exec import is_safe_exec_enabled
 
-from insights.insights.doctype.insights_data_source_v3.ibis import functions, utils
-from insights.tests.base import InsightsIntegrationTestCase
-from insights.tests.factories import as_user, create_user, delete_users
+from frappe.insights.doctype.insights_data_source_v3.ibis import functions, utils
+from frappe.insights.tests.base import InsightsIntegrationTestCase
+from frappe.insights.tests.factories import as_user, create_user, delete_users
 
 COLUMN_OPTIONS = json.dumps([{"value": "amount", "description": "Integer"}])
 
@@ -238,8 +238,8 @@ class TestEvaluateExpression(InsightsIntegrationTestCase):
     """What a run does with an expression, as `IbisQueryBuilder` evaluates it."""
 
     def build(self, *operations):
-        from insights.insights.doctype.insights_data_source_v3.ibis_utils import IbisQueryBuilder
-        from insights.insights.doctype.insights_data_source_v3.insights_data_source_v3 import db_connections
+        from frappe.insights.doctype.insights_data_source_v3.ibis_utils import IbisQueryBuilder
+        from frappe.insights.doctype.insights_data_source_v3.insights_data_source_v3 import db_connections
 
         query = frappe._dict(
             name="Evaluate Expression Test",
@@ -262,7 +262,7 @@ class TestEvaluateExpression(InsightsIntegrationTestCase):
 
     # @feature query.expression-error-names-operation
     def test_an_unknown_name_names_the_mutate_and_its_column(self):
-        from insights.exceptions import UnknownColumn
+        from frappe.insights.exceptions import UnknownColumn
 
         self.assert_refused(
             UnknownColumn,
@@ -272,7 +272,7 @@ class TestEvaluateExpression(InsightsIntegrationTestCase):
 
     # @feature query.expression-error-names-operation
     def test_a_syntax_error_names_the_filter_and_the_position(self):
-        from insights.exceptions import ExpressionSyntaxError
+        from frappe.insights.exceptions import ExpressionSyntaxError
 
         self.assert_refused(
             ExpressionSyntaxError,
@@ -283,7 +283,7 @@ class TestEvaluateExpression(InsightsIntegrationTestCase):
 
     # @feature query.expression-error-names-operation
     def test_a_type_error_names_the_measure(self):
-        from insights.exceptions import ExpressionSyntaxError
+        from frappe.insights.exceptions import ExpressionSyntaxError
 
         summarize = {
             "type": "summarize",
@@ -308,7 +308,7 @@ class TestEvaluateExpression(InsightsIntegrationTestCase):
     def test_an_ibis_error_outside_ibis_error_is_wrapped(self):
         """ibis's `SignatureValidationError` is not an `IbisError`, so a list of
         the classes to wrap once let it out bare."""
-        from insights.exceptions import ExpressionSyntaxError
+        from frappe.insights.exceptions import ExpressionSyntaxError
 
         self.assert_refused(
             ExpressionSyntaxError,
@@ -321,7 +321,7 @@ class TestEvaluateExpression(InsightsIntegrationTestCase):
 
     # @feature query.expression-error-names-operation
     def test_a_join_condition_names_the_join_and_the_expression(self):
-        from insights.exceptions import UnknownColumn
+        from frappe.insights.exceptions import UnknownColumn
 
         for expression in ("t1.allocated_to == t2.nope", "on = t1.allocated_to == t2.nope\non"):
             with self.subTest(expression=expression):
@@ -334,7 +334,7 @@ class TestEvaluateExpression(InsightsIntegrationTestCase):
 
     # @feature query.expression-error-names-operation
     def test_a_custom_operation_names_the_operation_and_the_expression(self):
-        from insights.exceptions import UnknownColumn
+        from frappe.insights.exceptions import UnknownColumn
 
         self.assert_refused(
             UnknownColumn,
@@ -345,8 +345,8 @@ class TestEvaluateExpression(InsightsIntegrationTestCase):
 
     # @feature query.expression-error-names-operation
     def test_an_alert_condition_names_the_cause_and_the_expression(self):
-        from insights.exceptions import UnknownColumn
-        from insights.insights.doctype.insights_data_source_v3.insights_data_source_v3 import db_connections
+        from frappe.insights.exceptions import UnknownColumn
+        from frappe.insights.doctype.insights_data_source_v3.insights_data_source_v3 import db_connections
 
         query = frappe.get_doc(
             {
@@ -366,7 +366,7 @@ class TestEvaluateExpression(InsightsIntegrationTestCase):
 
     # @feature query.expression-error-names-operation
     def test_an_expression_of_only_a_comment_is_empty_and_says_so(self):
-        from insights.exceptions import ExpressionSyntaxError
+        from frappe.insights.exceptions import ExpressionSyntaxError
 
         self.assert_refused(
             ExpressionSyntaxError,
@@ -376,7 +376,7 @@ class TestEvaluateExpression(InsightsIntegrationTestCase):
 
     # @feature query.expression-error-names-operation
     def test_a_column_named_with_an_underscore_is_refused_with_the_way_to_read_it(self):
-        from insights.exceptions import ExpressionSyntaxError
+        from frappe.insights.exceptions import ExpressionSyntaxError
 
         self.assert_refused(
             ExpressionSyntaxError,
@@ -388,7 +388,7 @@ class TestEvaluateExpression(InsightsIntegrationTestCase):
 
     # @feature query.expression-error-names-operation
     def test_a_misspelled_function_is_not_an_unknown_column(self):
-        from insights.exceptions import ExpressionSyntaxError
+        from frappe.insights.exceptions import ExpressionSyntaxError
 
         self.assert_refused(
             ExpressionSyntaxError,
@@ -415,8 +415,8 @@ class TestEvaluateExpression(InsightsIntegrationTestCase):
     # @feature query.expression-error-names-operation
     def test_an_expression_outside_a_build_names_the_cause_and_the_expression(self):
         """An alert evaluates its condition on a built query, outside any operation."""
-        from insights.exceptions import UnknownColumn
-        from insights.insights.doctype.insights_data_source_v3.ibis_utils import IbisQueryBuilder
+        from frappe.insights.exceptions import UnknownColumn
+        from frappe.insights.doctype.insights_data_source_v3.ibis_utils import IbisQueryBuilder
 
         builder = IbisQueryBuilder(frappe._dict(name="t", operations="[]", use_live_connection=0))
         builder.query = ibis.memtable({"status": ["Open"]})
@@ -430,7 +430,7 @@ class TestEvaluateExpression(InsightsIntegrationTestCase):
 
     # @feature query.expression-error-names-operation
     def test_a_missing_column_read_by_item_is_an_unknown_column(self):
-        from insights.exceptions import UnknownColumn
+        from frappe.insights.exceptions import UnknownColumn
 
         self.assert_refused(
             UnknownColumn,
@@ -458,7 +458,7 @@ class TestEvaluateExpression(InsightsIntegrationTestCase):
 
     # @feature query.expression-column-named-like-function
     def test_a_column_named_like_a_function_used_both_ways_is_refused_with_the_way_to_write_it(self):
-        from insights.exceptions import ExpressionSyntaxError
+        from frappe.insights.exceptions import ExpressionSyntaxError
 
         self.assert_refused(
             ExpressionSyntaxError,
@@ -486,7 +486,7 @@ class TestEvaluateExpression(InsightsIntegrationTestCase):
         import tempfile
 
         target = os.path.join(tempfile.gettempdir(), "insights_expression_column_probe.csv")
-        from insights.exceptions import ExpressionSyntaxError
+        from frappe.insights.exceptions import ExpressionSyntaxError
 
         for expression, refusal in (
             (f"to_csv({target!r})", ExpressionSyntaxError),

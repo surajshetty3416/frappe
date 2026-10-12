@@ -4,7 +4,7 @@ import frappe
 from frappe import _
 from frappe.utils import cint
 
-from insights.api.list_filters import (
+from frappe.insights.api.list_filters import (
     get_content_filters,
     get_last_opened,
     get_shares,
@@ -12,10 +12,10 @@ from insights.api.list_filters import (
     match_operations,
     match_records,
 )
-from insights.decorators import insights_whitelist
-from insights.permissions import validate_shareable_users
-from insights.telemetry import capture_share_granted
-from insights.utils import DocShare
+from frappe.insights.decorators import insights_whitelist
+from frappe.insights.permissions import validate_shareable_users
+from frappe.insights.telemetry import capture_share_granted
+from frappe.insights.utils import DocShare
 
 # Filters the list's filter control declares beyond the workbook's own columns
 WORKBOOK_FILTERS = {
@@ -87,7 +87,7 @@ def _workbook_data_sources(names: list[str]) -> dict[str, list[str]]:
 
 @insights_whitelist()
 def import_workbook(workbook: dict | str):
-    from insights.insights.doctype.insights_workbook.insights_workbook import import_workbook
+    from frappe.insights.doctype.insights_workbook.insights_workbook import import_workbook
 
     return import_workbook(workbook)
 
@@ -95,7 +95,7 @@ def import_workbook(workbook: dict | str):
 @insights_whitelist()
 def is_workbook_file(workbook: dict | str):
     """Whether a pasted file is an importable workbook."""
-    from insights.insights.doctype.insights_workbook.insights_workbook import is_workbook_file
+    from frappe.insights.doctype.insights_workbook.insights_workbook import is_workbook_file
 
     return is_workbook_file(workbook)
 
@@ -103,7 +103,7 @@ def is_workbook_file(workbook: dict | str):
 @insights_whitelist(role="Insights Admin")
 def get_export_modules():
     """Modules the "Export to app…" dialog can export a workbook into."""
-    from insights import standard
+    from frappe.insights import standard
 
     return standard.export_modules()
 

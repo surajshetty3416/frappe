@@ -9,8 +9,8 @@ from unittest.mock import patch
 
 import frappe
 
-from insights.tests.base import InsightsIntegrationTestCase
-from insights.tests.factories import (
+from frappe.insights.tests.base import InsightsIntegrationTestCase
+from frappe.insights.tests.factories import (
     DT,
     create_test_dashboard,
     create_test_workbook,

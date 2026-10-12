@@ -8,15 +8,15 @@ import requests
 from frappe.tests import IntegrationTestCase
 from frappe.utils import add_to_date, now_datetime, validate_email_address
 
-from insights.http import OutboundRequestRefused
-from insights.insights.doctype.insights_alert.insights_alert import (
+from frappe.insights.http import OutboundRequestRefused
+from frappe.insights.doctype.insights_alert.insights_alert import (
     ALERT_MAX_ROWS,
     InsightsAlert,
     send_alerts,
 )
-from insights.permission_user import permission_user
-from insights.tests.base import InsightsIntegrationTestCase
-from insights.tests.factories import (
+from frappe.insights.permission_user import permission_user
+from frappe.insights.tests.base import InsightsIntegrationTestCase
+from frappe.insights.tests.factories import (
     as_user,
     create_test_query,
     create_test_workbook,
@@ -24,7 +24,7 @@ from insights.tests.factories import (
     delete_users,
 )
 
-POST = "insights.insights.doctype.insights_alert.insights_alert.post_to_public_url"
+POST = "frappe.insights.doctype.insights_alert.insights_alert.post_to_public_url"
 
 
 def message_context(row_count=1):
@@ -223,7 +223,7 @@ class ATickRunsEveryAlert(InsightsIntegrationTestCase):
             tried.append(alert.name)
             raise refusal
 
-        module = "insights.insights.doctype.insights_alert.insights_alert"
+        module = "frappe.insights.doctype.insights_alert.insights_alert"
         with (
             patch.object(InsightsAlert, "is_event_due", return_value=True),
             patch.object(InsightsAlert, "send_alert", autospec=True, side_effect=send),
@@ -241,7 +241,7 @@ class ATickRunsEveryAlert(InsightsIntegrationTestCase):
 
     # @feature alerts.failed-run-recorded
     def test_a_failed_stop_of_a_refused_alert_does_not_stop_the_tick(self):
-        from insights.insights.doctype.insights_alert.insights_alert import SendRefused
+        from frappe.insights.doctype.insights_alert.insights_alert import SendRefused
 
         self.assertEqual(self.tried(SendRefused("disabled"), "stop"), sorted(self.alerts))
 
@@ -620,7 +620,7 @@ class TestWhoMaySend(AlertOverSeededTodos):
     def test_a_collaborator_who_may_only_read_the_alert_cannot_send_it(self):
         """`AlertSetupDialog` calls `test_alert` through `run_doc_method`, which
         checks only read. The desk form calls `send_alert` the same way."""
-        from insights.api.workbooks import update_share_permissions
+        from frappe.insights.api.workbooks import update_share_permissions
 
         alert = self.make_alert(condition="status == 'Open'")
         update_share_permissions(self.workbook, [{"user": self.READER, "read": 1, "write": 0}])
@@ -640,7 +640,7 @@ class TestWhoMaySend(AlertOverSeededTodos):
         """`QueryAlertsDialog` calls `test_alert` through `run_doc_method` on an
         alert it has not saved yet, named `new-alert-…`. A reader of the
         workbook could send the same payload to recipients they choose."""
-        from insights.api.workbooks import update_share_permissions
+        from frappe.insights.api.workbooks import update_share_permissions
 
         def send_unsaved(name):
             alert = frappe.new_doc("Insights Alert")
@@ -672,11 +672,11 @@ class TestWhoMaySend(AlertOverSeededTodos):
 
     # @feature alerts.enable
     def test_an_edit_by_another_writer_keeps_the_enabler_and_the_form_names_them(self):
-        """`AlertSetupDialog` reads `permission_user` through `insights.api.get_doc`
+        """`AlertSetupDialog` reads `permission_user` through `frappe.insights.api.get_doc`
         to show who the alert runs as. Ruling Q11: writers are trusted, so an edit
         does not change it."""
-        from insights.api import get_doc
-        from insights.api.workbooks import update_share_permissions
+        from frappe.insights.api import get_doc
+        from frappe.insights.api.workbooks import update_share_permissions
 
         alert = self.make_alert()
         update_share_permissions(self.workbook, [{"user": self.READER, "read": 1, "write": 1}])
@@ -693,7 +693,7 @@ class TestWhoMaySend(AlertOverSeededTodos):
     def test_an_alert_whose_user_lost_the_query_sends_nothing(self):
         """`send_alerts` runs each alert as the user who enabled it. A share
         revoked since then stops the next send, not only the next save."""
-        from insights.api.workbooks import update_share_permissions
+        from frappe.insights.api.workbooks import update_share_permissions
 
         alert = self.make_alert(condition="status == 'Open'")
         # enabled by the reader, who has since lost the workbook

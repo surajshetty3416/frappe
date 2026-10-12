@@ -3,18 +3,18 @@
 import frappe
 from frappe.utils import get_datetime
 
-from insights.api.ai.lineage import describe_query
-from insights.api.workbooks import update_share_permissions
-from insights.insights.query_utils import downstream_queries, sync_query_references
-from insights.tests.base import InsightsIntegrationTestCase
-from insights.tests.factories import (
+from frappe.insights.api.ai.lineage import describe_query
+from frappe.insights.api.workbooks import update_share_permissions
+from frappe.insights.query_utils import downstream_queries, sync_query_references
+from frappe.insights.tests.base import InsightsIntegrationTestCase
+from frappe.insights.tests.factories import (
     DT,
     as_user,
     create_test_chart,
     create_test_query,
     create_test_workbook,
 )
-from insights.tests.permissions_utils import (
+from frappe.insights.tests.permissions_utils import (
     TEST_DS,
     TEST_TABLE1,
     USER_1,

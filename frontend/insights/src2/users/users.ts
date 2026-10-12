@@ -18,7 +18,7 @@ const users = ref<User[]>([])
 const loading = ref(false)
 async function getUsers(search_term = '') {
 	loading.value = true
-	return call('insights.api.user.get_users', { search_term }).then((res: User[]) => {
+	return call('frappe.insights.api.user.get_users', { search_term }).then((res: User[]) => {
 		users.value = res
 		loading.value = false
 		return users.value
@@ -30,7 +30,7 @@ async function getUsers(search_term = '') {
 const searching = ref(false)
 async function searchUsers(search_term = '') {
 	searching.value = true
-	return call('insights.api.user.get_users', { search_term })
+	return call('frappe.insights.api.user.get_users', { search_term })
 		.then((res) => {
 			const matches = res as User[]
 			const known = new Set(users.value.map((u) => u.email))
@@ -55,7 +55,7 @@ function getImage(email: string) {
 const sendingInvitation = ref(false)
 function inviteUsers(emails: string[]) {
 	sendingInvitation.value = true
-	return call('insights.api.user.invite_users', { emails: emails.join(',') })
+	return call('frappe.insights.api.user.invite_users', { emails: emails.join(',') })
 		.then(() => {
 			getUsers()
 			toast.success(__('Invitation Sent'), {
@@ -80,7 +80,7 @@ type UpdateUser = {
 }
 function updateUser(email: string, data: Partial<UpdateUser>) {
 	updatingUser.value = true
-	return call('insights.api.user.update_user', {
+	return call('frappe.insights.api.user.update_user', {
 		email,
 		fields: {
 			first_name: data.first_name,

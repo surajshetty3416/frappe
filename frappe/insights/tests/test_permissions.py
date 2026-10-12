@@ -2,16 +2,16 @@ import frappe
 import frappe.share
 from frappe.permissions import update_permission_property
 
-from insights.api.alerts import get_alerts
-from insights.api.user import USER_FIELDS, get_users, user_lookup_allowed
-from insights.api.workbooks import get_share_permissions, update_share_permissions
-from insights.decorators import insights_whitelist
-from insights.insights.doctype.insights_data_source_v3.insights_data_source_v3 import db_connections
-from insights.insights.doctype.insights_table_v3.insights_table_v3 import get_table_name
-from insights.insights.doctype.insights_team.insights_team import clear_cache as clear_team_cache
-from insights.permissions import PERMISSION_DOCTYPES
-from insights.tests.base import InsightsIntegrationTestCase
-from insights.tests.factories import (
+from frappe.insights.api.alerts import get_alerts
+from frappe.insights.api.user import USER_FIELDS, get_users, user_lookup_allowed
+from frappe.insights.api.workbooks import get_share_permissions, update_share_permissions
+from frappe.insights.decorators import insights_whitelist
+from frappe.insights.doctype.insights_data_source_v3.insights_data_source_v3 import db_connections
+from frappe.insights.doctype.insights_table_v3.insights_table_v3 import get_table_name
+from frappe.insights.doctype.insights_team.insights_team import clear_cache as clear_team_cache
+from frappe.insights.permissions import PERMISSION_DOCTYPES
+from frappe.insights.tests.base import InsightsIntegrationTestCase
+from frappe.insights.tests.factories import (
     DT,
     create_test_chart,
     create_test_dashboard,
@@ -19,7 +19,7 @@ from insights.tests.factories import (
     create_test_workbook,
     execute_test_query,
 )
-from insights.tests.permissions_utils import (
+from frappe.insights.tests.permissions_utils import (
     ADMIN,
     NON_INSIGHTS_USER,
     TEST_DS,
@@ -175,10 +175,10 @@ class TestInsightsPermissions(InsightsIntegrationTestCase):
         Insights role on an `Everyone` chart. With team permissions off, neither
         may read a table. The Not Permitted check uses the same
         `check_table_permission`."""
-        from insights.insights.doctype.insights_table_v3.insights_table_v3 import InsightsTablev3
-        from insights.insights.doctype.insights_team.insights_team import check_table_permission
-        from insights.not_permitted import NotPermitted
-        from insights.permission_user import permission_user
+        from frappe.insights.doctype.insights_table_v3.insights_table_v3 import InsightsTablev3
+        from frappe.insights.doctype.insights_team.insights_team import check_table_permission
+        from frappe.insights.not_permitted import NotPermitted
+        from frappe.insights.permission_user import permission_user
 
         create_test_data_sources()
         create_test_tables()

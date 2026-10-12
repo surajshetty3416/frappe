@@ -23,7 +23,7 @@ export function useSiteReadOnlyNotice() {
 	}
 
 	function checkIfSiteIsWritable() {
-		frappeRequest({ url: "builder.api.is_site_read_only" })
+		frappeRequest({ url: "frappe.builder.api.is_site_read_only" })
 			.then((readOnly) => (builderStore.isSiteInReadOnlyMode = Boolean(readOnly)))
 			.catch(() => {});
 	}

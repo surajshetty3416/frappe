@@ -4,7 +4,7 @@ from unittest.mock import patch
 import frappe
 from frappe.tests.utils import FrappeTestCase
 
-from builder.utils import (
+from frappe.builder.utils import (
 	Block,
 	ColonRule,
 	camel_case_to_kebab_case,
@@ -174,7 +174,7 @@ class TestBuilderUtils(FrappeTestCase):
 		with self.assertRaises(Exception):
 			execute_script('data.text = frappe._("Supplier")', {"data": data}, "test.py")
 
-	@patch("builder.utils.is_safe_exec_enabled", return_value=False)
+	@patch("frappe.builder.utils.is_safe_exec_enabled", return_value=False)
 	@patch("frappe.utils.safe_exec.is_safe_exec_enabled", return_value=False)
 	def test_execute_script_with_enabled_server_script(self, *args):
 		script = "data.test = frappe.get_doc('User', 'Administrator').email"
@@ -182,7 +182,7 @@ class TestBuilderUtils(FrappeTestCase):
 		execute_script(script, _locals, "test.py")
 		self.assertEqual(_locals["data"]["test"], "admin@example.com")
 
-	@patch("builder.utils.is_safe_exec_enabled", return_value=True)
+	@patch("frappe.builder.utils.is_safe_exec_enabled", return_value=True)
 	@patch("frappe.utils.safe_exec.is_safe_exec_enabled", return_value=True)
 	def test_execute_script_with_disabled_server_script(self, *args):
 		script = "data.test = frappe.get_doc('User', 'Administrator').email"
@@ -425,7 +425,7 @@ class TestBuilderUtils(FrappeTestCase):
 			patch("frappe.get_all") as mock_get_all,
 			patch("frappe.get_doc") as mock_get_doc,
 			patch("shutil.copy") as mock_copy,
-			patch("builder.utils.get_template_assets_folder_path") as mock_get_path,
+			patch("frappe.builder.utils.get_template_assets_folder_path") as mock_get_path,
 		):
 			mock_get_all.return_value = [frappe._dict(name="file-123")]
 			mock_get_doc.return_value = mock_file
@@ -484,7 +484,7 @@ class TestBuilderUtils(FrappeTestCase):
 			patch("frappe.get_all") as mock_get_all,
 			patch("frappe.get_doc") as mock_get_doc,
 			patch("shutil.copy") as mock_copy,
-			patch("builder.utils.get_template_assets_folder_path") as mock_get_path,
+			patch("frappe.builder.utils.get_template_assets_folder_path") as mock_get_path,
 		):
 			mock_get_all.return_value = [frappe._dict(name="file-456")]
 			mock_get_doc.return_value = mock_file

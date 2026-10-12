@@ -8,16 +8,16 @@ from unittest.mock import patch
 
 import frappe
 
-from insights.insights.doctype.insights_data_source_v3.insights_data_source_v3 import (
+from frappe.insights.doctype.insights_data_source_v3.insights_data_source_v3 import (
     InsightsDataSourcev3,
 )
-from insights.insights.doctype.insights_table_v3 import table_rename
-from insights.insights.doctype.insights_table_v3.insights_table_v3 import InsightsTablev3, get_table_name
-from insights.insights.doctype.insights_team.insights_team import (
+from frappe.insights.doctype.insights_table_v3 import table_rename
+from frappe.insights.doctype.insights_table_v3.insights_table_v3 import InsightsTablev3, get_table_name
+from frappe.insights.doctype.insights_team.insights_team import (
     get_allowed_resources_for_user,
 )
-from insights.tests.base import InsightsIntegrationTestCase
-from insights.tests.factories import DT, create_test_query, create_test_workbook, create_user
+from frappe.insights.tests.base import InsightsIntegrationTestCase
+from frappe.insights.tests.factories import DT, create_test_query, create_test_workbook, create_user
 
 TITLE = "Table Reconcile Test PG"
 

@@ -18,7 +18,7 @@ from functools import wraps
 
 import frappe
 
-from insights.permission_user import permission_user, permission_user_for
+from frappe.insights.permission_user import permission_user, permission_user_for
 
 # The columns this request's builds held back, each with its doctype. A chart
 # that never reads such a column keeps running. The refusal comes only when a
@@ -113,7 +113,7 @@ def unreadable_doctypes(table_name: str, user: str | None = None) -> list[str]:
     A child table has no permissions of its own. It needs read on one of its
     parents, so every parent is named, and any one of them is enough.
     """
-    from insights.insights.doctype.insights_table_v3.insights_table_v3 import get_parents
+    from frappe.insights.doctype.insights_table_v3.insights_table_v3 import get_parents
 
     doctype = table_name.removeprefix("tab")
     if not frappe.get_meta(doctype).istable:
@@ -152,9 +152,9 @@ def has_permitted_chart(dashboard: str, user: str | None = None) -> bool:
     query. That is a normal saved state, and the card asks its author to
     configure it.
     """
-    from insights.insights.doctype.insights_team.insights_team import check_table_permission
-    from insights.insights.query_utils import table_references, transitive_closure
-    from insights.resolver import may_read
+    from frappe.insights.doctype.insights_team.insights_team import check_table_permission
+    from frappe.insights.query_utils import table_references, transitive_closure
+    from frappe.insights.resolver import may_read
 
     charts = frappe.get_all(
         "Insights Dashboard Chart v3",

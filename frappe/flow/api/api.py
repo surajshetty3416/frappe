@@ -13,10 +13,10 @@ import frappe
 from frappe import _
 from frappe.utils import cint
 
-from flow.lib.session import new_session, sync_with_retry
+from frappe.flow.lib.session import new_session, sync_with_retry
 
 if TYPE_CHECKING:
-	from flow.flow.doctype.flow_session.flow_session import FlowSession
+	from frappe.flow.doctype.flow_session.flow_session import FlowSession
 
 FEEDBACK_COMMENT_LIMIT = 500
 TITLE_LIMIT = 140
@@ -43,8 +43,8 @@ def boot() -> dict[str, Any]:
 	"""What a client needs before its first call: agents and models to pick from, the
 	default agent, the file types it may attach, who is signed in and what they may manage."""
 	frappe.has_permission("Flow Session", "read", throw=True)
-	from flow.assistant.assistant import ASSISTANT_AGENT_TITLE
-	from flow.knowledge.extract import FILE_EXTENSIONS
+	from frappe.flow.assistant.assistant import ASSISTANT_AGENT_TITLE
+	from frappe.flow.knowledge.extract import FILE_EXTENSIONS
 
 	agents = frappe.get_list("Flow Agent", filters={"enabled": 1}, fields=["name", "title"], order_by="title")
 	models = frappe.get_list(
@@ -245,7 +245,7 @@ def submit_feedback(run_name: str, rating: str, comment: str | None = None) -> d
 	"""Record thumbs feedback on a finished run, or clear it with rating "None". A
 	thumbs-down comment is stored as shared agent memory when the agent has memory
 	enabled (a no-op otherwise); clearing the rating drops that memory again."""
-	from flow.memory.memory import forget_feedback_memory, save_feedback_memory
+	from frappe.flow.memory.memory import forget_feedback_memory, save_feedback_memory
 
 	if not isinstance(run_name, str) or not run_name.strip():
 		frappe.throw(_("Run is required."), title=_("Invalid Run"))
@@ -292,7 +292,7 @@ def attach_file(file: str, model: str | None = None) -> dict[str, Any]:
 		frappe.throw(_("File is required."), title=_("Invalid Attachment"))
 
 	frappe.has_permission("Flow Session", "create", throw=True)
-	from flow.flow.doctype.flow_session_attachment.flow_session_attachment import stage_attachment
+	from frappe.flow.doctype.flow_session_attachment.flow_session_attachment import stage_attachment
 
 	return stage_attachment(file.strip(), model)
 

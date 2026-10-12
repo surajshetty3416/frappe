@@ -13,14 +13,14 @@ A reference that arrives with the request was never written, and is checked then
 import frappe
 from frappe.utils import set_request
 
-from insights.api import run_doc_method
-from insights.api.workbooks import update_share_permissions
-from insights.insights.doctype.insights_data_source_v3.insights_data_source_v3 import (
+from frappe.insights.api import run_doc_method
+from frappe.insights.api.workbooks import update_share_permissions
+from frappe.insights.doctype.insights_data_source_v3.insights_data_source_v3 import (
     db_connections,
 )
-from insights.insights.query_utils import sync_query_references
-from insights.tests.base import InsightsIntegrationTestCase
-from insights.tests.factories import (
+from frappe.insights.query_utils import sync_query_references
+from frappe.insights.tests.base import InsightsIntegrationTestCase
+from frappe.insights.tests.factories import (
     DT,
     as_user,
     create_test_chart,
@@ -28,7 +28,7 @@ from insights.tests.factories import (
     create_test_workbook,
     delete_users,
 )
-from insights.tests.permissions_utils import (
+from frappe.insights.tests.permissions_utils import (
     TEST_DS,
     USER_1,
     USER_2,
@@ -477,7 +477,7 @@ class ChartExportReadsTheQuery:
 
     def before_test(self):
         self.set_team_permissions(self.ENABLE_PERMISSIONS)
-        set_request(method="POST", path="/api/method/insights.api.run_doc_method")
+        set_request(method="POST", path="/api/method/frappe.insights.api.run_doc_method")
 
     def export_chart(self, name, **claims):
         """The client sends the chart it holds, so the body includes its fields."""
@@ -692,7 +692,7 @@ class TestCrossWorkbookSourcesAreCopied(InsightsIntegrationTestCase):
     def test_a_filter_linked_to_the_source_is_linked_to_the_copy(self):
         """`route_filters` follows a link only to a query the card reads. After
         the patch the card reads the copy, so the link must point at the copy."""
-        from insights.insights.doctype.insights_dashboard_v3.insights_dashboard_v3 import chart_reads
+        from frappe.insights.doctype.insights_dashboard_v3.insights_dashboard_v3 import chart_reads
         from insights.patches.copy_cross_workbook_query_sources import execute
 
         far = self.make_workbook("Copy Link Far Workbook")
@@ -726,7 +726,7 @@ class TestCrossWorkbookSourcesAreCopied(InsightsIntegrationTestCase):
         own copy when the first workbook copies it."""
         from unittest.mock import patch
 
-        from insights.insights.doctype.insights_dashboard_v3.insights_dashboard_v3 import chart_reads
+        from frappe.insights.doctype.insights_dashboard_v3.insights_dashboard_v3 import chart_reads
         from insights.patches import copy_cross_workbook_query_sources as module
 
         third = self.make_workbook("Copy Hop Third Workbook")

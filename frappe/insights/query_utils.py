@@ -88,7 +88,7 @@ def check_source_workbook(workbook: str | None, source: str) -> None:
     Datasets share queries across workbooks, not references. A source with no
     row is not checked here; the build reports it as not found.
     """
-    from insights.exceptions import QueryRefused
+    from frappe.insights.exceptions import QueryRefused
 
     row = frappe.db.get_value("Insights Query v3", source, ["name", "workbook"], as_dict=True)
     if not row or row.workbook == workbook:
@@ -120,7 +120,7 @@ def extract_table_deps_from_operations(operations: list) -> list[dict]:
 def extract_table_deps_from_sql_operations(operations: list) -> list[dict]:
     """Extract unique (data_source, table_name) pairs from native SQL operations."""
 
-    from insights.insights.doctype.insights_data_source_v3.insights_data_source_v3 import (
+    from frappe.insights.doctype.insights_data_source_v3.insights_data_source_v3 import (
         db_type_to_sqlglot_dialect,
     )
 

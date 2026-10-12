@@ -20,13 +20,13 @@ from unittest.mock import Mock, patch
 
 from frappe.tests import UnitTestCase
 
-from insights.insights.doctype.insights_data_source_v3.connectors.mariadb import (
+from frappe.insights.doctype.insights_data_source_v3.connectors.mariadb import (
     get_mariadb_connection,
 )
-from insights.insights.doctype.insights_data_source_v3.connectors.postgresql import (
+from frappe.insights.doctype.insights_data_source_v3.connectors.postgresql import (
     get_postgres_connection,
 )
-from insights.tests.base import FakeDataSource
+from frappe.insights.tests.base import FakeDataSource
 
 CA_CERTIFICATE = "-----BEGIN CERTIFICATE-----\nQ09SUE9SQVRFIENB\n-----END CERTIFICATE-----"
 

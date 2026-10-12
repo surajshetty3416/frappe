@@ -5,7 +5,7 @@
 		fileTypes="image/*"
 		:private="false"
 		folder="Home/Builder Uploads"
-		uploadEndpoint="/api/method/builder.api.upload_builder_asset">
+		uploadEndpoint="/api/method/frappe.builder.api.upload_builder_asset">
 		<template #default="{ openFileSelector }">
 			<Popover
 				side="left"
@@ -30,7 +30,7 @@
 								:modelValue="currentImageURL">
 								<template v-if="labelPosition === 'left'" #prefix>
 									<img
-										:src="currentImageURL || '/assets/builder/images/fallback.png'"
+										:src="currentImageURL || '/assets/frappe/builder/images/fallback.png'"
 										alt=""
 										@click="toggle"
 										class="h-4 w-4 cursor-pointer rounded-4 border border-outline-gray-3 shadow-sm"
@@ -80,7 +80,7 @@
 						</div>
 						<div v-else class="group relative flex items-center justify-center overflow-hidden rounded-4">
 							<img
-								:src="currentImageURL || '/assets/builder/images/fallback.png'"
+								:src="currentImageURL || '/assets/frappe/builder/images/fallback.png'"
 								alt=""
 								class="image-preview relative h-24 w-full cursor-pointer bg-surface-gray-2"
 								:style="{

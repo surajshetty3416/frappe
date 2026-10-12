@@ -59,7 +59,7 @@ class InsightsUserInvitation(Document):
 
     def invite_via_email(self):
         invite_link = frappe.utils.get_url(
-            f"/api/method/insights.api.user.accept_invitation?key={self._plain_key}"
+            f"/api/method/frappe.insights.api.user.accept_invitation?key={self._plain_key}"
         )
         if frappe.local.dev_server:
             print(f"Invite link for {self.email}: {invite_link}")
