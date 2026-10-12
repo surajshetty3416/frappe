@@ -1,7 +1,9 @@
-// Scopes every rule a layer ships to `[data-layer="<layer>"]`, which the shell keeps on
-// <html> for the layer the route is in. Each layer was its own SPA, so its global rules
-// (resets, canvas selectors, its own Tailwind run) assumed the page was theirs alone.
-// The attribute sits on <html> rather than a wrapper so portaled dialogs stay in scope.
+// Scopes every rule a layer ships to the part of the page that layer owns. Each layer was
+// its own SPA, so its global rules (resets, canvas selectors, its own Tailwind run) assumed
+// the page was theirs alone. The shell marks ownership with data-layer: on <html> for the
+// layer the route is in, so portaled dialogs stay in scope, and on any element that hosts
+// another layer inside it, such as the chat beside an editor. `@scope ... to ...` stops a
+// layer's rules at the nearest element owned by another layer.
 
 import path from "node:path"
 
@@ -15,40 +17,27 @@ export function layerOf(file = "") {
 	return LAYERS.includes(first) ? first : null
 }
 
-// selectors that start on <html> itself: the element, or the theme the color scheme stamps on it
-const ON_HTML = /^(:root|html)\b/
-const THEME_ON_HTML = /^(\[data-theme[^\]]*\]|\.dark\b)/
+// @scope may hold style rules and the conditional groups around them, nothing else
+const SCOPABLE_AT_RULES = new Set(["media", "supports", "container"])
+const scopable = (node) => node.type === "rule" || (node.type === "atrule" && SCOPABLE_AT_RULES.has(node.name))
 
-function scope(selector, attr) {
-	if (selector.includes(attr)) return selector
-	if (ON_HTML.test(selector)) return selector.replace(ON_HTML, `$1${attr}`)
-	if (THEME_ON_HTML.test(selector)) return `${attr}${selector}`
-	return `${attr} ${selector}`
-}
-
-function insideKeyframes(rule) {
-	return rule.parent?.type === "atrule" && /keyframes$/i.test(rule.parent.name)
-}
-
-// a nested rule is scoped through the rule it sits in
-function nested(rule) {
-	for (let parent = rule.parent; parent; parent = parent.parent) {
-		if (parent.type === "rule") return true
-	}
-	return false
-}
+// a rule written for the page itself now means the layer's own root
+const ON_PAGE_ROOT = /^(:root|html)\b/
+const onScopeRoot = (selector) => selector.replace(ON_PAGE_ROOT, ":scope")
 
 export default function layerScope() {
 	return {
 		postcssPlugin: "layer-scope",
-		Once(root, { result }) {
+		Once(root, { result, AtRule }) {
 			const layer = layerOf(result.opts.from)
 			if (!layer) return
-			const attr = `[data-layer="${layer}"]`
-			root.walkRules((rule) => {
-				if (insideKeyframes(rule) || nested(rule)) return
-				rule.selectors = rule.selectors.map((selector) => scope(selector, attr))
+			const owner = `[data-layer="${layer}"]`
+			const scope = new AtRule({ name: "scope", params: `(${owner}) to ([data-layer]:not(${owner}))` })
+			for (const node of root.nodes.filter(scopable)) scope.append(node.remove())
+			scope.walkRules((rule) => {
+				rule.selectors = rule.selectors.map(onScopeRoot)
 			})
+			if (scope.nodes.length) root.append(scope)
 		},
 	}
 }

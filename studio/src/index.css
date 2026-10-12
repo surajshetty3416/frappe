@@ -1,5 +1,8 @@
 @import "frappe-ui/style.css";
 
+/* named, not left to the default: in one build with the layers' @config files, the default context lost its content scan */
+@config "../tailwind.config.js";
+
 html,
 body,
 #app {

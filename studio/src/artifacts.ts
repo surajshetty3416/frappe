@@ -18,7 +18,7 @@ export interface Chat {
 
 export const getHistory = (limit = 30): Promise<Chat[]> => call("frappe.ai.artifacts.get_history", { limit })
 
-export const getArtifactSession = (doctype: string, name: string): Promise<string | null> =>
+export const getArtifactSession = (doctype: string, name: string): Promise<Pick<Chat, "name" | "title" | "modified"> | null> =>
 	call("frappe.ai.artifacts.get_artifact_session", { reference_doctype: doctype, reference_name: name })
 
 export const getSessionArtifacts = (session: string): Promise<Artifact[]> =>

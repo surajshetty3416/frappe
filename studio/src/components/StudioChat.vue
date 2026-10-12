@@ -37,7 +37,9 @@ const artifact = computed(() => {
 	const record = [...route.matched].reverse().find((match) => match.meta.artifact)
 	if (!record) return null
 	const { doctype, param } = record.meta.artifact as { doctype: string; param: string }
-	return { doctype, name: String(route.params[param]) }
+	const name = String(route.params[param])
+	// an editor still creating its record ("new") has no artifact to talk about yet
+	return name === "new" ? null : { doctype, name }
 })
 const routeSession = computed(() => {
 	const session = onChatRoute.value ? route.params.session : route.query.chat
@@ -54,7 +56,7 @@ const initialMessage = ref("")
 async function resolve() {
 	let wanted = routeSession.value
 	if (!wanted && artifact.value && !onChatRoute.value) {
-		wanted = await getArtifactSession(artifact.value.doctype, artifact.value.name)
+		wanted = (await getArtifactSession(artifact.value.doctype, artifact.value.name))?.name ?? null
 	}
 	if (ready.value && wanted === current.value) return
 	initialMessage.value = onChatRoute.value && typeof route.query.prompt === "string" ? route.query.prompt : ""
