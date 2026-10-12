@@ -112,7 +112,11 @@ user_invitation = {
 doc_events = {
 	"User Invitation": {
 		"after_insert": "frappe.builder.user_invitation.capture_user_invited",
-	}
+	},
+	("Flow Model", "Flow Provider"): {
+		"on_update": "frappe.builder.ai.models.clear_flow_models",
+		"on_trash": "frappe.builder.ai.models.clear_flow_models",
+	},
 }
 
 # Scheduled Tasks

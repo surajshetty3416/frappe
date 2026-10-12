@@ -184,6 +184,8 @@ def codex_route(model: str) -> tuple[str, str] | None:
 def provider_api_key(info: dict) -> str | None:
 	"""The provider's own key, when it has one. Without one it falls back to the
 	caller's (the OpenRouter key in Builder Settings)."""
+	if flow_model := info.get("flow_model"):
+		return flow_model_api_key(flow_model)
 	provider = info.get("provider")
 	if not provider:
 		return None
@@ -191,6 +193,16 @@ def provider_api_key(info: dict) -> str | None:
 		return frappe.get_cached_doc("Builder AI Provider", provider).resolved_key()
 	except Exception:
 		return None
+
+
+def flow_model_api_key(flow_model: str) -> str | None:
+	"""A Flow Model's own key, else its Flow Provider's."""
+	from frappe.flow.lib.model import resolve_provider_credentials
+
+	doc = frappe.get_cached_doc("Flow Model", flow_model)
+	return doc.get_password("api_key", raise_exception=False) or resolve_provider_credentials(
+		doc.model_id
+	).get("api_key")
 
 
 def complete(model: str, messages: list, params: dict, *, stream: bool, api_key: str | None = None):

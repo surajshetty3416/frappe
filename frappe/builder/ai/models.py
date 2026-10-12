@@ -107,7 +107,43 @@ def load_models() -> list[dict]:
 				"vision": bool(row.supports_vision),
 			}
 		)
+	names = {m["name"] for m in models}
+	models += [m for m in load_flow_models() if m["name"] not in names]
 	return models or [dict(FALLBACK_MODEL)]
+
+
+def load_flow_models() -> list[dict]:
+	"""The models set up once in the AI layer (Flow Model), offered to Builder's AI too.
+	A flow model id already carries its provider prefix (`openrouter/anthropic/...`)."""
+	rows = frappe.get_all(
+		"Flow Model",
+		filters={"enabled": 1},
+		fields=["name", "title", "provider", "model_id", "context_window", "base_url"],
+		order_by="creation asc",
+	)
+	models = []
+	for row in rows:
+		model_id = row.model_id.removeprefix(f"{row.provider}/")
+		facts = lookup_metadata(row.model_id, model_id)
+		models.append(
+			{
+				"name": row.model_id,
+				"label": row.title,
+				"provider": row.provider,
+				"route_prefix": row.provider,
+				"litellm_provider": row.provider,
+				"api_base": row.base_url or None,
+				"max_tokens": row.context_window or facts.get("max_tokens") or DEFAULT_CONTEXT_WINDOW,
+				"vision": bool(facts.get("vision")),
+				"flow_model": row.name,
+			}
+		)
+	return models
+
+
+def clear_flow_models(doc, method=None):
+	"""Flow Model and Flow Provider edits reach Builder's model picker at once."""
+	ModelRegistry.clear_cache()
 
 
 def lookup_metadata(qualified_name: str, model_id: str) -> dict:

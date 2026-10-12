@@ -43,9 +43,11 @@ def run(
 		frappe.throw(_("Invalid page context JSON"))
 
 	resolved_model = model or ModelRegistry.DEFAULT
-	api_key = llm.get_api_key()
+	api_key = llm.get_api_key(resolved_model)
 	if not api_key:
-		frappe.throw(_("OpenRouter API key is not configured. Please set it in Studio Settings."))
+		frappe.throw(
+			_("No API key for this model. Add its provider in Flow, or set a key in Studio Settings.")
+		)
 
 	image_url = BlockCodec.validate_image_data(image_data) if image_data else None
 

@@ -124,7 +124,7 @@ def complete(model: str, messages: list, params: dict, *, stream: bool, api_key:
 		model=model,
 		messages=messages,
 		stream=stream,
-		api_key=api_key or get_api_key(),
+		api_key=api_key or get_api_key(model),
 		# Fallbacks are disabled during streaming: litellm's mid-stream fallback
 		# attempts __next__ on async generators returned by OpenRouter, causing
 		# MidStreamFallbackError. Fallbacks only work safely for non-streaming calls.
@@ -163,7 +163,7 @@ def complete_with_tools(
 		messages=messages,
 		tools=tools,
 		stream=stream,
-		api_key=api_key or get_api_key(),
+		api_key=api_key or get_api_key(model),
 		# Fallbacks disabled during streaming — see comment in complete().
 		fallbacks=[] if stream else ModelRegistry.get_fallbacks(model),
 		num_retries=1,
@@ -173,7 +173,11 @@ def complete_with_tools(
 	)
 
 
-def get_api_key() -> str | None:
-	"""OpenRouter key, read from Studio Settings."""
+def get_api_key(model: str | None = None) -> str | None:
+	"""The key in Studio Settings, else the AI layer's key for the model's provider."""
+	from frappe.flow.lib.model import resolve_provider_credentials
+
 	settings = frappe.get_single("Studio Settings")
-	return settings.get_password("ai_api_key", raise_exception=False)
+	if key := settings.get_password("ai_api_key", raise_exception=False):
+		return key
+	return resolve_provider_credentials(model or ModelRegistry.DEFAULT).get("api_key")
