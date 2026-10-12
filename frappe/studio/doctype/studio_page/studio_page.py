@@ -144,7 +144,7 @@ class StudioPage(Document):
 			self.db_set("script", frappe.read_file(self.get_script_file_path()), update_modified=False)
 
 	@frappe.whitelist()
-	def get_copy(self, blocks=None) -> dict:
+	def get_copy(self, blocks: list | str | None = None) -> dict:
 		"""Page settings, data sources, variables, script and the components `blocks` use, for copy-paste."""
 		self.check_permission("read")
 		blocks = parse_list(blocks if blocks is not None else self.draft_blocks or self.blocks, "blocks")
@@ -159,7 +159,7 @@ class StudioPage(Document):
 		}
 
 	@frappe.whitelist()
-	def get_dependencies(self, blocks, script: str = "") -> dict:
+	def get_dependencies(self, blocks: list | str, script: str = "") -> dict:
 		"""What `blocks` (and `script`) need from outside themselves, for copy-paste: Studio components,
 		app files, and this page's data sources and variables they reference."""
 		self.check_permission("read")
@@ -351,7 +351,9 @@ class StudioPage(Document):
 		return self.modified
 
 	@frappe.whitelist()
-	def save_page_field(self, fieldname: str | dict, value=None, known_modified: str | None = None):
+	def save_page_field(
+		self, fieldname: str | dict, value: str | int | None = None, known_modified: str | None = None
+	):
 		"""Update editor-owned fields using the page's optimistic lock. Pass a dict as `fieldname` to
 		save several fields at once, so they save together or not at all."""
 		FIELDS = ["page_title", "route", "script", "allow_guest"]

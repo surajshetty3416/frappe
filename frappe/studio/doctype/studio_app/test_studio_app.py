@@ -14,7 +14,7 @@ from frappe.tests.utils import FrappeTestCase
 from frappe.utils import get_files_path
 
 from frappe.studio.build import StudioAppBuilder, get_published_custom_apps, get_router_file
-from frappe.studio.doctype.studio_app.studio_app import StudioApp
+from frappe.studio.doctype.studio_app.studio_app import StudioApp, studio_apps_txt_path
 
 
 class TestStudioApp(FrappeTestCase):
@@ -83,11 +83,12 @@ class TestStudioApp(FrappeTestCase):
 			app, page = make_exported_app_with_files("moving-app")
 			old_folder = app.get_folder_path()
 
-			app.enable_app_export("frappe")
+			app.enable_app_export("another_app")
 
 			page.reload()
 			self.assertFalse(os.path.exists(old_folder))
 			self.assert_exported_files_kept(app, page)
+			self.assertNotIn("moving_app", frappe.get_file_items(studio_apps_txt_path()))
 
 	def assert_exported_files_kept(self, app, page):
 		self.assertEqual(frappe.read_file(app.get_router_file_path()), f"export default {ROUTER_SCRIPT}\n")
@@ -104,7 +105,7 @@ class TestStudioApp(FrappeTestCase):
 
 			app = frappe.get_doc("Studio App", "dashed_app")
 			self.assertTrue(os.path.exists(os.path.join(app.get_folder_path(), "dashed_app.json")))
-			StudioApp.remove_from_studio_apps_txt.assert_not_called()
+			self.assertEqual(frappe.get_file_items(studio_apps_txt_path()), ["dashed_app"])
 
 	def test_exported_apps_cannot_be_renamed_outside_developer_mode(self):
 		app = make_studio_app(app_title="Deployed App", app_name="deployed-app")
@@ -265,14 +266,15 @@ class TestStudioAppBuilder(FrappeTestCase):
 		unpublished_app = make_studio_app(app_title="Unpublished Custom", app_name="unpublished-custom")
 		make_studio_page(unpublished_app.name, page_title="Unp Page", published=0)
 
-		standard_app = make_studio_app(
-			app_title="Standard Excluded",
-			app_name="standard-excluded",
-			is_standard=1,
-			frappe_app="frappe",
-		)
-		blocks = json.dumps([{"componentName": "Alert", "children": []}])
-		make_studio_page(standard_app.name, page_title="Std Page", blocks=blocks, published=1)
+		with exports_in_tempdir():
+			standard_app = make_studio_app(
+				app_title="Standard Excluded",
+				app_name="standard-excluded",
+				is_standard=1,
+				frappe_app="frappe",
+			)
+			blocks = json.dumps([{"componentName": "Alert", "children": []}])
+			make_studio_page(standard_app.name, page_title="Std Page", blocks=blocks, published=1)
 
 		result = get_published_custom_apps()
 		self.assertIn(app.name, result)
@@ -559,18 +561,31 @@ ROUTER_SCRIPT = """{
 
 @contextmanager
 def exports_in_tempdir():
-	with (
-		tempfile.TemporaryDirectory() as tmpdir,
-		# scrubbed like the real one, so `routed-app` resolves to `routed_app` everywhere
-		patch(
-			"frappe.get_app_source_path",
-			side_effect=lambda app, *path: os.path.join(tmpdir, app, *map(frappe.scrub, path)),
-		),
-		patch.dict(frappe.conf, {"developer_mode": 1}),
-		patch.object(StudioApp, "add_to_studio_apps_txt"),
-		patch.object(StudioApp, "remove_from_studio_apps_txt"),
-	):
-		yield
+	with tempfile.TemporaryDirectory() as tmpdir:
+		studio_apps_txt = os.path.join(tmpdir, "studio_apps.txt")
+		write_file(studio_apps_txt, "")
+		with (
+			# scrubbed like the real one, so `routed-app` resolves to `routed_app` everywhere
+			patch(
+				"frappe.get_app_source_path",
+				side_effect=lambda app, *path: os.path.join(tmpdir, app, *map(frappe.scrub, path)),
+			),
+			# apps exported to frappe are listed in a file inside frappe's own source
+			patch("frappe.get_app_path", side_effect=redirect_studio_apps_txt(studio_apps_txt)),
+			patch.dict(frappe.conf, {"developer_mode": 1}),
+		):
+			yield
+
+
+def redirect_studio_apps_txt(studio_apps_txt: str):
+	get_app_path = frappe.get_app_path
+
+	def app_path(app: str, *path: str) -> str:
+		if (app, *path) == ("frappe", "studio", "studio_apps.txt"):
+			return studio_apps_txt
+		return get_app_path(app, *path)
+
+	return app_path
 
 
 def get_renderer_context(app):
