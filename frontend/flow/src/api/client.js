@@ -154,7 +154,7 @@ export class FrappeClient {
 
 	async run(sid, message, attachments = []) {
 		const opened = this.hooks.opened?.();
-		if (opened) message = `${message}\n\n_Viewing [${opened.title}](${opened.path})_`;
+		if (opened) message = `${message}\n\nViewing ${opened.title} at ${opened.path}`;
 		return this.transport.call("frappe.flow.api.run", { session: sid, message, attachments });
 	}
 
