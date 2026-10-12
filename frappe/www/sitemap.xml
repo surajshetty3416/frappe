@@ -3,7 +3,9 @@
 	{% for link in links %}
 	<url>
 		<loc>{{ link.loc }}</loc>
+		{%- if link.lastmod %}
 		<lastmod>{{ link.lastmod }}</lastmod>
+		{%- endif %}
 	</url>
 	{% endfor %}
 </urlset>

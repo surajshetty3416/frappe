@@ -1,5 +1,0 @@
-preserve_hierarchy: true
-
-files:
-  - source: /insights/locale/main.pot
-    translation: /insights/locale/%two_letters_code%.po
