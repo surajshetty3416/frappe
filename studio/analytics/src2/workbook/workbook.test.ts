@@ -42,7 +42,7 @@ vi.mock('../router', () => ({
 	default: {
 		replace: (path: string) => replace(path),
 		currentRoute: { value: { path: '' } },
-		options: { history: { state: { back: '/insights/workbook' } } },
+		options: { history: { state: { back: '/studio/analytics/workbook' } } },
 	},
 }))
 
@@ -103,7 +103,7 @@ describe('removing an item from the sidebar', () => {
 
 			expect(workbook.doc[rows].map((row) => row.name)).not.toContain(name)
 			expect(replace).toHaveBeenCalledWith(
-				`/insights/workbook/wb-1/${type}/${name.replace('1', '2')}`,
+				`/studio/analytics/workbook/wb-1/${type}/${name.replace('1', '2')}`,
 			)
 		})
 	}

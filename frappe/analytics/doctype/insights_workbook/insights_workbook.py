@@ -79,7 +79,7 @@ class InsightsWorkbook(Document):
 
     def autoname(self):
         # plain numbers, continuing from where `autoincrement` left off — see
-        # insights/patches/name_workbooks_as_strings.py for why this needs to be a string.
+        # frappe/analytics/patches/name_workbooks_as_strings.py for why this needs to be a string.
         self.name = getseries(WORKBOOK_SERIES_KEY, 1)
 
     def validate(self):

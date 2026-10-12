@@ -4,7 +4,7 @@ A Sankey used to render its source query as it stood, so nothing read the
 aggregation on its value column. The server derivation reads it, and the two
 functions that collapse a one-row group — `count` and `count_distinct` — flatten
 every ribbon to width 1. See
-`insights/patches/repair_sankey_value_aggregation.py`.
+`frappe/analytics/patches/repair_sankey_value_aggregation.py`.
 """
 
 import frappe

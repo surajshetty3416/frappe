@@ -3,7 +3,7 @@ import { APP_PATH } from './app_path'
 import { routes } from './routes'
 
 export default defineLayer({
-	name: 'insights',
+	name: 'analytics',
 	title: 'Dashboards',
 	icon: 'lucide-chart-column',
 	path: APP_PATH,

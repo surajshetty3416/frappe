@@ -1,6 +1,6 @@
 import type { RouteRecordRaw } from 'vue-router'
 
-// Children of the layer's path (`/insights`), so every path here is relative.
+// Children of the layer's path (`/studio/analytics`), so every path here is relative.
 export const routes: RouteRecordRaw[] = [
 	{
 		path: '',
@@ -17,6 +17,11 @@ export const routes: RouteRecordRaw[] = [
 		name: 'Dashboard',
 		path: 'dashboards/:name',
 		component: () => import('./dashboard/Dashboard.vue'),
+		// opens beside Studio's chat, so the breadcrumbs lead back instead of the sidebar
+		meta: {
+			hideSidebar: true,
+			artifact: { doctype: 'Insights Dashboard v3', param: 'name' },
+		},
 	},
 	{
 		path: 'workbook',
@@ -28,7 +33,10 @@ export const routes: RouteRecordRaw[] = [
 		name: 'Workbook',
 		path: 'workbook/:workbook_name',
 		component: () => import('./workbook/Workbook.vue'),
-		meta: { hideSidebar: true },
+		meta: {
+			hideSidebar: true,
+			artifact: { doctype: 'Insights Workbook', param: 'workbook_name' },
+		},
 		children: [
 			{
 				props: true,

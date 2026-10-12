@@ -9,7 +9,7 @@ export type Role = 'admin' | 'viewer'
 export type Credentials = { usr: string; pwd: string }
 
 /** The route the Insights app is mounted on. Matches `insights_path` in hooks.py. */
-export const INSIGHTS_PATH = process.env.INSIGHTS_PATH || '/insights'
+export const INSIGHTS_PATH = process.env.INSIGHTS_PATH || '/studio/analytics'
 
 /**
  * The viewer is an Insights User with no admin rights. Insights invites people

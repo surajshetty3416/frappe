@@ -39,7 +39,7 @@ The maintainer has asked for these to stop. Raising them costs trust.
 
 ## Size
 
-Count reviewable source only. Leave out lock files, `insights/locale/**` and generated files.
+Count reviewable source only. Leave out lock files, `frappe/analytics/locale/**` and generated files.
 
 ## Users
 
@@ -57,11 +57,11 @@ Count reviewable source only. Leave out lock files, `insights/locale/**` and gen
 
 ## Scope
 
-- A change to a stored field or a stored JSON format (`config`, `operations`, `items`) ships a patch in `insights/patches.txt`, so no user edits their own data.
+- A change to a stored field or a stored JSON format (`config`, `operations`, `items`) ships a patch in `frappe/analytics/patches.txt`, so no user edits their own data.
 - A patch changes only its own rows, and keeps `creation` and `modified`.
 - A v3 change says what happens to saved documents, and to browsers still on the old bundle.
 - A stored field renamed or made required on `develop` is checked against the code that writes it on `version-3-hotfix`.
-- A frontend fix that needs frappe-ui behaviour newer than the version in `frontend/package.json` moves that version in the same change.
+- A frontend fix that needs frappe-ui behaviour newer than the version in `studio/package.json` moves that version in the same change.
 
 ## Verify
 
@@ -69,7 +69,7 @@ The main path is build, save, view and share, for each kind of chart, dashboard 
 
 Tests are judged by `docs/agents/testing.md`, including its pre-merge prune. A guard for UI state is `yarn typecheck:baseline` plus a test at the lowest layer the testing guide allows.
 
-Security. `allow_guest=True` under `insights/` marks the guest endpoints.
+Security. `allow_guest=True` under `frappe/analytics/` marks the guest endpoints.
 
 - Code reachable from a guest endpoint, a new whitelisted method, `ignore_permissions=True` or a wider visibility level names the check that protects it.
 - An existing document's stored fields are read from the database, not from the request body.

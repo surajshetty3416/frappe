@@ -3,7 +3,7 @@
 Three releases wrote what a reading is measured against, and two wrote the
 period the card reads. The patch writes every chart in the shape the card reads,
 so the older ones are read nowhere. See
-`insights/patches/normalize_number_card_comparisons.py`.
+`frappe/analytics/patches/normalize_number_card_comparisons.py`.
 """
 
 import frappe

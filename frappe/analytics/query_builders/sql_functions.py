@@ -465,7 +465,7 @@ def parse_span(span: str) -> Span | None:
     reads as "last 1 month".
 
     One parser for this runtime. The browser reads the same grammar, in
-    `frontend/src2/helpers/span_grammar.ts`, which is also where the grammar is
+    `studio/analytics/src2/helpers/span_grammar.ts`, which is also where the grammar is
     written down. A span it writes is a span this runs.
     """
     if not isinstance(span, str):

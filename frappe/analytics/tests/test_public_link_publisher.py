@@ -1,6 +1,6 @@
 """Which user's rows a link published before `visibility` keeps serving.
 
-See `insights/patches/run_public_charts_as_owner.py`. Before, the publishing
+See `frappe/analytics/patches/run_public_charts_as_owner.py`. Before, the publishing
 document stored its publisher in `permission_user`, and a public read filtered
 rows by that user. The `run_as_owner` Check can only name the chart's owner.
 

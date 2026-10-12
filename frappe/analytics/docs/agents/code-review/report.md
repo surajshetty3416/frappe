@@ -47,12 +47,12 @@ Invented, to show the format:
 **Guards:** a test that opens a workbook through `get_workbook` as its owner and as a reader it is shared with.
 
 **Must fix**
-- **Charts saved before this change render empty.** A new config key ships with no patch. `insights/insights/doctype/insights_chart_v3/insights_chart_v3.json:88`: add a patch to `insights/patches.txt` that sets the key on saved charts.
+- **Charts saved before this change render empty.** A new config key ships with no patch. `frappe/analytics/doctype/insights_chart_v3/insights_chart_v3.json:88`: add a patch to `frappe/analytics/patches.txt` that sets the key on saved charts.
   <details><summary>Proof</summary>
 
   Trace, owner and the deciding lines.
   </details>
 
 **Minor**
-- The empty state's label wraps at narrow widths. `frontend/src2/charts/ChartEmpty.vue:12`.
+- The empty state's label wraps at narrow widths. `studio/analytics/src2/charts/ChartEmpty.vue:12`.
 ```

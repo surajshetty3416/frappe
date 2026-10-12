@@ -865,7 +865,7 @@ class TestVisibility(InsightsIntegrationTestCase):
 class TestOrgShareMigration(InsightsIntegrationTestCase):
     """The patch that turns an org-wide DocShare into the `Everyone` level.
 
-    See `insights/patches/set_visibility_from_org_shares.py`. The permission
+    See `frappe/analytics/patches/set_visibility_from_org_shares.py`. The permission
     query ignores org-wide rows on content, so a row the patch leaves behind
     grants nothing.
     """

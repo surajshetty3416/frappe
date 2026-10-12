@@ -15,7 +15,7 @@ import {
 
 // 2026-08-10 is a Monday. The same anchor the server's date range tests use, so
 // the two tables below can be read against `TestDirectionalSpans` in
-// `insights/tests/test_date_ranges.py` line by line.
+// `frappe/analytics/tests/test_date_ranges.py` line by line.
 const ANCHOR = '2026-08-10'
 
 describe('the range a relative span covers', () => {

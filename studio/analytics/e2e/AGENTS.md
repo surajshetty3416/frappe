@@ -12,7 +12,7 @@ Operation, Chart, Dashboard, Measure, Dimension, Data Source, Data Store.
 ## Layout
 
 ```
-frontend/e2e/
+studio/analytics/e2e/
 ├── .auth/            login state, gitignored, written by the setup project
 ├── helpers/          REST client, login, seeding functions
 ├── fixtures/         the test fixtures you compose from
@@ -187,14 +187,14 @@ XPath is banned outright.
 - **Icon-only buttons often pass no `label`**, so they have no accessible name.
   Examples are the export and alert buttons in the results footer and the `+` in
   the tab bar. Prefer adding `:label="__('Export')"` to that Button in
-  `frontend/src2/` over writing a CSS locator. It adds an accessible name and
+  `studio/analytics/src2/` over writing a CSS locator. It adds an accessible name and
   changes no behavior. List any such edit in your pull request.
 - **`src2` ships three `data-testid` attributes**, and no more: `chart` on a
   chart's body, `dashboard-cell` and `dashboard-cell-resize` on a grid cell. Add
   a fourth only when the ladder and the `:label` route both fail.
 - **Labels pass through `__()`.** The test site runs in English, so the source
   string is the rendered string. This app defines its own `__` in
-  `frontend/src2/translation.ts`. It takes positional arguments, not an array,
+  `studio/analytics/src2/translation.ts`. It takes positional arguments, not an array,
   so `__('Add {0}', section.title)` is correct.
 - **A workbook sidebar item is a router link named by the title.** A Query tab
   is `getByRole('link', { name: query.title })`, not a button.
@@ -399,7 +399,7 @@ If you find genuine broken behavior, **file it as a new ticket on the map** at
 current behavior. Never fix product code inside a test change. A change that
 mixes the two hides the fix and breaks the baseline.
 
-The one edit to `frontend/src2/` this suite allows is an accessible name — a
+The one edit to `studio/analytics/src2/` this suite allows is an accessible name — a
 `:label` on an icon-only Button, or a `data-testid`. Both are inert.
 
 ## Running the suite
@@ -408,7 +408,7 @@ Nothing in `playwright.config.ts` starts a server. The suite needs a running
 site with the frontend built and the demo Data Source seeded.
 
 ```sh
-cd frontend && yarn build                     # /insights needs the built entry
+cd studio && yarn build                       # /studio needs the built entry
 E2E_BASE_URL=http://<site>:<port> npx playwright test
 ```
 
@@ -418,13 +418,13 @@ counts the setup and the teardown project on top of the flows in
 `e2e/tests/*.spec.ts`.
 
 `yarn dev` cannot host the suite. Vite serves its own `index.html` for
-`/insights`, so the page has no `window.csrf_token` and the setup project
+`/studio/analytics`, so the page has no `window.csrf_token` and the setup project
 fails. Point the suite at the bench port.
 
 If the setup project reports a missing Data Source, seed it once:
 
 ```sh
-CI=1 bench --site <site> execute insights.setup.setup_wizard.setup_demo_data
+CI=1 bench --site <site> execute frappe.analytics.setup.setup_wizard.setup_demo_data
 ```
 
 `CI` is what makes the generated, deterministic dataset the one that lands.

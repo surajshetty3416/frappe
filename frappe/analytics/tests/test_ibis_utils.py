@@ -511,8 +511,8 @@ def picker_operators(kind):
     path = os.path.join(
         frappe.get_app_path("frappe"),
         "..",
-        "frontend",
-        "insights",
+        "studio",
+        "analytics",
         "src2",
         "components",
         "filter_picker",

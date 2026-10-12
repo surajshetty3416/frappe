@@ -1,6 +1,6 @@
 """Guards on a standard workbook.
 
-`insights/standard.py` reads `is_standard` to let a chart past the site's team
+`frappe/analytics/standard.py` reads `is_standard` to let a chart past the site's team
 grants and Table Restrictions. `module` decides whether the next migrate finds
 the workbook's file. If it does not, migrate deletes the workbook as an orphan,
 with every query, chart, dashboard and folder in it. `frappe.client.set_value`

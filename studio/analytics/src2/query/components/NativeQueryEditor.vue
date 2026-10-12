@@ -169,7 +169,7 @@ const stale = computed(() => {
 
 		<!-- Right Sidebar -->
 		<div
-			class="relative flex h-full w-[19rem] flex-shrink-0 flex-col overflow-y-auto bg-surface-base"
+			class="relative flex h-full w-72 flex-shrink-0 flex-col overflow-y-auto bg-surface-base @6xl:w-[19rem]"
 		>
 			<QueryInfo />
 

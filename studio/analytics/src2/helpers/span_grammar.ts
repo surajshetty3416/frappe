@@ -14,7 +14,7 @@
 // reads as "last 1 month". `<unit>` is one of `SPAN_UNITS`, singular or plural.
 //
 // The server reads the same grammar, in `parse_span`
-// (`insights/insights/query_builders/sql_functions.py`), and `get_window` there
+// (`frappe/analytics/query_builders/sql_functions.py`), and `get_window` there
 // is what a span finally resolves against. Two parsers, one grammar: a span this
 // module writes is a span the server runs, and a change to either side is a
 // change to this comment first.

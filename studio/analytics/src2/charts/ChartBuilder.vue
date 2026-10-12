@@ -104,7 +104,7 @@ const showShareDialog = ref(false)
 		</div>
 		<!-- `inert` on the content and not the scroller, so a reader still scrolls it -->
 		<div
-			class="relative isolate mt-1.5 flex w-[19rem] flex-shrink-0 flex-col overflow-y-auto bg-surface-base px-3.5"
+			class="relative isolate mt-1.5 flex w-72 flex-shrink-0 flex-col overflow-y-auto bg-surface-base px-3.5 @6xl:w-[19rem]"
 		>
 			<div class="flex flex-col divide-y" :inert="readOnly">
 				<CollapsibleSection title="Chart">

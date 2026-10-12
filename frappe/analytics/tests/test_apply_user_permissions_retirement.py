@@ -1,6 +1,6 @@
 """Retiring the site-wide switch.
 
-See `insights/patches/retire_site_apply_user_permissions.py`, which `bench
+See `frappe/analytics/patches/retire_site_apply_user_permissions.py`, which `bench
 migrate` runs against the Singles row a released site holds.
 """
 

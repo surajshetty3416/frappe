@@ -22,7 +22,7 @@ from frappe.analytics.migrate import after_app_install, sync_standard_workbooks
 from frappe.analytics.tests.base import InsightsIntegrationTestCase
 from frappe.analytics.tests.factories import DT
 
-MODULE = "Insights"
+MODULE = "Analytics"
 WORKBOOK = "test-standard-workbook"
 QUERY = "test-standard-workbook-orders"
 CHART = "test-standard-workbook-revenue"

@@ -6,7 +6,7 @@ name, a title somebody else wrote.
 What is left here is the desk form, which is plain JavaScript no test runner
 reaches. A source check is a poorer test than a rendered one, and it is what
 keeps that one rule from being undone by a later edit. The app's own client is
-under `frontend/insights/`, where vitest runs.
+under `studio/analytics/`, where vitest runs.
 """
 
 import re
@@ -16,7 +16,7 @@ import frappe
 from frappe.tests import UnitTestCase
 
 LAYER = Path(frappe.get_app_path("frappe", "analytics"))
-FRONTEND = Path(frappe.get_app_path("frappe")).parent / "frontend" / "insights"
+FRONTEND = Path(frappe.get_app_path("frappe")).parent / "studio" / "analytics"
 
 
 class TestErrorToastRendersText(UnitTestCase):

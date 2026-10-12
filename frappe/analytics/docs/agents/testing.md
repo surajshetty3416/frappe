@@ -1,16 +1,16 @@
 # Testing
 
-How an agent writes a test during a feature, and how `/iris-code-review` judges one before merge. Browser flows have their own rules in `frontend/e2e/AGENTS.md`. This file does not repeat them.
+How an agent writes a test during a feature, and how `/iris-code-review` judges one before merge. Browser flows have their own rules in `studio/analytics/e2e/AGENTS.md`. This file does not repeat them.
 
 ## Layers
 
 | Layer | Runner | Files | Owns |
 | --- | --- | --- | --- |
-| backend | Frappe unittest | `insights/**/test_*.py` | query engine, permissions, derivation of a chart's operations, migrations |
-| unit | vitest | `frontend/src2/**/*.test.ts` | the adapter from result to chart props, pure state, helpers |
-| e2e | Playwright | `frontend/e2e/tests/<area>.spec.ts` | what only a browser proves |
+| backend | Frappe unittest | `frappe/analytics/**/test_*.py` | query engine, permissions, derivation of a chart's operations, migrations |
+| unit | vitest | `studio/analytics/src2/**/*.test.ts` | the adapter from result to chart props, pure state, helpers |
+| e2e | Playwright | `studio/analytics/e2e/tests/<area>.spec.ts` | what only a browser proves |
 
-Run them with `bench --site <site> run-tests --app insights --module <module>`, `cd frontend && yarn test`, and the e2e command in `frontend/e2e/AGENTS.md`.
+Run them with `bench --site <site> run-tests --module frappe.analytics.<module>`, `cd studio/analytics && npx vitest run`, and the e2e command in `studio/analytics/e2e/AGENTS.md`.
 
 ## The ladder
 
@@ -29,23 +29,23 @@ Run them with `bench --site <site> run-tests --app insights --module <module>`, 
 
 - Write few, long flows. A flow does several things and asserts each outcome.
 - A case whose only assertion is that something renders or is visible is a unit test filed in the wrong layer. Move it.
-- Titles, fixtures, locators and assertions follow `frontend/e2e/AGENTS.md`.
+- Titles, fixtures, locators and assertions follow `studio/analytics/e2e/AGENTS.md`.
 
 ## Names
 
 - The test name is the triage line. It states what a user or the engine does, and it is equivalent to the assertion.
 - Write it as a sentence in the present tense, in the words of `CONTEXT.md`. No `should`, no ticket ids, no component names.
-- Backend: `test_a_sort_the_author_wrote_outranks_the_date_axis` (`insights/tests/test_chart_derivation.py`).
-- Unit: `it('plots a rate as a line over the bars it is read against')` (`frontend/src2/charts/adapter/axis.test.ts`).
-- E2E: `test('a user steps back to an earlier operation and the results rewind')` (`frontend/e2e/tests/query.spec.ts`).
+- Backend: `test_a_sort_the_author_wrote_outranks_the_date_axis` (`frappe/analytics/tests/test_chart_derivation.py`).
+- Unit: `it('plots a rate as a line over the bars it is read against')` (`studio/analytics/src2/charts/adapter/axis.test.ts`).
+- E2E: `test('a user steps back to an earlier operation and the results rewind')` (`studio/analytics/e2e/tests/query.spec.ts`).
 
 ## The feature directive
 
 - Every test has a directive on the line directly above it: `# @feature <slug>` in Python, `// @feature <slug>` in TypeScript. Separate several slugs with spaces.
 - A slug is `<area>.<feature>` and is a row in `docs/features.md`, which holds only the slug and the sentence. Which tests pin a row is read off the tests, never written into the list.
 - A feature row precedes its first test. To test a new feature, add the row first, then the test.
-- `python frappe/insights/tests/features.py check` runs in the lint workflow. It fails on a test without a directive, a slug not in the feature list, or a coverage table that does not match the tests.
-- `python frappe/insights/tests/features.py generate` rewrites `docs/coverage.md`. Run it after you add, rename or move a test, and commit the result.
+- `python frappe/analytics/tests/features.py check` runs in the lint workflow. It fails on a test without a directive, a slug not in the feature list, or a coverage table that does not match the tests.
+- `python frappe/analytics/tests/features.py generate` rewrites `docs/coverage.md`. Run it after you add, rename or move a test, and commit the result.
 
 ## Agent rules
 
@@ -61,7 +61,7 @@ Each rule answers a failure someone has recorded; the source is named in bracket
 ## Skip and retry
 
 - A `skip` has an issue link, an owner and an expiry date on the same line. Review checks the date; a skip past its expiry is a finding.
-- In e2e, `test.skip` is a lint error. Use the `@quarantine` tag as `frontend/e2e/AGENTS.md` states, and put the same three fields in its comment.
+- In e2e, `test.skip` is a lint error. Use the `@quarantine` tag as `studio/analytics/e2e/AGENTS.md` states, and put the same three fields in its comment.
 - A retry is a CI allowance, not a fix. `retries: 2` in `playwright.config.ts` absorbs infrastructure noise; it does not license a flaky test.
 - Before you land an e2e case, run it with `--repeat-each 3`. Any failure is a real failure.
 

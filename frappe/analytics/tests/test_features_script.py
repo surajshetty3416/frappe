@@ -1,4 +1,4 @@
-"""What `frappe/insights/tests/features.py` reads off the suite, and when `check` fails.
+"""What `frappe/analytics/tests/features.py` reads off the suite, and when `check` fails.
 
 The generator is the only reader of the `@feature` directive, so what it counts
 as a test and as a directive is the contract every annotated test is written
@@ -86,44 +86,44 @@ class TestFeaturesScript(unittest.TestCase):
 
     # @feature tooling.feature-coverage
     def test_a_directive_lands_on_every_slug_it_names(self):
-        coverage, _, _, _ = self.build({"frappe/insights/tests/test_query.py": BACKEND_PY})
-        label = "frappe/insights/tests/test_query.py::test_a_filter_cuts_the_rows"
+        coverage, _, _, _ = self.build({"frappe/analytics/tests/test_query.py": BACKEND_PY})
+        label = "frappe/analytics/tests/test_query.py::test_a_filter_cuts_the_rows"
         self.assertIn(f"| query.filter | A user adds a filter. | {label} |", coverage)
         self.assertIn(f"| query.join | A user joins a second table. | {label} |", coverage)
 
     # @feature tooling.feature-coverage
     def test_a_test_without_a_directive_is_listed(self):
-        coverage, _, undirected, _ = self.build({"frappe/insights/tests/test_query.py": BACKEND_PY})
+        coverage, _, undirected, _ = self.build({"frappe/analytics/tests/test_query.py": BACKEND_PY})
         self.assertEqual([test.name for test in undirected], ["test_nothing_names_a_feature"])
-        self.assertIn("frappe/insights/tests/test_query.py:9 — test_nothing_names_a_feature", coverage)
+        self.assertIn("frappe/analytics/tests/test_query.py:9 — test_nothing_names_a_feature", coverage)
 
     # @feature tooling.feature-coverage
     def test_a_vitest_case_is_cited_by_its_title(self):
-        coverage, _, _, _ = self.build({"frontend/insights/src2/query/filter.test.ts": UNIT_TS})
-        self.assertIn('frontend/insights/src2/query/filter.test.ts::"keeps the rows the filter names"', coverage)
+        coverage, _, _, _ = self.build({"studio/analytics/src2/query/filter.test.ts": UNIT_TS})
+        self.assertIn('studio/analytics/src2/query/filter.test.ts::"keeps the rows the filter names"', coverage)
 
     # @feature tooling.feature-coverage
     def test_an_e2e_title_on_the_next_line_is_read(self):
-        coverage, _, _, _ = self.build({"frontend/insights/e2e/tests/query.spec.ts": E2E_TS})
+        coverage, _, _, _ = self.build({"studio/analytics/e2e/tests/query.spec.ts": E2E_TS})
         self.assertIn(
             '| query.join | A user joins a second table. |  |  | "a user joins a second table" |', coverage
         )
 
     # @feature tooling.feature-coverage
     def test_a_slug_no_feature_declares_is_reported(self):
-        coverage, unknown, _, _ = self.build({"frontend/insights/src2/query/sort.test.ts": UNKNOWN_TS})
+        coverage, unknown, _, _ = self.build({"studio/analytics/src2/query/sort.test.ts": UNKNOWN_TS})
         self.assertEqual([slug for slug, _ in unknown], ["query.sorcery"])
-        self.assertIn("- `query.sorcery` — frontend/insights/src2/query/sort.test.ts:2", coverage)
+        self.assertIn("- `query.sorcery` — studio/analytics/src2/query/sort.test.ts:2", coverage)
 
     # @feature tooling.feature-coverage
     def test_check_fails_until_the_generated_file_is_written(self):
-        write_tree(self.root, {"frontend/insights/src2/query/filter.test.ts": UNIT_TS})
+        write_tree(self.root, {"studio/analytics/src2/query/filter.test.ts": UNIT_TS})
         self.assertEqual(self.run_cli("check"), 1)
         self.assertEqual(self.run_cli("generate"), 0)
         self.assertEqual(self.run_cli("check"), 0)
 
     # @feature tooling.feature-coverage
     def test_check_fails_on_a_test_without_a_directive(self):
-        write_tree(self.root, {"frappe/insights/tests/test_query.py": BACKEND_PY})
+        write_tree(self.root, {"frappe/analytics/tests/test_query.py": BACKEND_PY})
         self.run_cli("generate")
         self.assertEqual(self.run_cli("check"), 1)

@@ -50,7 +50,7 @@ frappe.ui.form.on("Insights Table v3", {
 						? s.referencing_queries
 								.map(
 									(q) =>
-										`<li><a href="/app/insights-query-v3/${
+										`<li><a href="/desk/insights-query-v3/${
 											q.name
 										}">${frappe.utils.escape_html(
 											q.title || q.name,

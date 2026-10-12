@@ -1,16 +1,16 @@
 # Insights — agent instructions
 
-Frappe BI app. Backend: Python (Frappe framework) in `insights/`. Frontend: Vue 3 +
-frappe-ui in `frontend/src2/`, built with Vite.
+Frappe BI app. Backend: Python (Frappe framework) in `frappe/analytics/`. Frontend: Vue 3 +
+frappe-ui in `studio/analytics/src2/`, built with Vite as a layer of Studio.
 
 ## Orientation
 
-- `insights/api/` — whitelisted API endpoints (thin; logic lives in doctype classes)
-- `insights/insights/doctype/` — doctypes; the `_v3` suffix on most of them is
+- `frappe/analytics/api/` — whitelisted API endpoints (thin; logic lives in doctype classes)
+- `frappe/analytics/doctype/` — doctypes; the `_v3` suffix on most of them is
   historical, not a variant marker (`Insights Workbook` and a few others have none)
-- `frontend/src2/` — the whole UI, one folder per area (`workbook/`, `query/`,
+- `studio/analytics/src2/` — the whole UI, one folder per area (`workbook/`, `query/`,
   `charts/`, `dashboard/`, `data_source/`, `data_store/`)
-- `frontend/src2/types/` — the domain types; read `query.types.ts` before touching
+- `studio/analytics/src2/types/` — the domain types; read `query.types.ts` before touching
   query logic
 - Query engine: operations JSON → ibis → SQL, against the source or the DuckDB data
   store (`insights_data_source_v3/data_warehouse.py`, `ibis_utils.py`)
@@ -25,7 +25,7 @@ frappe-ui in `frontend/src2/`, built with Vite.
 - Sites: test against a local development site with Insights installed
 - Branches: `develop` is the default branch; pull requests target
   `frappe/insights`
-- Frontend dev server: `cd frontend && yarn dev`. Build UI on frappe-ui components
+- Frontend dev server: `cd studio && yarn dev`, then open `/studio/analytics`. Build UI on frappe-ui components
   and semantic tokens (`text-ink-*`, `bg-surface-*`, `border-outline-*`); no raw
   buttons or hardcoded colors. When frappe-ui has no component for it, build one
   that matches the taste of its frappe-ui neighbors

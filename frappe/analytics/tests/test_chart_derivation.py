@@ -9,7 +9,7 @@ shipped workbooks stored. That check did its job: the port matched, chart for
 chart, so the browser's output was written into the fixtures and the caches it
 came from are gone.
 
-Read `insights/insights/doctype/insights_chart_v3/chart_query.py` for what is
+Read `frappe/analytics/doctype/insights_chart_v3/chart_query.py` for what is
 being derived.
 """
 

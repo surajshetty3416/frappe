@@ -2,7 +2,7 @@
 
 Every box is scaled into the new row, a filter cell and a Number cell are
 written at the rows their own rules give them, and the grid is settled where it
-stands. See `insights/patches/resize_dashboard_cells.py`.
+stands. See `frappe/analytics/patches/resize_dashboard_cells.py`.
 """
 
 import unittest

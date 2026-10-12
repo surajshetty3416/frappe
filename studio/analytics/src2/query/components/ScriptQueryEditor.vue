@@ -108,7 +108,7 @@ function handleSaveVariables(variables: any[]) {
 				>
 					<div
 						v-if="showLogs"
-						class="flex h-full w-[30rem] flex-shrink-0 flex-col overflow-hidden bg-surface-gray-1 p-3"
+						class="flex h-full w-[30rem] max-w-[50%] flex-shrink-0 flex-col overflow-hidden bg-surface-gray-1 p-3"
 					>
 						<div class="font-mono text-sm uppercase text-ink-gray-5">
 							{{ __('Logs') }}

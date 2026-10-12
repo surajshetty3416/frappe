@@ -3,7 +3,7 @@
 A chart's query is derived from its config now, so the documents the browser
 used to write it into are caches nothing fills or reads. The field is gone from
 the doctype. The column it left behind is what the patch reads its way out by.
-See `insights/patches/retire_chart_query_cache.py`.
+See `frappe/analytics/patches/retire_chart_query_cache.py`.
 """
 
 from unittest.mock import patch

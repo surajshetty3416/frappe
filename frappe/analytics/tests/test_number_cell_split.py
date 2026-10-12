@@ -2,7 +2,7 @@
 
 A cell shows one reading of a Number chart, so a cell on a chart that states
 several becomes one cell per reading. The chart keeps all of them. See
-`insights/patches/split_number_cells.py`.
+`frappe/analytics/patches/split_number_cells.py`.
 """
 
 import frappe

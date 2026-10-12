@@ -163,7 +163,7 @@ _Avoid_: unknown table, stray table
 ### Framework integration
 
 **Island**:
-A self-contained UI unit, provided by an app, that the framework mounts into a host page. It is isolated in a shadow root and uses the shared runtime the framework provides. Building an island registers it: its name is its entry in `frontend/build-islands.mjs`, and the build writes it into `assets.json` as `<name>.island.js`. Insights ships `insights.dashboard` and `insights.chart`. Island, Host, Claim and Action are the framework's words. `apps/frappe/ui/island/decisions` defines them and is their authority.
+A self-contained UI unit, provided by an app, that the framework mounts into a host page. It is isolated in a shadow root and uses the shared runtime the framework provides. Building an island registers it: its name is its entry in `studio/analytics/build-islands.mjs`, and the build writes it into `assets.json` as `<name>.island.js`. Insights ships `insights.dashboard` and `insights.chart`. Island, Host, Claim and Action are the framework's words. `apps/frappe/ui/island/decisions` defines them and is their authority.
 _Avoid_: widget, block, embed (embed = the public iframe-sharing feature)
 
 **Host**:
@@ -171,7 +171,7 @@ The page an island mounts into. The host owns everything around the island: the 
 _Avoid_: container, parent app, shell
 
 **Claim**:
-The link that makes Insights render a desk document. Insights adds one Custom Field to each desk doctype it renders (`Dashboard`, `Dashboard Chart`). When the field is set, an `onload` handler puts the island's name in `__onload.island`. Without that key, desk renders the document itself (`insights/desk.py`). A claim decides who renders the document, never who may read it.
+The link that makes Insights render a desk document. Insights adds one Custom Field to each desk doctype it renders (`Dashboard`, `Dashboard Chart`). When the field is set, an `onload` handler puts the island's name in `__onload.island`. Without that key, desk renders the document itself (`frappe/analytics/desk.py`). A claim decides who renders the document, never who may read it.
 _Avoid_: renderer, override, takeover
 
 **Action**:
@@ -187,7 +187,7 @@ What renders inside the chrome — the marks that show the data. The only part t
 _Avoid_: graph, canvas, visual
 
 **Adapter**:
-The one module that turns a stored Chart config and a query result into the props of a charts v2 component (`frontend/src2/charts/adapter/`). One pure function per chart type. Insights builds no ECharts option for a type v2 supports.
+The one module that turns a stored Chart config and a query result into the props of a charts v2 component (`studio/analytics/src2/charts/adapter/`). One pure function per chart type. Insights builds no ECharts option for a type v2 supports.
 _Avoid_: mapper, translator, transformer
 
 ### Reading and building
@@ -197,7 +197,7 @@ The read side of a dashboard or a chart: what a reader gets. It is the same on t
 _Avoid_: viewer (neither the reader, nor the module, nor the endpoints), read surface, feed (a card is filled from a source), one door
 
 **Builder**:
-The write side: the workbook's stores, forms and grid editing. It renders content that has no name yet. So it sends the content it is editing to `frappe.analytics.api.authoring`, and gets back the derived operations and the SQL. That is why those endpoints need an Insights role and the View endpoints do not. On the client, it is `dashboard/builder.ts`, `charts/chart_preview.ts` and `BuilderDrillDown.vue`. To edit, a user needs write permission on the document and an Insights role. `can_write` in `insights/permissions.py` is the one place that checks both.
+The write side: the workbook's stores, forms and grid editing. It renders content that has no name yet. So it sends the content it is editing to `frappe.analytics.api.authoring`, and gets back the derived operations and the SQL. That is why those endpoints need an Insights role and the View endpoints do not. On the client, it is `dashboard/builder.ts`, `charts/chart_preview.ts` and `BuilderDrillDown.vue`. To edit, a user needs write permission on the document and an Insights role. `can_write` in `frappe/analytics/permissions.py` is the one place that checks both.
 _Avoid_: authoring (as the name of a page, a store or a prop — `frappe.analytics.api.authoring` keeps the word), seat (the gate is a role)
 
 **Route**:
@@ -219,7 +219,7 @@ _Avoid_: lost, dropped (for permlevel)
 ### Sharing & governance
 
 **Grant**:
-Anything that gives a user access to a document. Each kind is one row of the table in `insights/permissions.py`: a DocShare, a workbook, a team or a Visibility level, among others. Nothing outside that table is a grant.
+Anything that gives a user access to a document. Each kind is one row of the table in `frappe/analytics/permissions.py`: a DocShare, a workbook, a team or a Visibility level, among others. Nothing outside that table is a grant.
 
 **Member**:
 A workbook's query, chart, dashboard, alert or folder (`WORKBOOK_MEMBERS`). An alert belongs to its query's workbook (`workbook_of`). A member's write and share come from its workbook only: share on a member is checked as write, and owning a member grants nothing. A DocShare on a member may only give a named user read on a dashboard or chart (`is_member_share`).

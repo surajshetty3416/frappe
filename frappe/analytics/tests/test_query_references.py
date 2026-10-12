@@ -416,7 +416,7 @@ class DashboardFilterReadsTheQuery:
         """The read on the dashboard is settled upstream of this method, so the
         caller's read on the query behind the filter is checked here too. It
         returns an empty list, not an error, because the caller may read the
-        dashboard. See `insights/not_permitted.py`."""
+        dashboard. See `frappe/analytics/not_permitted.py`."""
         with self.as_user(OTHER):
             self.assertEqual(self.distinct_values(self.owner_dashboard, self.FILTER_NAME), [])
 

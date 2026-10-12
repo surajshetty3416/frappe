@@ -1,4 +1,4 @@
-"""Guards frappe/insights#1193 — see insights/patches/name_workbooks_as_strings.py for
+"""Guards frappe/insights#1193 — see frappe/analytics/patches/name_workbooks_as_strings.py for
 why `Insights Workbook` now names itself as a string instead of via `autoincrement`.
 """
 

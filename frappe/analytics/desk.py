@@ -61,13 +61,11 @@ DESK_ISLANDS = {
 
 
 def boot_app_path(bootinfo) -> None:
-    """Tell a desk page where this site mounts the Insights app.
+    """Tell a desk page where Studio mounts the Insights app.
 
     Islands build their links from it: the dashboard island's Edit action, a
-    chart's own page, the workbook behind a card. The app's www page gets the
-    value in its own boot. A desk page has only this.
-
-    `frappe.analytics.hooks.insights_path` reads the path from site config.
+    chart's own page, the workbook behind a card. Studio's page gets the value
+    in its own boot. A desk page has only this.
     """
     bootinfo.insights_path = f"/{insights_path}"
 

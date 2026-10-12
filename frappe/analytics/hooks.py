@@ -1,14 +1,5 @@
-import frappe
-
-
-
-# Sites that already serve something at /insights (e.g. a website page) can move
-# the app elsewhere by setting `insights_path` in site config. Stored without
-# slashes so everything below can build paths as f"/{insights_path}".
-# `website_route_rules` and `add_to_apps_screen` are plain module-level data, so
-# the path has to be known at import time; a bench process serving several sites
-# takes the value of whichever site imported this module first.
-insights_path = (frappe.conf.insights_path or "studio/analytics").strip("/") or "studio/analytics"  # nosemgrep
+# Where Studio mounts this layer. Without slashes, so paths build as f"/{insights_path}".
+insights_path = "studio/analytics"
 
 
 # Includes in <head>
@@ -140,7 +131,7 @@ doc_events = {
         "on_change": "frappe.analytics.doctype.insights_team.insights_team.update_admin_team",
     },
     # a desk document that links to Insights content renders through an
-    # Insights island — see insights/desk.py
+    # Insights island — see frappe/analytics/desk.py
     "Dashboard": {
         "onload": "frappe.analytics.desk.claim",
     },

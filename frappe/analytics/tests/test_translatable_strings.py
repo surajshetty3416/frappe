@@ -12,7 +12,7 @@ from frappe.gettext.translate import PYTHON_KEYWORDS, get_method_map
 
 from frappe.analytics.tests.base import InsightsIntegrationTestCase
 
-FRONTEND = Path(frappe.get_app_path("frappe")).parent / "frontend" / "insights" / "src2"
+FRONTEND = Path(frappe.get_app_path("frappe")).parent / "studio" / "analytics" / "src2"
 
 # `__('...')` and `__("...")`, escapes included. A call with a non-literal first
 # argument has nothing to extract, so the pattern skips it.

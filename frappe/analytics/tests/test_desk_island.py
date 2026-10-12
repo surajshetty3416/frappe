@@ -335,7 +335,7 @@ class TestDeskIsland(InsightsIntegrationTestCase):
 
     # @feature desk.shipped-claim
     def test_finds_the_files_sync_dashboards_imports(self):
-        folder = Path(frappe.get_module_path("analytics", "insights_dashboard"))
+        folder = Path(frappe.get_module_path("analytics", "analytics_dashboard"))
         self.assertFalse(folder.exists())
         self.addCleanup(shutil.rmtree, folder)
         (folder / "selling").mkdir(parents=True)

@@ -132,6 +132,11 @@ class TestDashboardPreview(InsightsIntegrationTestCase):
         self.assertNotIn(ATTACKER_HOST, self.render(self.dashboard)["url"])
 
     # @feature dashboard.preview-image
+    def test_the_browser_opens_the_shared_dashboard_in_studio(self):
+        url = self.render(self.dashboard)["url"]
+        self.assertTrue(url.endswith(f"/studio/analytics/shared/dashboard/{self.dashboard}"), url)
+
+    # @feature dashboard.preview-image
     def test_the_key_opens_the_dashboard_being_previewed(self):
         reads = self.render(self.dashboard)["reads"]
         self.assertTrue(reads[(DT.DASHBOARD, self.dashboard)])

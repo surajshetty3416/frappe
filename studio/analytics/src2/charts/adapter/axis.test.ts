@@ -6,9 +6,9 @@ import { fitLine, takesTrendLine } from './axis'
 import { normalizeChartConfig, setStack } from '../helpers'
 import { adaptChart } from './index'
 import { axisChart, type AxisChartSpec } from './fixtures'
-import { buildAxisChartOption } from '../../../node_modules/frappe-ui/src/charts/axisChartOptions'
-import { normalizeAxisChartProps } from '../../../node_modules/frappe-ui/src/charts/seriesData'
-import { resolveChartTokens } from '../../../node_modules/frappe-ui/src/charts/tokens'
+import { buildAxisChartOption } from '../../../../node_modules/frappe-ui/src/charts/axisChartOptions'
+import { normalizeAxisChartProps } from '../../../../node_modules/frappe-ui/src/charts/seriesData'
+import { resolveChartTokens } from '../../../../node_modules/frappe-ui/src/charts/tokens'
 
 // Everything here asserts on the props a chart is handed. What echarts renders
 // from them is v2's concern, and v2 tests it.

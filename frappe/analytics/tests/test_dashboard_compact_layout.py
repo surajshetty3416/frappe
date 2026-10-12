@@ -4,7 +4,7 @@ The setting used to live in the browser and was on unless a reader turned it
 off. The field that replaced it has been on the doctype since the v2 era with
 nothing ever writing it, so every stored row holds 0 — and reading the field
 alone would open the gaps in every dashboard already rendered. See
-`insights/patches/close_dashboard_layout_gaps.py`.
+`frappe/analytics/patches/close_dashboard_layout_gaps.py`.
 """
 
 import frappe

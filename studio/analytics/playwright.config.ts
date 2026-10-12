@@ -2,7 +2,7 @@ import { defineConfig, devices } from '@playwright/test'
 import { storageStatePath } from './e2e/helpers/auth'
 
 /**
- * The end-to-end suite. `frontend/e2e/AGENTS.md` is the standard it enforces.
+ * The end-to-end suite. `e2e/AGENTS.md` is the standard it enforces.
  *
  * **What serves the app.** Nothing here starts a server. The suite talks to a
  * running Frappe site that already has Insights installed, the frontend built,
@@ -16,16 +16,16 @@ import { storageStatePath } from './e2e/helpers/auth'
  *
  *     cd ~/frappe/develop-bench && bench start
  *     bench --site <site> set-config max_queued_jobs 100000 --parse
- *     cd frontend && yarn build          # /insights needs the built entry
+ *     cd studio && yarn build            # /studio needs the built entry
  *     E2E_BASE_URL=http://test.insights.localhost:8000 npx playwright test
  *
- * A vite dev server cannot host this suite. `/insights` under `yarn dev` is
+ * A vite dev server cannot host this suite. `/studio/analytics` under `yarn dev` is
  * vite's own `index.html`, so it carries no `window.csrf_token` and the setup
  * project fails. Point the suite at the bench port, not at vite.
  *
  * **`max_queued_jobs` is not optional.** A run that skips it loses whole spec
  * files to a 503. See "Raise the background job ceiling" in
- * `frontend/e2e/AGENTS.md` for the measurement and the diagnosis.
+ * `e2e/AGENTS.md` for the measurement and the diagnosis.
  */
 const baseURL = process.env.E2E_BASE_URL || 'http://test.insights.localhost:8000'
 
@@ -44,12 +44,12 @@ export default defineConfig({
 	forbidOnly: !!process.env.CI,
 	retries: process.env.CI ? 1 : 0,
 	// Four ran fastest on the CI runner and six ran slower. See "Four workers,
-	// in CI and locally" in `frontend/e2e/AGENTS.md` for the measurement.
+	// in CI and locally" in `e2e/AGENTS.md` for the measurement.
 	workers: 4,
 	reporter: process.env.CI
 		? [['github'], ['html', { open: 'never' }]]
 		: [['list'], ['html', { open: 'never' }]],
-	// Twice the slowest CI flow (18 s). See `frontend/e2e/AGENTS.md`.
+	// Twice the slowest CI flow (18 s). See `e2e/AGENTS.md`.
 	timeout: 40_000,
 	expect: {
 		// Playwright's 5 second default expires while a first query execution is

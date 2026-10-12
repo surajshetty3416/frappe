@@ -84,7 +84,7 @@ watchEffect(() => {
 		<LoadingOverlay v-if="workbook.pending" />
 		<WorkbookNavbar />
 		<div
-			class="relative flex w-full flex-1 overflow-hidden"
+			class="relative flex w-full flex-1 overflow-hidden @container"
 			:class="workbook.showSidebar ? 'flex-row' : 'flex-col'"
 		>
 			<WorkbookSidebar />

@@ -28,7 +28,7 @@ from frappe.analytics.utils import DocShare, File, get_app_url
 # a filter links a column as "links": { '<chart>': "`<query>`.`<column>`" }
 LINK_COLUMN = re.compile(r"^`([^`]+)`\.`([^`]+)`$")
 
-# (w, h) the editor gives an item it adds, in `frontend/src2/dashboard/dashboard.ts`
+# (w, h) the editor gives an item it adds, in `studio/analytics/src2/dashboard/dashboard.ts`
 DEFAULT_CELL = {"chart": (10, 20), "text": (10, 5), "filter": (4, 2)}
 # A Number chart's one card with no comparison, as `numberCardRows` sizes it. The
 # grid sets the height from the chart's config when it renders.
