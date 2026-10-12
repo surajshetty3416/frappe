@@ -55,7 +55,7 @@
 								<span :class="artifactIcon(artifact)" class="size-3 shrink-0" />
 								<span class="truncate">{{ artifact.title }}</span>
 							</span>
-							<span class="w-20 shrink-0 text-right text-sm text-ink-gray-5">{{ dayjs(chat.modified).fromNow() }}</span>
+							<span class="shrink-0 whitespace-nowrap text-right text-sm text-ink-gray-5">{{ dayjs(chat.modified).fromNow() }}</span>
 						</router-link>
 					</li>
 				</ul>
