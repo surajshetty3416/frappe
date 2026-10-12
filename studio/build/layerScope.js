@@ -21,9 +21,18 @@ export function layerOf(file = "") {
 const SCOPABLE_AT_RULES = new Set(["media", "supports", "container"])
 const scopable = (node) => node.type === "rule" || (node.type === "atrule" && SCOPABLE_AT_RULES.has(node.name))
 
-// a rule written for the page itself now means the layer's own root
+// Inside @scope a selector without :scope matches descendants of the root only. A rule
+// written for the page itself now means the layer's own root, and the color scheme's mark
+// sits on <html>: the root itself, or an ancestor of it when the layer is hosted inside another.
 const ON_PAGE_ROOT = /^(:root|html)\b/
-const onScopeRoot = (selector) => selector.replace(ON_PAGE_ROOT, ":scope")
+const THEME = /^(?::root|html)?(\[data-theme[^\]]*\]|\.dark\b)/
+
+function scoped(selector) {
+	const theme = selector.match(THEME)
+	if (!theme) return [selector.replace(ON_PAGE_ROOT, ":scope")]
+	const rest = selector.slice(theme[0].length)
+	return [`:scope${theme[1]}${rest}`, `${theme[1]} :scope${rest}`]
+}
 
 export default function layerScope() {
 	return {
@@ -35,7 +44,8 @@ export default function layerScope() {
 			const scope = new AtRule({ name: "scope", params: `(${owner}) to ([data-layer]:not(${owner}))` })
 			for (const node of root.nodes.filter(scopable)) scope.append(node.remove())
 			scope.walkRules((rule) => {
-				rule.selectors = rule.selectors.map(onScopeRoot)
+				// a nested rule is relative to its parent, which is already scoped
+				if (rule.parent.type !== "rule") rule.selectors = rule.selectors.flatMap(scoped)
 			})
 			if (scope.nodes.length) root.append(scope)
 		},
