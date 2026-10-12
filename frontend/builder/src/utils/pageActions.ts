@@ -36,7 +36,7 @@ export async function openPage(page: BuilderPage) {
 	const pageStore = usePageStore();
 	// a page switch mid-debounce would save the old edits onto whichever page is loaded by then
 	if (pageStore.savingPage) await pageStore.waitTillPageIsSaved();
-	router.push({ name: "builder", params: { pageId: page.name } });
+	router.push({ name: "builder-editor", params: { pageId: page.name } });
 }
 
 // template titles repeat the site name ("Rooms · Tide House"), the folder already says it
@@ -44,7 +44,7 @@ export const shortTitle = (page: BuilderPage) =>
 	(page.page_title || page.page_name || "").split(/\s+[·|—]\s+/)[0];
 
 export function createPageIn(folder: string) {
-	router.push({ name: "builder", params: { pageId: "new" }, query: folder ? { folder } : {} });
+	router.push({ name: "builder-editor", params: { pageId: "new" }, query: folder ? { folder } : {} });
 }
 
 // the open page saves through the page store so its unsaved state stays consistent
@@ -103,7 +103,7 @@ export async function deletePage(page: BuilderPage) {
 	if (!wasOpen) return;
 	// a search or the row limit can leave the loaded list without the folder's other pages
 	const next = neighbour ?? (page.project_folder ? (await firstPageIn(page.project_folder))[0] : undefined);
-	router.push(next ? { name: "builder", params: { pageId: next.name } } : { name: "home" });
+	router.push(next ? { name: "builder-editor", params: { pageId: next.name } } : { name: "builder-home" });
 }
 
 // protected pages and a read-only editor must not be renamed, moved or deleted from here

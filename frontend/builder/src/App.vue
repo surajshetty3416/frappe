@@ -1,35 +1,28 @@
 <template>
-	<div>
+	<div class="h-full">
 		<router-view v-slot="{ Component }">
 			<keep-alive>
 				<component :is="Component" />
 			</keep-alive>
 		</router-view>
-		<UseDark attribute="data-theme"></UseDark>
-		<FrappeUIProvider />
 	</div>
 </template>
 <script setup lang="ts">
 import useBuilderStore from "@builder/stores/builderStore";
 import usePageStore from "@builder/stores/pageStore";
 import { __ } from "@builder/translation";
-import { UseDark } from "@vueuse/components";
 import { useTitle } from "@vueuse/core";
 import { useSiteReadOnlyNotice } from "@builder/utils/useSiteReadOnlyNotice";
-import { FrappeUIProvider } from "frappe-ui";
-import { computed, provide } from "vue";
+import { computed } from "vue";
 import { useRoute } from "vue-router";
-import { sessionUser } from "./router";
 
 // do not remove this
 const builderStore = useBuilderStore();
 const pageStore = usePageStore();
 const route = useRoute();
 
-provide("sessionUser", sessionUser);
-
 const title = computed(() => {
-	return pageStore.activePage && route.name !== "home"
+	return pageStore.activePage && route.name !== "builder-home"
 		? `${pageStore.activePage.page_title || __("Untitled")} | Builder`
 		: "Frappe Builder";
 });

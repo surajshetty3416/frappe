@@ -537,10 +537,8 @@ const renderedBreakpoints = computed(() => canvasProps.breakpoints.filter((bp) =
 	box-shadow: inset 0 0 0 calc(2px / var(--canvas-scale, 1)) theme("colors.blue.400 / 85%");
 }
 
-.canvas-container {
-	p:not(:where(.prose, .ProseMirror) *) {
-		line-height: revert;
-	}
+.canvas-container p:not(:where(.prose, .ProseMirror) *) {
+	line-height: revert;
 }
 
 /* mirrors the published-page default in webpage_scripts.html */

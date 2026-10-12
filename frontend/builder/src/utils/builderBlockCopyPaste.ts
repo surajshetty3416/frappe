@@ -1,5 +1,6 @@
 import { __ } from "@builder/translation";
 import type Block from "@builder/block";
+import router from "@builder/router";
 import useCanvasStore from "@builder/stores/canvasStore";
 import useComponentStore from "@builder/stores/componentStore";
 import usePageStore from "@builder/stores/pageStore";
@@ -290,7 +291,7 @@ async function handlePagePaste(
 							JSON.stringify({ page: newPage.name, fonts: clipboardData.fonts || [] }),
 						);
 					}
-					window.location.href = `/builder/page/${encodeURIComponent(newPage.name)}`;
+					window.location.href = router.resolve({ name: "builder-editor", params: { pageId: newPage.name } }).href;
 					await pageStore.setPage(newPage.name);
 					toast.success(__("Done"), { id: "paste-page" });
 				},

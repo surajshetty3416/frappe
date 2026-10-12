@@ -92,6 +92,7 @@ import { BuilderPage } from "@builder/types/doctypes";
 import { Switch } from "frappe-ui";
 import { computed } from "vue";
 import ImageUploader from "../Controls/ImageUploader.vue";
+import Input from "../Controls/Input.vue";
 
 const builderStore = useBuilderStore();
 

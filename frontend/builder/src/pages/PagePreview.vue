@@ -161,7 +161,7 @@ const setFullscreen = (fullscreen: boolean) => {
 // the opener of a preview from the editor can be the detached tab
 const goBack = () => {
 	if (!cameFromEditor.value && pageStore.focusEditorTab()) return;
-	router.push({ name: "builder", params: { pageId: route.params.pageId || "new" } });
+	router.push({ name: "builder-editor", params: { pageId: route.params.pageId || "new" } });
 };
 
 // a blocked popup leaves this the only preview, so stay
@@ -173,7 +173,7 @@ const cameFromEditor = ref(false);
 const hasEditorTab = ref(false);
 
 useEventListener(new BroadcastChannel(DETACHED_PREVIEW_CHANNEL), "message", () => {
-	if (route.name === "preview" && hasEditorTab.value && !cameFromEditor.value) {
+	if (route.name === "builder-preview" && hasEditorTab.value && !cameFromEditor.value) {
 		pageStore.announceDetachedPreview(route.params.pageId as string);
 	}
 });
@@ -211,9 +211,9 @@ useKeyboardShortcut({
 	group: __("Navigation"),
 	handler: () => {
 		if (isFullscreen.value) setFullscreen(false);
-		else if (router.currentRoute.value.name === "preview") history.back();
+		else if (router.currentRoute.value.name === "builder-preview") history.back();
 	},
-	enabled: () => router.currentRoute.value.name === "preview",
+	enabled: () => router.currentRoute.value.name === "builder-preview",
 });
 
 useKeyboardShortcut({
@@ -221,7 +221,7 @@ useKeyboardShortcut({
 	description: __("Back to Builder"),
 	group: __("Navigation"),
 	handler: goBack,
-	enabled: () => router.currentRoute.value.name === "preview",
+	enabled: () => router.currentRoute.value.name === "builder-preview",
 });
 
 const applyColorSchemeToIframe = (scheme: "dark" | "light") => {
@@ -355,7 +355,7 @@ onActivated(() => {
 	const pageId = route.params.pageId as string;
 	const previousPath = window.history.state?.back;
 
-	cameFromEditor.value = typeof previousPath === "string" && router.resolve(previousPath).name === "builder";
+	cameFromEditor.value = typeof previousPath === "string" && router.resolve(previousPath).name === "builder-editor";
 	hasEditorTab.value = Boolean(pageStore.getEditorTab());
 	isFullscreen.value = cameFromEditor.value ? false : lastFullscreen.value;
 	// a detached or bookmarked preview has no editor to load the page first

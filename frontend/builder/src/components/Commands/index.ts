@@ -5,7 +5,8 @@ import usePageStore from "@builder/stores/pageStore";
 import { __ } from "@builder/translation";
 import blockController from "@builder/utils/blockController";
 import { createRegistry, type RegistryItem } from "@builder/utils/createRegistry";
-import { useDark, useStorage, useToggle } from "@vueuse/core";
+import { useDarkMode } from "@builder/composables/useDarkMode";
+import { useStorage } from "@vueuse/core";
 import type { KeyboardShortcutCombo } from "frappe-ui";
 import { nextTick, type Ref } from "vue";
 
@@ -68,10 +69,9 @@ export function commandShortcuts() {
 		}));
 }
 
-const isBuilderRoute = () => router.currentRoute.value.name === "builder";
+const isBuilderRoute = () => router.currentRoute.value.name === "builder-editor";
 
-const isDark = useDark({ attribute: "data-theme" });
-const toggleDark = useToggle(isDark);
+const { isDark, toggleDark } = useDarkMode();
 
 const transitionTheme = () => {
 	if (document.startViewTransition && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
@@ -102,7 +102,7 @@ commands.register({
 	description: __("Navigate"),
 	group: "Navigate",
 	condition: isBuilderRoute,
-	action: () => router.push({ name: "home" }),
+	action: () => router.push({ name: "builder-home" }),
 });
 
 commands.register({

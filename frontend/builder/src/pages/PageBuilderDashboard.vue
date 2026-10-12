@@ -40,7 +40,7 @@ watch(
 		if (builderSettings.doc.persona_survey_done && !devForceShow) return;
 		if (!sessionUser.value || sessionUser.value === "Guest") return;
 		router.replace({
-			name: "persona-survey",
+			name: "builder-persona-survey",
 			query: devForceShow ? { persona_survey: "test" } : {},
 		});
 	},

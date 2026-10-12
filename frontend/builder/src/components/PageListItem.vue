@@ -1,5 +1,5 @@
 <template>
-	<router-link :to="{ name: 'builder', params: { pageId: page.page_name } }" class="group block h-fit w-full">
+	<router-link :to="{ name: 'builder-editor', params: { pageId: page.page_name } }" class="group block h-fit w-full">
 		<div
 			class="group relative flex w-full justify-between overflow-hidden rounded-8 p-3 hover:cursor-pointer hover:bg-surface-gray-1"
 			:class="{

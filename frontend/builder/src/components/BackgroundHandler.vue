@@ -141,6 +141,7 @@ import Autocomplete from "@builder/components/Controls/Autocomplete.vue";
 import ColorPicker from "@builder/components/Controls/ColorPicker.vue";
 import GradientEditor from "@builder/components/Controls/GradientEditor.vue";
 import ImageFocusInput from "@builder/components/Controls/ImageFocusInput.vue";
+import InputLabel from "@builder/components/Controls/InputLabel.vue";
 import StylePropertyControl from "@builder/components/Controls/StylePropertyControl.vue";
 import useBuilderStore from "@builder/stores/builderStore";
 import blockController from "@builder/utils/blockController";

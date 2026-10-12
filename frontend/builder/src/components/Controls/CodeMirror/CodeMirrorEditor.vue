@@ -14,7 +14,7 @@ import { getDefaultPropsList, getParentProps } from "@builder/utils/helpers";
 import { openSearchPanel } from "@codemirror/search";
 import { Compartment } from "@codemirror/state";
 import { oneDark } from "@codemirror/theme-one-dark";
-import { useDark } from "@vueuse/core";
+import { useDarkMode } from "@builder/composables/useDarkMode";
 import { EditorView } from "codemirror";
 import { tomorrow } from "thememirror";
 
@@ -38,9 +38,7 @@ const emit = defineEmits<{
 	(e: "blur", value: string): void;
 }>();
 
-const isDark = useDark({
-	attribute: "data-theme",
-});
+const { isDark } = useDarkMode();
 
 const getPythonCompletions = async () => {
 	return codeCompletions.data || {};

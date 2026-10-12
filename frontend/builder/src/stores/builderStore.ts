@@ -5,7 +5,7 @@ import { builderSettings } from "@builder/data/builderSettings";
 import { BuilderSettings } from "@builder/types/doctypes";
 import { editorDemo } from "@builder/utils/editorDemo";
 import RealTimeHandler from "@builder/utils/realtimeHandler";
-import { breakpointsTailwind, useBreakpoints, useDark, useStorage } from "@vueuse/core";
+import { breakpointsTailwind, useBreakpoints, useStorage } from "@vueuse/core";
 import { createResource, toast } from "frappe-ui";
 import { useTelemetry } from "@framework/ui/telemetry";
 import { defineStore } from "pinia";
@@ -16,8 +16,11 @@ const belowLgBreakpoint = useBreakpoints(breakpointsTailwind).smaller("lg");
 
 declare global {
 	interface Window {
-		is_fc_site?: boolean | string;
-		is_read_only_mode?: boolean | string;
+		is_fc_site?: boolean;
+		is_read_only_mode?: boolean;
+		is_developer_mode?: boolean;
+		builder_version: string;
+		builder_path?: string;
 	}
 }
 
@@ -54,13 +57,10 @@ const useBuilderStore = defineStore("builderStore", {
 		// counts Bob's server edits, so an autosave queued before one stands down
 		aiEditEpoch: 0,
 		// site-level maintenance/migration state, not the editor's edit lock
-		isSiteInReadOnlyMode: window.is_read_only_mode === "True",
+		isSiteInReadOnlyMode: Boolean(window.is_read_only_mode),
 		viewers: <UserInfo[]>[],
-		isFCSite: window.is_fc_site === "True" ? true : false,
+		isFCSite: Boolean(window.is_fc_site),
 		activeFolder: useStorage("activeFolder", ""),
-		isDark: useDark({
-			attribute: "data-theme",
-		}),
 		canvasDarkMode: useStorage("canvasDarkMode", false),
 		showSettingsDialog: false,
 		settingsActiveTab: useStorage("settingsActiveTab", "page_general"),

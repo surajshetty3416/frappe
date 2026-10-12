@@ -36,7 +36,7 @@ const pageStore = usePageStore();
 const route = useRoute();
 const router = useRouter();
 
-const isBuilderRoute = computed(() => route.name === "builder");
+const isBuilderRoute = computed(() => route.name === "builder-editor");
 
 useKeyboardShortcut({
 	combo: "Mod+K",
@@ -171,8 +171,8 @@ function trackRecentPage(pageName: string) {
 
 function navigateToPage(pageName: string) {
 	trackRecentPage(pageName);
-	const isOnBuilder = router.currentRoute.value.name === "builder";
-	router.push({ name: "builder", params: { pageId: pageName } });
+	const isOnBuilder = router.currentRoute.value.name === "builder-editor";
+	router.push({ name: "builder-editor", params: { pageId: pageName } });
 	if (isOnBuilder) {
 		pageStore.setPage(pageName);
 	}

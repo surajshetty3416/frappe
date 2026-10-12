@@ -1,116 +1,33 @@
-import { createResource } from "frappe-ui";
+import { sessionUser as currentUser } from "@shell/session";
+import { call } from "frappe-ui";
 import { ref } from "vue";
-import { NavigationGuardNext, RouteLocationNormalized, createRouter, createWebHistory } from "vue-router";
+import type { Router } from "vue-router";
 import { __ } from "./translation";
-import { editorDemo } from "./utils/editorDemo";
 
-let hasPermission: null | boolean = null;
-let sessionUser = ref("Guest");
+const sessionUser = ref(currentUser());
 
-function validatePermission(next: NavigationGuardNext) {
-	if (hasPermission) {
-		next();
-	} else {
-		alert(__("You do not have permission to access this page"));
-		if (isUserLoggedIn()) {
-			window.location.href = "/app";
-		} else {
-			window.location.href = "/login?redirect-to=/builder";
-		}
-	}
+// The shell owns the app's one router. The layer's setup hands it over before any module
+// that imports it runs, and `export { router as default }` keeps the import a live binding.
+let router: Router;
+
+export function setAppRouter(appRouter: Router) {
+	router = appRouter;
 }
 
-const validateVisit = async function (
-	to: RouteLocationNormalized,
-	from: RouteLocationNormalized,
-	next: NavigationGuardNext,
-) {
-	if (isUserLoggedIn()) {
-		sessionUser.value = getSessionUser();
-		if (hasPermission === null) {
-			try {
-				const response = await createResource({
-					url: "frappe.client.has_permission",
-				}).submit({
-					doctype: "Builder Page",
-					docname: "",
-					perm_type: "write",
-				});
-				hasPermission = response.has_permission;
-				return validatePermission(next);
-			} catch (e) {
-				hasPermission = false;
-				return validatePermission(next);
-			}
-		}
-	}
-	return validatePermission(next);
-};
+let canWritePages: Promise<boolean> | null = null;
 
-function isUserLoggedIn() {
-	return document.cookie.includes("user_id") && !document.cookie.includes("user_id=Guest");
+export async function validateVisit() {
+	canWritePages ??= call<{ has_permission: boolean }>("frappe.client.has_permission", {
+		doctype: "Builder Page",
+		docname: "",
+		perm_type: "write",
+	})
+		.then((response) => Boolean(response.has_permission))
+		.catch(() => false);
+	if (await canWritePages) return;
+	alert(__("You do not have permission to access this page"));
+	window.location.href = "/desk";
+	return false;
 }
 
-function getSessionUser() {
-	return decodeURIComponent(document.cookie.split("user_id=")[1].split(";")[0]) || "Guest";
-}
-
-const routes = [
-	{
-		path: "/home",
-		beforeEnter: validateVisit,
-		redirect: "/",
-	},
-	{
-		path: "/page",
-		beforeEnter: validateVisit,
-		redirect: "/home",
-	},
-	{
-		path: "/",
-		name: "home",
-		beforeEnter: validateVisit,
-		component: () => import("@builder/pages/PageBuilderDashboard.vue"),
-	},
-	{
-		path: "/page/:pageId",
-		name: "builder",
-		beforeEnter: validateVisit,
-		component: () => import("@builder/pages/PageBuilder.vue"),
-	},
-	{
-		path: "/page/:pageId/preview",
-		name: "preview",
-		beforeEnter: validateVisit,
-		component: () => import("@builder/pages/PagePreview.vue"),
-	},
-	{
-		path: "/persona-survey",
-		name: "persona-survey",
-		beforeEnter: validateVisit,
-		component: () => import("@builder/pages/PagePersonaSurvey.vue"),
-	},
-];
-
-declare global {
-	interface Window {
-		builder_path: string;
-	}
-}
-
-let builder_path = window.builder_path || "/builder";
-if (builder_path.startsWith("{{")) {
-	builder_path = "/builder";
-}
-const router = createRouter({
-	history: createWebHistory(builder_path),
-	// named "builder" so the editor's own links resolve, but only to the demo's page
-	routes: editorDemo
-		? [{ path: "/demo/:pageId", name: "builder", component: () => import("@builder/pages/PageBuilder.vue") }]
-		: routes,
-});
-
-if (editorDemo) router.beforeEach((to) => to.params.pageId === editorDemo?.page.name);
-
-export { sessionUser };
-export default router;
+export { router as default, sessionUser };

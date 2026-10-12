@@ -89,11 +89,9 @@ after_app_install = "frappe.builder.install.after_app_install"
 # "Event": "frappe.desk.doctype.event.event.has_permission",
 # }
 
+# no allowed_roles: a layer's hooks merge into the frappe app's, whose invitations skip the
+# role check, so any inviter role listed here could invite users with any role
 user_invitation = {
-	"allowed_roles": {
-		"System Manager": ["Website Manager"],
-		"Website Manager": ["Website Manager"],
-	},
 	"after_accept": ["frappe.builder.user_invitation.after_accept"],
 }
 

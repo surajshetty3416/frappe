@@ -22,17 +22,15 @@ import usePageStore from "@builder/stores/pageStore";
 import { BuilderPage } from "@builder/types/doctypes";
 import { triggerCopyEvent } from "@builder/utils/helpers";
 import { deletePage } from "@builder/utils/pageActions";
-import { useDark, useToggle } from "@vueuse/core";
+import { useDarkMode } from "@builder/composables/useDarkMode";
 import { Dropdown } from "frappe-ui";
+import { computed } from "vue";
 import { useRouter } from "vue-router";
 
 const { showTemplatesDialog } = useDashboardState();
 const pageStore = usePageStore();
-const isDark = useDark({
-	attribute: "data-theme",
-});
+const { isDark, toggleDark } = useDarkMode();
 const router = useRouter();
-const toggleDark = useToggle(isDark);
 const canvasStore = useCanvasStore();
 // a registry item has no parent to emit to, so write the store directly
 const builderStore = useBuilderStore();
@@ -44,14 +42,14 @@ const handleCopyPage = () => {
 	triggerCopyEvent();
 };
 
-const mainMenuOptions = [
+const mainMenuOptions = computed(() => [
 	{
 		group: "Builder",
 		hideLabel: true,
 		options: [
 			{
 				label: __("Back to Dashboard"),
-				onClick: () => router.push({ name: "home" }),
+				onClick: () => router.push({ name: "builder-home" }),
 				icon: "lucide-arrow-left",
 			},
 		],
@@ -93,7 +91,7 @@ const mainMenuOptions = [
 			{
 				label: __("Toggle Theme"),
 				onClick: () => toggleDark(),
-				icon: isDark ? "lucide-sun" : "lucide-moon",
+				icon: isDark.value ? "lucide-sun" : "lucide-moon",
 			},
 			{
 				label: __("Settings"),
@@ -115,5 +113,5 @@ const mainMenuOptions = [
 			},
 		],
 	},
-];
+]);
 </script>

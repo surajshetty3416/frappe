@@ -23,6 +23,7 @@ from werkzeug.wrappers import Response
 from frappe.builder import builder_analytics
 from frappe.builder.doctype.builder_page.builder_page import BuilderPageRenderer
 from frappe.builder.doctype.builder_snapshot import builder_snapshot
+from frappe.builder.user_invitation import INVITATION_APP, INVITATION_PATH
 from frappe.builder.utils import compact_json, has_page_read, has_page_write, normalize_renamed_doc
 
 
@@ -355,10 +356,10 @@ def check_app_permission():
 def get_pending_invitations() -> list[dict]:
 	from frappe.core.doctype.user_invitation.user_invitation import UserInvitation
 
-	UserInvitation.validate_role("builder")
+	UserInvitation.validate_role(INVITATION_APP)
 	invitations = frappe.get_all(
 		"User Invitation",
-		filters={"status": "Pending", "app_name": "builder"},
+		filters={"status": "Pending", "app_name": INVITATION_APP, "redirect_to_path": INVITATION_PATH},
 		fields=["name", "email", "creation", "invited_by"],
 		order_by="creation desc",
 	)
@@ -371,7 +372,7 @@ def get_pending_invitations() -> list[dict]:
 def get_builder_users() -> list[dict]:
 	from frappe.core.doctype.user_invitation.user_invitation import UserInvitation
 
-	UserInvitation.validate_role("builder")
+	UserInvitation.validate_role(INVITATION_APP)
 	role_rows = frappe.get_all(
 		"Has Role",
 		filters={"role": ["in", ["System Manager", "Website Manager"]], "parenttype": "User"},
@@ -403,7 +404,7 @@ def get_apps():
 			"name": "frappe",
 			"logo": "/assets/frappe/builder/images/desk.png",
 			"title": "Desk",
-			"route": "/app",
+			"route": "/desk",
 		}
 	]
 	app_list += filter(lambda app: app.get("name") != "builder", apps)

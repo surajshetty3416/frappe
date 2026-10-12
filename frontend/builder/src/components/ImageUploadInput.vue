@@ -137,7 +137,7 @@ import InputLabel from "@builder/components/Controls/InputLabel.vue";
 import useBuilderStore from "@builder/stores/builderStore";
 import { useAnchoredPopover } from "@builder/utils/useAnchoredPopover";
 import { FileUploader, Popover, TabButtons, type TabButtonValue } from "frappe-ui";
-import { computed, ref, watch } from "vue";
+import { computed, ref, watch, type ComponentPublicInstance } from "vue";
 
 const props = withDefaults(
 	defineProps<{
@@ -164,14 +164,15 @@ const props = withDefaults(
 
 const builderStore = useBuilderStore();
 const { isOpen, toggle, onAnchorClick, onUpdateOpen } = useAnchoredPopover();
-const fileUploaderRef = ref<{ inputRef: () => HTMLInputElement } | null>(null);
+const fileUploaderRef = ref<ComponentPublicInstance | null>(null);
 
 watch(
 	() => builderStore.openImageUpload,
 	(val) => {
 		if (val && props.labelPosition === "left") {
 			builderStore.openImageUpload = false;
-			fileUploaderRef.value?.inputRef()?.click();
+			// FileUploader exposes nothing, so reach its file input through the root element
+			fileUploaderRef.value?.$el.querySelector("input[type=file]")?.click();
 		}
 	},
 );

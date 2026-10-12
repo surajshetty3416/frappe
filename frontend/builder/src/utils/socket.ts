@@ -3,6 +3,7 @@ import { io, type Socket } from "socket.io-client";
 declare global {
 	interface Window {
 		site_name: string;
+		socketio_port?: number;
 	}
 }
 
@@ -11,9 +12,7 @@ declare global {
 // (RealTimeHandler) opens it here instead.
 export function createSocket(): Socket {
 	const host = window.location.hostname;
-	const port = window.location.port ? ":9000" : "";
+	const port = window.location.port ? `:${window.socketio_port || 9000}` : "";
 	const protocol = port ? "http" : "https";
-	// in dev the jinja boot data is not rendered, so the host doubles as the site
-	const siteName = import.meta.env.DEV ? host : window.site_name;
-	return io(`${protocol}://${host}${port}/${siteName}`, { withCredentials: true });
+	return io(`${protocol}://${host}${port}/${window.site_name}`, { withCredentials: true });
 }

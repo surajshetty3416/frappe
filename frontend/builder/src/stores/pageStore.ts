@@ -136,7 +136,7 @@ const usePageStore = defineStore("pageStore", {
 					if (!componentStore.fetchingComponent.size) {
 						this.settingPage = false;
 						// the detached preview raises this tab by this name
-						if (!editorDemo && router.currentRoute.value.name === "builder") window.name = `editor-${pageName}`;
+						if (!editorDemo && router.currentRoute.value.name === "builder-editor") window.name = `editor-${pageName}`;
 						clearInterval(interval);
 						// detect pinned component instances whose live component drifted
 						componentStore.refreshComponentUpdates();
@@ -207,7 +207,7 @@ const usePageStore = defineStore("pageStore", {
 					loading: __("Duplicating page"),
 					success: async (page: BuilderPage) => {
 						// load page and refresh
-						router.push({ name: "builder", params: { pageId: page.page_name } }).then(() => {
+						router.push({ name: "builder-editor", params: { pageId: page.page_name } }).then(() => {
 							router.go(0);
 						});
 						return __("Page duplicated");
@@ -456,7 +456,7 @@ const usePageStore = defineStore("pageStore", {
 
 		detachPreview(pageId: string) {
 			const previewURL = router.resolve({
-				name: "preview",
+				name: "builder-preview",
 				params: { pageId },
 			}).href;
 			// one name per page, so an editor does not take over another editor's detached tab
@@ -519,7 +519,7 @@ const usePageStore = defineStore("pageStore", {
 			if (tab) tab.focus();
 			// getDetachedPreview drops a closed tab, so this one shows another page
 			else if (this.detachedPreview) this.detachPreview(pageId);
-			else router.push({ name: "preview", params: { pageId } });
+			else router.push({ name: "builder-preview", params: { pageId } });
 		},
 
 		openPageInBrowser(page: BuilderPage) {

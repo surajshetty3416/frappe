@@ -6,7 +6,7 @@
 					<router-link
 						target="_blank"
 						:to="{
-							name: 'builder',
+							name: 'builder-editor',
 							params: {
 								pageId: page.name,
 							},

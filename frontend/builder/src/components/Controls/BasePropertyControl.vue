@@ -90,6 +90,7 @@
 
 <script lang="ts" setup>
 import { __ } from "@builder/translation";
+import DraggablePopup from "@builder/components/Controls/DraggablePopup.vue";
 import DynamicValueHandler from "@builder/components/Controls/DynamicValueHandler.vue";
 import Input from "@builder/components/Controls/Input.vue";
 import PropertyControlInput from "@builder/components/Controls/PropertyControlInput.vue";

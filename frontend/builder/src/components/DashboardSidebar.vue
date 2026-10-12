@@ -113,7 +113,7 @@ import useBuilderStore from "@builder/stores/builderStore";
 import { BuilderProjectFolder } from "@builder/types/doctypes";
 import { promptCreateFolder } from "@builder/utils/dialogs";
 import { confirm } from "@builder/utils/helpers";
-import { useDark, useToggle } from "@vueuse/core";
+import { useDarkMode } from "@builder/composables/useDarkMode";
 import {
 	createResource,
 	Dialog,
@@ -130,10 +130,7 @@ import { DialogDescription, DialogTitle } from "reka-ui";
 import { computed, defineAsyncComponent, h, ref } from "vue";
 
 const BuilderSettings = defineAsyncComponent(() => import("@builder/components/BuilderSettings.vue"));
-const isDark = useDark({
-	attribute: "data-theme",
-});
-const toggleDark = useToggle(isDark);
+const { isDark, toggleDark } = useDarkMode();
 const builderStore = useBuilderStore();
 const { showTemplatesDialog } = useDashboardState();
 const renamingFolder = ref("");
@@ -247,5 +244,5 @@ const deleteFolder = async (folderName: string) => {
 	setFolderActive("");
 };
 const showSettingsDialog = ref(false);
-const builderVersion = (window as any).builder_version;
+const builderVersion = window.builder_version;
 </script>

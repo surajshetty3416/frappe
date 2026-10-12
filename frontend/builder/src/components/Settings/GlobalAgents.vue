@@ -12,7 +12,7 @@
 				<template v-for="(part, i) in promptParts" :key="i">
 					<code
 						v-if="part.code"
-						class="rounded bg-surface-gray-3 px-1 py-0.5 font-mono text-p-xs"
+						class="rounded-4 bg-surface-gray-3 px-1 py-0.5 font-mono text-p-xs"
 						v-text="part.text" />
 					<template v-else>{{ part.text }}</template>
 				</template>

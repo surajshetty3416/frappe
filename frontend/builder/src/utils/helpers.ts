@@ -668,7 +668,7 @@ function getVideoBlock(videoSrc: string) {
 }
 
 function openInDesk(page: BuilderPage) {
-	window.open(`/app/builder-page/${page.page_name}`, "_blank");
+	window.open(`/desk/builder-page/${page.page_name}`, "_blank");
 }
 
 // quote the URL so that file names with spaces or special characters stay valid CSS

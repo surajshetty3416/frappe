@@ -182,12 +182,12 @@ onMounted(() => {
 const createBlankPage = (source: "gallery" | "template_group" = "gallery") => {
 	capture("builder_blank_page_selected", { source });
 	showTemplatesDialog.value = false;
-	router.push({ name: "builder", params: { pageId: "new" } });
+	router.push({ name: "builder-editor", params: { pageId: "new" } });
 };
 
 // from the editor a new page joins the open page's folder, from the dashboard the selected one
 const targetFolder = () =>
-	router.currentRoute.value.name === "builder"
+	router.currentRoute.value.name === "builder-editor"
 		? pageStore.activePage?.project_folder
 		: builderStore.activeFolder;
 
@@ -210,7 +210,7 @@ const useTemplate = (page: TemplatePageSummary) => {
 				source: page.live_url ? "hub" : "local",
 			});
 			showTemplatesDialog.value = false;
-			router.push({ name: "builder", params: { pageId: newPageName }, force: true });
+			router.push({ name: "builder-editor", params: { pageId: newPageName }, force: true });
 			pageStore.setPage(newPageName);
 		});
 	toast.promise(promise, {
@@ -242,7 +242,7 @@ const importAll = () => {
 			notifyPagesChanged();
 			builderStore.activeFolder = folder;
 			builderStore.leftPanelActiveTab = "Layers";
-			router.push({ name: "builder", params: { pageId: pages[0] }, force: true });
+			router.push({ name: "builder-editor", params: { pageId: pages[0] }, force: true });
 			pageStore.setPage(pages[0]);
 		});
 	toast.promise(promise, {
@@ -257,6 +257,6 @@ const importAll = () => {
 
 const editTemplate = (page: TemplatePageSummary) => {
 	showTemplatesDialog.value = false;
-	router.push({ name: "builder", params: { pageId: page.name } });
+	router.push({ name: "builder-editor", params: { pageId: page.name } });
 };
 </script>

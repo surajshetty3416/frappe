@@ -1,4 +1,6 @@
-@import "frappe-ui/style.css";
+@config "../tailwind.config.js";
+@tailwind components;
+@tailwind utilities;
 
 /* The same files published pages load, rather than the build's hashed copies of them,
    so the editor, its canvas and any page the visitor came from share one download. */
@@ -31,12 +33,10 @@
 	src: url("/assets/frappe/builder/fonts/Inter/Inter-Italic.var.woff2?v=3.19") format("woff2");
 }
 
-@layer base {
-	ul,
-	ol {
-		list-style: revert;
-		padding: revert;
-	}
+ul,
+ol {
+	list-style: revert;
+	padding: revert;
 }
 
 /* to match style of tip tap editor for new lines */
@@ -75,18 +75,17 @@ p:empty::before {
 	}
 }
 
-*:not(.canvas, .canvas *) {
-	&::-webkit-scrollbar {
-		@apply w-2 h-2 bg-surface-gray-1;
-	}
+/* flat, not nested: every rule here gets the layer prefix, nested `&` rules included */
+*:not(.canvas, .canvas *)::-webkit-scrollbar {
+	@apply w-2 h-2 bg-surface-gray-1;
+}
 
-	&::-webkit-scrollbar-corner {
-		@apply bg-surface-gray-1;
-	}
+*:not(.canvas, .canvas *)::-webkit-scrollbar-corner {
+	@apply bg-surface-gray-1;
+}
 
-	&::-webkit-scrollbar-thumb {
-		@apply rounded-full bg-surface-gray-3;
-	}
+*:not(.canvas, .canvas *)::-webkit-scrollbar-thumb {
+	@apply rounded-full bg-surface-gray-3;
 }
 
 [data-theme='dark'] img {
@@ -119,4 +118,9 @@ p:empty::before {
    (ink-gray-5); restore the old emphasis since the label acts as the row title */
 div:has(> [role='switch']) label[data-slot='label'] {
 	@apply font-medium text-ink-gray-8;
+}
+
+/* the standalone editor set this on its <body> */
+body {
+	@apply selection:bg-gray-500/30;
 }

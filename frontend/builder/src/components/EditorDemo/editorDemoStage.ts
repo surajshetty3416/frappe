@@ -4,6 +4,7 @@ import useCanvasStore from "@builder/stores/canvasStore";
 import usePageStore from "@builder/stores/pageStore";
 import { editorDemo, postToLauncher } from "@builder/utils/editorDemo";
 import { until } from "@vueuse/core";
+import { useColorScheme } from "frappe-ui";
 
 type Rect = { left: number; top: number; width: number; height: number };
 type CanvasView = { scale: number; translateX: number; translateY: number };
@@ -46,7 +47,8 @@ class EditorDemoStage {
 		await this.start();
 		// match the theme the page is showing, so the hand-off does not flip it
 		const builderStore = useBuilderStore();
-		builderStore.isDark = builderStore.canvasDarkMode = dark;
+		useColorScheme().setColorScheme(dark ? "dark" : "light");
+		builderStore.canvasDarkMode = dark;
 		this.canvas.clearSelection();
 		this.setOverlaysHidden(true);
 		this.slidePanels("out", 0);

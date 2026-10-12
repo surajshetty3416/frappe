@@ -12,6 +12,6 @@ import forms from "@tailwindcss/forms";
 // dump was ~90% of the file. Core plugins stay enabled so the `--tw-ring-*`/`--tw-shadow`
 // vars that @tailwindcss/forms' focus styles depend on are still emitted.
 export default {
-	content: ["./src/reset.css"],
+	content: { relative: true, files: ["./src/reset.css"] },
 	plugins: [forms],
 };
