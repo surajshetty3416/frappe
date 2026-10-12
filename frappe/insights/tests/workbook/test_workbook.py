@@ -174,7 +174,7 @@ class TestWorkbook(InsightsIntegrationTestCase):
     # @feature upgrade.duplicate-folder-titles
     def test_folders_that_shared_a_title_before_the_rule_are_numbered_apart(self):
         """Before `validate_title`, two clicks on New folder created two `Untitled` folders."""
-        from insights.patches.number_duplicate_folder_titles import execute
+        from frappe.insights.patches.number_duplicate_folder_titles import execute
 
         bundle = create_workbook_bundle(USER_1, "Workbook Flow Test Duplicate Folder Titles")
         workbook = bundle["workbook"].name

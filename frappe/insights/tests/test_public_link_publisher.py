@@ -16,7 +16,7 @@ from unittest.mock import patch
 
 import frappe
 
-from insights.patches.run_public_charts_as_owner import execute as run_public_charts_as_owner
+from frappe.insights.patches.run_public_charts_as_owner import execute as run_public_charts_as_owner
 from frappe.insights.tests.base import InsightsIntegrationTestCase
 from frappe.insights.tests.factories import (
     DT,

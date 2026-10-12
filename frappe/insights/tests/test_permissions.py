@@ -699,7 +699,7 @@ class TestInsightsPermissions(InsightsIntegrationTestCase):
         Other shares are refused when written, and `bench migrate` fixes or
         removes old ones. Workbook shares are not member shares and keep every
         flag."""
-        from insights.patches.reshape_member_shares import execute as reshape_member_shares
+        from frappe.insights.patches.reshape_member_shares import execute as reshape_member_shares
 
         workbook = create_test_workbook(USER_1)
         query = create_test_query(USER_1, workbook.name)

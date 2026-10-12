@@ -945,7 +945,7 @@ class AVariableSecretGoesWithItsVariable(InsightsIntegrationTestCase):
     def test_a_migrate_clears_the_secrets_a_deleted_variable_left(self):
         from frappe.utils.password import set_encrypted_password
 
-        from insights.patches.delete_orphaned_variable_secrets import execute
+        from frappe.insights.patches.delete_orphaned_variable_secrets import execute
 
         kept = self.script_query("Script Secret Survives").variables[0]
         set_encrypted_password("Insights Query Variable", "deleted-variable", "left", "variable_value")

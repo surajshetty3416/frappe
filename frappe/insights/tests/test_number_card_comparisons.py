@@ -11,7 +11,7 @@ import frappe
 from frappe.insights.doctype.insights_chart_v3.chart_query import (
     normalize_number_shapes as normalize,
 )
-from insights.patches.normalize_number_card_comparisons import execute as run_patch
+from frappe.insights.patches.normalize_number_card_comparisons import execute as run_patch
 from frappe.insights.tests.base import InsightsIntegrationTestCase
 from frappe.insights.tests.factories import DT, create_test_workbook
 

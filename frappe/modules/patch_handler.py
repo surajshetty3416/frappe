@@ -121,14 +121,18 @@ def get_all_patches(patch_type: PatchType | None = None) -> list[str]:
 
 
 def get_patches_from_app(app: str, patch_type: PatchType | None = None) -> list[str]:
-	"""Get patches from an app's patches.txt
+	"""Get patches from an app's patches.txt, then from each of its layers' patches.txt"""
+	layers = frappe.get_hooks("layers", app_name=app)
+	patches_files = [frappe.get_app_path(app, "patches.txt")]
+	patches_files += [frappe.get_app_path(app, layer, "patches.txt") for layer in layers]
+	return [patch for path in patches_files for patch in get_patches_from_file(path, patch_type)]
 
-	patches.txt can be:
+
+def get_patches_from_file(patches_file: str, patch_type: PatchType | None = None) -> list[str]:
+	"""patches.txt can be:
 	        1. ini like file with section for different patch_type
 	        2. plain text file with each line representing a patch.
 	"""
-	patches_file = frappe.get_app_path(app, "patches.txt")
-
 	try:
 		return parse_as_configfile(patches_file, patch_type)
 	except configparser.MissingSectionHeaderError:

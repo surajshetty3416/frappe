@@ -902,7 +902,7 @@ class TestOrgShareMigration(InsightsIntegrationTestCase):
         return chart, dashboard
 
     def migrate(self):
-        from insights.patches.set_visibility_from_org_shares import execute
+        from frappe.insights.patches.set_visibility_from_org_shares import execute
 
         execute()
 

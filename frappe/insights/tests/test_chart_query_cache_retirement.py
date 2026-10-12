@@ -10,8 +10,8 @@ from unittest.mock import patch
 
 import frappe
 
-from insights.patches.retire_chart_query_cache import ALERT, CHART, FIELD, QUERY, REFERENCE
-from insights.patches.retire_chart_query_cache import execute as retire
+from frappe.insights.patches.retire_chart_query_cache import ALERT, CHART, FIELD, QUERY, REFERENCE
+from frappe.insights.patches.retire_chart_query_cache import execute as retire
 from frappe.insights.tests.base import InsightsIntegrationTestCase
 from frappe.insights.tests.factories import DT, create_test_query, create_test_workbook
 

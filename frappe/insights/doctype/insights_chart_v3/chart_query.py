@@ -1209,7 +1209,7 @@ def normalize_chart_config(config: dict, chart_type: str | None = None) -> dict:
     The rewrite of every older config shape, as one pass over one config. The
     builder used to do this on load, which put the rewrite and the author's own
     edit in the same save. `validate` does it on the way in, and
-    `insights.patches.normalize_chart_configs` does it once over the stored
+    `frappe.insights.patches.normalize_chart_configs` does it once over the stored
     rows.
 
     The order is the old load path's. An axis un-flattens before anything names

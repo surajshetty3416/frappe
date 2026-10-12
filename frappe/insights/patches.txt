@@ -1,0 +1,38 @@
+[pre_model_sync]
+frappe.insights.patches.check_legacy_v2_data_before_upgrade #2
+frappe.insights.patches.name_workbooks_as_strings
+frappe.insights.patches.normalize_workbook #6
+
+[post_model_sync]
+frappe.insights.doctype.insights_data_source_v3.patches.copy_data_sources #v4
+frappe.insights.doctype.insights_table_v3.patches.force_sync_tables #5
+frappe.insights.patches.enable_data_store
+frappe.insights.doctype.insights_data_source_v3.patches.set_type
+frappe.insights.patches.migrate_warehouse_tables_to_schemas
+frappe.insights.patches.fix_table_link_names
+frappe.insights.patches.backfill_query_references
+execute:frappe.db.set_single_value("Insights Settings", "allow_download", 1)
+frappe.insights.patches.strip_default_schema_from_table_names
+frappe.insights.patches.hash_invitation_keys
+frappe.insights.patches.backfill_permission_user
+frappe.insights.patches.backfill_table_columns
+frappe.insights.patches.set_visibility_from_is_public
+frappe.insights.patches.run_public_charts_as_owner
+frappe.insights.patches.repair_sankey_value_aggregation
+frappe.insights.patches.retire_chart_query_cache
+# re-run: the first pass left a chart-level direction flag and short option lists
+frappe.insights.patches.normalize_number_card_comparisons #2
+# after the comparisons are normalized: a reading's comparison decides how tall its cell is
+frappe.insights.patches.resize_dashboard_cells
+frappe.insights.patches.split_number_cells
+frappe.insights.patches.close_dashboard_layout_gaps
+# after the number card patches: this one mints a reading's id, which those patches read
+frappe.insights.patches.normalize_chart_configs
+frappe.insights.patches.set_visibility_from_org_shares
+frappe.insights.patches.retire_site_apply_user_permissions
+frappe.insights.patches.retire_content_permission_user
+frappe.insights.patches.copy_cross_workbook_query_sources
+frappe.insights.patches.number_duplicate_folder_titles
+frappe.insights.patches.reshape_member_shares
+frappe.insights.patches.delete_orphaned_variable_secrets
+frappe.insights.patches.set_max_export_rows

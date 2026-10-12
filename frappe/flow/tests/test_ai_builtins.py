@@ -8,7 +8,7 @@ import frappe
 from frappe.tests import IntegrationTestCase
 
 from frappe.flow import ToolContext
-from flow.patches.rename_read_tools import execute as rename_read_tools
+from frappe.flow.patches.rename_read_tools import execute as rename_read_tools
 from frappe.flow.tools.builtins import (
 	BUILTIN_TOOLS,
 	create,

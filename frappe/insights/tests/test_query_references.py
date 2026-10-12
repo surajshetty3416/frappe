@@ -652,7 +652,7 @@ class TestCrossWorkbookSourcesAreCopied(InsightsIntegrationTestCase):
 
     # @feature query.source-query
     def test_a_workbook_gets_its_own_copy_of_a_chain_it_sources_from_another(self):
-        from insights.patches.copy_cross_workbook_query_sources import execute
+        from frappe.insights.patches.copy_cross_workbook_query_sources import execute
 
         far = self.make_workbook("Copy Far Workbook")
         base = create_source_query(OWNER, far, "Copy Base").name
@@ -693,7 +693,7 @@ class TestCrossWorkbookSourcesAreCopied(InsightsIntegrationTestCase):
         """`route_filters` follows a link only to a query the card reads. After
         the patch the card reads the copy, so the link must point at the copy."""
         from frappe.insights.doctype.insights_dashboard_v3.insights_dashboard_v3 import chart_reads
-        from insights.patches.copy_cross_workbook_query_sources import execute
+        from frappe.insights.patches.copy_cross_workbook_query_sources import execute
 
         far = self.make_workbook("Copy Link Far Workbook")
         source = create_source_query(OWNER, far, "Copy Link Source").name
@@ -727,7 +727,7 @@ class TestCrossWorkbookSourcesAreCopied(InsightsIntegrationTestCase):
         from unittest.mock import patch
 
         from frappe.insights.doctype.insights_dashboard_v3.insights_dashboard_v3 import chart_reads
-        from insights.patches import copy_cross_workbook_query_sources as module
+        from frappe.insights.patches import copy_cross_workbook_query_sources as module
 
         third = self.make_workbook("Copy Hop Third Workbook")
         far_source = create_source_query(OWNER, third, "Copy Hop Source").name
@@ -775,7 +775,7 @@ class TestCrossWorkbookSourcesAreCopied(InsightsIntegrationTestCase):
         import contextlib
         import io
 
-        from insights.patches.copy_cross_workbook_query_sources import execute
+        from frappe.insights.patches.copy_cross_workbook_query_sources import execute
 
         far = self.make_workbook("Copy Secret Far Workbook")
         source = frappe.get_doc(DT.QUERY, create_source_query(OWNER, far, "Copy Secret Source").name)

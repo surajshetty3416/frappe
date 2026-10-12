@@ -1,0 +1,12 @@
+[pre_model_sync]
+# Patches added in this section will be executed before doctypes are migrated
+# Read docs to understand patches: https://docs.frappe.io/framework/user/en/database-migrations
+frappe.flow.patches.rename_ai_to_flow
+
+[post_model_sync]
+# Patches added in this section will be executed after doctypes are migrated
+frappe.flow.patches.remove_frontend_tooling
+frappe.flow.patches.remove_agentless_sessions
+frappe.flow.patches.grant_flow_role
+frappe.flow.patches.drop_memory_keywords
+frappe.flow.patches.rename_read_tools
