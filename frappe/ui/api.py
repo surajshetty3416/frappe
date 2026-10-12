@@ -10,7 +10,7 @@ from frappe.model import child_table_fields, display_fieldtypes, no_value_fields
 from frappe.utils import sbool
 
 from frappe.ui.constants import STANDARD_COMPONENT_NAMES
-from frappe.ui.utils import has_page_write_perm
+from frappe.ui.utils import get_studio_apps, has_page_write_perm
 
 
 @frappe.whitelist()
@@ -113,8 +113,6 @@ def get_custom_vue_components(frappe_app: str) -> list[dict]:
 	seen_names = set()
 
 	studio_folder = frappe.get_app_source_path(frappe_app, "studio")
-	if not os.path.exists(studio_folder):
-		return []
 
 	def has_reserved_name(name: str) -> bool:
 		if name in STANDARD_COMPONENT_NAMES:
@@ -136,11 +134,8 @@ def get_custom_vue_components(frappe_app: str) -> list[dict]:
 			return True
 		return False
 
-	for studio_app in os.listdir(studio_folder):
+	for studio_app in get_studio_apps(frappe_app):
 		studio_app_dir = os.path.join(studio_folder, studio_app)
-		if not os.path.isdir(studio_app_dir):
-			continue
-
 		for dirpath, _dirnames, filenames in os.walk(studio_app_dir):
 			for filename in sorted(filenames):
 				if not filename.endswith(".vue"):
@@ -175,10 +170,7 @@ def get_studio_page_scripts(frappe_app: str) -> list[dict]:
 	scripts = []
 
 	studio_folder = frappe.get_app_source_path(frappe_app, "studio")
-	if not os.path.exists(studio_folder):
-		return []
-
-	for studio_app in sorted(os.listdir(studio_folder)):
+	for studio_app in get_studio_apps(frappe_app):
 		page_folder = os.path.join(studio_folder, studio_app, "studio_page")
 		if not os.path.isdir(page_folder):
 			continue

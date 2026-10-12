@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- Built with Frappe Studio -->
-<html lang="en" class="h-full" data-layer="studio">
+<html lang="en" class="h-full" data-layer="ui">
 	<head>
 		<meta charset="UTF-8" />
 		<link rel="icon" href="{{ favicon or '/assets/frappe/studio/studio-favicon.png' }}" />
@@ -33,10 +33,10 @@
 			window.is_developer_mode = {{ is_developer_mode|tojson }};
 		</script>
 		{% if is_developer_mode %}
-			<!-- the frontend's Vite dev server, for HMR -->
+			<!-- the Studio Vite dev server, for HMR -->
 			<!-- protocol-relative so the browser loads over the page's own scheme (avoids mixed-content over HTTPS) -->
 			<script type="module" src="//{{ vite_dev_server_host }}/@vite/client"></script>
-			<script type="module" src="//{{ vite_dev_server_host }}/studio/src/renderer.ts"></script>
+			<script type="module" src="//{{ vite_dev_server_host }}/ui/src/renderer.ts"></script>
 		{% elif script %}
 			<script type="module" src="{{ script }}" crossorigin></script>
 		{% endif %}

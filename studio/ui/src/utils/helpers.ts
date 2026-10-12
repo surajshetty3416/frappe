@@ -9,7 +9,7 @@ import type { StudioPage } from "@ui/types/Studio/StudioPage"
 import DOMPurify from "dompurify"
 
 function isEditor() {
-	return window.location.pathname.startsWith("/studio/")
+	return window.location.pathname.startsWith("/studio/ui/")
 }
 
 function deepCloneObject(obj: any, skipKeys: string[] | null = null): any {

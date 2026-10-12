@@ -1,3 +1,4 @@
+import os
 import re
 from functools import wraps
 
@@ -52,3 +53,20 @@ def has_page_write_perm(message: str | None = None):
 		return wrapper
 
 	return decorator
+
+
+def get_studio_apps(frappe_app: str) -> list[str]:
+	"""Folders of the studio apps exported to `frappe_app`, under its studio/ folder. Frappe's own
+	studio/ folder is the Studio SPA, so there only the folders studio_apps.txt lists are apps."""
+	studio_folder = frappe.get_app_source_path(frappe_app, "studio")
+	if not os.path.isdir(studio_folder):
+		return []
+	if frappe_app == "frappe":
+		names = frappe.get_file_items(studio_apps_txt_path())
+	else:
+		names = sorted(os.listdir(studio_folder))
+	return [name for name in names if os.path.isdir(os.path.join(studio_folder, name))]
+
+
+def studio_apps_txt_path() -> str:
+	return frappe.get_app_path("frappe", "ui", "studio_apps.txt")

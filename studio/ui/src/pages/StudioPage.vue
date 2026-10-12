@@ -22,10 +22,7 @@
 					// overlay proxies render out of flow (float), so they don't give the canvas any height
 					minHeight: canvasStore.primaryOverlayId ? '900px' : null,
 				}"
-				:style="{
-					left: `${store.studioLayout.showLeftPanel ? store.studioLayout.leftPanelWidth : 0}px`,
-					right: `${store.studioLayout.showRightPanel ? store.studioLayout.rightPanelWidth : 0}px`,
-				}"
+				:style="canvasInsets"
 				class="canvas-container bg-gray-2 absolute bottom-0 top-[var(--toolbar-height)] flex justify-center overflow-hidden p-10"
 			>
 				<template v-slot:header>
@@ -92,10 +89,7 @@
 				:canvas-styles="{
 					minHeight: '1000px',
 				}"
-				:style="{
-					left: `${store.studioLayout.showLeftPanel ? store.studioLayout.leftPanelWidth : 0}px`,
-					right: `${store.studioLayout.showRightPanel ? store.studioLayout.rightPanelWidth : 0}px`,
-				}"
+				:style="canvasInsets"
 			>
 				<template v-slot:afterCanvas="{ rootBlock }">
 					<OverlayList v-if="rootBlock" :rootBlock="rootBlock" />
@@ -212,6 +206,15 @@ const getDynamicValueCompletions = useDynamicValueCompletions()
 const dynamicValueCompletions = getDynamicValueCompletions(() => canvasStore.editableBlock?.getCompletions())
 const componentContextMenu = toRef(store, "componentContextMenu")
 useStudioEvents(saveFragmentMode)
+
+// beside Studio's chat, both side panels leave the canvas too little room to work in
+if (window.innerWidth < 1600) store.studioLayout.showLeftPanel = false
+
+// the left panel's icon rail stays when the panel is collapsed
+const canvasInsets = computed(() => ({
+	left: `${store.studioLayout.showLeftPanel ? store.studioLayout.leftPanelWidth : 48}px`,
+	right: `${store.studioLayout.showRightPanel ? store.studioLayout.rightPanelWidth : 0}px`,
+}))
 
 const pageCanvas = ref<InstanceType<typeof StudioCanvas> | null>(null)
 const fragmentCanvas = ref<InstanceType<typeof StudioCanvas> | null>(null)

@@ -21,11 +21,13 @@ import frappeui from "frappe-ui/vite"
 import sharedDependencyResolver from "../../vite/sharedDependencyResolver.js"
 import studioRootAlias from "../../vite/studioRootAlias.js"
 import { mergeStudioAppConfigs, resolveGlob } from "../../tailwind/studioAppConfigs.js"
+import { studioAppContent } from "../../vite/studioAppFolders.js"
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url))
 const SRC_DIR = path.resolve(__dirname, "..")
 const STUDIO_DIR = path.resolve(SRC_DIR, "..")
 const FRONTEND_DIR = path.resolve(STUDIO_DIR, "..")
+const APPS_DIR = path.resolve(FRONTEND_DIR, "../..")
 
 // @framework/ui components are spread across the root barrel and per-widget subpath
 // exports, so their imports must be grouped by source module. Components with a
@@ -327,7 +329,7 @@ async function buildWithVite(
 			frameworkUI(),
 		],
 		resolve: {
-			alias: [{ find: /^@studio\//, replacement: `${SRC_DIR}/` }],
+			alias: [{ find: /^@ui\//, replacement: `${SRC_DIR}/` }],
 			// keep vue/pinia/etc as single instances so studio modules (composables/stores)
 			// share the app's runtime — Pinia breaks with duplicate copies
 			dedupe: [
@@ -373,8 +375,9 @@ function getAppTailwindConfig(appFolder, appIconClasses, appTailwindContent) {
 	const editorConfig = loadTailwindConfig(path.resolve(STUDIO_DIR, "tailwind.config.js"))
 	// The editor scans every studio app; an app build scans only its own pages. Tailwind gets
 	// this config as an object, with no file to resolve the editor's relative globs from.
+	const otherApps = new Set(studioAppContent(APPS_DIR))
 	const files = editorConfig.content.files
-		.filter((entry) => !entry.includes("/*/studio/"))
+		.filter((entry) => !otherApps.has(entry))
 		.map((entry) => resolveGlob(entry, STUDIO_DIR))
 	const baseConfig = { ...editorConfig, content: { files: [...files, ...appTailwindContent] } }
 	const config = mergeStudioAppConfigs(baseConfig, appFolder ? [appFolder] : [])

@@ -15,11 +15,11 @@ from frappe.website.website_generator import WebsiteGenerator
 
 from frappe.ui.export import can_export, delete_file, delete_folder, write_document_file
 from frappe.ui.realtime import publish_doc_change
-from frappe.ui.utils import walk_blocks
+from frappe.ui.utils import studio_apps_txt_path, walk_blocks
 
 APP_RENDERER = "ui/templates/generators/app_renderer.html"
 STUDIO_RENDERER = "ui/templates/generators/studio_renderer.html"
-STUDIO_RENDERER_ENTRY = "studio/src/renderer.ts"
+STUDIO_RENDERER_ENTRY = "ui/src/renderer.ts"
 
 IMPORT_RE = re.compile(r"""(?:from|import)\s*\(?\s*['"]((?:@app/|\.\.?/)[^'"]+)['"]""")
 EXTENSIONS = (".ts", ".js", ".vue", ".json", ".css")
@@ -84,7 +84,7 @@ class StudioAppRenderer(DocumentPage):
 
 	def use_studio_renderer(self):
 		"""Render with every component registered: the Vite dev server's renderer in developer
-		mode, else the one in the frontend build."""
+		mode, else the one in the Studio build."""
 		self.context.template = STUDIO_RENDERER
 		if not self.context.is_developer_mode:
 			self.context.update(get_studio_renderer_assets())
@@ -584,10 +584,6 @@ def validate_app_name(name: str):
 		frappe.throw(_("App Name must be lowercase, with hyphens instead of spaces or punctuation."))
 
 
-def studio_apps_txt_path() -> str:
-	return frappe.get_app_path("frappe", "ui", "studio_apps.txt")
-
-
 def move_folder(source: str, destination: str):
 	if not os.path.exists(source) or os.path.exists(destination):
 		return
@@ -604,8 +600,8 @@ def custom_vue_component_names(blocks) -> set[str]:
 
 
 def get_studio_renderer_assets() -> dict:
-	"""The studio renderer's script and stylesheets in the frontend build's manifest"""
-	manifest_path = frappe.get_app_path("frappe", "public", "frontend", ".vite", "manifest.json")
+	"""The studio renderer's script and stylesheets in the Studio build's manifest"""
+	manifest_path = frappe.get_app_path("frappe", "public", "studio", ".vite", "manifest.json")
 	if not os.path.exists(manifest_path):
 		return {}
 	with open(manifest_path) as f:

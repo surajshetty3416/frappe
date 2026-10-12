@@ -7,8 +7,8 @@
 		"dev": "vite",
 		"build": "vite build",
 		"postbuild": "yarn build:islands",
-		"build:islands": "node insights/build-islands.mjs --production",
-		"build-studio-app": "node studio/src/scripts/build.js"
+		"build:islands": "node analytics/build-islands.mjs --production",
+		"build-studio-app": "node ui/src/scripts/build.js"
 	},
 	"dependencies": {
 		"@codemirror/autocomplete": "^6.20.3",

@@ -581,7 +581,7 @@ def redirect_studio_apps_txt(studio_apps_txt: str):
 	get_app_path = frappe.get_app_path
 
 	def app_path(app: str, *path: str) -> str:
-		if (app, *path) == ("frappe", "studio", "studio_apps.txt"):
+		if (app, *path) == ("frappe", "ui", "studio_apps.txt"):
 			return studio_apps_txt
 		return get_app_path(app, *path)
 

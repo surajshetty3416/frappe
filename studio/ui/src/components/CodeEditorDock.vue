@@ -4,6 +4,7 @@
 	<Teleport to="#studio-code-editor-outlet">
 		<div
 			v-if="visible"
+			ref="dock"
 			class="absolute bottom-0 top-[var(--toolbar-height)] z-20 flex flex-col border-r border-outline-gray-2 bg-surface-base"
 			:style="{ left: `${panelLeft}px`, width: `${editorWidth}px` }"
 		>
@@ -48,7 +49,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from "vue"
-import { useWindowSize } from "@vueuse/core"
+import { useElementSize } from "@vueuse/core"
 import Code from "@ui/components/Code.vue"
 import PanelResizer from "@ui/components/PanelResizer.vue"
 import useStudioStore from "@ui/stores/studioStore"
@@ -86,10 +87,13 @@ const RAIL_WIDTH = 48
 const panelLeft = computed(() => (props.railLeft ? RAIL_WIDTH : store.studioLayout.leftPanelWidth))
 const EDITOR_WIDTH = 520
 const editorWidth = ref(EDITOR_WIDTH)
-// Cap the editor so its right edge stops at the app's right edge (it may cover the right panel,
-// but never overflow the window). Recomputes as the window or left panel resizes.
-const { width: viewportWidth } = useWindowSize()
-const maxEditorWidth = computed(() => Math.max(360, viewportWidth.value - panelLeft.value))
+// Cap the editor at the right edge of the frame it is positioned in, which sits beside Studio's chat
+// rather than spanning the window. It may cover the right panel. Recomputes as either resizes.
+const dock = ref<HTMLElement>()
+const { width: frameWidth } = useElementSize(() =>
+	dock.value?.offsetParent instanceof HTMLElement ? dock.value.offsetParent : undefined,
+)
+const maxEditorWidth = computed(() => Math.max(360, (frameWidth.value || window.innerWidth) - panelLeft.value))
 const restoreWidth = ref(EDITOR_WIDTH)
 
 watch(

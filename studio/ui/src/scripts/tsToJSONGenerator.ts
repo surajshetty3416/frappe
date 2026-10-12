@@ -1,4 +1,4 @@
-// Run from frontend/studio (paths below are relative to it): npx tsx src/scripts/tsToJSONGenerator.ts <frappeui|frameworkui|studio>
+// Run from studio/ui (paths below are relative to it): npx tsx src/scripts/tsToJSONGenerator.ts <frappeui|frameworkui|studio>
 import tsToJSON from "../utils/tsToJSON"
 import fs from "fs"
 import path from "path"

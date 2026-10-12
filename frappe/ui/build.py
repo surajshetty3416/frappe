@@ -13,7 +13,7 @@ import frappe
 from frappe.bundler import get_node_env
 from frappe.utils import get_files_path
 
-from frappe.ui.utils import walk_blocks
+from frappe.ui.utils import get_studio_apps, walk_blocks
 
 ANSI_ESCAPE_REGEX = re.compile(r"\x1b\[[0-9;]*[a-zA-Z]")
 LUCIDE_ICON_REGEX = re.compile(r"\blucide-[a-z0-9]+(?:-[a-z0-9]+)*")
@@ -312,22 +312,7 @@ def build_standard_apps(apps: list[str] | None = None) -> None:
 	"""
 	failed_apps = []
 	for frappe_app in apps or frappe.get_all_apps():
-		studio_folder = get_studio_folder(frappe_app)
-		if not os.path.exists(studio_folder):
-			continue
-
-		if frappe_app == "frappe":
-			apps_list_file = frappe.get_app_path("frappe", "ui", "studio_apps.txt")
-			if os.path.exists(apps_list_file):
-				studio_apps = frappe.get_file_items(apps_list_file)
-			else:
-				continue
-		else:
-			studio_apps = [
-				d for d in os.listdir(studio_folder) if os.path.isdir(os.path.join(studio_folder, d))
-			]
-
-		for studio_app in studio_apps:
+		for studio_app in get_studio_apps(frappe_app):
 			click.echo(f"\nBuilding Studio App: {studio_app} (from {frappe_app})")
 
 			try:
@@ -376,8 +361,8 @@ def get_published_custom_apps() -> list[str]:
 
 
 def get_frontend_path() -> str:
-	"""The frontend that holds the studio renderer and the build-studio-app script"""
-	return frappe.get_app_source_path("frappe", "frontend")
+	"""The Studio SPA, which holds the app renderer and the build-studio-app script"""
+	return frappe.get_app_source_path("frappe", "studio")
 
 
 def get_studio_folder(frappe_app: str) -> str | None:

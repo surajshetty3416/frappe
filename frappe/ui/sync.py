@@ -5,6 +5,7 @@ from frappe.modules.import_file import import_file_by_path
 from frappe.modules.patch_handler import _patch_mode
 
 from frappe.ui.build import build_custom_apps
+from frappe.ui.utils import get_studio_apps
 
 
 def after_migrate():
@@ -34,22 +35,13 @@ def sync_studio_apps(app_name: str | None = None):
 
 	for app in apps:
 		studio_folder_path = frappe.get_app_source_path(app, "studio")
-		if not os.path.exists(studio_folder_path):
-			continue
-
-		if app == "frappe":
-			app_list = frappe.get_file_items(frappe.get_app_path("frappe", "ui", "studio_apps.txt"))
-		else:
-			app_list = os.listdir(studio_folder_path)
-
-		for studio_app in app_list:
+		for studio_app in get_studio_apps(app):
 			print(f"Syncing Studio App {studio_app} for {app}")
-			if os.path.isdir(os.path.join(studio_folder_path, studio_app)):
-				app_folder = os.path.join(studio_folder_path, studio_app)
-				import_file_by_path(get_app_file_path(app_folder))
+			app_folder = os.path.join(studio_folder_path, studio_app)
+			import_file_by_path(get_app_file_path(app_folder))
 
-				sync_pages(app_folder)
-				sync_components(app_folder)
+			sync_pages(app_folder)
+			sync_components(app_folder)
 
 
 def remove_orphaned_apps_and_pages():

@@ -1,7 +1,8 @@
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 import baseConfig from "./tailwind.config.js"
-import { findStudioAppFolders, mergeStudioAppConfigs } from "./tailwind/studioAppConfigs.js"
+import { mergeStudioAppConfigs } from "./tailwind/studioAppConfigs.js"
+import { findStudioAppFolders } from "./vite/studioAppFolders.js"
 
 const appsDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..")
 

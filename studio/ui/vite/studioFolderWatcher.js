@@ -1,6 +1,7 @@
 import path from "path"
 import fs from "fs"
 import { isCSSRequest } from "vite"
+import { isStudioApp } from "./studioAppFolders.js"
 
 /**
  * Vite plugin for editing exported apps' `<app>/studio/` folders from Studio.
@@ -28,8 +29,6 @@ function studioFolderWatcher(appsDir) {
 		const folders = []
 		if (fs.existsSync(appsDir)) {
 			for (const appName of fs.readdirSync(appsDir)) {
-				// Skip studio itself, already watched
-				if (appName === "studio") continue
 				const studioDir = path.join(appsDir, appName, "studio")
 				if (fs.existsSync(studioDir) && fs.statSync(studioDir).isDirectory()) {
 					folders.push(normalize(studioDir))
@@ -40,9 +39,19 @@ function studioFolderWatcher(appsDir) {
 		return folders
 	}
 
-	function isUnderStudioFolder(filePath) {
+	// Path relative to the frappe app's studio/ dir, i.e. "<studio_app>/<rest>" — what the
+	// client uses to identify a file (its open-file path prefixed with the studio app name).
+	function studioRelativePath(filePath) {
 		const file = normalize(filePath)
-		return getStudioFolders().some((folder) => file.startsWith(folder + "/"))
+		const folder = getStudioFolders().find((f) => file.startsWith(f + "/"))
+		if (!folder) return null
+		const relativePath = file.slice(folder.length + 1)
+		const frappeApp = path.basename(path.dirname(folder))
+		return isStudioApp(appsDir, frappeApp, relativePath.split("/")[0]) ? relativePath : null
+	}
+
+	function isUnderStudioFolder(filePath) {
+		return studioRelativePath(filePath) !== null
 	}
 
 	return {
@@ -57,6 +66,7 @@ function studioFolderWatcher(appsDir) {
 		// sibling JSON so the editor can match it to the active page. Stores keep their singleton
 		// state across this (they refresh code only via their own acceptHMRUpdate).
 		transform(code, id) {
+			if (!isUnderStudioFolder(moduleFile(id))) return
 			if (isRouterFile(id)) return { code: code + ROUTER_HMR_FOOTER, map: null }
 			const pageName = pageScriptName(id)
 			if (!pageName) return
@@ -94,14 +104,6 @@ function studioFolderWatcher(appsDir) {
 				server.ws.send({ type: "custom", event, data })
 			}
 
-			// Path relative to the frappe app's studio/ dir, i.e. "<studio_app>/<rest>" — what the
-			// client uses to identify a file (its open-file path prefixed with the studio app name).
-			function studioRelativePath(filePath) {
-				const file = normalize(filePath)
-				const folder = getStudioFolders().find((f) => file.startsWith(f + "/"))
-				return folder ? file.slice(folder.length + 1) : null
-			}
-
 			// A studio file was added/removed/renamed: refresh the file explorer tree, and the
 			// component panel too when it's a .vue.
 			function onStructureChange(filePath, action) {
@@ -131,8 +133,7 @@ function studioFolderWatcher(appsDir) {
 const PAGE_SCRIPT_RE = /\/studio\/[^/]+\/studio_page\/([^/]+)\/([^/]+)\.ts$/
 
 function pageScriptName(id) {
-	let file = normalize(id).split("?")[0]
-	if (file.startsWith("/@fs/")) file = file.slice("/@fs".length)
+	const file = moduleFile(id)
 	const match = file.match(PAGE_SCRIPT_RE)
 	if (!match || match[1] !== match[2]) return null
 	try {
@@ -162,6 +163,12 @@ if (import.meta.hot) {
 	})
 }
 `
+}
+
+// the file a module id points at: the dev server prefixes files outside its root with /@fs/
+function moduleFile(id) {
+	const file = normalize(id).split("?")[0]
+	return file.startsWith("/@fs/") ? file.slice("/@fs".length) : file
 }
 
 // chokidar/Vite report paths with forward slashes; match that so startsWith comparisons hold.

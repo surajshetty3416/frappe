@@ -7,7 +7,7 @@ export default defineConfig({
 	expose: { site: "test_site" },
 	env: { adminPassword: "admin" },
 	component: {
-		// Reuses the frontend's vite.config.js (provides the "@studio" alias, frappe-ui plugin & lucide icons)
+		// Reuses the Studio vite.config.js (provides the "@ui" alias, frappe-ui plugin & lucide icons)
 		devServer: {
 			framework: "vue",
 			bundler: "vite",

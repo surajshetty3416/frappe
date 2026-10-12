@@ -19,7 +19,7 @@ function resolveUnknownRoutesToNotFound(router: Router) {
 		resolve({ name: "StudioNotFound", params: { catchAll: "not-found" } }, currentLocation)
 
 	router.resolve = (to: RouteLocationRaw, currentLocation?: RouteLocationNormalizedLoaded) => {
-		if ((currentLocation ?? router.currentRoute.value).meta.layer !== "studio") {
+		if ((currentLocation ?? router.currentRoute.value).meta.layer !== "ui") {
 			return resolve(to, currentLocation)
 		}
 		try {

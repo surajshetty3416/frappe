@@ -1,5 +1,10 @@
+import path from "node:path"
+import { fileURLToPath } from "node:url"
 import frappeUIPreset, { content as frappeUIContent } from "frappe-ui/tailwind"
 import plugin from "tailwindcss/plugin"
+import { studioAppContent } from "./vite/studioAppFolders.js"
+
+const appsDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..")
 
 export default {
 	presets: [frappeUIPreset],
@@ -43,8 +48,7 @@ export default {
 			...frappeUIContent,
 			"../../ui/src/**/*.{vue,js,ts,jsx,tsx}",
 			// every bench app's exported studio apps
-			"../../../*/studio/**/*.{vue,js,ts,jsx,tsx,json}",
-			"!../../../*/studio/**/node_modules/**",
+			...studioAppContent(appsDir),
 		],
 	},
 	theme: {

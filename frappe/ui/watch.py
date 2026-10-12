@@ -16,6 +16,7 @@ from filelock import FileLock, Timeout
 from frappe.utils.synchronization import LOCKS_DIR
 
 from frappe.ui.sync_json import get_studio_folders, sync_file
+from frappe.ui.utils import get_studio_apps
 
 try:
 	from watchdog.events import FileSystemEventHandler
@@ -54,7 +55,7 @@ def start_watcher(site: str):
 		print("[watch-studio] watchdog not installed — run `bench setup requirements --dev studio`")
 		return None
 
-	folders = get_studio_folders()
+	folders = get_watched_folders()
 	if not folders:
 		print("[watch-studio] no studio folder found in any installed app")
 		return None
@@ -68,6 +69,14 @@ def start_watcher(site: str):
 
 	print(f"[watch-studio] watching {len(folders)} studio folder(s) for {site}")
 	return observer
+
+
+def get_watched_folders() -> list[str]:
+	"""Each app's studio/ folder. Frappe's holds the Studio SPA and its node_modules, so there
+	only the studio apps are watched."""
+	spa = os.path.abspath(frappe.get_app_source_path("frappe", "studio"))
+	folders = [folder for folder in get_studio_folders() if folder != spa]
+	return folders + [os.path.join(spa, app) for app in get_studio_apps("frappe")]
 
 
 class StudioSyncHandler(FileSystemEventHandler):

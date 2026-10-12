@@ -169,10 +169,10 @@ describe("settings dialog", () => {
 		cy.window().then((win) => (win.is_developer_mode = true))
 		cy.wrap(null).then(() => {
 			store.activeApp!.is_standard = 1
-			store.activeApp!.frappe_app = "studio"
+			store.activeApp!.frappe_app = "frappe"
 			store.openSettings("app")
 		})
-		cy.contains("code", "studio/studio/cypress_settings").should("be.visible")
+		cy.contains("code", "frappe/studio/cypress_settings").should("be.visible")
 		cy.contains("button", "Edit").click()
 		exportSwitch().should("have.attr", "aria-checked", "true").click()
 		cy.contains("[role=dialog]", "Export Settings").contains("button", "Update").click()

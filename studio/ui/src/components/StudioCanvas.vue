@@ -78,7 +78,7 @@
 		</div>
 
 		<div
-			class="text-sm-semibold fixed bottom-12 left-[50%] z-40 flex translate-x-[-50%] cursor-default items-center justify-center gap-2 rounded-6 bg-surface-base px-3 py-2 text-center text-ink-gray-5 shadow-md"
+			class="text-sm-semibold absolute bottom-12 left-[50%] z-40 flex translate-x-[-50%] cursor-default items-center justify-center gap-2 rounded-6 bg-surface-base px-3 py-2 text-center text-ink-gray-5 shadow-md"
 			v-show="!canvasProps.panning"
 		>
 			{{ Math.round(canvasProps.scale * 100) + "%" }}

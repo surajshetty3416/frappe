@@ -1,7 +1,7 @@
 import type { CanvasProps } from "@ui/types/StudioCanvas"
 import Block from "@ui/utils/block"
 
-import { nextTick, reactive, Ref } from "vue"
+import { nextTick, reactive, Ref, watch } from "vue"
 import { useCanvasHistory, type PauseId } from "@ui/utils/useCanvasHistory"
 import { useElementBounding } from "@vueuse/core"
 import { toast } from "frappe-ui"
@@ -47,7 +47,19 @@ export function useCanvasUtils(
 			canvasProps.translateY = diffY / scale;
 		}
 		canvasProps.settingCanvas = false;
+		fittedView = currentView();
 	}
+
+	// Keep the canvas fitted while its container resizes (the window, a side panel, Studio's
+	// chat beside the editor), until the user pans or zooms away from the fitted view
+	let fittedView = ""
+	const currentView = () => `${canvasProps.scale}:${canvasProps.translateX}:${canvasProps.translateY}`
+	watch(
+		() => containerBound.width,
+		(width, oldWidth) => {
+			if (width && width !== oldWidth && fittedView === currentView()) setScaleAndTranslate()
+		},
+	)
 
 	function setupHistory() {
 		canvasHistory.value = useCanvasHistory(rootComponent, selectedBlockIds);

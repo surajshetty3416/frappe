@@ -5,13 +5,14 @@ import frappe
 from frappe.tests import IntegrationTestCase
 from frappe.utils import add_to_date, now_datetime
 
-from frappe.ui.doctype.studio_app.test_studio_app import make_studio_app, make_studio_page
+from frappe.ui.doctype.studio_app.test_studio_app import make_studio_app, make_studio_page, write_file
 from frappe.ui.doctype.studio_page.test_studio_page import (
 	PAGE_SCRIPT,
 	component_ref,
 	exports_in_tempdir,
 	make_component,
 )
+from frappe.ui.api import get_custom_vue_components
 from frappe.ui.sync import before_app_uninstall, remove_orphaned_apps_and_pages, sync_studio_apps
 
 
@@ -119,3 +120,14 @@ class TestSync(IntegrationTestCase):
 			remove_orphaned_apps_and_pages()
 			self.assertTrue(frappe.db.exists("Studio App", app.name))
 			self.assertTrue(frappe.db.exists("Studio Page", page.name))
+
+	def test_frappe_studio_folder_skips_the_studio_spa(self):
+		with exports_in_tempdir():
+			app = make_standard_app()
+			write_file(os.path.join(app.get_folder_path(), "Card.vue"), "<template />")
+			spa_folder = os.path.dirname(app.get_folder_path())
+			write_file(os.path.join(spa_folder, "ui", "src", "Shell.vue"), "<template />")
+
+			components = get_custom_vue_components("frappe")
+
+			self.assertEqual([component["component_name"] for component in components], ["Card"])
