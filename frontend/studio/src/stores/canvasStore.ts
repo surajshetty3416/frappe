@@ -8,7 +8,7 @@ import type StudioCanvas from "@studio/components/StudioCanvas.vue"
 import type { EditingMode, BlockOptions } from "@studio/types"
 import type { IndicatorGeometry } from "@studio/utils/dropGeometry"
 
-const useCanvasStore = defineStore("canvasStore", () => {
+const useCanvasStore = defineStore("studioCanvasStore", () => {
 	const activeCanvas = ref<InstanceType<typeof StudioCanvas> | null>(null)
 	const guides = reactive({
 		showX: false,

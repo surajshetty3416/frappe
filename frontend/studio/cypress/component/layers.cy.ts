@@ -4,13 +4,13 @@ import { setActivePinia } from "pinia"
 // @ts-ignore
 import { resourcesPlugin } from "frappe-ui"
 
-import ComponentLayers from "@/components/ComponentLayers.vue"
-import Block from "@/utils/block"
-import { COMPONENTS } from "@/data/components"
-import { getBlockInstance } from "@/utils/serializer"
-import getBlockTemplate from "@/utils/blockTemplate"
-import { registerGlobalComponents } from "@/globals"
-import type { BlockOptions } from "@/types"
+import ComponentLayers from "@studio/components/ComponentLayers.vue"
+import Block from "@studio/utils/block"
+import { COMPONENTS } from "@studio/data/components"
+import { getBlockInstance } from "@studio/utils/serializer"
+import getBlockTemplate from "@studio/utils/blockTemplate"
+import { registerGlobalComponents } from "@studio/globals"
+import type { BlockOptions } from "@studio/types"
 
 function container(componentId: string, children: BlockOptions[] = []) {
 	return { componentId, componentName: "container", originalElement: "div", children } as BlockOptions

@@ -38,7 +38,7 @@ type PageFields = Partial<Pick<StudioPage, "page_title" | "route" | "script" | "
 
 const PAGE_CHANGED_MESSAGE = "This page was changed outside the editor. Refresh to load the latest version."
 
-const useStudioStore = defineStore("store", () => {
+const useStudioStore = defineStore("studioStore", () => {
 	const studioLayout = useStorage(
 		"studioLayout",
 		{
@@ -126,7 +126,7 @@ const useStudioStore = defineStore("store", () => {
 			studioApps.delete.submit(appName, {
 				onSuccess() {
 					if (activeApp.value?.name === appName) {
-						router.replace({ name: "Home" })
+						router.replace({ name: "StudioHome" })
 					}
 					toast.success(`App "${appTitle}" deleted`)
 				},
@@ -661,7 +661,7 @@ const useStudioStore = defineStore("store", () => {
 					label: "View Error Log",
 					variant: "solid",
 					onClick: () => {
-						window.open(`/app/error-log/${buildError.error_log}`, "_blank")
+						window.open(`/desk/error-log/${buildError.error_log}`, "_blank")
 					},
 				},
 			],

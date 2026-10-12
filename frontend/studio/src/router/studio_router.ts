@@ -1,72 +1,32 @@
-import { createRouter, createWebHistory } from "vue-router"
-import session from "@studio/utils/session"
+import type { RouteLocationNormalizedLoaded, RouteLocationRaw, Router } from "vue-router"
 
-const routes = [
-	{
-		path: "/home",
-		name: "Home",
-		component: () => import("@studio/pages/Home.vue"),
-	},
-	{
-		path: "/",
-		redirect: "home",
-	},
-	{
-		path: "/app/:appID",
-		name: "StudioApp",
-		component: () => import("@studio/pages/StudioApp.vue"),
-	},
-	{
-		path: "/app/:appID/:pageID",
-		name: "StudioPage",
-		component: () => import("@studio/pages/StudioPage.vue"),
-	},
-	{
-		path: "/not-permitted",
-		name: "NotPermitted",
-		component: () => import("@studio/pages/NotPermitted.vue"),
-	},
-	{
-		path: "/:catchAll(.*)",
-		name: "NotFound",
-		component: () => import("@studio/pages/NotFound.vue"),
-	}
-]
+// Studio navigates on the shell's router. A live binding: set by setupStudioRouter when the
+// layer first opens, before any studio module navigates.
+let router: Router
+export { router as default }
 
-let router = createRouter({
-	history: createWebHistory("/studio"),
-	routes,
-})
-
-
-router.beforeEach(async (to, _, next) => {
-	!session.initialized && (await session.initialize())
-
-	if (!session.isLoggedIn) {
-		window.location.href = "/login?redirect-to=/studio"
-		return next(false)
-	}
-	if (!session.hasPermission && to.path !== "/not-permitted") {
-		return next("/not-permitted")
-	}
-	return next()
-})
-
-// Patch router to resolve unmatched routes to NotFound page
-// This ensures router-link renders correctly for the app being edited in studio
-const resolve = router.resolve.bind(router)
-// @ts-ignore
-router.resolve = (to, currentLocation) => {
-	let resolved
-	try {
-		resolved = resolve(to, currentLocation)
-		if (!resolved.matched?.length) {
-			resolved = resolve("/not-found", currentLocation)
-		}
-	} catch (error) {
-		resolved = resolve("/not-found", currentLocation)
-	}
-	return resolved
+export function setupStudioRouter(appRouter: Router) {
+	router = appRouter
+	resolveUnknownRoutesToNotFound(router)
 }
 
-export default router
+// The canvas renders the edited app's router-links (e.g. `{ name: "Home" }`), whose routes the
+// editor doesn't have. Resolve them to the not-found page instead of throwing, but only while
+// studio is open, so every other layer keeps the router's own errors.
+function resolveUnknownRoutesToNotFound(router: Router) {
+	const resolve = router.resolve.bind(router)
+	const notFound = (currentLocation?: RouteLocationNormalizedLoaded) =>
+		resolve({ name: "StudioNotFound", params: { catchAll: "not-found" } }, currentLocation)
+
+	router.resolve = (to: RouteLocationRaw, currentLocation?: RouteLocationNormalizedLoaded) => {
+		if ((currentLocation ?? router.currentRoute.value).meta.layer !== "studio") {
+			return resolve(to, currentLocation)
+		}
+		try {
+			const resolved = resolve(to, currentLocation)
+			return resolved.matched[0]?.meta.layer ? resolved : notFound(currentLocation)
+		} catch {
+			return notFound(currentLocation)
+		}
+	}
+}

@@ -31,5 +31,5 @@ Studio is a visual app builder for the Frappe Framework. It allows developers to
    - Use Pinia for global state if needed, though most component states can be managed locally.
 5. **Data Fetching**
    - Use `createResource`, `createDocumentResource`, `createListResource`, `call` from frappe-ui for data fetching
-   - Look at ./frontend/src/data/ for examples of data fetching composables
+   - Look at frontend/studio/src/data/ (from the repo root) for examples of data fetching composables
    - Handle loading, error, and success states explicitly

@@ -1,0 +1,13 @@
+/* A studio app's page has no shell, so it brings frappe-ui's base styles along. Compiled with
+   the editor's Tailwind config (renderer.css), or with the app's own in an app build. */
+@import "frappe-ui/style.css";
+@import "./styles/codemirror.css";
+
+:root {
+	color-scheme: light;
+	background-color: var(--surface-base);
+}
+
+[data-theme="dark"] {
+	color-scheme: dark;
+}

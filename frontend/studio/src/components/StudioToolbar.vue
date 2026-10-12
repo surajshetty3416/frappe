@@ -12,7 +12,7 @@
 							{
 								label: 'Back to Dashboard',
 								icon: 'lucide-arrow-left',
-								onClick: () => $router.push({ name: 'Home' }),
+								onClick: () => $router.push({ name: 'StudioHome' }),
 							},
 						],
 					},

@@ -1,5 +1,6 @@
-import { inject, onMounted, onBeforeUnmount } from "vue"
+import { onMounted, onBeforeUnmount } from "vue"
 
+import { useSocket } from "@studio/socket"
 import { fetchApp } from "@studio/utils/helpers"
 import { invalidateComponentCache, getComponentSlots } from "@studio/utils/components"
 import useStudioStore from "@studio/stores/studioStore"
@@ -11,7 +12,7 @@ import useComponentStore from "@studio/stores/componentStore"
 // Call once at the editor root (App.vue). Sibling of useLivePreview, which does this for the render.
 export function useLiveEditor() {
 	const store = useStudioStore()
-	const socket = inject<any>("socket")
+	const socket = useSocket()
 
 	// 1. JSON changed on disk and was synced to the DB. Only external (disk) edits refresh the
 	// editor — its own saves are already live on the canvas, and rebuilding would drop selection.

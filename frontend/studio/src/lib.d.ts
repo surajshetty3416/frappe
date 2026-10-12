@@ -1,5 +1,10 @@
-declare module "frappe-ui";
 
-// Build-time flag: true when apps/frappe/ui (@framework/ui) exists on this bench.
-// Injected by vite `define`; gates @framework/ui registration and panel visibility.
-declare const __FRAMEWORK_UI_AVAILABLE__: boolean;
+// Page globals: the shell's boot data in the editor, the renderer template's in a studio app
+interface Window {
+	site_name: string
+	site_url: string
+	socketio_port?: number
+	is_developer_mode?: boolean
+	is_preview?: boolean
+	__APP_COMPONENTS__: any
+}

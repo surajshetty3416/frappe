@@ -10,7 +10,7 @@ import traceback
 
 import click
 import frappe
-from frappe.build import get_node_env
+from frappe.bundler import get_node_env
 from frappe.utils import get_files_path
 
 from frappe.studio.utils import walk_blocks
@@ -146,11 +146,10 @@ class StudioAppBuilder:
 		for glob in self.tailwind_content:
 			command += f" --tailwind-content {shlex.quote(glob)}"
 
-		studio_app_path = frappe.get_app_source_path("studio")
 		result = subprocess.run(
 			command,
-			cwd=studio_app_path,
-			env={**os.environ, **get_node_env()},
+			cwd=get_frontend_path(),
+			env={**os.environ, **get_node_env(), "NODE_ENV": "production"},
 			shell=True,
 			capture_output=True,
 			text=True,
@@ -317,7 +316,7 @@ def build_standard_apps(apps: list[str] | None = None) -> None:
 		if not os.path.exists(studio_folder):
 			continue
 
-		if frappe_app == "studio":
+		if frappe_app == "frappe":
 			apps_list_file = frappe.get_app_path("frappe", "studio", "studio_apps.txt")
 			if os.path.exists(apps_list_file):
 				studio_apps = frappe.get_file_items(apps_list_file)
@@ -374,6 +373,11 @@ def get_published_custom_apps() -> list[str]:
 	)
 
 	return custom_apps
+
+
+def get_frontend_path() -> str:
+	"""The frontend that holds the studio renderer and the build-studio-app script"""
+	return frappe.get_app_source_path("frappe", "frontend")
 
 
 def get_studio_folder(frappe_app: str) -> str | None:

@@ -5,7 +5,7 @@ const studioApps = createListResource({
 	doctype: "Studio App",
 	fields: ["name", "app_name", "app_title", "route", "app_home", "is_standard", "frappe_app", "creation", "modified"],
 	auto: true,
-	cache: "apps",
+	cache: "studio-apps",
 	orderBy: "modified desc",
 	pageLength: 50,
 })

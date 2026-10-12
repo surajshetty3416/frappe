@@ -7,12 +7,12 @@ export default defineConfig({
 	expose: { site: "test_site" },
 	env: { adminPassword: "admin" },
 	component: {
-		// Reuses the app's vite.config.js (provides the "@" alias, frappe-ui plugin & lucide icons)
+		// Reuses the frontend's vite.config.js (provides the "@studio" alias, frappe-ui plugin & lucide icons)
 		devServer: {
 			framework: "vue",
 			bundler: "vite",
 			viteConfig: {
-				configFile: "vite.config.js",
+				configFile: "../vite.config.js",
 				// a separate dep cache, so running specs never re-optimizes the one a live `yarn dev` is serving
 				cacheDir: "node_modules/.vite-cypress",
 			},

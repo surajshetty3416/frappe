@@ -7,7 +7,7 @@
 				<template v-slot="{ open }">
 					<div class="flex cursor-pointer items-center gap-2">
 						<StudioLogo class="h-7 w-7"></StudioLogo>
-						<router-link class="flex items-center gap-2" :to="{ name: 'Home' }">
+						<router-link class="flex items-center gap-2" :to="{ name: 'StudioHome' }">
 							<h1 class="text-md-semibold mt-[2px] leading-5 text-ink-gray-7">Studio</h1>
 						</router-link>
 						<span

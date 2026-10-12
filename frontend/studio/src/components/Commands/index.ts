@@ -64,7 +64,7 @@ commands.register({
 	title: "Go to Dashboard",
 	icon: "lucide-layout-dashboard",
 	group: "Navigate",
-	action: () => router.push({ name: "Home" }),
+	action: () => router.push({ name: "StudioHome" }),
 })
 
 commands.register({

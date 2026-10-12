@@ -94,7 +94,7 @@ class TestSync(IntegrationTestCase):
 
 	def test_remove_orphaned_apps_and_pages(self):
 		with exports_in_tempdir():
-			app = make_standard_app(frappe_app="studio")
+			app = make_standard_app(frappe_app="frappe")
 			kept = make_studio_page(app.name, page_title="Kept", route="/kept")
 			gone = make_studio_page(app.name, page_title="Gone", route="/gone")
 

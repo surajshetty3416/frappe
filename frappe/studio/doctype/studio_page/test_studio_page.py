@@ -218,10 +218,10 @@ class TestStudioPage(IntegrationTestCase):
 	def test_paste_carries_file_dependencies(self):
 		with exports_in_tempdir():
 			source_app = make_studio_app(
-				app_name="src-" + frappe.generate_hash(length=10), is_standard=1, frappe_app="studio"
+				app_name="src-" + frappe.generate_hash(length=10), is_standard=1, frappe_app="frappe"
 			)
 			target_app = make_studio_app(
-				app_name="dst-" + frappe.generate_hash(length=10), is_standard=1, frappe_app="studio"
+				app_name="dst-" + frappe.generate_hash(length=10), is_standard=1, frappe_app="frappe"
 			)
 			page = make_studio_page(source_app.name)
 			page.get_app().write_files(
@@ -253,7 +253,7 @@ class TestStudioPage(IntegrationTestCase):
 	def test_paste_rejects_conflicting_files_before_writing(self):
 		with exports_in_tempdir():
 			app = make_studio_app(
-				app_name="files-" + frappe.generate_hash(length=10), is_standard=1, frappe_app="studio"
+				app_name="files-" + frappe.generate_hash(length=10), is_standard=1, frappe_app="frappe"
 			)
 			app.write_files([{"path": "stores/settings.ts", "content": "export const x = 1"}])
 
@@ -274,7 +274,7 @@ class TestStudioPage(IntegrationTestCase):
 	def test_copy_rejects_ambiguous_custom_component(self):
 		with exports_in_tempdir():
 			app = make_studio_app(
-				app_name="files-" + frappe.generate_hash(length=10), is_standard=1, frappe_app="studio"
+				app_name="files-" + frappe.generate_hash(length=10), is_standard=1, frappe_app="frappe"
 			)
 			app.write_files(
 				[
@@ -289,7 +289,7 @@ class TestStudioPage(IntegrationTestCase):
 	def test_copy_does_not_follow_file_links_outside_the_app(self):
 		with exports_in_tempdir():
 			app = make_studio_app(
-				app_name="files-" + frappe.generate_hash(length=10), is_standard=1, frappe_app="studio"
+				app_name="files-" + frappe.generate_hash(length=10), is_standard=1, frappe_app="frappe"
 			)
 			outside = os.path.join(os.path.dirname(app.get_folder_path()), "secret.ts")
 			with open(outside, "w") as f:
@@ -393,7 +393,7 @@ class TestStudioPage(IntegrationTestCase):
 			app = make_studio_app(app_name="dup-" + frappe.generate_hash(length=10))
 			page = make_page_with_data(app.name)
 			app.reload()
-			app.enable_app_export("studio")
+			app.enable_app_export("frappe")
 			page.reload()
 			self.assertFalse(page.script)
 

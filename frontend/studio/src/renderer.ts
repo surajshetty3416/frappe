@@ -1,4 +1,4 @@
-import "@studio/index.css"
+import "@studio/renderer.css"
 
 import { createApp } from "vue"
 import { createPinia } from "pinia"
@@ -20,19 +20,6 @@ app.use(resourcesPlugin)
 app.provide("socket", initSocket())
 registerGlobalComponents(app)
 window.__APP_COMPONENTS__ = app._context.components
-
-declare global {
-	interface Window {
-		is_developer_mode?: boolean
-		is_preview?: boolean
-		__APP_COMPONENTS__: any
-		[key: string]: string
-	}
-}
-
-if (window.is_preview && typeof window.is_preview === "string") {
-	window.is_preview = window.is_preview === "1" || window.is_preview === "True"
-}
 
 const frappeApp = (window as any).frappe_app
 const componentsReady = frappeApp

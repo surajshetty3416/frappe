@@ -1,32 +1,33 @@
 import { pinia } from "../support/component"
 
 import { defineComponent, h } from "vue"
+import { createMemoryHistory, createRouter } from "vue-router"
 import { setActivePinia } from "pinia"
 // @ts-ignore
 import { FrappeUIProvider, resourcesPlugin } from "frappe-ui"
 
-import StudioCanvas from "@/components/StudioCanvas.vue"
-import Block from "@/utils/block"
-import { COMPONENTS } from "@/data/components"
-import { getBlockInstance } from "@/utils/serializer"
-import getBlockTemplate from "@/utils/blockTemplate"
-import { registerGlobalComponents } from "@/globals"
-import router from "@/router/studio_router"
-import session from "@/utils/session"
-import useCanvasStore from "@/stores/canvasStore"
-import { useStudioEvents } from "@/utils/useStudioEvents"
+import StudioCanvas from "@studio/components/StudioCanvas.vue"
+import Block from "@studio/utils/block"
+import { COMPONENTS } from "@studio/data/components"
+import { getBlockInstance } from "@studio/utils/serializer"
+import getBlockTemplate from "@studio/utils/blockTemplate"
+import { registerGlobalComponents } from "@studio/globals"
+import useCanvasStore from "@studio/stores/canvasStore"
+import { useStudioEvents } from "@studio/utils/useStudioEvents"
 
 const canvasElement = () => document.querySelector(".canvas") as HTMLElement
 
+// the editor navigates on the shell's router; the guard only needs one to cancel on
+const router = createRouter({
+	history: createMemoryHistory(),
+	routes: [
+		{ path: "/app/test/page", name: "TestPage", component: { render: () => h("div") } },
+		{ path: "/home", name: "Home", component: { render: () => h("div") } },
+	],
+})
+
 describe("canvas navigation guard", () => {
 	beforeEach(() => {
-		// satisfy the router's login guard without a site
-		session.initialized = true
-		session.user.email = "test@example.com"
-		session.hasPermission = true
-		if (!router.hasRoute("TestPage")) {
-			router.addRoute({ path: "/app/test/page", name: "TestPage", component: { render: () => h("div") } })
-		}
 		cy.wrap(router.push("/app/test/page"))
 
 		Block.setComponents(COMPONENTS)

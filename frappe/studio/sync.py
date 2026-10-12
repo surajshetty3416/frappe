@@ -37,7 +37,7 @@ def sync_studio_apps(app_name: str | None = None):
 		if not os.path.exists(studio_folder_path):
 			continue
 
-		if app == "studio":
+		if app == "frappe":
 			app_list = frappe.get_file_items(frappe.get_app_path("frappe", "studio", "studio_apps.txt"))
 		else:
 			app_list = os.listdir(studio_folder_path)

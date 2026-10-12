@@ -29,7 +29,7 @@
 								:style="{
 									background: modelValue
 										? modelValue
-										: `url(/assets/frappe/studio/frontend/color-circle.png) center / contain`,
+										: `url(${colorCircle}) center / contain`,
 								}"
 							></div>
 						</template>
@@ -46,6 +46,9 @@ import Input from "@studio/components/Input.vue"
 import InputLabel from "@studio/components/InputLabel.vue"
 import { getColorFromToken, getRGB, isColorToken } from "@studio/utils/helpers"
 import type { HashString } from "@studio/types"
+
+// a public file, so app builds that bundle this editor component don't have to resolve it
+const colorCircle = `${import.meta.env.BASE_URL}studio-color-circle.png`
 
 const props = withDefaults(
 	defineProps<{

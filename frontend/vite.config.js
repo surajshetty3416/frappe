@@ -7,11 +7,14 @@ import frappeui from "frappe-ui/vite"
 import { defineConfig } from "vite"
 
 import hostDependencies from "./build/hostDependencies.js"
+import studio from "./studio/vite/index.js"
 
 const here = (...parts) => path.resolve(import.meta.dirname, ...parts)
 const flowCore = here("../harness/ui/core")
 
 export default defineConfig({
+	// each extra dev server keeps its own pre-bundled deps, or they invalidate each other's
+	cacheDir: process.env.VITE_PORT ? `node_modules/.vite-${process.env.VITE_PORT}` : undefined,
 	plugins: [
 		frappeui({
 			frappeProxy: {
@@ -33,6 +36,7 @@ export default defineConfig({
 		vueJsx(),
 		frameworkUI({ dedupe: ["pinia", "@vueuse/core", "echarts", "zrender"] }),
 		hostDependencies([flowCore]),
+		studio({ frontendDir: here("."), appsDir: here("../..") }),
 	],
 	resolve: {
 		alias: [
@@ -68,9 +72,24 @@ export default defineConfig({
 	build: {
 		target: "es2020",
 		chunkSizeWarningLimit: 2000,
+		// studio app pages render outside the SPA; their template finds this renderer in the manifest
+		manifest: true,
+		rolldownOptions: {
+			input: { index: here("index.html"), "studio-renderer": here("studio/src/renderer.ts") },
+		},
 	},
 	optimizeDeps: {
-		include: ["engine.io-client", "highlight.js/lib/core"],
+		include: [
+			"engine.io-client",
+			"highlight.js/lib/core",
+			// frappe-ui's chart sources are served raw, so an echarts entry missing here loads
+			// a second echarts core, and charts throw "Component grid is used but not imported"
+			"echarts/core",
+			"echarts/charts",
+			"echarts/components",
+			"echarts/renderers",
+			"echarts/features",
+		],
 		exclude: ["@flow/ui-core"],
 	},
 })

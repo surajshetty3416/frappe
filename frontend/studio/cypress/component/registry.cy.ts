@@ -1,5 +1,5 @@
 import { ref } from "vue"
-import { createRegistry, type RegistryItem } from "@/utils/createRegistry"
+import { createRegistry, type RegistryItem } from "@studio/utils/createRegistry"
 
 const names = (items: RegistryItem[]) => items.map((item) => item.name)
 

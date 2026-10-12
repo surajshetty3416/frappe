@@ -27,8 +27,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, watch, computed } from "vue"
-import { Button } from "frappe-ui"
-import { useDark } from "@vueuse/core"
+import { Button, useResolvedColorScheme } from "frappe-ui"
 import { marked } from "marked"
 import ace from "ace-builds"
 import "ace-builds/src-min-noconflict/mode-markdown"
@@ -56,7 +55,9 @@ const props = withDefaults(defineProps<MarkdownEditorProps>(), {
 	showPreview: false,
 })
 
-const isDark = useDark()
+// read the page's theme, never set it: in the editor canvas <html> belongs to the shell
+const colorScheme = useResolvedColorScheme()
+const isDark = computed(() => colorScheme.value === "dark")
 const emit = defineEmits(["update:modelValue"])
 
 const editor = ref<ace.Ace.Editor | null>(null)

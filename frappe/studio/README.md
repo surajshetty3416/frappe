@@ -68,12 +68,12 @@ You need this setup to work on Studio's frontend, and to build standard (exporte
  
 2. Open a new terminal session and run the following commands:
 	```bash
-	cd frappe-bench/apps/studio
+	cd frappe-bench/apps/frappe/frontend
 	yarn install
 	yarn dev --host
 	```
  
-3. Now, you can access the site on vite dev server at `http://studio.localhost:8080` (the port shifts along with your bench's `webserver_port`)
+3. Now, you can access Studio on the vite dev server at `http://studio.localhost:8080/studio` (the port shifts along with your bench's `webserver_port`)
 4. In one more terminal session, you can start the watcher and keep it running alongside `bench start`:
 	```bash
 	bench --site studio.localhost watch-studio
@@ -83,7 +83,7 @@ It watches the `studio` folder of every installed app and imports changed app/pa
 
 **Note:** Exported apps can only be edited on a local setup with the dev server running. On a production site they only run, they can't be edited. We will be adding customization support for standard apps soon.
 
-**Note:** You'll find all the code related to Studio's frontend inside `frappe-bench/apps/studio/frontend`
+**Note:** You'll find all the code related to Studio's frontend inside `frappe-bench/apps/frappe/frontend/studio`
 
 ### Bench Commands
 

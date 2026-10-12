@@ -7,7 +7,7 @@ import { isObjectEmpty } from "@studio/utils/helpers"
 import { getBlockInstance, getBlockObjectCopy } from "@studio/utils/serializer"
 import getBlockTemplate from "@studio/utils/blockTemplate"
 
-const useComponentStore = defineStore("componentStore", () => {
+const useComponentStore = defineStore("studioComponentStore", () => {
 	const componentMap = reactive<Map<string, Block>>(new Map())
 	const componentDocMap = reactive<Map<string, StudioComponent>>(new Map())
 	const fetchingComponent = reactive<Set<string>>(new Set())

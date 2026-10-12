@@ -4,12 +4,12 @@ import { setActivePinia } from "pinia"
 // @ts-ignore
 import { resourcesPlugin } from "frappe-ui"
 
-import "@/setupFrappeUIResource"
-import DataPanel from "@/components/DataPanel.vue"
-import ResourceDialog from "@/components/ResourceDialog.vue"
-import useStudioStore from "@/stores/studioStore"
-import { usePageScope } from "@/stores/codeStore"
-import type { StudioPage } from "@/types/Studio/StudioPage"
+import "@studio/setupFrappeUIResource"
+import DataPanel from "@studio/components/DataPanel.vue"
+import ResourceDialog from "@studio/components/ResourceDialog.vue"
+import useStudioStore from "@studio/stores/studioStore"
+import { usePageScope } from "@studio/stores/codeStore"
+import type { StudioPage } from "@studio/types/Studio/StudioPage"
 
 const APP_NAME = "cypress-data-sources"
 

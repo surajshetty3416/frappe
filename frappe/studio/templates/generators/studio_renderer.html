@@ -1,11 +1,15 @@
 <!DOCTYPE html>
 <!-- Built with Frappe Studio -->
-<html lang="en" class="h-full">
+<html lang="en" class="h-full" data-layer="studio">
 	<head>
 		<meta charset="UTF-8" />
-		<link rel="icon" href="{{ favicon or '/assets/frappe/studio/frontend/favicon.png' }}" />
+		<link rel="icon" href="{{ favicon or '/assets/frappe/frontend/studio-favicon.png' }}" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>{{ app_title }}</title>
+
+		{% for stylesheet in stylesheets or [] %}
+			<link rel="stylesheet" href="{{ stylesheet }}" crossorigin>
+		{% endfor %}
 	</head>
 	<body class="h-full">
 		<div id="app" class="h-full"></div>
@@ -14,7 +18,9 @@
 		<script>
 			window.boot = {{ boot|tojson }};
 			window.csrf_token = "{{ csrf_token }}";
-			window.is_preview = "{{ is_preview }}";
+			window.site_name = "{{ site_name }}";
+			window.socketio_port = {{ socketio_port|tojson }};
+			window.is_preview = {{ (is_preview or False)|tojson }};
 			window.app_name = "{{ app_name }}";
 			window.app_route = "{{ app_route }}";
 			window.app_title = "{{ app_title }}";
@@ -24,15 +30,15 @@
 			window.router_script = {{ router_script|tojson }};
 			window.router_file = {{ router_file|tojson }};
 			window.is_guest = {{ is_guest|tojson }};
-			window.is_developer_mode = {{ is_developer_mode }};
+			window.is_developer_mode = {{ is_developer_mode|tojson }};
 		</script>
 		{% if is_developer_mode %}
-			<!-- workaround for HMR in renderer during development -->
+			<!-- the frontend's Vite dev server, for HMR -->
 			<!-- protocol-relative so the browser loads over the page's own scheme (avoids mixed-content over HTTPS) -->
 			<script type="module" src="//{{ vite_dev_server_host }}/@vite/client"></script>
-			<script type="module" src="//{{ vite_dev_server_host }}/src/renderer.ts"></script>
-		{% else %}
-			<script type="module" src="/src/renderer.ts"></script>
+			<script type="module" src="//{{ vite_dev_server_host }}/studio/src/renderer.ts"></script>
+		{% elif script %}
+			<script type="module" src="{{ script }}" crossorigin></script>
 		{% endif %}
 
 		{% if assets_not_found %}

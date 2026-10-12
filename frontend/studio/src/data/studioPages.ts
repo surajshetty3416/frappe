@@ -5,7 +5,7 @@ const studioPages = createListResource({
 	doctype: "Studio Page",
 	fields: ["name", "page_title", "route", "studio_app", "creation", "modified", "published", "allow_guest"],
 	auto: true,
-	cache: "pages",
+	cache: "studio-pages",
 	orderBy: "creation asc",
 	pageLength: 50,
 })

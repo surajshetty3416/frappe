@@ -17,7 +17,10 @@ export function mergeStudioAppConfigs(baseConfig, appFolders) {
 		.map(loadStudioAppConfig)
 	return {
 		...baseConfig,
-		content: [...baseConfig.content, ...appConfigs.flatMap((config) => config.content)],
+		content: {
+			...baseConfig.content,
+			files: [...baseConfig.content.files, ...appConfigs.flatMap((config) => config.content)],
+		},
 		safelist: [...(baseConfig.safelist || []), ...appConfigs.flatMap((config) => config.safelist)],
 	}
 }
@@ -40,7 +43,7 @@ function loadStudioAppConfig(configPath) {
 }
 
 // Tailwind resolves content globs from the cwd, so make them relative to the app's config
-function resolveGlob(entry, configDir) {
+export function resolveGlob(entry, configDir) {
 	if (typeof entry !== "string") return entry
 	const negated = entry.startsWith("!")
 	const resolved = path.resolve(configDir, negated ? entry.slice(1) : entry)

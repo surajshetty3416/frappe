@@ -17,6 +17,10 @@ from frappe.studio.export import can_export, delete_file, delete_folder, write_d
 from frappe.studio.realtime import publish_doc_change
 from frappe.studio.utils import walk_blocks
 
+APP_RENDERER = "studio/templates/generators/app_renderer.html"
+STUDIO_RENDERER = "studio/templates/generators/studio_renderer.html"
+STUDIO_RENDERER_ENTRY = "studio/src/renderer.ts"
+
 IMPORT_RE = re.compile(r"""(?:from|import)\s*\(?\s*['"]((?:@app/|\.\.?/)[^'"]+)['"]""")
 EXTENSIONS = (".ts", ".js", ".vue", ".json", ".css")
 
@@ -64,19 +68,26 @@ class StudioAppRenderer(DocumentPage):
 		if self.is_preview():
 			self.context.is_preview = True
 			self.context.app_route = f"dev/{self.context.app_route}"
-			self.context.template = "templates/generators/studio_renderer.html"
 			self.context.app_pages = frappe.get_all(
 				"Studio Page", dict(studio_app=self.context.app_name), ["name", "page_title", "route"]
 			)
+			self.use_studio_renderer()
 		else:
-			self.context.template = "templates/generators/app_renderer.html"
+			self.context.template = APP_RENDERER
 			manifest = self.context.doc.get_assets_from_manifest()
 			if manifest:
 				self.context.stylesheets = manifest.get("stylesheets", [])
 				self.context.script = manifest.get("script")
 			else:
-				self.context.template = "templates/generators/studio_renderer.html"
+				self.use_studio_renderer()
 				self.context.assets_not_found = True
+
+	def use_studio_renderer(self):
+		"""Render with every component registered: the Vite dev server's renderer in developer
+		mode, else the one in the frontend build."""
+		self.context.template = STUDIO_RENDERER
+		if not self.context.is_developer_mode:
+			self.context.update(get_studio_renderer_assets())
 
 	def is_preview(self):
 		return self.path.startswith("dev/")
@@ -102,7 +113,7 @@ class StudioApp(WebsiteGenerator):
 	# end: auto-generated types
 
 	website = frappe._dict(
-		template="templates/generators/app_renderer.html",
+		template=APP_RENDERER,
 		page_title_field="app_title",
 		condition_field="published",
 	)
@@ -112,6 +123,8 @@ class StudioApp(WebsiteGenerator):
 		frappe.db.commit()
 		context.csrf_token = csrf_token
 		context.no_cache = 1
+		context.site_name = frappe.local.site
+		context.socketio_port = frappe.conf.socketio_port
 
 		context.app_name = self.app_name
 		context.app_route = self.route
@@ -125,7 +138,7 @@ class StudioApp(WebsiteGenerator):
 			page_filters["allow_guest"] = 1
 		context.app_pages = frappe.get_all("Studio Page", page_filters, ["name", "page_title", "route"])
 
-		context.is_developer_mode = frappe.utils.cint(frappe.conf.developer_mode)
+		context.is_developer_mode = bool(frappe.conf.developer_mode)
 		context.router_file = self.get_router_file() if context.is_developer_mode else None
 		context.router_script = self.get_router_script()
 
@@ -439,7 +452,7 @@ class StudioApp(WebsiteGenerator):
 		return True
 
 	def remove_from_studio_apps_txt(self, name: str):
-		if self.frappe_app != "studio":
+		if self.frappe_app != "frappe":
 			return
 
 		path = studio_apps_txt_path()
@@ -450,7 +463,7 @@ class StudioApp(WebsiteGenerator):
 				f.write("\n".join(apps))
 
 	def add_to_studio_apps_txt(self):
-		if self.frappe_app != "studio":
+		if self.frappe_app != "frappe":
 			return
 
 		apps = None
@@ -588,6 +601,37 @@ def custom_vue_component_names(blocks) -> set[str]:
 		for block in walk_blocks(blocks)
 		if block.get("isCustomVueComponent") and block.get("componentName")
 	}
+
+
+def get_studio_renderer_assets() -> dict:
+	"""The studio renderer's script and stylesheets in the frontend build's manifest"""
+	manifest_path = frappe.get_app_path("frappe", "public", "frontend", ".vite", "manifest.json")
+	if not os.path.exists(manifest_path):
+		return {}
+	with open(manifest_path) as f:
+		manifest = json.load(f)
+	if STUDIO_RENDERER_ENTRY not in manifest:
+		return {}
+
+	base_path = "/assets/frappe/frontend/"
+	return {
+		"script": base_path + manifest[STUDIO_RENDERER_ENTRY]["file"],
+		"stylesheets": [base_path + css for css in get_chunk_css(manifest, STUDIO_RENDERER_ENTRY)],
+	}
+
+
+def get_chunk_css(manifest: dict, chunk: str, seen: set | None = None) -> list[str]:
+	"""CSS of a chunk and of the chunks it imports statically. The manifest also holds the
+	shell's chunks, so it can't take every chunk's CSS; dynamic imports load their own."""
+	seen = seen if seen is not None else set()
+	if chunk in seen:
+		return []
+	seen.add(chunk)
+	entry = manifest[chunk]
+	css = list(entry.get("css", []))
+	for imported in entry.get("imports", []):
+		css += get_chunk_css(manifest, imported, seen)
+	return css
 
 
 def get_vite_dev_server_port():

@@ -20,18 +20,18 @@ const STUDIO_SHARED_DEPS = ["vue", "vue-router", "pinia", "frappe-ui", "reka-ui"
  * @framework/ui's own dompurify/vuedraggable/leaflet) resolve normally from the
  * app's own node_modules.
  */
-function sharedDependencyResolver(STUDIO_ROOT) {
+function sharedDependencyResolver(frontendDir) {
 	return {
 		name: "shared-dependency-resolver",
 		enforce: "pre",
 		async resolveId(source, importer, options) {
 			// Only intercept shared deps
 			if (!STUDIO_SHARED_DEPS.some((dep) => source === dep || source.startsWith(dep + "/"))) return null
-			// Only intercept if the importer is outside Studio's project
-			if (!importer || importer.startsWith(STUDIO_ROOT)) return null
+			// Only intercept if the importer is outside the frontend
+			if (!importer || importer.startsWith(frontendDir)) return null
 
-			// Re-resolve from Studio's project root so Vite finds the right copy
-			const resolved = await this.resolve(source, path.join(STUDIO_ROOT, "frontend", "_virtual.js"), {
+			// Re-resolve from the frontend so Vite finds its copy
+			const resolved = await this.resolve(source, path.join(frontendDir, "_virtual.js"), {
 				...options,
 				skipSelf: true,
 			})

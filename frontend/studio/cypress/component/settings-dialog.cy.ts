@@ -6,10 +6,10 @@ import { createMemoryHistory, createRouter } from "vue-router"
 // @ts-ignore
 import { FrappeUIProvider, resourcesPlugin } from "frappe-ui"
 
-import "@/setupFrappeUIResource"
-import SettingsDialog from "@/components/Settings/SettingsDialog.vue"
-import useStudioStore from "@/stores/studioStore"
-import type { StudioPage } from "@/types/Studio/StudioPage"
+import "@studio/setupFrappeUIResource"
+import SettingsDialog from "@studio/components/Settings/SettingsDialog.vue"
+import useStudioStore from "@studio/stores/studioStore"
+import type { StudioPage } from "@studio/types/Studio/StudioPage"
 
 const APP_NAME = "cypress-settings"
 const RENAMED_APP = "cypress-settings-renamed"

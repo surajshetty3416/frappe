@@ -1,3 +1,4 @@
+// Run from frontend/studio (paths below are relative to it): npx tsx src/scripts/tsToJSONGenerator.ts <frappeui|frameworkui|studio>
 import tsToJSON from "../utils/tsToJSON"
 import fs from "fs"
 import path from "path"
@@ -10,19 +11,19 @@ type SourceFolder = string | { path: string; folderScan?: boolean; perComponent?
 const configMap: Record<string, any> = {
 	frappeui: {
 		srcFolders: [
-			"node_modules/frappe-ui/src/components",
-			{ path: "node_modules/frappe-ui/experimental", skipFolders: ["SpriteIcons", "Charts", "stories"] },
+			"../node_modules/frappe-ui/src/components",
+			{ path: "../node_modules/frappe-ui/experimental", skipFolders: ["SpriteIcons", "Charts", "stories"] },
 			{
-				path: "node_modules/frappe-ui/src/charts",
+				path: "../node_modules/frappe-ui/src/charts",
 				perComponent: true,
 				skipFolders: ["components", "core", "docs", "stories"],
 			},
 			// molecules (List family): several components per folder, keyed off the .vue
 			// files whose `<Component>Props` is exported from the folder's types.ts
-			{ path: "node_modules/frappe-ui/src/molecules", perComponent: true, skipFolders: ["stories"] },
+			{ path: "../node_modules/frappe-ui/src/molecules", perComponent: true, skipFolders: ["stories"] },
 		],
 		destFolder: "src/json_types/frappeui",
-		tsconfigPath: "node_modules/frappe-ui/tsconfig.base.json",
+		tsconfigPath: "../node_modules/frappe-ui/tsconfig.base.json",
 		skipFolders: ["stories", "shared"],
 		// not registered as studio blocks (see constants.js)
 		skipComponents: [
@@ -51,9 +52,9 @@ const configMap: Record<string, any> = {
 	// `<Component>Props` (and optionally `<Component>Slots`) in its folder's `types.ts`
 	// gets one `<Component>.json`.
 	frameworkui: {
-		srcFolders: ["../../frappe/ui/src/components"],
+		srcFolders: ["../../ui/src/components"],
 		destFolder: "src/json_types/frameworkui",
-		tsconfigPath: "node_modules/frappe-ui/tsconfig.base.json",
+		tsconfigPath: "../node_modules/frappe-ui/tsconfig.base.json",
 		skipFolders: ["stories", "tests"],
 		// ComposerEditor is the private editing core shared by Email/CommentComposer —
 		// it exports Props (for the composers to extend) but is not a studio block.
@@ -77,7 +78,7 @@ const configMap: Record<string, any> = {
 	studio: {
 		srcFolders: ["src/types/studio_components"],
 		destFolder: "src/json_types/studio",
-		tsconfigPath: "tsconfig.json",
+		tsconfigPath: "../tsconfig.json",
 	},
 }
 

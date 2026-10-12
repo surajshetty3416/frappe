@@ -4,9 +4,9 @@ import { defineComponent, h } from "vue"
 import { setActivePinia } from "pinia"
 import { useKeyboardShortcut, type KeyboardShortcutConfig } from "frappe-ui"
 
-import StudioCommandPalette from "@/components/CommandPalette/StudioCommandPalette.vue"
-import { commandShortcuts } from "@/components/Commands"
-import useStudioStore from "@/stores/studioStore"
+import StudioCommandPalette from "@studio/components/CommandPalette/StudioCommandPalette.vue"
+import { commandShortcuts } from "@studio/components/Commands"
+import useStudioStore from "@studio/stores/studioStore"
 
 const mod = Cypress.platform === "darwin" ? { metaKey: true } : { ctrlKey: true }
 

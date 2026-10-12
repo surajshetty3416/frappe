@@ -5,16 +5,16 @@ import { createRouter, createMemoryHistory } from "vue-router"
 // @ts-ignore
 import { resourcesPlugin } from "frappe-ui"
 
-import StudioCanvas from "@/components/StudioCanvas.vue"
-import Block from "@/utils/block"
-import { COMPONENTS } from "@/data/components"
-import { getBlockInstance } from "@/utils/serializer"
-import getBlockTemplate from "@/utils/blockTemplate"
-import { registerGlobalComponents } from "@/globals"
-import useCanvasStore from "@/stores/canvasStore"
-import { isReorderable } from "@/utils/useBlockReorder"
-import { isMovable } from "@/utils/useBlockMove"
-import type { BlockOptions } from "@/types"
+import StudioCanvas from "@studio/components/StudioCanvas.vue"
+import Block from "@studio/utils/block"
+import { COMPONENTS } from "@studio/data/components"
+import { getBlockInstance } from "@studio/utils/serializer"
+import getBlockTemplate from "@studio/utils/blockTemplate"
+import { registerGlobalComponents } from "@studio/globals"
+import useCanvasStore from "@studio/stores/canvasStore"
+import { isReorderable } from "@studio/utils/useBlockReorder"
+import { isMovable } from "@studio/utils/useBlockMove"
+import type { BlockOptions } from "@studio/types"
 
 const HISTORY_DEBOUNCE = 150
 

@@ -36,15 +36,17 @@ export default {
 		// app builds replace this with only the icons their pages use (src/scripts/build.js)
 		{ pattern: /^lucide-/ },
 	],
-	content: [
-		"./index.html",
-		"./src/**/*.{vue,js,ts,jsx,tsx}",
-		...frappeUIContent,
-		"../../frappe/ui/src/**/*.{vue,js,ts,jsx,tsx}",
-		"../../*/studio/**/*.{vue,js,ts,jsx,tsx,json}",
-		"!../../*/studio/**/node_modules/**",
-		"!../../studio/studio/public/**",
-	],
+	content: {
+		relative: true,
+		files: [
+			"./src/**/*.{vue,js,ts,jsx,tsx}",
+			...frappeUIContent,
+			"../../ui/src/**/*.{vue,js,ts,jsx,tsx}",
+			// every bench app's exported studio apps
+			"../../../*/studio/**/*.{vue,js,ts,jsx,tsx,json}",
+			"!../../../*/studio/**/node_modules/**",
+		],
+	},
 	theme: {
 		extend: {},
 	},

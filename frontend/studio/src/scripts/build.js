@@ -13,22 +13,19 @@ import tailwindcss from "tailwindcss"
 import loadTailwindConfig from "tailwindcss/loadConfig.js"
 import autoprefixer from "autoprefixer"
 import vue from "@vitejs/plugin-vue"
+import frameworkUI from "@framework/ui/vite"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 import { parseArgs } from "node:util"
 import frappeui from "frappe-ui/vite"
 import sharedDependencyResolver from "../../vite/sharedDependencyResolver.js"
 import studioRootAlias from "../../vite/studioRootAlias.js"
-import frameworkUIAlias from "../../vite/frameworkUIAlias.js"
-import { mergeStudioAppConfigs } from "../../tailwind/studioAppConfigs.js"
+import { mergeStudioAppConfigs, resolveGlob } from "../../tailwind/studioAppConfigs.js"
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url))
-// bench apps folder (scripts -> src -> frontend -> studio -> apps)
-const APPS_DIR = path.resolve(__dirname, "../../../../")
-
-// @framework/ui (apps/frappe/ui) is absent on older frappe. Skip its imports and
-// aliases so the exported-app build doesn't try to resolve a missing package.
-const frameworkUIAvailable = fs.existsSync(path.resolve(APPS_DIR, "frappe", "ui", "package.json"))
+const SRC_DIR = path.resolve(__dirname, "..")
+const STUDIO_DIR = path.resolve(SRC_DIR, "..")
+const FRONTEND_DIR = path.resolve(STUDIO_DIR, "..")
 
 // @framework/ui components are spread across the root barrel and per-widget subpath
 // exports, so their imports must be grouped by source module. Components with a
@@ -65,8 +62,8 @@ const FRAMEWORK_UI_BARREL_COMPONENTS = new Set([
 	"CommentComposer",
 ])
 
-// create a temp directory for app renderers in studio app folder
-const TEMP_DIR = path.resolve(__dirname, "../../../.temp-app-renderers")
+// the entries import the frontend's packages, so they are written inside it (gitignored)
+const TEMP_DIR = path.resolve(STUDIO_DIR, ".temp-app-renderers")
 if (!fs.existsSync(TEMP_DIR)) {
 	fs.mkdirSync(TEMP_DIR, { recursive: true })
 }
@@ -87,9 +84,11 @@ const { values: argv } = parseArgs({
 	strict: false,
 })
 
-if (!argv.app) {
-	console.error("--app is required")
-	process.exit(1)
+for (const required of ["app", "out-dir", "base"]) {
+	if (!argv[required]) {
+		console.error(`--${required} is required`)
+		process.exit(1)
+	}
 }
 
 await generateAppBuild(
@@ -150,9 +149,7 @@ function findComponentSources(appComponents, customComponents = {}) {
 		} else if (FRAPPE_UI_CHARTS.includes(component)) {
 			frappeUICharts.push(component)
 		} else if (FRAMEWORK_UI_COMPONENTS.includes(component)) {
-			// Drop @framework/ui components when the package isn't on this bench —
-			// a stale app reference must not break the build with an unresolvable import.
-			if (frameworkUIAvailable) frameworkUIComponents.push(component)
+			frameworkUIComponents.push(component)
 		} else if (STUDIO_COMPONENTS.includes(component)) {
 			studioComponents.push(component)
 		} else {
@@ -234,7 +231,7 @@ ${pageScripts
 	const routerImport = routerFile ? `import routerConfig from ${JSON.stringify(routerFile)}` : ""
 	const routerConfig = routerFile ? "routerConfig" : ""
 
-	const rendererContent = `import "@studio/index.css"
+	const rendererContent = `import "@studio/app.css"
 import { createApp } from "vue"
 import { createPinia } from "pinia"
 import "@studio/setupFrappeUIResource"
@@ -312,12 +309,9 @@ async function buildWithVite(
 	appFolder,
 	tailwindContent = [],
 ) {
-	outDir = outDir || path.resolve(__dirname, `../../../studio/public/app_builds/${appName}`)
-	basePath = basePath || `/assets/frappe/studio/app_builds/${appName}/`
-
 	console.log(`Building ${appName} with Vite`)
 	await build({
-		root: path.resolve(__dirname, "../"),
+		root: SRC_DIR,
 		base: basePath,
 		plugins: [
 			vue(),
@@ -328,19 +322,12 @@ async function buildWithVite(
 				jinjaBootData: false,
 			}),
 			studioRootAlias(),
-			sharedDependencyResolver(path.resolve(__dirname, "../../")),
-			...(frameworkUIAvailable
-				? [
-						// Resolves @framework/ui's own deps from studio's node_modules
-						(await import("@framework/ui/vite")).default(),
-					]
-				: []),
+			sharedDependencyResolver(FRONTEND_DIR),
+			// resolves @framework/ui's own deps from the frontend's node_modules
+			frameworkUI(),
 		],
 		resolve: {
-			alias: [
-				...(frameworkUIAvailable ? frameworkUIAlias(APPS_DIR) : []),
-				{ find: "@", replacement: path.resolve(__dirname, "../") },
-			],
+			alias: [{ find: /^@studio\//, replacement: `${SRC_DIR}/` }],
 			// keep vue/pinia/etc as single instances so studio modules (composables/stores)
 			// share the app's runtime — Pinia breaks with duplicate copies
 			dedupe: [
@@ -383,15 +370,13 @@ async function buildWithVite(
 }
 
 function getAppTailwindConfig(appFolder, appIconClasses, appTailwindContent) {
-	const editorConfig = loadTailwindConfig(path.resolve(__dirname, "../../tailwind.config.js"))
-	// The editor scans every studio app; an app build scans only its own pages
-	const baseConfig = {
-		...editorConfig,
-		content: [
-			...editorConfig.content.filter((entry) => !entry.includes("/*/studio/")),
-			...appTailwindContent,
-		],
-	}
+	const editorConfig = loadTailwindConfig(path.resolve(STUDIO_DIR, "tailwind.config.js"))
+	// The editor scans every studio app; an app build scans only its own pages. Tailwind gets
+	// this config as an object, with no file to resolve the editor's relative globs from.
+	const files = editorConfig.content.files
+		.filter((entry) => !entry.includes("/*/studio/"))
+		.map((entry) => resolveGlob(entry, STUDIO_DIR))
+	const baseConfig = { ...editorConfig, content: { files: [...files, ...appTailwindContent] } }
 	const config = mergeStudioAppConfigs(baseConfig, appFolder ? [appFolder] : [])
 
 	// The editor needs every icon for its picker. App builds replace that rule

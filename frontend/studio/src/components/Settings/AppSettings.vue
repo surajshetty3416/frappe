@@ -87,7 +87,7 @@ import AppRenameDialog from "@studio/components/Settings/AppRenameDialog.vue"
 import ExportAppDialog from "@studio/components/ExportAppDialog.vue"
 import useStudioStore from "@studio/stores/studioStore"
 import { scrub } from "@studio/utils/helpers"
-import defaultFavicon from "/favicon.png"
+import defaultFavicon from "/studio-favicon.png"
 
 type FileDoc = { file_url: string }
 

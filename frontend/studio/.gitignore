@@ -7,3 +7,5 @@ dist-ssr
 # dev, editor builds, and individual studio app builds; matches root and src copies
 components.d.ts
 auto-imports.d.ts
+# entries written by src/scripts/build.js while it builds a studio app
+.temp-app-renderers

@@ -3,11 +3,11 @@ import { pinia } from "../support/component"
 import { setActivePinia } from "pinia"
 import { nextTick } from "vue"
 
-import "@/setupFrappeUIResource"
-import { usePageScope } from "@/stores/codeStore"
-import type { Resource } from "@/types/Studio/StudioResource"
-import type { StudioPage } from "@/types/Studio/StudioPage"
-import type { Variable } from "@/types/Studio/StudioPageVariable"
+import "@studio/setupFrappeUIResource"
+import { usePageScope } from "@studio/stores/codeStore"
+import type { Resource } from "@studio/types/Studio/StudioResource"
+import type { StudioPage } from "@studio/types/Studio/StudioPage"
+import type { Variable } from "@studio/types/Studio/StudioPageVariable"
 
 // Assertions only rely on the Administrator and Guest users every site has
 const page = { name: "page-1" } as StudioPage

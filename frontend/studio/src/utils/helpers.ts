@@ -274,11 +274,11 @@ async function fetchApp(appName: string) {
 }
 
 function openAppInDesk(app: StudioApp) {
-	window.open(`/app/studio-app/${app.name}`, "_blank")
+	window.open(`/desk/studio-app/${app.name}`, "_blank")
 }
 
 function openPageInDesk(page: StudioPage) {
-	window.open(`/app/studio-page/${page.name}`, "_blank")
+	window.open(`/desk/studio-page/${page.name}`, "_blank")
 }
 
 // page
