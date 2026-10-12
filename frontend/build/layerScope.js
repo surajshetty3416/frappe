@@ -30,6 +30,14 @@ function insideKeyframes(rule) {
 	return rule.parent?.type === "atrule" && /keyframes$/i.test(rule.parent.name)
 }
 
+// a nested rule is scoped through the rule it sits in
+function nested(rule) {
+	for (let parent = rule.parent; parent; parent = parent.parent) {
+		if (parent.type === "rule") return true
+	}
+	return false
+}
+
 export default function layerScope() {
 	return {
 		postcssPlugin: "layer-scope",
@@ -38,7 +46,7 @@ export default function layerScope() {
 			if (!layer) return
 			const attr = `[data-layer="${layer}"]`
 			root.walkRules((rule) => {
-				if (insideKeyframes(rule)) return
+				if (insideKeyframes(rule) || nested(rule)) return
 				rule.selectors = rule.selectors.map((selector) => scope(selector, attr))
 			})
 		},
