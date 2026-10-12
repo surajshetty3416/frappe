@@ -1,0 +1,163 @@
+declare type StyleValue = string | number | boolean | null | undefined;
+
+declare module "csstype" {
+	interface Properties {
+		// crops an img/video to a sub-rect; Chromium + Safari render it, Firefox
+		// falls back to the uncropped cover fit
+		objectViewBox?: string;
+	}
+}
+
+declare type styleProperty = keyof CSSProperties | `${string}:${keyof CSSProperties}` | `__${string}`;
+
+declare interface BlockStyleMap {
+	[key: styleProperty]: StyleValue;
+}
+
+type BlockPropOptions = {
+	type: "number" | "string" | "boolean" | "select" | "array" | "object" | "image" | "color";
+	isRequired?: boolean;
+	// defaultValue?: any;
+	options?: Record<string, any>;
+	dependencies?: { [key: string]: any };
+};
+
+declare type BlockProps = Record<
+	string,
+	{
+		label?: string;
+		isDynamic: boolean;
+		isPassedDown: boolean;
+		comesFrom: "props" | "dataScript" | "componentData" | null;
+		value: string?;
+		isStandard?: boolean; // always true as used only in components
+		propOptions?: BlockPropOptions;
+	}
+>;
+
+declare type BlockVisibilityCondition = {
+	key: string | undefined;
+	comesFrom: "props" | "dataScript" | "componentData" | undefined;
+};
+
+declare interface BlockAttributeMap {
+	[key: string]: string | number | null | undefined;
+}
+
+declare interface BlockEditorConfig {
+	icon?: string;
+	showChildrenInEditor?: boolean;
+}
+
+declare interface BlockClientScript {
+	js?: string;
+	css?: string;
+}
+
+declare interface BlockOptions {
+	blockId?: string | undefined;
+	element?: string;
+	originalElement?: string;
+	baseStyles?: BlockStyleMap;
+	mobileStyles?: BlockStyleMap;
+	tabletStyles?: BlockStyleMap;
+	attributes?: BlockAttributeMap;
+	classes?: Array<string>;
+	children?: Array<Block | BlockOptions>;
+	dynamicValues?: Array<BlockDataKey>;
+	draggable?: boolean;
+	editorConfig?: BlockEditorConfig;
+	componentVersion?: string;
+	clientScript?: BlockClientScript;
+	blockClientScript?: string;
+	[key: string]: any;
+}
+
+declare interface BlockComponent {
+	name: string;
+	component_name: string;
+	component_id: string;
+	icon: string;
+	is_dynamic: boolean;
+	block: BlockOptions;
+	scale: number;
+}
+
+declare interface PageMap {
+	[key: string]: Page;
+}
+
+declare interface BlockStyleObjects {
+	baseStyles: BlockStyleMap;
+	mobileStyles?: BlockStyleMap;
+	tabletStyles?: BlockStyleMap;
+}
+
+declare interface StyleCopy {
+	blockId: string;
+	style: BlockStyleObjects;
+}
+
+declare interface ComponentData {
+	name: string;
+	doctype?: string;
+	isDynamic: boolean;
+	mappings?: {
+		[key: string]: string;
+	};
+}
+
+declare type HashString = `#${string}`;
+
+declare type RGBString = `rgb(${number}, ${number}, ${number})`;
+
+// the literals keep autocomplete; the string widens it for extension tabs
+declare type LeftSidebarTabOption =
+	| "Blocks"
+	| "Layers"
+	| "Assets"
+	| "Code"
+	| "Chat"
+	| "variables"
+	| (string & {});
+
+declare type BuilderMode = "select" | "text" | "container" | "image" | "repeater" | "move";
+
+declare interface Breakpoint {
+	icon: string;
+	device: string;
+	displayName: string;
+	width: number;
+	visible: boolean;
+}
+
+declare interface CanvasProps {
+	scale: number;
+	translateX: number;
+	translateY: number;
+	scaling: boolean;
+	panning: boolean;
+	background: string;
+	settingCanvas: boolean;
+	overlayElement: HTMLElement | null;
+	breakpoints: Breakpoint[];
+}
+
+declare type EditingMode = "page" | "fragment";
+
+declare type UserInfo = { user: string; fullname: string; image: string };
+
+declare type FileDoc = {
+	file_url: string;
+};
+
+declare interface BlockDataKey {
+	key?: string;
+	type?: BlockDataKeyType;
+	comesFrom?: "props" | "dataScript" | "componentData";
+	property?: string;
+}
+
+declare type BlockDataKeyType = "key" | "attribute" | "style";
+
+declare type CSSVariableName = string | `var(--${string})`;

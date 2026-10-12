@@ -1,0 +1,416 @@
+<template>
+	<Popover side="left" align="center" :offset="25" bare :open="isOpen" @update:open="onUpdateOpen">
+		<template #trigger>
+			<div
+				class="flex w-full items-center justify-between"
+				@focusin="handleFocusIn"
+				@click.capture="onAnchorClick">
+				<StylePropertyControl
+					propertyKey="background"
+					:component="Autocomplete"
+					:label="__('Background')"
+					:enableStates="true"
+					:allowDynamicValue="true"
+					:placeholder="__('Set Background')"
+					:getOptions="getColorOptions"
+					:selectOnFocus="true"
+					:getModelValue="() => getValue(null)"
+					:getVariantValue="(v: string) => getValue(v)"
+					:getControlAttrs="getControlAttrs"
+					:setVariantValue="handleSetVariant"
+					:setModelValue="(val: string) => setBGValue(val)">
+					<template #prefix="{ variant }">
+						<button
+							type="button"
+							class="size-4 cursor-pointer rounded-4 shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-4"
+							:aria-label="__('Open background picker')"
+							@mousedown.prevent
+							@click="toggleForState(variant)"
+							:class="{ 'bg-surface-gray-4': !getHasBackground(variant) }"
+							:style="getPreviewStyle(variant)" />
+					</template>
+				</StylePropertyControl>
+			</div>
+		</template>
+		<template #default>
+			<div
+				class="background-popover-body w-52 rounded-6 border border-outline-gray-2 bg-surface-base p-3 shadow-xl">
+				<TabButtons
+					:options="[
+						{ label: '', value: 'color', icon: 'lucide-droplet' },
+						{ label: '', value: 'image', icon: 'lucide-image' },
+						{ label: '', value: 'gradient', icon: 'lucide-aperture' },
+					]"
+					v-model="activeTab"
+					fluid
+					class="mb-3 w-full" />
+
+				<!-- Color Tab -->
+				<div v-if="activeTab === 'color'" class="w-full space-y-4">
+					<ColorPicker
+						ref="colorPickerRef"
+						renderMode="inline"
+						:modelValue="backgroundColor"
+						:showInput="true"
+						@update:modelValue="setBGColor" />
+				</div>
+
+				<!-- Image Tab -->
+				<FileUploader
+					v-else-if="activeTab === 'image'"
+					@success="setBGImage"
+					:private="false"
+					folder="Home/Builder Uploads"
+					:optimize="true"
+					uploadEndpoint="/api/method/builder.api.upload_builder_asset">
+					<template v-slot="{ openFileSelector }">
+						<div class="space-y-3">
+							<TabButtons
+								fluid
+								:options="sizeTabOptions"
+								:modelValue="backgroundSize || 'auto'"
+								@update:modelValue="setBGSize" />
+							<ImageFocusInput
+								v-if="backgroundImageURL"
+								:imageSrc="backgroundImageURL"
+								:modelValue="backgroundPosition"
+								:targetRatio="selectedBlockRatio"
+								:fit="backgroundSize === 'contain' ? 'contain' : 'scale-down'"
+								:disabled="!bgFocusEnabled"
+								@update:modelValue="setBGPosition" />
+							<div
+								v-else
+								class="flex h-24 items-center justify-center rounded-4 border border-dashed border-outline-gray-2 bg-surface-gray-1 text-p-xs text-ink-gray-4">
+								{{ __("No image") }}
+							</div>
+							<TabButtons
+								v-if="!bgFocusEnabled && backgroundImageURL"
+								fluid
+								:options="repeatTabOptions"
+								:modelValue="backgroundRepeat || 'repeat'"
+								@update:modelValue="setBGRepeat" />
+							<div class="flex items-center gap-1.5">
+								<Button
+									class="flex-1"
+									variant="outline"
+									iconLeft="lucide-upload"
+									:label="backgroundImageURL ? __('Replace') : __('Upload')"
+									@click="openFileSelector" />
+								<Button
+									v-if="bgFocusEnabled"
+									variant="outline"
+									icon="lucide-rotate-ccw"
+									:title="__('Reset focal point')"
+									@click="setBGPosition('center')" />
+								<Button
+									v-if="backgroundImageURL"
+									variant="outline"
+									icon="lucide-trash-2"
+									:title="__('Clear image')"
+									@click="clearBGImage" />
+							</div>
+						</div>
+					</template>
+				</FileUploader>
+
+				<!-- Gradient Tab -->
+				<div v-else class="space-y-4">
+					<GradientEditor :modelValue="rawBackgroundImage" @update:modelValue="setGradient" />
+					<Button :disabled="!isGradient" class="w-full" variant="subtle" @click="clearBGImage">
+						{{ __("Clear Gradient") }}
+					</Button>
+				</div>
+
+				<div
+					v-if="isTextBlock"
+					class="flex items-center justify-between pt-3"
+					:class="{
+						'px-0.5': activeTab !== 'image',
+					}">
+					<InputLabel class="flex-1">{{ __("Clip Background to Text") }}</InputLabel>
+					<Switch size="sm" :modelValue="backgroundClip === 'text'" @update:modelValue="setBGClip" />
+				</div>
+			</div>
+		</template>
+	</Popover>
+</template>
+
+<script lang="ts" setup>
+import { __ } from "@/translation";
+import Autocomplete from "@/components/Controls/Autocomplete.vue";
+import ColorPicker from "@/components/Controls/ColorPicker.vue";
+import GradientEditor from "@/components/Controls/GradientEditor.vue";
+import ImageFocusInput from "@/components/Controls/ImageFocusInput.vue";
+import StylePropertyControl from "@/components/Controls/StylePropertyControl.vue";
+import useBuilderStore from "@/stores/builderStore";
+import blockController from "@/utils/blockController";
+import { getColorVariableOptions } from "@/utils/colorOptions";
+import { cssUrl } from "@/utils/helpers";
+import { useBuilderToken } from "@/utils/useBuilderToken";
+import { useAnchoredPopover } from "@/utils/useAnchoredPopover";
+import { FileUploader, Popover, Switch, TabButtons, type TabButtonValue } from "frappe-ui";
+import { computed, ref, watch } from "vue";
+
+const builderStore = useBuilderStore();
+const { getVariableName, resolveVariableValue, variables } = useBuilderToken();
+
+const activeState = ref<string | null>(null);
+const colorPickerRef = ref<InstanceType<typeof ColorPicker> | null>(null);
+
+// the picker renders inline here, so this popover owns the "closed" moment
+const handlePopoverToggle = (open: boolean) => {
+	if (!open) colorPickerRef.value?.commitRecentColor();
+};
+const { isOpen, open, toggle, onAnchorClick, onUpdateOpen } = useAnchoredPopover(handlePopoverToggle);
+
+// the swatch keeps focus off itself, so activeState still names the state the popover shows
+const toggleForState = (state: string | null) => {
+	const isOpenForState = isOpen.value && activeState.value === state;
+	activeState.value = state;
+	toggle(!isOpenForState);
+};
+
+const updateActiveState = (e: FocusEvent) => {
+	const target = e.target as HTMLElement;
+
+	// If focusing popover controls, we preserve the current activeState
+	if (target.closest(".background-popover-body")) return;
+
+	const variantRow = target.closest("[data-variant]:not(input)");
+	const mainPropRow = target.closest("[data-property]");
+
+	if (variantRow) {
+		activeState.value = variantRow.getAttribute("data-variant") as string;
+	} else if (mainPropRow) {
+		activeState.value = null;
+	}
+};
+
+// a gradient or image has no text worth editing, so focus goes straight to the picker
+const handleFocusIn = (e: FocusEvent) => {
+	updateActiveState(e);
+	const target = e.target as HTMLElement;
+	if (target.tagName !== "INPUT" || target.closest(".background-popover-body")) return;
+	if (hasImage(activeState.value)) open();
+};
+
+const getStyleKey = (prop: string, state: string | null = activeState.value) => {
+	return state ? `${state}:${prop}` : prop;
+};
+
+const rawBackgroundImage = computed(
+	() => (blockController.getStyle(getStyleKey("backgroundImage")) || "") as string,
+);
+const backgroundColor = computed(() => blockController.getStyle(getStyleKey("backgroundColor")) as any);
+
+const isGradient = computed(() => rawBackgroundImage.value?.includes("gradient"));
+
+const activeTab = ref("color");
+watch(
+	[activeState, isGradient, rawBackgroundImage],
+	() => {
+		if (isGradient.value) activeTab.value = "gradient";
+		else if (rawBackgroundImage.value) activeTab.value = "image";
+		else activeTab.value = "color";
+	},
+	{ immediate: true },
+);
+
+const hasImage = (state: string | null) =>
+	Boolean(blockController.getStyle(getStyleKey("backgroundImage", state)));
+
+const getColorToken = (state: string | null) => {
+	const color = blockController.getStyle(getStyleKey("backgroundColor", state)) as string;
+	return !hasImage(state) && color?.startsWith("var(--") ? color : null;
+};
+
+// the var() value, not the name, so the dropdown marks it as selected
+const getValue = (state: string | null) => getColorToken(state) ?? getDisplayValue(state);
+
+const getControlAttrs = (state: string | null) => ({
+	displayValue: getDisplayValue(state),
+	class: getColorToken(state) ? "[&>div>div>input]:text-sm [&>div>div>input]:text-ink-violet-6" : "",
+});
+
+const getColorOptions = async (query: string) =>
+	getColorVariableOptions(query, variables.value, resolveVariableValue, builderStore.canvasDarkMode);
+
+const getDisplayValue = (state: string | null) => {
+	const bg = blockController.getStyle(getStyleKey("backgroundImage", state)) as string;
+	const color = blockController.getStyle(getStyleKey("backgroundColor", state)) as string;
+
+	if (bg?.includes("gradient")) return __("Gradient");
+	if (bg) {
+		const url = bg.replace(/^url\(['"]?|['"]?\)$/g, "");
+		const parts = url.split("/");
+		return parts[parts.length - 1] || __("Image");
+	}
+	// show the variable's name instead of its raw value e.g. var(--uuid)
+	if (color) return getVariableName(color) ?? color;
+	return "";
+};
+
+const backgroundImageURL = computed(() => {
+	const bgImage = rawBackgroundImage.value;
+	return bgImage && !isGradient.value ? bgImage.replace(/^url\(['"]?|['"]?\)$/g, "") : null;
+});
+
+const backgroundSize = computed(() => blockController.getStyle(getStyleKey("backgroundSize")) as string);
+const bgFocusEnabled = computed(() => Boolean(backgroundImageURL.value) && backgroundSize.value === "cover");
+const selectedBlockRatio = computed(() => blockController.getSelectedBlockAspectRatio());
+const backgroundPosition = computed(
+	() => blockController.getStyle(getStyleKey("backgroundPosition")) as string,
+);
+const backgroundRepeat = computed(() => blockController.getStyle(getStyleKey("backgroundRepeat")) as string);
+const backgroundClip = computed(
+	() =>
+		blockController.getStyle(getStyleKey("backgroundClip")) ||
+		blockController.getStyle(getStyleKey("WebkitBackgroundClip")),
+);
+const isTextBlock = computed(() => blockController.isText());
+
+const getHasBackground = (state: string | null) => {
+	return Boolean(
+		blockController.getStyle(getStyleKey("backgroundImage", state)) ||
+			blockController.getStyle(getStyleKey("backgroundColor", state)),
+	);
+};
+
+const getPreviewStyle = (state: string | null) => {
+	const bgValue = blockController.getStyle(getStyleKey("backgroundImage", state)) as string;
+	const colorValue = blockController.getStyle(getStyleKey("backgroundColor", state)) as string;
+	const size = blockController.getStyle(getStyleKey("backgroundSize", state)) as string;
+	const pos = blockController.getStyle(getStyleKey("backgroundPosition", state)) as string;
+	const repeat = blockController.getStyle(getStyleKey("backgroundRepeat", state)) as string;
+
+	let bg = "";
+	if (bgValue?.includes("gradient")) {
+		bg = bgValue;
+	} else if (bgValue) {
+		const url = bgValue.replace(/^url\(['"]?|['"]?\)$/g, "");
+		bg = cssUrl(url);
+	}
+
+	return {
+		backgroundColor: colorValue ? resolveVariableValue(colorValue, builderStore.canvasDarkMode) : colorValue,
+		backgroundImage: bg,
+		backgroundPosition: pos,
+		backgroundSize: size,
+		backgroundRepeat: repeat,
+	};
+};
+
+const sizeTabOptions = [
+	{ label: __("Fill & crop"), value: "cover" },
+	{ label: __("Fit"), value: "contain" },
+	{ label: __("Auto"), value: "auto" },
+];
+
+// icon-only tabs: frappe-ui labels each one with its `label`
+const repeatTabOptions = [
+	{ label: __("No repeat"), value: "no-repeat", icon: "lucide-square" },
+	{ label: __("Repeat"), value: "repeat", icon: "lucide-grid-2x2" },
+	{ label: __("Repeat horizontally"), value: "repeat-x", icon: "lucide-gallery-horizontal" },
+	{ label: __("Repeat vertically"), value: "repeat-y", icon: "lucide-gallery-vertical" },
+];
+
+const setBGImage = (file: { file_url: string }) => {
+	blockController.setStyle(getStyleKey("backgroundImage"), cssUrl(file.file_url));
+	blockController.setStyle(getStyleKey("backgroundColor"), null);
+	if (!blockController.getStyle(getStyleKey("backgroundSize"))) {
+		blockController.setStyle(getStyleKey("backgroundSize"), "cover");
+	}
+	if (!blockController.getStyle(getStyleKey("backgroundPosition"))) {
+		blockController.setStyle(getStyleKey("backgroundPosition"), "center");
+	}
+	if (!blockController.getStyle(getStyleKey("backgroundRepeat"))) {
+		blockController.setStyle(getStyleKey("backgroundRepeat"), "no-repeat");
+	}
+};
+
+const parseBackground = (value: string) => {
+	const color = /^([0-9A-F]{3}){1,2}$/i.test(value) ? `#${value}` : value;
+	if (CSS.supports("color", color)) return { color };
+	if (/^(url\(|https?:\/\/|\/|data:)/.test(value)) {
+		return { image: cssUrl(value.replace(/^url\(['"]?|['"]?\)$/g, "")) };
+	}
+	return null;
+};
+
+const setBackground = (bgKey: string, colorKey: string, value: string | null) => {
+	const parsed = value ? parseBackground(value) : null;
+	if (value && !parsed) return;
+	blockController.setStyle(colorKey, parsed?.color ?? null);
+	blockController.setStyle(bgKey, parsed?.image ?? null);
+};
+
+const setBGValue = (value: string | null) =>
+	setBackground(getStyleKey("backgroundImage"), getStyleKey("backgroundColor"), value);
+
+const setBGColor = (color: string | null) => {
+	blockController.setStyle(getStyleKey("backgroundColor"), color);
+	if (color) {
+		blockController.setStyle(getStyleKey("backgroundImage"), null);
+	}
+};
+
+const setGradient = (gradient: string) => {
+	blockController.setStyle(getStyleKey("backgroundImage"), gradient);
+	blockController.setStyle(getStyleKey("backgroundColor"), null);
+};
+
+const setBGSize = (value: TabButtonValue) => {
+	blockController.setStyle(getStyleKey("backgroundSize"), value);
+};
+
+const setBGPosition = (value: string) => {
+	blockController.setStyle(getStyleKey("backgroundPosition"), value);
+};
+
+const setBGRepeat = (value: TabButtonValue) => {
+	blockController.setStyle(getStyleKey("backgroundRepeat"), value);
+};
+
+const clearBGImage = () => {
+	blockController.setStyle(getStyleKey("backgroundImage"), null);
+	blockController.setStyle(getStyleKey("backgroundSize"), null);
+	blockController.setStyle(getStyleKey("backgroundPosition"), null);
+	blockController.setStyle(getStyleKey("backgroundRepeat"), null);
+	blockController.setStyle(getStyleKey("backgroundColor"), null);
+};
+
+const setBGClip = (value: boolean) => {
+	const clipValue = value ? "text" : null;
+	const fillValue = value ? "transparent" : null;
+
+	blockController.setStyle(getStyleKey("backgroundClip"), clipValue);
+	blockController.setStyle(getStyleKey("WebkitBackgroundClip"), clipValue);
+	blockController.setStyle(getStyleKey("WebkitTextFillColor"), fillValue);
+};
+
+const handleSetVariant = (variantName: string, value: string | number | boolean | null) => {
+	const bgKey = `${variantName}:backgroundImage`;
+	const colorKey = `${variantName}:backgroundColor`;
+
+	if (!value) {
+		blockController.setStyle(bgKey, null);
+		blockController.setStyle(colorKey, null);
+		return;
+	}
+
+	// Basic transition logic for states
+	blockController.getSelectedBlocks().forEach((block) => {
+		if (!block.getStyle("transitionDuration")) {
+			block.setStyle("transitionDuration", "300ms");
+			block.setStyle("transitionTimingFunction", "ease");
+			block.setStyle("transitionProperty", "all");
+		}
+	});
+
+	if (typeof value === "string" && parseBackground(value)) return setBackground(bgKey, colorKey, value);
+
+	// display text from the "copy current value to state" dropdown: copy the real base styles
+	blockController.setStyle(bgKey, (blockController.getStyle("backgroundImage") as string) ?? null);
+	blockController.setStyle(colorKey, (blockController.getStyle("backgroundColor") as string) ?? null);
+};
+</script>

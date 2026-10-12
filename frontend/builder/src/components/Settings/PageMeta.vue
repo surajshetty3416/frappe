@@ -1,0 +1,80 @@
+<template>
+	<div class="no-scrollbar flex h-full w-full flex-col items-center gap-5 overflow-y-auto px-[2px]">
+		<div class="flex w-full gap-5">
+			<!-- meta -->
+			<div class="flex flex-1 flex-col gap-4">
+				<div class="flex flex-1 flex-col gap-4">
+					<BuilderInput
+						type="text"
+						:label="__('Title')"
+						:modelValue="pageStore.activePage?.page_title"
+						@update:modelValue="(val: string) => pageStore.updateActivePage('page_title', val)" />
+					<BuilderInput
+						class="[&>div>textarea]:h-28"
+						type="textarea"
+						:label="__('Description')"
+						:modelValue="pageStore.activePage?.meta_description"
+						:hideClearButton="true"
+						@update:modelValue="(val: string) => pageStore.updateActivePage('meta_description', val)" />
+				</div>
+				<div class="flex flex-1 flex-col justify-between gap-2">
+					<ImageUploadInput
+						:modelValue="pageStore.activePage?.meta_image"
+						:label="__('Meta Image')"
+						:placeholder="__('Upload Meta Image')"
+						labelPosition="top"
+						@update:modelValue="
+							(url: string) => pageStore.updateActivePage('meta_image', url)
+						"></ImageUploadInput>
+				</div>
+			</div>
+			<!-- preview -->
+			<div class="flex h-fit w-72 flex-shrink-0 flex-col justify-between gap-1">
+				<span class="text-sm text-ink-gray-7">{{ __("Social Preview") }}</span>
+				<div class="flex flex-col overflow-hidden rounded-4 border border-outline-gray-2">
+					<img
+						:src="pageStore.activePage?.meta_image || pageStore.activePage?.preview"
+						alt=""
+						class="aspect-[1.91/1] w-full object-cover object-top" />
+					<div class="flex flex-col gap-0.5 border-t border-outline-gray-2 px-3 py-2">
+						<span class="truncate text-sm text-ink-gray-5">{{ pageStore.activePage?.route }}</span>
+						<span class="text-base-medium truncate text-ink-gray-9">
+							{{ pageStore.activePage?.page_title }}
+						</span>
+						<span
+							v-if="pageStore.activePage?.meta_description"
+							class="line-clamp-2 text-p-sm text-ink-gray-6">
+							{{ pageStore.activePage?.meta_description }}
+						</span>
+					</div>
+				</div>
+			</div>
+		</div>
+		<hr class="w-full border-outline-gray-2" />
+		<div class="flex w-full flex-col gap-5">
+			<BuilderInput
+				type="text"
+				:label="__('Canonical URL')"
+				:description="
+					__('Optional. Set this to specify a preferred version of this page for search engines.')
+				"
+				placeholder="https://example.com/preferred-page-url"
+				:modelValue="pageStore.activePage?.canonical_url"
+				:hideClearButton="true"
+				@update:modelValue="(val: string) => pageStore.updateActivePage('canonical_url', val)" />
+			<BuilderInput
+				type="text"
+				:label="__('Language')"
+				:description="__('Language code for HTML (e.g., en, es, fr, de). Uses default if unset.')"
+				placeholder="en"
+				:modelValue="pageStore.activePage?.language"
+				:hideClearButton="true"
+				@update:modelValue="(val: string) => pageStore.updateActivePage('language', val)" />
+		</div>
+	</div>
+</template>
+<script setup lang="ts">
+import ImageUploadInput from "@/components/ImageUploadInput.vue";
+import usePageStore from "@/stores/pageStore";
+const pageStore = usePageStore();
+</script>
