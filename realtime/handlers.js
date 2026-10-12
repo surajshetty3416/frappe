@@ -1,7 +1,10 @@
 const WEBSITE_ROOM = "website";
 const SITE_ROOM = "all";
 
+const flow_handlers = require("./flow_handlers");
+
 function frappe_handlers(socket) {
+	flow_handlers(socket);
 	socket.join(user_room(socket.user));
 	socket.join(WEBSITE_ROOM);
 

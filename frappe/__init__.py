@@ -1038,9 +1038,11 @@ def _load_app_hooks(app_name: str | None = None):
 		def _is_valid_hook(obj):
 			return not isinstance(obj, types.ModuleType | types.FunctionType | type)
 
-		for key, value in inspect.getmembers(app_hooks, predicate=_is_valid_hook):
-			if not key.startswith("_"):
-				append_hook(hooks, key, value)
+		layer_hooks = [get_module(f"{app}.{layer}.hooks") for layer in getattr(app_hooks, "layers", ())]
+		for module in (app_hooks, *layer_hooks):
+			for key, value in inspect.getmembers(module, predicate=_is_valid_hook):
+				if not key.startswith("_"):
+					append_hook(hooks, key, value)
 	return hooks
 
 

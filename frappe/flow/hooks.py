@@ -1,45 +1,41 @@
-app_name = "flow"
-app_title = "Flow"
-app_publisher = "Shrihari Mahabal"
-app_description = "Frappe Flow — native AI agents, tools, and triggers for Frappe"
-app_email = "shriharimahabal08@gmail.com"
-app_license = "agpl-3.0"
 
-export_python_type_annotations = True
 
 # The /flow page: a Vite app (frontend/) built by `yarn build` into public/frontend, its
 # entry copied to www/flow/index.html. Every path under /flow serves that page.
 add_to_apps_screen = [
 	{
 		"name": "flow",
-		"logo": "/assets/flow/frontend/flow.png",
+		"logo": "/assets/frappe/frontend/flow.png",
 		"title": "Flow",
 		"route": "/flow",
-		"has_permission": "flow.permissions.has_app_permission",
+		"has_permission": "frappe.flow.permissions.has_app_permission",
 	}
 ]
-website_route_rules = [{"from_route": "/flow/<path:app_path>", "to_route": "flow"}]
+website_route_rules = [
+	{"from_route": "/flow/<path:app_path>", "to_route": "_frontend"},
+	{"from_route": "/flow", "to_route": "_frontend"},
+]
 
 doc_events = {
 	"*": {
-		"after_insert": "flow.triggers.dispatch",
-		"on_update": "flow.triggers.dispatch",
-		"on_submit": "flow.triggers.dispatch",
-		"on_cancel": "flow.triggers.dispatch",
-		"on_trash": "flow.triggers.dispatch",
+		"after_insert": "frappe.flow.triggers.dispatch",
+		"on_update": "frappe.flow.triggers.dispatch",
+		"on_submit": "frappe.flow.triggers.dispatch",
+		"on_cancel": "frappe.flow.triggers.dispatch",
+		"on_trash": "frappe.flow.triggers.dispatch",
 	}
 }
 
 # a session's tools run as its owner, so its content is theirs alone
 has_permission = {
-	"Flow Session": "flow.permissions.has_session_permission",
-	"Flow Run": "flow.permissions.has_session_permission",
-	"Flow Agent Memory": "flow.permissions.has_memory_permission",
+	"Flow Session": "frappe.flow.permissions.has_session_permission",
+	"Flow Run": "frappe.flow.permissions.has_session_permission",
+	"Flow Agent Memory": "frappe.flow.permissions.has_memory_permission",
 }
 permission_query_conditions = {
-	"Flow Session": "flow.permissions.session_query_conditions",
-	"Flow Run": "flow.permissions.session_query_conditions",
-	"Flow Agent Memory": "flow.permissions.memory_query_conditions",
+	"Flow Session": "frappe.flow.permissions.session_query_conditions",
+	"Flow Run": "frappe.flow.permissions.session_query_conditions",
+	"Flow Agent Memory": "frappe.flow.permissions.memory_query_conditions",
 }
 
 # Flow's references to other docs are bookkeeping — they must never block deleting
@@ -54,29 +50,29 @@ default_log_clearing_doctypes = {
 
 scheduler_events = {
 	"daily": [
-		"flow.knowledge.ingest.sync_due_sources",
+		"frappe.flow.knowledge.ingest.sync_due_sources",
 	],
 	"cron": {
 		"*/5 * * * *": [
-			"flow.triggers.dispatch_scheduled",
-			"flow.daemon.lifecycle.keep_alive",
+			"frappe.flow.triggers.dispatch_scheduled",
+			"frappe.flow.daemon.lifecycle.keep_alive",
 		],
 	},
 }
 
 after_install = [
-	"flow.permissions.ensure_flow_role",
-	"flow.assistant.sync_builtin_assistant",
-	"flow.daemon.lifecycle.after_install",
+	"frappe.flow.permissions.ensure_flow_role",
+	"frappe.flow.assistant.sync_builtin_assistant",
+	"frappe.flow.daemon.lifecycle.after_install",
 ]
 after_migrate = [
-	"flow.permissions.ensure_flow_role",
-	"flow.assistant.sync_builtin_assistant",
-	"flow.lib.agent.sync_agents",
-	"flow.lib.agent.sync_tools",
-	"flow.daemon.lifecycle.after_migrate",
+	"frappe.flow.permissions.ensure_flow_role",
+	"frappe.flow.assistant.sync_builtin_assistant",
+	"frappe.flow.lib.agent.sync_agents",
+	"frappe.flow.lib.agent.sync_tools",
+	"frappe.flow.daemon.lifecycle.after_migrate",
 ]
-after_app_install = ["flow.lib.agent.sync_agents", "flow.lib.agent.sync_tools"]
-before_uninstall = ["flow.daemon.lifecycle.remove_site"]
+after_app_install = ["frappe.flow.lib.agent.sync_agents", "frappe.flow.lib.agent.sync_tools"]
+before_uninstall = ["frappe.flow.daemon.lifecycle.remove_site"]
 
-extend_bootinfo = "flow.boot.boot_session"
+extend_bootinfo = "frappe.flow.boot.boot_session"

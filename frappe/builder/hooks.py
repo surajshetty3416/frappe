@@ -1,24 +1,16 @@
 import frappe
 
-app_name = "builder"
-app_title = "Frappe Builder"
-app_publisher = "Frappe Technologies Pvt Ltd"
-app_description = "An easier way to build web pages for your needs!"
-app_email = "suraj@frappe.io"
-app_license = "MIT"
 
 # Includes in <head>
 # ------------------
 # include js, css files in header of desk.html
-# app_include_css = "/assets/builder/css/builder.css"
-app_include_js = "/assets/builder/js/builder.js"
+# app_include_css = "/assets/frappe/builder/css/builder.css"
+app_include_js = "/assets/frappe/builder/js/builder.js"
 
-export_python_type_annotations = True
-require_type_annotated_api_methods = True
 
 # include js, css files in header of web template
-# web_include_css = "/assets/builder/css/builder.css"
-# web_include_js = "/assets/builder/js/builder.js"
+# web_include_css = "/assets/frappe/builder/css/builder.css"
+# web_include_js = "/assets/frappe/builder/js/builder.js"
 
 # include custom scss in every website theme (without file extension ".scss")
 # website_theme_scss = "builder/public/scss/website"
@@ -56,22 +48,22 @@ website_generators = ["Builder Page"]
 # add methods and filters to jinja environment
 jinja = {
 	"methods": [
-		"builder.builder.doctype.builder_component.builder_component.get_component_data",
+		"frappe.builder.doctype.builder_component.builder_component.get_component_data",
 	],
 	"filters": [
-		"builder.utils.combine",
-		"builder.utils.hash",
-		"builder.utils.to_safe_json",
+		"frappe.builder.utils.combine",
+		"frappe.builder.utils.hash",
+		"frappe.builder.utils.to_safe_json",
 	],
 }
 
 # Installation
 # ------------
 
-# before_install = "builder.install.before_install"
-after_install = "builder.install.after_install"
-after_migrate = "builder.install.after_migrate"
-after_app_install = "builder.install.after_app_install"
+# before_install = "frappe.builder.install.before_install"
+after_install = "frappe.builder.install.after_install"
+after_migrate = "frappe.builder.install.after_migrate"
+after_app_install = "frappe.builder.install.after_app_install"
 
 # Uninstallation
 # ------------
@@ -102,7 +94,7 @@ user_invitation = {
 		"System Manager": ["Website Manager"],
 		"Website Manager": ["Website Manager"],
 	},
-	"after_accept": ["builder.user_invitation.after_accept"],
+	"after_accept": ["frappe.builder.user_invitation.after_accept"],
 }
 
 # DocType Class
@@ -119,7 +111,7 @@ user_invitation = {
 
 doc_events = {
 	"User Invitation": {
-		"after_insert": "builder.user_invitation.capture_user_invited",
+		"after_insert": "frappe.builder.user_invitation.capture_user_invited",
 	}
 }
 
@@ -129,8 +121,8 @@ doc_events = {
 scheduler_events = {
 	"cron": {
 		"*/10 * * * *": [
-			"builder.builder_analytics.ingest_web_page_views_to_duckdb",
-			"builder.builder_analytics.ingest_clicks_to_duckdb",
+			"frappe.builder.builder_analytics.ingest_web_page_views_to_duckdb",
+			"frappe.builder.builder_analytics.ingest_clicks_to_duckdb",
 		],
 	}
 }
@@ -138,7 +130,7 @@ scheduler_events = {
 # Testing
 # -------
 
-# before_tests = "builder.install.before_tests"
+# before_tests = "frappe.builder.install.before_tests"
 
 # Overriding Methods
 # ------------------------------
@@ -202,27 +194,27 @@ except RuntimeError:
 	# as done by `bench generate-pot-file --app builder`.
 	builder_path = "builder"
 website_route_rules = [
-	{"from_route": f"/{builder_path}/<path:app_path>", "to_route": "_builder"},
-	{"from_route": f"/{builder_path}", "to_route": "_builder"},
+	{"from_route": f"/{builder_path}/<path:app_path>", "to_route": "_frontend"},
+	{"from_route": f"/{builder_path}", "to_route": "_frontend"},
 ]
 
-website_path_resolver = "builder.builder.doctype.builder_page.builder_page.resolve_path"
-page_renderer = "builder.builder.doctype.builder_page.builder_page.BuilderPageRenderer"
+website_path_resolver = "frappe.builder.doctype.builder_page.builder_page.resolve_path"
+page_renderer = "frappe.builder.doctype.builder_page.builder_page.BuilderPageRenderer"
 
 get_web_pages_with_dynamic_routes = (
-	"builder.builder.doctype.builder_page.builder_page.get_web_pages_with_dynamic_routes"
+	"frappe.builder.doctype.builder_page.builder_page.get_web_pages_with_dynamic_routes"
 )
 
 get_website_user_home_page = (
-	"builder.builder.doctype.builder_settings.builder_settings.get_website_user_home_page"
+	"frappe.builder.doctype.builder_settings.builder_settings.get_website_user_home_page"
 )
 
 add_to_apps_screen = [
 	{
 		"name": "builder",
-		"logo": "/assets/builder/frontend/builder_logo.png",
+		"logo": "/assets/frappe/frontend/builder_logo.png",
 		"title": "Builder",
 		"route": f"/{builder_path}",
-		"has_permission": "builder.api.check_app_permission",
+		"has_permission": "frappe.builder.api.check_app_permission",
 	}
 ]

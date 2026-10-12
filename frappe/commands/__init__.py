@@ -113,6 +113,8 @@ def get_commands():
 	from .testing import commands as testing_commands
 	from .translate import commands as translate_commands
 	from .utils import commands as utils_commands
+	from .flow import commands as flow_commands
+	from .studio import commands as studio_commands
 
 	clickable_link = "https://frappeframework.com/docs"
 	all_commands = (
@@ -124,6 +126,8 @@ def get_commands():
 		+ microbenchmark_commands
 		+ utils_commands
 		+ redis_commands
+		+ flow_commands
+		+ studio_commands
 	)
 
 	for command in all_commands:

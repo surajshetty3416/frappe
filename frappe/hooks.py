@@ -13,6 +13,9 @@ app_home = "/app/build"
 
 app_email = "developers@frappe.io"
 
+# Each layer is a package in this app with its own hooks.py, merged into these hooks.
+layers = ["builder", "insights", "flow", "studio"]
+
 before_install = "frappe.utils.install.before_install"
 after_install = "frappe.utils.install.after_install"
 after_app_install = "frappe.utils.install.create_desktop_icons_for_app"

@@ -1,16 +1,6 @@
 import frappe
 
-app_name = "insights"
-app_title = "Insights"
-app_publisher = "Frappe Technologies Pvt. Ltd."
-app_description = "Powerful Reporting Tool for Frappe Apps"
-app_icon = "octicon octicon-file-directory"
-app_color = "grey"
-app_email = "hello@frappe.io"
-app_license = "GNU GPLv3"
 
-export_python_type_annotations = True
-require_type_annotated_api_methods = True
 
 # Sites that already serve something at /insights (e.g. a website page) can move
 # the app elsewhere by setting `insights_path` in site config. Stored without
@@ -23,10 +13,10 @@ insights_path = (frappe.conf.insights_path or "insights").strip("/") or "insight
 add_to_apps_screen = [
     {
         "name": "insights",
-        "logo": "/assets/insights/frontend/insights-logo.png",
+        "logo": "/assets/frappe/frontend/insights-logo.png",
         "title": "Insights",
         "route": f"/{insights_path}",
-        "has_permission": "insights.permissions.check_app_permission",
+        "has_permission": "frappe.insights.permissions.check_app_permission",
     }
 ]
 
@@ -34,14 +24,14 @@ add_to_apps_screen = [
 # ------------------
 
 # include js, css files in header of desk.html
-# app_include_css = "/assets/insights/css/insights.css"
+# app_include_css = "/assets/frappe/insights/css/insights.css"
 
 # a desk page with an island needs the app's mount path to build links
-extend_bootinfo = "insights.desk.boot_app_path"
+extend_bootinfo = "frappe.insights.desk.boot_app_path"
 
 # include js, css files in header of web template
-# web_include_css = "/assets/insights/css/insights.css"
-# web_include_js = "/assets/insights/js/insights.js"
+# web_include_css = "/assets/frappe/insights/css/insights.css"
+# web_include_js = "/assets/frappe/insights/js/insights.js"
 
 # include custom scss in every website theme (without file extension ".scss")
 # website_theme_scss = "insights/public/scss/website"
@@ -81,19 +71,19 @@ extend_bootinfo = "insights.desk.boot_app_path"
 
 # add methods and filters to jinja environment
 # jinja = {
-# 	"methods": "insights.utils.jinja_methods",
-# 	"filters": "insights.utils.jinja_filters"
+# 	"methods": "frappe.insights.utils.jinja_methods",
+# 	"filters": "frappe.insights.utils.jinja_filters"
 # }
 
 # Installation
 # ------------
 
 # before_install = "insights.install.before_install"
-after_install = "insights.migrate.after_migrate"
-after_migrate = "insights.migrate.after_migrate"
-after_app_install = "insights.migrate.after_app_install"
+after_install = "frappe.insights.migrate.after_migrate"
+after_migrate = "frappe.insights.migrate.after_migrate"
+after_app_install = "frappe.insights.migrate.after_app_install"
 
-after_request = ["insights.insights.doctype.insights_data_source_v3.insights_data_source_v3.after_request"]
+after_request = ["frappe.insights.doctype.insights_data_source_v3.insights_data_source_v3.after_request"]
 
 fixtures = [
     {
@@ -119,27 +109,27 @@ fixtures = [
 # Permissions evaluated in scripted ways
 
 permission_query_conditions = {
-    "Insights Data Source v3": "insights.permissions.get_permission_query_conditions",
-    "Insights Table v3": "insights.permissions.get_permission_query_conditions",
-    "Insights Team": "insights.permissions.get_permission_query_conditions",
-    "Insights Workbook": "insights.permissions.get_permission_query_conditions",
-    "Insights Query v3": "insights.permissions.get_permission_query_conditions",
-    "Insights Chart v3": "insights.permissions.get_permission_query_conditions",
-    "Insights Dashboard v3": "insights.permissions.get_permission_query_conditions",
-    "Insights Alert": "insights.permissions.get_permission_query_conditions",
-    "Insights Folder": "insights.permissions.get_permission_query_conditions",
+    "Insights Data Source v3": "frappe.insights.permissions.get_permission_query_conditions",
+    "Insights Table v3": "frappe.insights.permissions.get_permission_query_conditions",
+    "Insights Team": "frappe.insights.permissions.get_permission_query_conditions",
+    "Insights Workbook": "frappe.insights.permissions.get_permission_query_conditions",
+    "Insights Query v3": "frappe.insights.permissions.get_permission_query_conditions",
+    "Insights Chart v3": "frappe.insights.permissions.get_permission_query_conditions",
+    "Insights Dashboard v3": "frappe.insights.permissions.get_permission_query_conditions",
+    "Insights Alert": "frappe.insights.permissions.get_permission_query_conditions",
+    "Insights Folder": "frappe.insights.permissions.get_permission_query_conditions",
 }
 
 has_permission = {
-    "Insights Data Source v3": "insights.permissions.has_doc_permission",
-    "Insights Table v3": "insights.permissions.has_doc_permission",
-    "Insights Team": "insights.permissions.has_doc_permission",
-    "Insights Workbook": "insights.permissions.has_doc_permission",
-    "Insights Query v3": "insights.permissions.has_doc_permission",
-    "Insights Chart v3": "insights.permissions.has_doc_permission",
-    "Insights Dashboard v3": "insights.permissions.has_doc_permission",
-    "Insights Alert": "insights.permissions.has_doc_permission",
-    "Insights Folder": "insights.permissions.has_doc_permission",
+    "Insights Data Source v3": "frappe.insights.permissions.has_doc_permission",
+    "Insights Table v3": "frappe.insights.permissions.has_doc_permission",
+    "Insights Team": "frappe.insights.permissions.has_doc_permission",
+    "Insights Workbook": "frappe.insights.permissions.has_doc_permission",
+    "Insights Query v3": "frappe.insights.permissions.has_doc_permission",
+    "Insights Chart v3": "frappe.insights.permissions.has_doc_permission",
+    "Insights Dashboard v3": "frappe.insights.permissions.has_doc_permission",
+    "Insights Alert": "frappe.insights.permissions.has_doc_permission",
+    "Insights Folder": "frappe.insights.permissions.has_doc_permission",
 }
 
 # DocType Class
@@ -156,23 +146,23 @@ has_permission = {
 
 doc_events = {
     "User": {
-        "on_change": "insights.insights.doctype.insights_team.insights_team.update_admin_team",
+        "on_change": "frappe.insights.doctype.insights_team.insights_team.update_admin_team",
     },
     # a desk document that links to Insights content renders through an
     # Insights island — see insights/desk.py
     "Dashboard": {
-        "onload": "insights.desk.claim",
+        "onload": "frappe.insights.desk.claim",
     },
     "Dashboard Chart": {
-        "onload": "insights.desk.claim",
+        "onload": "frappe.insights.desk.claim",
     },
     "DocShare": {
-        "validate": "insights.permissions.validate_member_share",
+        "validate": "frappe.insights.permissions.validate_member_share",
     },
     # child tables of workbook members
     ("Insights Dashboard Chart v3", "Has Role", "Insights Query Variable"): {
-        "validate": "insights.permissions.refuse_member_row_alone",
-        "on_trash": "insights.permissions.refuse_member_row_alone",
+        "validate": "frappe.insights.permissions.refuse_member_row_alone",
+        "on_trash": "frappe.insights.permissions.refuse_member_row_alone",
     },
 }
 
@@ -181,18 +171,18 @@ doc_events = {
 
 scheduler_events = {
     "all": [
-        "insights.insights.doctype.insights_alert.insights_alert.send_alerts",
-        "insights.api.data_store.sync_tables",
+        "frappe.insights.doctype.insights_alert.insights_alert.send_alerts",
+        "frappe.insights.api.data_store.sync_tables",
     ],
     "daily": [
-        "insights.telemetry_scan.run_site_scan",
+        "frappe.insights.telemetry_scan.run_site_scan",
     ],
     "weekly": [
-        "insights.insights.doctype.insights_data_source_v3.data_warehouse.cleanup_data_store",
+        "frappe.insights.doctype.insights_data_source_v3.data_warehouse.cleanup_data_store",
     ],
     "hourly": [
-        "insights.api.data_store.update_failed_sync_status",
-        "insights.insights.doctype.insights_table_import_job.insights_table_import_job.run_scheduled_imports",
+        "frappe.insights.api.data_store.update_failed_sync_status",
+        "frappe.insights.doctype.insights_table_import_job.insights_table_import_job.run_scheduled_imports",
     ],
 }
 
@@ -203,7 +193,7 @@ default_log_clearing_doctypes = {
 # Testing
 # -------
 
-before_tests = "insights.tests.utils.before_tests"
+before_tests = "frappe.insights.tests.utils.before_tests"
 
 # Overriding Methods
 # ------------------------------
@@ -255,15 +245,15 @@ before_tests = "insights.tests.utils.before_tests"
 # 	"insights.auth.validate"
 # ]
 
-page_renderer = "insights.utils.InsightsPageRenderer"
+page_renderer = "frappe.insights.utils.InsightsPageRenderer"
 
 website_route_rules = [
-    {"from_route": f"/{insights_path}/<path:app_path>", "to_route": "_insights"},
-    {"from_route": f"/{insights_path}", "to_route": "_insights"},
+    {"from_route": f"/{insights_path}/<path:app_path>", "to_route": "_frontend"},
+    {"from_route": f"/{insights_path}", "to_route": "_frontend"},
 ]
 
 standard_queries = {
-    "Insights Query v3": "insights.api.search.search_workbook_items",
-    "Insights Chart v3": "insights.api.search.search_workbook_items",
-    "Insights Dashboard v3": "insights.api.search.search_workbook_items",
+    "Insights Query v3": "frappe.insights.api.search.search_workbook_items",
+    "Insights Chart v3": "frappe.insights.api.search.search_workbook_items",
+    "Insights Dashboard v3": "frappe.insights.api.search.search_workbook_items",
 }
