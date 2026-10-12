@@ -56,6 +56,7 @@ from frappe.web.ai.models import ModelRegistry
 from frappe.web.ai.prompts import Prompts
 from frappe.web.ai.session import AISession
 from frappe.web.ai.snapshots import capture_page_state, save_revert_snapshot
+from frappe.web.hooks import builder_path
 from frappe.web.utils import to_compact_yaml
 
 logger = frappe.logger("frappe.web.ai.agent.loop")
@@ -349,7 +350,7 @@ class AgentRunner:
 		# The editor-URL prefix is site-configurable; resolve it so the links the
 		# agent writes (e.g. to a page it built off-canvas) actually work here.
 		self.system_prompt = (system_prompt or Prompts.AGENT_SYSTEM).replace(
-			"{BUILDER_PATH}", frappe.conf.builder_path or "builder"
+			"{BUILDER_PATH}", builder_path
 		)
 		# The authoritative working tree — loaded from the DB by load_page in run().
 		self.tree: WorkingTree | None = None

@@ -5,7 +5,7 @@ import { CanvasProps } from "@web/types/Builder/BuilderCanvas";
 import { getRootBlockTemplate } from "@web/utils/helpers";
 import { useCanvasHistory } from "@web/utils/useCanvasHistory";
 import { useElementBounding } from "@vueuse/core";
-import { nextTick, reactive, ref, Ref } from "vue";
+import { nextTick, reactive, ref, Ref, watch } from "vue";
 import { toast } from "frappe-ui";
 import { __ } from "@web/translation";
 
@@ -23,6 +23,21 @@ export function useCanvasUtils(
 	const isDirty = ref(false);
 	const containerBound = reactive(useElementBounding(canvasContainer));
 	const canvasBound = reactive(useElementBounding(canvas));
+
+	// A canvas nobody has zoomed or panned yet refits when its room changes, as when Studio's
+	// chat opens beside the editor after the canvas first fit itself.
+	let fitted = false;
+	watch(
+		() => [canvasProps.scale, canvasProps.translateX, canvasProps.translateY],
+		() => (fitted = false),
+		{ flush: "sync" },
+	);
+	watch(
+		() => containerBound.width,
+		(width, oldWidth) => {
+			if (fitted && width && oldWidth) setScaleAndTranslate();
+		},
+	);
 	async function scrollIntoView(
 		blockToFocus: Block,
 		canvasProps: CanvasProps,
@@ -201,6 +216,7 @@ export function useCanvasUtils(
 			canvasProps.translateY = diffY / scale;
 		}
 		canvasProps.settingCanvas = false;
+		fitted = true;
 	};
 
 	// a kept viewport can point past the end of a shorter page, so bring it back to the top at the same zoom

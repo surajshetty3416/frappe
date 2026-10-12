@@ -11,6 +11,7 @@ from frappe.web.ai.agent.tools.query import (
 	resolve_page_reference,
 	run_read_page,
 )
+from frappe.web.hooks import builder_path
 from frappe.web.utils import Block
 
 
@@ -106,8 +107,6 @@ class TestResolvePageReference(FrappeTestCase):
 
 	def test_resolves_an_editor_url_of_this_site(self):
 		host = frappe.utils.get_url()
-		builder_path = frappe.conf.builder_path or "builder"
-
 		page_id, why = resolve_page_reference(f"{host}/{builder_path}/page/{self.page.name}")
 
 		self.assertEqual((page_id, why), (self.page.name, ""))

@@ -13,6 +13,8 @@ import BlockLayers from "./components/BlockLayers.vue";
 
 const { capture } = useTelemetry();
 const belowLgBreakpoint = useBreakpoints(breakpointsTailwind).smaller("lg");
+const MIN_LEFT_PANEL_WIDTH = 200;
+const MIN_CANVAS_WIDTH = 480;
 
 declare global {
 	interface Window {
@@ -39,6 +41,8 @@ const useBuilderStore = defineStore("builderStore", {
 			scriptEditorHeight: 300,
 			optionsPanelWidth: 57,
 		},
+		// the editor's own width, narrower than the window when Studio's chat sits beside it
+		editorWidth: 0,
 		leftPanelActiveTab: <LeftSidebarTabOption>"Layers",
 		showRightPanel: <boolean>true,
 		showLeftPanel: <boolean>true,
@@ -74,6 +78,16 @@ const useBuilderStore = defineStore("builderStore", {
 	getters: {
 		isSmallScreen(): boolean {
 			return belowLgBreakpoint.value;
+		},
+		// the left panel gives way first, so a narrow editor keeps room for the canvas
+		leftPanelRoom(): number {
+			const { optionsPanelWidth, rightPanelWidth } = this.builderLayout;
+			if (!this.editorWidth) return Infinity;
+			const right = this.showRightPanel ? rightPanelWidth : 0;
+			return Math.max(MIN_LEFT_PANEL_WIDTH, this.editorWidth - optionsPanelWidth - right - MIN_CANVAS_WIDTH);
+		},
+		fittedLeftPanelWidth(): number {
+			return Math.min(this.builderLayout.leftPanelWidth, this.leftPanelRoom);
 		},
 		isAIEnabled(): boolean {
 			return !!this.aiConfigured || !!builderSettings.doc?.ai_api_key;

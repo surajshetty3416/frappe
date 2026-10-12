@@ -512,10 +512,10 @@ class TestStandardPageSync(FrappeTestCase):
 				with self.with_developer_mode():
 					variable.is_standard = 0
 					variable.save(ignore_permissions=True)
-				mock_delete_folder.assert_called_once_with("builder", "builder_token", variable.name)
+				mock_delete_folder.assert_called_once_with("web", "builder_token", variable.name)
 		finally:
 			# the mock kept the export the first save wrote into the source tree
-			delete_folder("builder", "builder_token", variable.name)
+			delete_folder("web", "builder_token", variable.name)
 			self.delete_if_exists("Builder Token", variable.name, force=1)
 
 	def test_on_trash_standard_page_removes_orphaned_variable(self):

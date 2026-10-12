@@ -1,4 +1,4 @@
 frappe.search.utils.make_function_searchable(
-  () => window.open("/builder"),
+  () => window.open("/studio/web"),
   __("Open Builder"),
 );

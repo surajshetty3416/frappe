@@ -10,20 +10,20 @@ from frappe.tests.utils import FrappeTestCase
 from frappe.web.shell import get_boot
 from frappe.www import _studio as frontend_page
 
-FRONTEND_SRC = os.path.join("frontend", "builder", "src")
+FRONTEND_SRC = os.path.join("studio", "web", "src")
 
 
 class TestI18n(FrappeTestCase):
 	def test_frontend_strings_are_extractable(self):
 		expected_locations = {
-			"You do not have permission to access this page": {"frontend/builder/src/router.ts"},
+			"You do not have permission to access this page": {"studio/web/src/router.ts"},
 			"All Pages": {
-				"frontend/builder/src/components/DashboardHead.vue",
-				"frontend/builder/src/components/DashboardSidebar.vue",
+				"studio/web/src/components/DashboardHead.vue",
+				"studio/web/src/components/DashboardSidebar.vue",
 			},
-			"Select (v)": {"frontend/builder/src/components/ToolbarItems/ModeSwitcher.vue"},
+			"Select (v)": {"studio/web/src/components/ToolbarItems/ModeSwitcher.vue"},
 			'Are you sure you want to unpublish "{0}"? It will no longer be accessible on the website.': {
-				"frontend/builder/src/stores/pageStore.ts"
+				"studio/web/src/stores/pageStore.ts"
 			},
 		}
 

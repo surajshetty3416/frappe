@@ -3,19 +3,24 @@ import { defineLayer } from "@shell/layer";
 import { setAppRouter, validateVisit } from "./router";
 
 export default defineLayer({
-	name: "builder",
+	name: "web",
 	title: "Websites",
 	icon: "lucide-globe",
-	// a site can serve the editor elsewhere (site config `builder_path`); read once the boot data is in
+	// site config `builder_path` can move the layer elsewhere under /studio; read once the boot data is in
 	get path() {
-		return window.builder_path || "/builder";
+		return window.builder_path || "/studio/web";
 	},
 	component: () => import("./App.vue"),
 	routes: [
 		{ path: "", name: "builder-home", component: () => import("./pages/PageBuilderDashboard.vue") },
 		{ path: "home", redirect: { name: "builder-home" } },
 		{ path: "page", redirect: { name: "builder-home" } },
-		{ path: "page/:pageId", name: "builder-editor", component: () => import("./pages/PageBuilder.vue") },
+		{
+			path: "page/:pageId",
+			name: "builder-editor",
+			component: () => import("./pages/PageBuilder.vue"),
+			meta: { artifact: { doctype: "Builder Page", param: "pageId" } },
+		},
 		{
 			path: "page/:pageId/preview",
 			name: "builder-preview",
@@ -26,7 +31,7 @@ export default defineLayer({
 			name: "builder-persona-survey",
 			component: () => import("./pages/PagePersonaSurvey.vue"),
 		},
-		// anything else under /builder (an old link, the editor demo's /builder/demo/<page>)
+		// anything else under the layer (an old link, the editor demo's /studio/web/demo/<page>)
 		{ path: ":unknown(.*)*", redirect: { name: "builder-home" } },
 	],
 	setup: async (app) => {

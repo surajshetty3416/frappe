@@ -1,10 +1,10 @@
 <template>
 	<div class="flex">
 		<PanelResizer
-			:dimension="builderStore.builderLayout.leftPanelWidth"
+			:dimension="builderStore.fittedLeftPanelWidth"
 			side="right"
 			:minDimension="200"
-			:maxDimension="500"
+			:maxDimension="Math.min(500, builderStore.leftPanelRoom)"
 			@resize="(width) => (builderStore.builderLayout.leftPanelWidth = width)" />
 		<div
 			class="flex min-h-full flex-col items-center gap-2 border-r border-outline-gray-1 p-3"
@@ -27,7 +27,7 @@
 		<div
 			class="no-scrollbar relative min-h-full overflow-auto"
 			:style="{
-				width: `${builderStore.builderLayout.leftPanelWidth}px`,
+				width: `${builderStore.fittedLeftPanelWidth}px`,
 			}">
 			<template v-for="tab of tabs" :key="tab.name">
 				<div

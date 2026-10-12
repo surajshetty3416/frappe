@@ -1,5 +1,5 @@
 <template>
-	<div class="flex h-screen flex-col bg-surface-base">
+	<div class="flex h-full flex-col bg-surface-base">
 		<div v-if="!isFullscreen" class="grid grid-cols-[1fr_auto_1fr] items-center border-b px-3 py-2">
 			<div class="flex items-center gap-1">
 				<Button

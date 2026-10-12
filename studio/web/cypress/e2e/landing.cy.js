@@ -3,6 +3,6 @@ describe("Builder Dashboard", () => {
 		cy.login();
 	});
 	it("Open builder page", () => {
-		cy.visit("builder/home");
+		cy.visit("studio/web");
 	});
 });

@@ -158,7 +158,7 @@ watchEffect(() => {
 	parentBlock?.getStyle("paddingRight");
 	parentBlock?.getStyle("margin");
 	parentBlock?.getChildIndex(props.block);
-	builderStore.builderLayout.leftPanelWidth;
+	builderStore.fittedLeftPanelWidth;
 	builderStore.builderLayout.rightPanelWidth;
 	builderStore.showRightPanel;
 	builderStore.showLeftPanel;

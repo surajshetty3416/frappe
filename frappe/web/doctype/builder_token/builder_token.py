@@ -43,18 +43,18 @@ class BuilderToken(StandardFileSync, Document):
 		clear_builder_token_cache()
 		if self.is_standard:
 			export_to_files(
-				record_list=[["Builder Token", self.name, "builder_token"]], record_module="builder"
+				record_list=[["Builder Token", self.name, "builder_token"]], record_module="web"
 			)
 
 		if self.has_value_changed("is_standard") and not self.is_standard:
-			delete_folder("builder", "builder_token", self.name)
+			delete_folder("web", "builder_token", self.name)
 
 		self.export_standard_files()
 
 	def on_trash(self):
 		clear_builder_token_cache()
 		if self.is_standard:
-			delete_folder("builder", "builder_token", self.name)
+			delete_folder("web", "builder_token", self.name)
 		self.delete_standard_exported_files()
 
 	def export_standard_files(self) -> None:

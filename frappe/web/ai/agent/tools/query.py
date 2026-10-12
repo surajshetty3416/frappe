@@ -26,6 +26,7 @@ from frappe.web.ai.agent.selectors import (
 	walk_blocks,
 )
 from frappe.web.ai.block_codec import BlockCodec
+from frappe.web.hooks import builder_path
 from frappe.web.utils import to_compact_yaml
 
 
@@ -174,7 +175,7 @@ def resolve_page_reference(ref: str) -> tuple[str | None, str]:
 				"content with read_url (source material, not something you can edit)"
 			)
 		path = (parsed.path or "").strip("/")
-		editor_prefix = (frappe.conf.builder_path or "builder") + "/page/"
+		editor_prefix = builder_path + "/page/"
 		ref = path[len(editor_prefix) :].split("/")[0] if path.startswith(editor_prefix) else path
 	if frappe.db.exists("Builder Page", ref):
 		return ref, ""

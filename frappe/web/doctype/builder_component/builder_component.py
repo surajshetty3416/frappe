@@ -120,12 +120,12 @@ class BuilderComponent(StandardFileSync, Document):
 		if not frappe.conf.developer_mode:
 			return
 		component_path = os.path.join(
-			frappe.get_app_path("frappe"), "builder", "builder_component", self.name
+			frappe.get_app_path("frappe"), "web", "builder_component", self.name
 		)
 		if os.path.exists(component_path):
 			export_to_files(
 				record_list=[["Builder Component", self.name, "builder_component"]],
-				record_module="builder",
+				record_module="web",
 			)
 
 

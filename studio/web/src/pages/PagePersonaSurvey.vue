@@ -1,6 +1,6 @@
 <template>
 	<!-- final step: full-page template selector -->
-	<div v-if="step === 'templates'" class="flex h-screen flex-col bg-surface-base">
+	<div v-if="step === 'templates'" class="flex h-full flex-col bg-surface-base">
 		<div class="mx-auto w-full max-w-3xl px-8 pt-16">
 			<img src="/builder_logo.png" alt="Builder" class="h-8" />
 		</div>
@@ -14,7 +14,7 @@
 	</div>
 
 	<!-- question steps: one question per page -->
-	<div v-else class="flex h-screen flex-col items-center overflow-y-auto p-5">
+	<div v-else class="flex h-full flex-col items-center overflow-y-auto p-5">
 		<!-- top-anchored so the logo/heading never move between steps -->
 		<div class="mt-[28vh] flex w-full max-w-sm flex-col gap-5">
 			<img src="/builder_logo.png" alt="Builder" class="h-8 self-start" />

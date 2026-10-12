@@ -3,7 +3,7 @@
 Generation YAML is expanded to the editor's serialized Block shape and persisted
 to `draft_blocks` here; the editor canvas receives the expanded tree (same block
 ids) and only renders it. The frontend keeps a small port of the conversion
-(frontend/src/components/ai/{yaml.ts, normalizeStyles.ts}) purely for the
+(studio/web/src/components/ai/{yaml.ts, normalizeStyles.ts}) purely for the
 live streaming PREVIEW while the YAML is still being written — the final apply
 always comes from this module.
 """
@@ -20,7 +20,7 @@ from frappe.web.utils import compact_json
 
 logger = frappe.logger("frappe.web.ai.page_writer")
 
-# --- style normalization — port of frontend/src/components/ai/normalizeStyles.ts ---
+# --- style normalization — port of studio/web/src/components/ai/normalizeStyles.ts ---
 
 # The model camelCases keyword VALUES too (justifyContent: 'spaceBetween'); map back.
 KEYWORD_VALUE_FIX = {

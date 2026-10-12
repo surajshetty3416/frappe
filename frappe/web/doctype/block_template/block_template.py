@@ -41,12 +41,12 @@ class BlockTemplate(Document):
 					"builder_block_template",
 				],
 			],
-			record_module="builder",
+			record_module="web",
 		)
 
 	def on_trash(self):
 		block_template_folder = os.path.join(
-			frappe.get_app_path("frappe"), "builder", "builder_block_template", scrub(self.name)
+			frappe.get_app_path("frappe"), "web", "builder_block_template", scrub(self.name)
 		)
 		shutil.rmtree(block_template_folder, ignore_errors=True)
 		assets_folder_path = get_template_assets_folder_path(self, app="frappe")

@@ -121,10 +121,10 @@ class BuilderClientScript(StandardFileSync, Document):
 		if not frappe.conf.developer_mode:
 			return
 		script_path = os.path.join(
-			frappe.get_app_path("frappe"), "builder", "builder_client_script", self.name or ""
+			frappe.get_app_path("frappe"), "web", "builder_client_script", self.name or ""
 		)
 		if os.path.exists(script_path):
 			export_to_files(
 				record_list=[["Builder Client Script", self.name, "builder_client_script"]],
-				record_module="builder",
+				record_module="web",
 			)

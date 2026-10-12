@@ -1,7 +1,7 @@
 <template>
 	<div
 		v-if="builderStore.isSmallScreen"
-		class="fixed inset-0 z-[9999] grid place-content-center gap-4 bg-surface-base text-ink-gray-9">
+		class="absolute inset-0 z-[9999] grid place-content-center gap-4 bg-surface-base text-ink-gray-9">
 		<img src="/builder_logo.png" alt="logo" class="h-10" />
 		<div class="flex flex-col">
 			<h1 class="text-p-2xl-semibold">{{ __("Screen too small") }}</h1>
@@ -10,7 +10,8 @@
 	</div>
 	<div
 		v-show="!builderStore.isSmallScreen"
-		class="page-builder relative h-screen overflow-hidden bg-surface-gray-1">
+		ref="editor"
+		class="page-builder relative h-full overflow-hidden bg-surface-gray-1">
 		<!-- Canvas layer (bottom) - comes first in DOM -->
 		<BuilderCanvas
 			ref="fragmentCanvas"
@@ -25,7 +26,7 @@
 				top: 'var(--toolbar-height)',
 				left: `${
 					builderStore.showLeftPanel
-						? builderStore.builderLayout.leftPanelWidth + builderStore.builderLayout.optionsPanelWidth
+						? builderStore.fittedLeftPanelWidth + builderStore.builderLayout.optionsPanelWidth
 						: 0
 				}px`,
 				right: `${builderStore.showRightPanel ? builderStore.builderLayout.rightPanelWidth : 0}px`,
@@ -64,7 +65,7 @@
 				top: 'var(--toolbar-height)',
 				left: `${
 					builderStore.showLeftPanel
-						? builderStore.builderLayout.leftPanelWidth + builderStore.builderLayout.optionsPanelWidth
+						? builderStore.fittedLeftPanelWidth + builderStore.builderLayout.optionsPanelWidth
 						: 0
 				}px`,
 				right: `${builderStore.showRightPanel ? builderStore.builderLayout.rightPanelWidth : 0}px`,
@@ -135,7 +136,7 @@ import { offerPendingAssetImport } from "@web/utils/builderBlockCopyPaste";
 import componentController from "@web/utils/componentController.js";
 import { getPageUsageMessage, getRootBlockTemplate } from "@web/utils/helpers";
 import { useBuilderEvents } from "@web/utils/useBuilderEvents";
-import { useDebounceFn } from "@vueuse/core";
+import { useDebounceFn, useElementSize } from "@vueuse/core";
 import { createResource, KeyboardShortcutsDialog, useKeyboardShortcut } from "frappe-ui";
 import { computed, onActivated, onDeactivated, onMounted, provide, ref, watch, watchEffect } from "vue";
 import { useRoute, useRouter } from "vue-router";
@@ -183,6 +184,10 @@ declare global {
 }
 
 window.blockController = blockController;
+
+const editor = ref<HTMLElement | null>(null);
+const { width: editorWidth } = useElementSize(editor);
+watchEffect(() => (builderStore.editorWidth = editorWidth.value));
 
 const pageCanvas = ref<InstanceType<typeof BuilderCanvas> | null>(null);
 const fragmentCanvas = ref<InstanceType<typeof BuilderCanvas> | null>(null);

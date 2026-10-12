@@ -150,7 +150,7 @@ class TestBuilderPage(FrappeTestCase):
 
 	def test_onload(self):
 		getdoc("Builder Page", self.page.name)
-		self.assertEqual(frappe.response.docs[0].get("__onload").get("builder_path"), "builder")
+		self.assertEqual(frappe.response.docs[0].get("__onload").get("builder_path"), "studio/web")
 
 	def test_blocks_can_be_saved_as_a_list(self):
 		"""Callers that hand over a block tree (paste, AI writes, the API) pass a list.

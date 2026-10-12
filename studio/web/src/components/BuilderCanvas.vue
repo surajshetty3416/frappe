@@ -95,7 +95,7 @@
 		<div v-show="marquee.visible" class="pointer-events-none fixed z-[200]" :style="marqueeStyle" />
 		<DropIndicator />
 		<div
-			class="text-sm-semibold fixed bottom-12 left-[50%] flex translate-x-[-50%] cursor-default items-center justify-center gap-2 rounded-6 bg-surface-base px-3 py-2 text-center text-ink-gray-7 shadow-md"
+			class="text-sm-semibold absolute bottom-12 left-[50%] flex translate-x-[-50%] cursor-default items-center justify-center gap-2 rounded-6 bg-surface-base px-3 py-2 text-center text-ink-gray-7 shadow-md"
 			v-show="!canvasProps.panning && !canvasStore.isDragging">
 			{{ Math.round(canvasProps.scale * 100) + "%" }}
 			<div class="ml-2 cursor-pointer" @click="setScaleAndTranslate">

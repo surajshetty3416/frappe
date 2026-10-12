@@ -13,7 +13,7 @@
  "is_hidden": 0,
  "label": "Frappe Builder",
  "links": [],
- "modified": "2024-03-28 16:06:49.469091",
+ "modified": "2026-10-12 16:30:00.000000",
  "modified_by": "Administrator",
  "module": "Web",
  "name": "Frappe Builder",
@@ -37,7 +37,7 @@
    "doc_view": "List",
    "label": "Open <strong>Frappe Builder</strong>",
    "type": "URL",
-   "url": "/builder"
+   "url": "/studio/web"
   }
  ],
  "title": "Frappe Builder"
