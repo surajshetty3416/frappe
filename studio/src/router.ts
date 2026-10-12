@@ -21,9 +21,26 @@ export function createAppRouter(app: App) {
 		children: layer.routes,
 	})
 
+	// Studio's home and its chats are the shell's own pages, drawn with the AI layer's chat
+	const aiLayer = layers.find((layer) => layer.name === "ai")
+	const withChat = { meta: { layer: "ai" }, beforeEnter: async () => void (aiLayer && (await setUp(aiLayer))) }
+	const studioRoutes: RouteRecordRaw[] = [
+		{ path: "/studio", name: "studio-home", component: () => import("./pages/Home.vue"), ...withChat },
+		{
+			path: "/studio/chat/:session",
+			name: "studio-chat",
+			component: () => import("./pages/ChatPane.vue"),
+			...withChat,
+		},
+		// the app editor's addresses before it moved under /studio/ui
+		{ path: "/studio/home", redirect: "/studio/ui" },
+		{ path: "/studio/app/:rest(.*)", redirect: (to) => `/studio/ui/app/${to.params.rest}` },
+	]
+
 	const router = createRouter({
 		history: createWebHistory(),
 		routes: [
+			...studioRoutes,
 			...layers.map(layerRoute),
 			{
 				// anything else (the desk, a website page) is the server's to render

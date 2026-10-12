@@ -4,14 +4,14 @@ import { defineLayer } from "@shell/layer"
 const conversation = { render: () => null }
 
 export default defineLayer({
-	name: "flow",
-	title: "Chat",
-	icon: "lucide-message-circle",
-	path: "/flow",
+	name: "ai",
+	title: "Agents",
+	icon: "lucide-bot",
+	path: "/studio/ai",
 	component: () => import("./App.vue"),
 	routes: [
-		{ path: "", name: "flow-new", component: conversation },
-		{ path: "s/:session", name: "flow-session", component: conversation },
+		{ path: "", name: "ai-home", component: conversation },
+		{ path: "s/:session", name: "ai-session", component: conversation },
 	],
 	setup: async () => {
 		await import("./index.css")

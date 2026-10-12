@@ -111,7 +111,12 @@ const props = defineProps({
 	embedded: { type: Boolean, default: false },
 	// what the user has open beside the panel ({ title, path }), sent with each message
 	opened: { type: Function, default: null },
+	// embedded only: the chat to open (none starts a new one) and a first message to send
+	session: { type: String, default: null },
+	initialMessage: { type: String, default: "" },
 });
+// embedded: "session" when the open chat changes, "artifact" when a tool hands one back live
+const emit = defineEmits(["session", "artifact"]);
 
 // the store's model refresh is the boot call; the page asks for it when boot goes stale
 const page = createPage(props.boot, { refresh: () => store.refreshModels() });
@@ -178,7 +183,7 @@ if (!props.embedded) {
 	watch(
 		() => store.state.sessionId,
 		(id) => {
-			const target = id ? `/flow/s/${id}` : "/flow";
+			const target = id ? `/studio/ai/s/${id}` : "/studio/ai";
 			if (route.path !== target) router.replace(target);
 		}
 	);
@@ -196,10 +201,52 @@ if (!props.embedded) {
 	);
 }
 
+if (props.embedded) {
+	watch(
+		() => store.state.sessionId,
+		(id) => id && emit("session", id)
+	);
+	let seen = 0;
+	watch(
+		() => store.state.conversation.entries.length,
+		(length) => {
+			const live = store.state.session?.latest_seq ?? 0;
+			for (const entry of store.state.conversation.entries.slice(seen, length)) {
+				const artifact = entry.type === "tool_result" && entry.seq > live && artifactOf(entry);
+				if (artifact) emit("artifact", artifact);
+			}
+			seen = length;
+		}
+	);
+}
+
+// a layer tool that makes or changes an artifact returns it as `artifact` in its result
+function artifactOf(entry) {
+	const text =
+		typeof entry.content === "string"
+			? entry.content
+			: (entry.content ?? [])
+					.filter((block) => block.type === "text")
+					.map((block) => block.text)
+					.join("");
+	try {
+		return JSON.parse(text)?.artifact ?? null;
+	} catch {
+		return null;
+	}
+}
+
+async function openEmbedded() {
+	if (props.session) await store.openSession(props.session);
+	else store.startNewChat();
+	if (props.initialMessage) await store.send(props.initialMessage);
+}
+
 let uninstallShortcuts = null;
 onMounted(async () => {
 	if (!props.embedded) uninstallShortcuts = installShortcuts(store);
 	store.refreshModels();
+	if (props.embedded) return openEmbedded();
 	await store.refreshSessions();
 	// the route watcher may have opened the URL's session while the list was loading
 	const wanted = route.params.session ?? store.state.prefs.lastSession;

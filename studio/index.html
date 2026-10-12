@@ -3,8 +3,8 @@
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<link rel="icon" type="image/png" href="/flow.png" />
-		<title>Frappe</title>
+		<link rel="icon" type="image/png" href="/studio-favicon.png" />
+		<title>Studio</title>
 		<script>
 			// apply the saved theme before first paint
 			try {
@@ -12,7 +12,8 @@
 				if (theme === "system")
 					theme = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"
 				document.documentElement.setAttribute("data-theme", theme)
-				document.documentElement.setAttribute("data-layer", location.pathname.split("/")[1] || "flow")
+				var layer = location.pathname.split("/")[2]
+				document.documentElement.setAttribute("data-layer", ["web", "analytics", "ui"].includes(layer) ? layer : "ai")
 			} catch (e) {}
 		</script>
 	</head>
