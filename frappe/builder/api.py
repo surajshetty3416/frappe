@@ -11,7 +11,6 @@ from urllib.parse import unquote, urlparse
 import frappe
 import requests
 from frappe import _
-from frappe.apps import get_apps as get_permitted_apps
 from frappe.core.doctype.file.file import get_local_image
 from frappe.core.doctype.file.utils import delete_file
 from frappe.model.document import Document
@@ -393,23 +392,6 @@ def get_builder_users() -> list[dict]:
 	for user in users:
 		user.is_admin = user.name in admins
 	return users
-
-
-@frappe.whitelist()
-@redis_cache()
-def get_apps():
-	apps = get_permitted_apps()
-	app_list = [
-		{
-			"name": "frappe",
-			"logo": "/assets/frappe/builder/images/desk.png",
-			"title": "Desk",
-			"route": "/desk",
-		}
-	]
-	app_list += filter(lambda app: app.get("name") != "builder", apps)
-
-	return app_list
 
 
 @frappe.whitelist()

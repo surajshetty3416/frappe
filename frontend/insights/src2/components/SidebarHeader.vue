@@ -1,6 +1,6 @@
 <template>
 	<div>
-		<Dropdown :options="userDropdownOptions">
+		<Dropdown :options="menuOptions">
 			<template v-slot="{ open }">
 				<button
 					class="flex h-12 items-center rounded-5 py-2 duration-300 ease-in-out"
@@ -26,13 +26,6 @@
 						"
 					>
 						<div class="text-base-medium leading-none text-ink-gray-8">Insights</div>
-						<div class="mt-1 text-sm leading-none text-ink-gray-6">
-							{{
-								session.user.full_name == 'Administrator'
-									? __(session.user.full_name)
-									: session.user.full_name
-							}}
-						</div>
 					</div>
 					<div
 						class="duration-300 ease-in-out"
@@ -69,20 +62,10 @@
 </template>
 
 <script setup lang="ts">
-import { call, Dropdown, useColorScheme } from 'frappe-ui'
-import {
-	ChevronDown,
-	HelpCircle,
-	LogOut,
-	MessageCircle,
-	Moon,
-	Sun,
-	ToggleRight,
-} from 'lucide-vue-next'
+import { call, Dropdown } from 'frappe-ui'
+import { ChevronDown, HelpCircle, MessageCircle } from 'lucide-vue-next'
 import { computed, h, ref } from 'vue'
 import { showErrorToast } from '../helpers'
-import { confirmDialog } from '../helpers/confirm_dialog'
-import session from '../session'
 import FrappeCloudIcon from './Icons/FrappeCloudIcon.vue'
 import { __ } from '../translation'
 
@@ -90,10 +73,7 @@ const props = defineProps<{ isCollapsed?: boolean }>()
 
 const showLoginToFCDialog = ref(false)
 
-const { colorScheme, toggleColorScheme } = useColorScheme()
-const isDark = computed(() => colorScheme.value === 'dark')
-
-const userDropdownOptions = computed(() => {
+const menuOptions = computed(() => {
 	const options: { label: string; icon: any; onClick: () => void }[] = [
 		{
 			label: __('Documentation'),
@@ -107,13 +87,6 @@ const userDropdownOptions = computed(() => {
 		},
 	]
 
-	if (session.user.is_admin) {
-		options.push({
-			label: __('Switch to Desk'),
-			icon: h(ToggleRight),
-			onClick: () => window.open('/desk', '_blank'),
-		})
-	}
 	if (window.is_fc_site) {
 		options.push({
 			icon: h(FrappeCloudIcon),
@@ -121,22 +94,6 @@ const userDropdownOptions = computed(() => {
 			onClick: () => (showLoginToFCDialog.value = true),
 		})
 	}
-
-	options.push({
-		label: isDark.value ? __('Light mode') : __('Dark mode'),
-		icon: h(isDark.value ? Sun : Moon),
-		onClick: toggleColorScheme,
-	})
-	options.push({
-		label: __('Log out'),
-		icon: h(LogOut),
-		onClick: () =>
-			confirmDialog({
-				title: __('Log out'),
-				message: __('Are you sure you want to log out?'),
-				onSuccess: session.logout,
-			}),
-	})
 
 	return options
 })

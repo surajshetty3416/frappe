@@ -191,7 +191,8 @@ if (!props.embedded) {
 	);
 	watch(
 		() => store.state.session?.title,
-		(title) => (document.title = title ? `${title} · Flow` : "Flow")
+		(title) => (document.title = title ? `${title} · Flow` : "Flow"),
+		{ immediate: true }
 	);
 }
 

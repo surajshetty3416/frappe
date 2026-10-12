@@ -13,6 +13,12 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     AppRail: typeof import('./src/components/AppRail.vue')['default']
+    AssistantPanel: typeof import('./src/components/AssistantPanel.vue')['default']
+    LucideActivity: typeof import('~icons/lucide/activity')['default']
+    LucideChevronDown: typeof import('~icons/lucide/chevron-down')['default']
+    LucideChevronUp: typeof import('~icons/lucide/chevron-up')['default']
+    LucideDownload: typeof import('~icons/lucide/download')['default']
+    LucidePaperclip: typeof import('~icons/lucide/paperclip')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
   }
@@ -21,6 +27,12 @@ declare module 'vue' {
 // For TSX support
 declare global {
   const AppRail: typeof import('./src/components/AppRail.vue')['default']
+  const AssistantPanel: typeof import('./src/components/AssistantPanel.vue')['default']
+  const LucideActivity: typeof import('~icons/lucide/activity')['default']
+  const LucideChevronDown: typeof import('~icons/lucide/chevron-down')['default']
+  const LucideChevronUp: typeof import('~icons/lucide/chevron-up')['default']
+  const LucideDownload: typeof import('~icons/lucide/download')['default']
+  const LucidePaperclip: typeof import('~icons/lucide/paperclip')['default']
   const RouterLink: typeof import('vue-router')['RouterLink']
   const RouterView: typeof import('vue-router')['RouterView']
 }

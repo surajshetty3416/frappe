@@ -3,20 +3,10 @@
 		<div
 			class="toolbar sticky top-0 z-10 flex h-14 items-center justify-between border-b border-outline-gray-2 bg-surface-base px-3 py-2"
 		>
-			<Dropdown :options="[{ label: 'Logout', icon: 'lucide-log-out', onClick: () => session.logout() }]">
-				<template v-slot="{ open }">
-					<div class="flex cursor-pointer items-center gap-2">
-						<StudioLogo class="h-7 w-7"></StudioLogo>
-						<router-link class="flex items-center gap-2" :to="{ name: 'StudioHome' }">
-							<h1 class="text-md-semibold mt-[2px] leading-5 text-ink-gray-7">Studio</h1>
-						</router-link>
-						<span
-							:class="open ? 'lucide-chevron-up' : 'lucide-chevron-down'"
-							class="h-4 w-4 text-ink-gray-6"
-						/>
-					</div>
-				</template>
-			</Dropdown>
+			<router-link class="flex items-center gap-2" :to="{ name: 'StudioHome' }">
+				<StudioLogo class="h-7 w-7"></StudioLogo>
+				<h1 class="text-md-semibold mt-[2px] leading-5 text-ink-gray-7">Studio</h1>
+			</router-link>
 			<Button variant="solid" icon-left="lucide-plus" @click="showAppDialog = true">New App</Button>
 		</div>
 
@@ -118,14 +108,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue"
+import { onActivated, ref } from "vue"
 import { Dropdown, Button, TabButtons } from "frappe-ui"
 import { studioApps } from "@studio/data/studioApps"
 import { UseTimeAgo } from "@vueuse/components"
 import Input from "@studio/components/Input.vue"
 import AppDialog from "@studio/components/AppDialog.vue"
 import StudioLogo from "@studio/components/Icons/StudioLogo.vue"
-import session from "@studio/utils/session"
 import { watchDebounced } from "@vueuse/core"
 import useStudioStore from "@studio/stores/studioStore"
 import { openAppInDesk } from "@studio/utils/helpers"
@@ -153,4 +142,7 @@ watchDebounced([searchFilter, appType], fetchApps, { debounce: 300, immediate: t
 
 const showAppDialog = ref(false)
 const activeApp = ref()
+
+// kept alive, so the title is set again on every return from an app
+onActivated(() => (document.title = "Frappe Studio"))
 </script>

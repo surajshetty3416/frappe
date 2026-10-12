@@ -61,11 +61,6 @@
 							},
 						],
 					},
-					{
-						group: 'More',
-						hideLabel: true,
-						options: [{ label: 'Logout', icon: 'lucide-log-out', onClick: () => session.logout() }],
-					},
 				]"
 			>
 				<template v-slot="{ open }">
@@ -179,7 +174,6 @@ import PublishButton from "@studio/components/PublishButton.vue"
 import SettingsDialog from "@studio/components/Settings/SettingsDialog.vue"
 
 import type { StudioMode } from "@studio/types"
-import session from "@studio/utils/session"
 import LucideArrowUpFromLine from "~icons/lucide/arrow-up-from-line"
 import { isObjectEmpty, openAppInDesk, openPageInDesk } from "@studio/utils/helpers"
 

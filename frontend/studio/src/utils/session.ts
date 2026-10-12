@@ -21,7 +21,6 @@ const session = reactive({
 	isLoggedIn: computed(() => session.user.email && session.user.email !== "Guest"),
 	hasPermission: false,
 	initialize,
-	logout,
 })
 
 async function initialize() {
@@ -46,16 +45,6 @@ async function fetchPermissions() {
 	if (!session.isLoggedIn) return
 	const has_permission = await call("frappe.studio.api.check_app_permission")
 	session.hasPermission = Boolean(has_permission)
-}
-
-async function logout() {
-	resetSession()
-	await call("logout")
-	window.location.reload()
-}
-
-function resetSession() {
-	Object.assign(session.user, { ...emptyUser })
 }
 
 export default session

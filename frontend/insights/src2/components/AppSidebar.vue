@@ -4,7 +4,7 @@
 		:class="isSidebarCollapsed ? 'w-12' : 'w-56'"
 	>
 		<div class="flex flex-col overflow-hidden">
-			<UserDropdown class="p-2" :isCollapsed="isSidebarCollapsed" />
+			<SidebarHeader class="p-2" :isCollapsed="isSidebarCollapsed" />
 			<div class="flex flex-col overflow-y-auto">
 				<template v-for="link in links">
 					<SidebarLink
@@ -61,7 +61,7 @@ import Settings from '../settings/Settings.vue'
 import SidebarLink from './SidebarLink.vue'
 import DemoDataBanner from './DemoDataBanner.vue'
 import SecurityUpdateCard from './SecurityUpdateCard.vue'
-import UserDropdown from './UserDropdown.vue'
+import SidebarHeader from './SidebarHeader.vue'
 import { TrialBanner } from '@framework/ui/components/TrialBanner/index.ts'
 import { __ } from '../translation'
 

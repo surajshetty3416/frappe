@@ -73,7 +73,6 @@ const session = reactive({
 	fetchSessionInfo,
 	fetchSiteInfo,
 	login,
-	logout,
 	resetSession,
 })
 
@@ -115,12 +114,6 @@ async function login(email: string, password: string) {
 	const userInfo = await call('login', { usr: email, pwd: password })
 	if (!userInfo) return
 	Object.assign(session.user, userInfo)
-	window.location.reload()
-}
-
-async function logout() {
-	resetSession()
-	await call('logout')
 	window.location.reload()
 }
 

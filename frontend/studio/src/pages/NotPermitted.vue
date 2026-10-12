@@ -9,3 +9,9 @@
 		</div>
 	</div>
 </template>
+
+<script setup lang="ts">
+import { usePageMeta } from "frappe-ui"
+
+usePageMeta(() => ({ title: "Frappe Studio" }))
+</script>

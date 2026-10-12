@@ -22,14 +22,12 @@ import usePageStore from "@builder/stores/pageStore";
 import { BuilderPage } from "@builder/types/doctypes";
 import { triggerCopyEvent } from "@builder/utils/helpers";
 import { deletePage } from "@builder/utils/pageActions";
-import { useDarkMode } from "@builder/composables/useDarkMode";
 import { Dropdown } from "frappe-ui";
 import { computed } from "vue";
 import { useRouter } from "vue-router";
 
 const { showTemplatesDialog } = useDashboardState();
 const pageStore = usePageStore();
-const { isDark, toggleDark } = useDarkMode();
 const router = useRouter();
 const canvasStore = useCanvasStore();
 // a registry item has no parent to emit to, so write the store directly
@@ -88,11 +86,6 @@ const mainMenuOptions = computed(() => [
 		group: "Preferences",
 		hideLabel: true,
 		options: [
-			{
-				label: __("Toggle Theme"),
-				onClick: () => toggleDark(),
-				icon: isDark.value ? "lucide-sun" : "lucide-moon",
-			},
 			{
 				label: __("Settings"),
 				onClick: () => (builderStore.showSettingsDialog = true),

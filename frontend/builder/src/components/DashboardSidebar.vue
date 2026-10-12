@@ -113,7 +113,6 @@ import useBuilderStore from "@builder/stores/builderStore";
 import { BuilderProjectFolder } from "@builder/types/doctypes";
 import { promptCreateFolder } from "@builder/utils/dialogs";
 import { confirm } from "@builder/utils/helpers";
-import { useDarkMode } from "@builder/composables/useDarkMode";
 import {
 	createResource,
 	Dialog,
@@ -127,27 +126,12 @@ import {
 } from "frappe-ui";
 import { TrialBanner } from "@framework/ui/components/TrialBanner";
 import { DialogDescription, DialogTitle } from "reka-ui";
-import { computed, defineAsyncComponent, h, ref } from "vue";
+import { computed, defineAsyncComponent, ref } from "vue";
 
 const BuilderSettings = defineAsyncComponent(() => import("@builder/components/BuilderSettings.vue"));
-const { isDark, toggleDark } = useDarkMode();
 const builderStore = useBuilderStore();
 const { showTemplatesDialog } = useDashboardState();
 const renamingFolder = ref("");
-
-const apps = createResource({
-	url: "frappe.builder.api.get_apps",
-	cache: "other_apps",
-	auto: true,
-});
-
-const appsSubmenu = computed(() => {
-	return (apps.data || []).map((app: { route: string; logo: string; title: string }) => ({
-		label: app.title,
-		icon: h("img", { src: app.logo }),
-		onClick: () => window.open(app.route, "_self"),
-	}));
-});
 
 const appMenuItems = computed<SidebarHeaderProps["menuItems"]>(() => [
 	{
@@ -165,16 +149,6 @@ const appMenuItems = computed<SidebarHeaderProps["menuItems"]>(() => [
 		group: "Options",
 		hideLabel: true,
 		options: [
-			{
-				label: __("Apps"),
-				icon: "lucide-grid",
-				submenu: appsSubmenu.value,
-			},
-			{
-				label: __("Toggle Theme"),
-				onClick: () => toggleDark(),
-				icon: isDark.value ? "lucide-sun" : "lucide-moon",
-			},
 			{
 				label: __("Settings"),
 				onClick: () => (showSettingsDialog.value = true),

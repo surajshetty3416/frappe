@@ -70,6 +70,8 @@ const listOptions = computed(() => ({
 		},
 	},
 }))
+
+document.title = __('Data Store | Insights')
 </script>
 
 <template>
