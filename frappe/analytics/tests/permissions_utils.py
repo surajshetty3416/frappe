@@ -1,9 +1,9 @@
 import frappe
 import frappe.share
 
-from frappe.insights.doctype.insights_table_v3.insights_table_v3 import get_table_name
-from frappe.insights.doctype.insights_team.insights_team import clear_cache as clear_team_cache
-from frappe.insights.tests.factories import DT, create_user, delete_users, delete_workbooks
+from frappe.analytics.doctype.insights_table_v3.insights_table_v3 import get_table_name
+from frappe.analytics.doctype.insights_team.insights_team import clear_cache as clear_team_cache
+from frappe.analytics.tests.factories import DT, create_user, delete_users, delete_workbooks
 
 WEB_USER_EMAIL = "web_user@test.com"
 NON_INSIGHTS_USER = "non_insights_user@test.com"

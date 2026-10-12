@@ -12,7 +12,7 @@
 <script setup lang="ts">
 import { ref } from "vue"
 import { FrappeUIProvider } from "frappe-ui"
-import { useLivePreview } from "@studio/utils/useLivePreview"
+import { useLivePreview } from "@ui/utils/useLivePreview"
 
 const revision = window.is_preview ? useLivePreview() : ref(0)
 </script>

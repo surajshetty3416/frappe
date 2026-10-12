@@ -3,7 +3,7 @@ import json
 import frappe
 from frappe.tests.utils import FrappeTestCase
 
-from frappe.builder.editor_demo import CONTENT_SECURITY_POLICY, EditorDemo
+from frappe.web.editor_demo import CONTENT_SECURITY_POLICY, EditorDemo
 
 
 def insert(doctype, **fields):

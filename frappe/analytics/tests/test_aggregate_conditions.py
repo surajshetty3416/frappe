@@ -1,6 +1,6 @@
 from frappe.tests import UnitTestCase
 
-from frappe.insights.doctype.insights_chart_v3.chart_drill import aggregate_conditions
+from frappe.analytics.doctype.insights_chart_v3.chart_drill import aggregate_conditions
 
 
 class TestAggregateConditions(UnitTestCase):

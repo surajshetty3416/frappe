@@ -14,16 +14,16 @@ import pandas as pd
 from duckdb import IOException
 from frappe.utils import add_to_date
 
-from frappe import insights
-from frappe.insights.api.data_store import sync_tables
-from frappe.insights.doctype.insights_data_source_v3.connectors.duckdb import open_local_duckdb
-from frappe.insights.doctype.insights_data_source_v3.data_warehouse import (
+from frappe import analytics as insights
+from frappe.analytics.api.data_store import sync_tables
+from frappe.analytics.doctype.insights_data_source_v3.connectors.duckdb import open_local_duckdb
+from frappe.analytics.doctype.insights_data_source_v3.data_warehouse import (
     WarehouseTable,
     WarehouseTableImporter,
     WarehouseTableWriter,
 )
-from frappe.insights.doctype.insights_table_v3.insights_table_v3 import get_table_name
-from frappe.insights.tests.base import InsightsIntegrationTestCase
+from frappe.analytics.doctype.insights_table_v3.insights_table_v3 import get_table_name
+from frappe.analytics.tests.base import InsightsIntegrationTestCase
 
 # A reader in this process shares the DuckDB instance, so it never conflicts.
 # Only a second process reproduces the lock the web workers take in production.
@@ -336,7 +336,7 @@ class TestSyncSchedule(InsightsIntegrationTestCase):
     def imported_tables(self):
         with (
             patch("frappe.enqueue") as enqueue,
-            patch("frappe.insights.api.data_store.now_datetime", return_value=self.HALF_PAST),
+            patch("frappe.analytics.api.data_store.now_datetime", return_value=self.HALF_PAST),
         ):
             sync_tables()
         return [call.kwargs.get("table_name") for call in enqueue.call_args_list]
@@ -385,7 +385,7 @@ class TestImportRowLimit(InsightsIntegrationTestCase):
     @classmethod
     def after_class(cls):
         frappe.db.set_single_value("Insights Settings", "max_records_to_sync", cls.site_limit_was)
-        from frappe.insights.doctype.insights_table_v3.insights_table_v3 import get_table_name
+        from frappe.analytics.doctype.insights_table_v3.insights_table_v3 import get_table_name
 
         for table_name in (cls.CAPPED, cls.UNCAPPED):
             name = get_table_name(cls.DATA_SOURCE, table_name)

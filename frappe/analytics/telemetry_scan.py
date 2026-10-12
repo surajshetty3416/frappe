@@ -13,18 +13,18 @@ import frappe
 from frappe.utils import add_days, getdate, now_datetime
 from frappe.utils.telemetry import is_pulse_enabled, site_age
 
-from frappe.insights.doctype.insights_chart_v3.chart_query import CHART_TYPES
-from frappe.insights.doctype.insights_data_source_v3.data_warehouse import row_limit
-from frappe.insights.doctype.insights_data_source_v3.ibis.utils import get_functions
-from frappe.insights.doctype.insights_data_source_v3.ibis_utils import (
+from frappe.analytics.doctype.insights_chart_v3.chart_query import CHART_TYPES
+from frappe.analytics.doctype.insights_data_source_v3.data_warehouse import row_limit
+from frappe.analytics.doctype.insights_data_source_v3.ibis.utils import get_functions
+from frappe.analytics.doctype.insights_data_source_v3.ibis_utils import (
     AGGREGATIONS,
     FILTER_OPERATORS,
     JOIN_TYPES,
 )
-from frappe.insights.doctype.insights_table_v3.insights_table_v3 import strip_schema_prefix
-from frappe.insights.query_utils import source_tables
-from frappe.insights.permissions import INSIGHTS_ROLES
-from frappe.insights.telemetry import capture, default_properties, is_standard_app
+from frappe.analytics.doctype.insights_table_v3.insights_table_v3 import strip_schema_prefix
+from frappe.analytics.query_utils import source_tables
+from frappe.analytics.permissions import INSIGHTS_ROLES
+from frappe.analytics.telemetry import capture, default_properties, is_standard_app
 
 PROPERTY_CAP = 4096
 LIST_LIMIT = 50
@@ -151,7 +151,7 @@ def timeline() -> dict:
 def installed_on():
     """Installing an app logs every patch it ships as run. A migrate rewrites
     the `Installed Application` rows, so their creation is the last migrate."""
-    return oldest("Patch Log", {"patch": ["like", "frappe.insights.%"]})
+    return oldest("Patch Log", {"patch": ["like", "frappe.analytics.%"]})
 
 
 def oldest(doctype, filters=None):
@@ -513,7 +513,7 @@ def row_estimates(keys) -> dict:
     scan logs a source that will not answer and leaves it out. A chart reading
     its tables then counts as neither fitting nor over the limit.
     """
-    from frappe.insights.doctype.insights_data_source_v3.insights_data_source_v3 import db_connections
+    from frappe.analytics.doctype.insights_data_source_v3.insights_data_source_v3 import db_connections
 
     by_source = defaultdict(set)
     for data_source, table_name in keys:
@@ -548,7 +548,7 @@ def read_catalog(data_source: str, tables: set) -> dict:
     stored name is a spelling, and on postgres two schemas may spell one table
     the same.
     """
-    from frappe.insights.utils import InsightsDataSourcev3
+    from frappe.analytics.utils import InsightsDataSourcev3
 
     doc = InsightsDataSourcev3.get_doc(data_source)
     backend = doc._get_ibis_backend()

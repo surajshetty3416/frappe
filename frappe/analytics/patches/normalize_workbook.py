@@ -1,7 +1,7 @@
 import frappe
 from frappe.utils.data import add_to_date
 
-from frappe.insights.utils import deep_convert_dict_to_dict
+from frappe.analytics.utils import deep_convert_dict_to_dict
 
 
 def execute():
@@ -11,10 +11,10 @@ def execute():
     if not should_run_patch:
         return
 
-    frappe.reload_doc("insights", "doctype", "insights_query_v3")
-    frappe.reload_doc("insights", "doctype", "insights_chart_v3")
-    frappe.reload_doc("insights", "doctype", "insights_dashboard_v3")
-    frappe.reload_doc("insights", "doctype", "insights_dashboard_chart_v3")
+    frappe.reload_doc("analytics", "doctype", "insights_query_v3")
+    frappe.reload_doc("analytics", "doctype", "insights_chart_v3")
+    frappe.reload_doc("analytics", "doctype", "insights_dashboard_v3")
+    frappe.reload_doc("analytics", "doctype", "insights_dashboard_chart_v3")
 
     workbooks = frappe.get_all("Insights Workbook", pluck="name")
 
@@ -157,7 +157,7 @@ def execute():
                     update_modified=False,
                 )
 
-        frappe.reload_doc("insights", "doctype", "insights_workbook")
+        frappe.reload_doc("analytics", "doctype", "insights_workbook")
         workbook.db_set(
             "data_backup",
             frappe.as_json(

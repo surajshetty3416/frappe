@@ -10,7 +10,7 @@ import frappe
 from babel.messages.extract import extract_from_dir
 from frappe.gettext.translate import PYTHON_KEYWORDS, get_method_map
 
-from frappe.insights.tests.base import InsightsIntegrationTestCase
+from frappe.analytics.tests.base import InsightsIntegrationTestCase
 
 FRONTEND = Path(frappe.get_app_path("frappe")).parent / "frontend" / "insights" / "src2"
 

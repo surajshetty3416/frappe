@@ -56,11 +56,11 @@ import frappe
 import frappe.share
 from pypika.terms import LiteralValue
 
-from frappe.insights.doctype.insights_team.insights_team import (
+from frappe.analytics.doctype.insights_team.insights_team import (
     get_teams,
     is_admin,
 )
-from frappe.insights.preview_key import is_being_previewed
+from frappe.analytics.preview_key import is_being_previewed
 
 PERMISSION_DOCTYPES = [
     "Insights Data Source v3",
@@ -161,7 +161,7 @@ def widens(before, doc) -> bool:
 # Roles that the `Roles` level may not name. `All` is every signed-in user and
 # `Guest` is every visitor. The `Everyone` and `Public` levels already cover
 # them, with their own checks. Administrator is not an audience.
-# `frappe.insights.api.user.get_roles` lists the other roles.
+# `frappe.analytics.api.user.get_roles` lists the other roles.
 UNNAMEABLE_ROLES = ("All", "Guest", "Administrator")
 
 
@@ -513,7 +513,7 @@ class InsightsPermissions:
         )
 
     def _build_table_permission_query(self, ptype):
-        from frappe.insights.doctype.insights_table_v3.insights_table_v3 import desk_readable_tables
+        from frappe.analytics.doctype.insights_table_v3.insights_table_v3 import desk_readable_tables
 
         # if team permissions are not enabled, all tables are accessible
         if not self.team_permissions_enabled:
@@ -777,7 +777,7 @@ class InsightsPermissions:
         only its own, and reading every workbook's operations made that check
         cost as much as a list.
         """
-        from frappe.insights.query_utils import referenced_queries
+        from frappe.analytics.query_utils import referenced_queries
 
         cached = self._sourced_under_allowed_charts.get(workbook)
         if cached is not None:
@@ -881,8 +881,8 @@ def can_read_referenced_query(query_name) -> bool:
     A dashboard filter tries several links and uses the first readable one.
     Throwing on the first unreadable link would refuse the filter for the rest.
     """
-    from frappe.insights.permission_user import get_permission_user
-    from frappe.insights.resolver import may_read
+    from frappe.analytics.permission_user import get_permission_user
+    from frappe.analytics.resolver import may_read
 
     # a name with no row resolves to nothing. The build says "not found" instead.
     if not frappe.db.exists("Insights Query v3", query_name):
@@ -899,8 +899,8 @@ def can_read_chart(chart_name) -> bool:
     the query. A reader allowed only by a visibility level has no grant on the
     query, but may still see what the chart shows from it.
     """
-    from frappe.insights.permission_user import get_permission_user
-    from frappe.insights.resolver import may_read
+    from frappe.analytics.permission_user import get_permission_user
+    from frappe.analytics.resolver import may_read
 
     return bool(may_read(frappe.get_doc("Insights Chart v3", chart_name), get_permission_user()))
 
@@ -961,7 +961,7 @@ def capture_visibility_widened(doc):
         doc.visibility in OPEN_LEVELS
         and visibility_level(doc.visibility) > reach(doc.get_doc_before_save())[0]
     ):
-        from frappe.insights.telemetry import capture_share_granted
+        from frappe.analytics.telemetry import capture_share_granted
 
         shared = "chart" if doc.doctype == "Insights Chart v3" else "dashboard"
         capture_share_granted(shared, "public" if doc.visibility == PUBLIC else "org", 1)
@@ -1293,7 +1293,7 @@ def can_read_rows(doc, user=None) -> bool:
     filter or sort of their own, a page past the chart's `limit`, and the SQL and
     operations it ran. The chart as saved is the stored chart and its dashboard
     filters. Every endpoint that answers for a chart checks this:
-    `frappe.insights.api.view`, `frappe.insights.api.authoring`, the chart's `fetch` and its
+    `frappe.analytics.api.view`, `frappe.analytics.api.authoring`, the chart's `fetch` and its
     drill.
 
     Visibility cannot grant this. It publishes the chart, and the rows behind
@@ -1318,7 +1318,7 @@ def can_read_rows(doc, user=None) -> bool:
         return True
 
     if doc.doctype == "Insights Chart v3":
-        from frappe.insights.permission_user import declared_owner
+        from frappe.analytics.permission_user import declared_owner
 
         if not declared_owner(doc):
             return True
@@ -1381,7 +1381,7 @@ def can_write(doc) -> bool:
     read-only outside developer mode, even to its owner, and `can_copy` allows
     a copy instead.
     """
-    from frappe.insights import standard
+    from frappe.analytics import standard
 
     workbook = doc.name if doc.doctype == "Insights Workbook" else workbook_of(doc)
     if standard.is_read_only(workbook):
@@ -1396,7 +1396,7 @@ def can_copy(doc) -> bool:
     Standard content is read-only on a site, so a copy is the only way to
     change it. Changing it needs an Insights role.
     """
-    from frappe.insights import standard
+    from frappe.analytics import standard
 
     workbook = doc.name if doc.doctype == "Insights Workbook" else workbook_of(doc)
     return (
@@ -1466,8 +1466,8 @@ def trusted_code_of(content) -> set[str]:
     ignore the reader's permissions. A script may do that; an expression or a
     SQL query may not.
     """
-    from frappe.insights.doctype.insights_data_source_v3.ibis.utils import runs_sql
-    from frappe.insights.query_utils import runs_stored_procedure
+    from frappe.analytics.doctype.insights_data_source_v3.ibis.utils import runs_sql
+    from frappe.analytics.query_utils import runs_stored_procedure
 
     found = set()
 

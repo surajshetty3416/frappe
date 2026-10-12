@@ -10,9 +10,9 @@ from unittest.mock import patch
 
 import frappe
 
-from frappe.insights.patches import resize_dashboard_cells
-from frappe.insights.patches.resize_dashboard_cells import already_rescaled, rescale_items
-from frappe.insights.tests.base import InsightsIntegrationTestCase
+from frappe.analytics.patches import resize_dashboard_cells
+from frappe.analytics.patches.resize_dashboard_cells import already_rescaled, rescale_items
+from frappe.analytics.tests.base import InsightsIntegrationTestCase
 
 
 def chart_cell(i, chart="c", **layout):
@@ -174,13 +174,13 @@ class TestRescaleItems(unittest.TestCase):
 class TestAlreadyRescaled(InsightsIntegrationTestCase):
     """The guard that stands between a re-run and every box doubling."""
 
-    PATCH = "frappe.insights.patches.probe_rescale"
+    PATCH = "frappe.analytics.patches.probe_rescale"
 
     def before_test(self):
         self.enterContext(patch.object(resize_dashboard_cells, "PATCH", self.PATCH))
 
     def after_test(self):
-        frappe.db.delete("Patch Log", {"patch": ("like", "frappe.insights.patches.probe%")})
+        frappe.db.delete("Patch Log", {"patch": ("like", "frappe.analytics.patches.probe%")})
 
     def log(self, patch_name, skipped=0):
         frappe.get_doc({"doctype": "Patch Log", "patch": patch_name, "skipped": skipped}).insert()
@@ -204,5 +204,5 @@ class TestAlreadyRescaled(InsightsIntegrationTestCase):
     # @feature upgrade.older-grid-read
     def test_another_patch_is_not_read_as_this_one(self):
         # the underscores in the module path are not single-character wildcards
-        self.log("frappe.insights.patches.probeXrescale #2")
+        self.log("frappe.analytics.patches.probeXrescale #2")
         self.assertFalse(already_rescaled())

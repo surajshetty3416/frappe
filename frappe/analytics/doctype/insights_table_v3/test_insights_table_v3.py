@@ -5,8 +5,8 @@ import frappe
 import ibis
 from frappe.tests.utils import FrappeTestCase
 
-from frappe.insights.doctype.insights_table_v3 import insights_table_v3 as table_module
-from frappe.insights.doctype.insights_table_v3.insights_table_v3 import (
+from frappe.analytics.doctype.insights_table_v3 import insights_table_v3 as table_module
+from frappe.analytics.doctype.insights_table_v3.insights_table_v3 import (
     apply_column_permissions,
     get_permitted_columns_for_table,
 )

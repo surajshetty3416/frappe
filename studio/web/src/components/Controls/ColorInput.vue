@@ -51,7 +51,7 @@
 										:style="{
 											background: modelValue
 												? resolvedColor
-												: `url(/assets/frappe/builder/images/color-circle.png) center / contain`,
+												: `url(/assets/frappe/web/images/color-circle.png) center / contain`,
 										}"></button>
 								</template>
 							</Autocomplete>
@@ -64,14 +64,14 @@
 	</div>
 </template>
 <script setup lang="ts">
-import { __ } from "@builder/translation";
-import Autocomplete from "@builder/components/Controls/Autocomplete.vue";
-import NewBuilderToken from "@builder/components/Modals/NewBuilderToken.vue";
-import useBuilderStore from "@builder/stores/builderStore";
-import { BuilderToken } from "@builder/types/doctypes";
-import { getColorVariableOptions } from "@builder/utils/colorOptions";
-import { getRGB } from "@builder/utils/helpers";
-import { useBuilderToken } from "@builder/utils/useBuilderToken";
+import { __ } from "@web/translation";
+import Autocomplete from "@web/components/Controls/Autocomplete.vue";
+import NewBuilderToken from "@web/components/Modals/NewBuilderToken.vue";
+import useBuilderStore from "@web/stores/builderStore";
+import { BuilderToken } from "@web/types/doctypes";
+import { getColorVariableOptions } from "@web/utils/colorOptions";
+import { getRGB } from "@web/utils/helpers";
+import { useBuilderToken } from "@web/utils/useBuilderToken";
 import { Tooltip } from "frappe-ui";
 import { computed, ComputedRef, nextTick, onMounted, ref, useAttrs, watch } from "vue";
 import ColorPicker from "./ColorPicker.vue";

@@ -1,4 +1,4 @@
-// Shapes returned by `frappe.builder.api.get_template_groups` (the hub catalog).
+// Shapes returned by `frappe.web.api.get_template_groups` (the hub catalog).
 // Not Frappe doctypes, so they live here rather than in doctypes.ts.
 
 export interface TemplatePageSummary {

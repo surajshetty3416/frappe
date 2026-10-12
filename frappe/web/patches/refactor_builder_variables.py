@@ -3,8 +3,8 @@ import uuid
 
 import frappe
 
-from frappe.builder.doctype.builder_token.builder_token import get_css_variables
-from frappe.builder.utils import camel_case_to_kebab_case
+from frappe.web.doctype.builder_token.builder_token import get_css_variables
+from frappe.web.utils import camel_case_to_kebab_case
 
 UUID_RE = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$")
 

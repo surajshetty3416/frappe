@@ -8,11 +8,11 @@
 	</div>
 </template>
 <script setup lang="ts">
-import useBuilderStore from "@builder/stores/builderStore";
-import usePageStore from "@builder/stores/pageStore";
-import { __ } from "@builder/translation";
+import useBuilderStore from "@web/stores/builderStore";
+import usePageStore from "@web/stores/pageStore";
+import { __ } from "@web/translation";
 import { useTitle } from "@vueuse/core";
-import { useSiteReadOnlyNotice } from "@builder/utils/useSiteReadOnlyNotice";
+import { useSiteReadOnlyNotice } from "@web/utils/useSiteReadOnlyNotice";
 import { computed } from "vue";
 import { useRoute } from "vue-router";
 

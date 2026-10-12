@@ -1,12 +1,12 @@
 import { defineStore } from "pinia"
 import { ref, reactive, computed, nextTick } from "vue"
-import type Block from "@studio/utils/block"
-import { getBlockCopy, getBlockInstance } from "@studio/utils/serializer"
-import { confirm } from "@studio/utils/helpers"
+import type Block from "@ui/utils/block"
+import { getBlockCopy, getBlockInstance } from "@ui/utils/serializer"
+import { confirm } from "@ui/utils/helpers"
 
-import type StudioCanvas from "@studio/components/StudioCanvas.vue"
-import type { EditingMode, BlockOptions } from "@studio/types"
-import type { IndicatorGeometry } from "@studio/utils/dropGeometry"
+import type StudioCanvas from "@ui/components/StudioCanvas.vue"
+import type { EditingMode, BlockOptions } from "@ui/types"
+import type { IndicatorGeometry } from "@ui/utils/dropGeometry"
 
 const useCanvasStore = defineStore("studioCanvasStore", () => {
 	const activeCanvas = ref<InstanceType<typeof StudioCanvas> | null>(null)

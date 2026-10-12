@@ -1,5 +1,5 @@
-import type { default as Block, default as BlockDataKey } from "@builder/block";
-import useCanvasStore from "@builder/stores/canvasStore";
+import type { default as Block, default as BlockDataKey } from "@web/block";
+import useCanvasStore from "@web/stores/canvasStore";
 import getBlockTemplate from "./blockTemplate";
 import componentController from "./componentController";
 import type { SpacingType } from "./cssUtils";

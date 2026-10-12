@@ -1,5 +1,5 @@
-import builderTokenStore from "@builder/data/builderToken";
-import { BuilderToken } from "@builder/types/doctypes";
+import builderTokenStore from "@web/data/builderToken";
+import { BuilderToken } from "@web/types/doctypes";
 import { computed } from "vue";
 
 export const defaultBuilderToken = {

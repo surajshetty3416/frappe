@@ -39,9 +39,9 @@
 	</div>
 </template>
 <script setup lang="ts">
-import DynamicValueDropdown from "@builder/components/DynamicValueDropdown.vue";
-import blockController from "@builder/utils/blockController";
-import { mapToObject, replaceMapKey } from "@builder/utils/helpers";
+import DynamicValueDropdown from "@web/components/DynamicValueDropdown.vue";
+import blockController from "@web/utils/blockController";
+import { mapToObject, replaceMapKey } from "@web/utils/helpers";
 import { nextTick, ref } from "vue";
 
 const props = defineProps<{

@@ -6,14 +6,14 @@ import { setActivePinia } from "pinia"
 // @ts-ignore
 import { FrappeUIProvider, resourcesPlugin } from "frappe-ui"
 
-import StudioCanvas from "@studio/components/StudioCanvas.vue"
-import Block from "@studio/utils/block"
-import { COMPONENTS } from "@studio/data/components"
-import { getBlockInstance } from "@studio/utils/serializer"
-import getBlockTemplate from "@studio/utils/blockTemplate"
-import { registerGlobalComponents } from "@studio/globals"
-import useCanvasStore from "@studio/stores/canvasStore"
-import { useStudioEvents } from "@studio/utils/useStudioEvents"
+import StudioCanvas from "@ui/components/StudioCanvas.vue"
+import Block from "@ui/utils/block"
+import { COMPONENTS } from "@ui/data/components"
+import { getBlockInstance } from "@ui/utils/serializer"
+import getBlockTemplate from "@ui/utils/blockTemplate"
+import { registerGlobalComponents } from "@ui/globals"
+import useCanvasStore from "@ui/stores/canvasStore"
+import { useStudioEvents } from "@ui/utils/useStudioEvents"
 
 const canvasElement = () => document.querySelector(".canvas") as HTMLElement
 

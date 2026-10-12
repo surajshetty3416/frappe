@@ -11,7 +11,7 @@ setConfig("resourceFetcher", frappeRequest)
 
 // the server renders boot data into the page; the Vite dev server has no page template
 async function loadDevBoot() {
-	const response = await fetch("/api/method/frappe.www._frontend.get_context_for_dev", { method: "POST" })
+	const response = await fetch("/api/method/frappe.www._studio.get_context_for_dev", { method: "POST" })
 	Object.assign(window, (await response.json()).message)
 }
 

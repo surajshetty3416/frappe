@@ -1,6 +1,6 @@
 import frappe
 
-from frappe.flow.doctype.flow_session.flow_session import _delete_attachment_files, _purge_attachment_chunks
+from frappe.ai.doctype.flow_session.flow_session import _delete_attachment_files, _purge_attachment_chunks
 
 
 # Sessions of the removed in-process code agents had no Flow Agent and no flow server copy.

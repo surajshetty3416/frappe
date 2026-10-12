@@ -73,10 +73,10 @@
 </template>
 
 <script setup lang="ts">
-import AIModelDialog from "@builder/components/Modals/AIModelDialog.vue";
-import AIProviderDialog from "@builder/components/Modals/AIProviderDialog.vue";
-import { aiModels, aiProviders, reloadAIRegistry } from "@builder/data/aiModels";
-import { BuilderAIModel } from "@builder/types/doctypes";
+import AIModelDialog from "@web/components/Modals/AIModelDialog.vue";
+import AIProviderDialog from "@web/components/Modals/AIProviderDialog.vue";
+import { aiModels, aiProviders, reloadAIRegistry } from "@web/data/aiModels";
+import { BuilderAIModel } from "@web/types/doctypes";
 import { Button, Switch } from "frappe-ui";
 import { computed, onMounted, ref } from "vue";
 

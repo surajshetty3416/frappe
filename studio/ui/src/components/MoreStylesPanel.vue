@@ -89,21 +89,21 @@ const addAddedProperty = (componentId: string, property: string) => {
 <script setup lang="ts">
 import { Combobox } from "frappe-ui"
 import { computed, nextTick, ref, type CSSProperties } from "vue"
-import ContextMenu from "@studio/components/ContextMenu.vue"
-import DynamicStyleSetter from "@studio/components/DynamicStyleSetter.vue"
-import InlineInput from "@studio/components/InlineInput.vue"
-import useCanvasStore from "@studio/stores/canvasStore"
-import useStudioStore from "@studio/stores/studioStore"
-import blockController from "@studio/utils/blockController"
+import ContextMenu from "@ui/components/ContextMenu.vue"
+import DynamicStyleSetter from "@ui/components/DynamicStyleSetter.vue"
+import InlineInput from "@ui/components/InlineInput.vue"
+import useCanvasStore from "@ui/stores/canvasStore"
+import useStudioStore from "@ui/stores/studioStore"
+import blockController from "@ui/utils/blockController"
 import {
 	getCSSPropertyControl,
 	getCSSPropertyOptions,
 	isValidCSSPropertyName,
 	normalizeCSSPropertyName,
-} from "@studio/utils/cssMetadata"
-import { isTargetEditable, kebabToCamelCase, toTitleCase } from "@studio/utils/helpers"
-import { getStylePropertiesWithoutControls } from "@studio/utils/stylePropertiesWithoutControls"
-import type { ContextMenuOption, StyleValue } from "@studio/types"
+} from "@ui/utils/cssMetadata"
+import { isTargetEditable, kebabToCamelCase, toTitleCase } from "@ui/utils/helpers"
+import { getStylePropertiesWithoutControls } from "@ui/utils/stylePropertiesWithoutControls"
+import type { ContextMenuOption, StyleValue } from "@ui/types"
 
 // the union of usedStyleProperties declared in ComponentStyles.vue
 const props = defineProps<{ controlledProperties: Set<string> }>()

@@ -1,4 +1,4 @@
-from frappe.builder.utils import add_composite_index_to_web_page_view
+from frappe.web.utils import add_composite_index_to_web_page_view
 
 
 def execute():

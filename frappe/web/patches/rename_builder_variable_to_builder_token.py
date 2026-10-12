@@ -15,7 +15,7 @@ def execute():
 	if not frappe.db.exists("DocType", "Builder Variable"):
 		return
 	frappe.rename_doc("DocType", "Builder Variable", "Builder Token", force=True)
-	frappe.reload_doc("builder", "doctype", "builder_token")
+	frappe.reload_doc("web", "doctype", "builder_token")
 	rename_field("Builder Token", "variable_name", "token_name")
 
 

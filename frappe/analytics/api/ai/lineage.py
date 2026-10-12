@@ -15,10 +15,10 @@ save, so a query saved a moment ago may not show downstream yet.
 
 import frappe
 
-from frappe.insights.decorators import insights_whitelist
-from frappe.insights.doctype.insights_dashboard_v3.insights_dashboard_v3 import LINK_COLUMN
-from frappe.insights.query_utils import downstream_queries, referenced_queries, table_references
-from frappe.insights.resolver import not_found
+from frappe.analytics.decorators import insights_whitelist
+from frappe.analytics.doctype.insights_dashboard_v3.insights_dashboard_v3 import LINK_COLUMN
+from frappe.analytics.query_utils import downstream_queries, referenced_queries, table_references
+from frappe.analytics.resolver import not_found
 
 QUERY = "Insights Query v3"
 CHART = "Insights Chart v3"

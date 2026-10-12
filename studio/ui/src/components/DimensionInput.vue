@@ -25,9 +25,9 @@
 </template>
 
 <script setup lang="ts">
-import InlineInput from "@studio/components/InlineInput.vue"
-import { styleProperty } from "@studio/utils/block"
-import blockController from "@studio/utils/blockController"
+import InlineInput from "@ui/components/InlineInput.vue"
+import { styleProperty } from "@ui/utils/block"
+import blockController from "@ui/utils/blockController"
 
 const props = defineProps<{
 	property: styleProperty

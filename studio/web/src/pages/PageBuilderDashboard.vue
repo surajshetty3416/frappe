@@ -11,15 +11,15 @@
 	<TemplatesDialog />
 </template>
 <script setup lang="ts">
-import BuilderCommandPalette from "@builder/components/BuilderCommandPalette.vue";
-import DashboardContent from "@builder/components/DashboardContent.vue";
-import DashboardHead from "@builder/components/DashboardHead.vue";
-import DashboardSidebar from "@builder/components/DashboardSidebar.vue";
-import DashboardToolbar from "@builder/components/DashboardToolbar.vue";
-import TemplatesDialog from "@builder/components/Templates/TemplatesDialog.vue";
-import { builderSettings } from "@builder/data/builderSettings";
-import router, { sessionUser } from "@builder/router";
-import { prefetchBuilderSettings, prefetchTemplateGallery } from "@builder/utils/prefetch";
+import BuilderCommandPalette from "@web/components/BuilderCommandPalette.vue";
+import DashboardContent from "@web/components/DashboardContent.vue";
+import DashboardHead from "@web/components/DashboardHead.vue";
+import DashboardSidebar from "@web/components/DashboardSidebar.vue";
+import DashboardToolbar from "@web/components/DashboardToolbar.vue";
+import TemplatesDialog from "@web/components/Templates/TemplatesDialog.vue";
+import { builderSettings } from "@web/data/builderSettings";
+import router, { sessionUser } from "@web/router";
+import { prefetchBuilderSettings, prefetchTemplateGallery } from "@web/utils/prefetch";
 import { useTelemetry } from "@framework/ui/telemetry";
 import { onMounted, watch } from "vue";
 

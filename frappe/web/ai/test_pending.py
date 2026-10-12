@@ -4,7 +4,7 @@ from types import SimpleNamespace
 import frappe
 from frappe.tests.utils import FrappeTestCase
 
-from frappe.builder.ai.agent import pending
+from frappe.web.ai.agent import pending
 
 
 class TestRequestConfirmation(FrappeTestCase):

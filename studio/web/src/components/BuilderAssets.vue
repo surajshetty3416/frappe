@@ -50,12 +50,12 @@
 	</div>
 </template>
 <script setup lang="ts">
-import webComponent from "@builder/data/webComponent";
-import useCanvasStore from "@builder/stores/canvasStore";
-import useComponentStore from "@builder/stores/componentStore";
-import usePageStore from "@builder/stores/pageStore";
-import { BuilderComponent } from "@builder/types/doctypes";
-import { editorDemo } from "@builder/utils/editorDemo";
+import webComponent from "@web/data/webComponent";
+import useCanvasStore from "@web/stores/canvasStore";
+import useComponentStore from "@web/stores/componentStore";
+import usePageStore from "@web/stores/pageStore";
+import { BuilderComponent } from "@web/types/doctypes";
+import { editorDemo } from "@web/utils/editorDemo";
 import { useEventListener } from "@vueuse/core";
 import { ItemListRow } from "frappe-ui";
 import { computed, onMounted, ref } from "vue";

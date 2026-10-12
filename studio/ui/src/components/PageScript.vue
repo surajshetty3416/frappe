@@ -45,12 +45,12 @@
 <script setup lang="ts">
 import { ref, computed, watch } from "vue"
 import { toast, Button, Popover, ErrorMessage } from "frappe-ui"
-import CodeEditorDock from "@studio/components/CodeEditorDock.vue"
-import PageScriptHelp from "@studio/components/PageScriptHelp.vue"
-import { getScriptError } from "@studio/utils/parseCode"
-import { useStudioCompletions } from "@studio/utils/completions/useStudioCompletions"
-import { usePageScope } from "@studio/stores/codeStore"
-import useStudioStore from "@studio/stores/studioStore"
+import CodeEditorDock from "@ui/components/CodeEditorDock.vue"
+import PageScriptHelp from "@ui/components/PageScriptHelp.vue"
+import { getScriptError } from "@ui/utils/parseCode"
+import { useStudioCompletions } from "@ui/utils/completions/useStudioCompletions"
+import { usePageScope } from "@ui/stores/codeStore"
+import useStudioStore from "@ui/stores/studioStore"
 
 const store = useStudioStore()
 const pageScope = usePageScope()

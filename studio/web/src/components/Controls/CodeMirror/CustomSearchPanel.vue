@@ -111,7 +111,7 @@ import {
 	setSearchQuery,
 } from "@codemirror/search";
 import type { EditorView } from "@codemirror/view";
-import { __ } from "@builder/translation";
+import { __ } from "@web/translation";
 import { Button, TextInput } from "frappe-ui";
 import { inject, nextTick, onMounted, ref } from "vue";
 

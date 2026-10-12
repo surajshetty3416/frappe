@@ -74,7 +74,7 @@
 	</div>
 </template>
 <script setup lang="ts">
-import ImageUploadInput from "@builder/components/ImageUploadInput.vue";
-import usePageStore from "@builder/stores/pageStore";
+import ImageUploadInput from "@web/components/ImageUploadInput.vue";
+import usePageStore from "@web/stores/pageStore";
 const pageStore = usePageStore();
 </script>

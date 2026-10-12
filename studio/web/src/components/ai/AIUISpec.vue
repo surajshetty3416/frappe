@@ -145,7 +145,7 @@
 					fileTypes="image/*"
 					:private="false"
 					folder="Home/Builder Uploads"
-					uploadEndpoint="/api/method/frappe.builder.api.upload_builder_asset"
+					uploadEndpoint="/api/method/frappe.web.api.upload_builder_asset"
 					@success="(file: any) => (uploads[i] = file.file_url)">
 					<template #default="{ openFileSelector, uploading, progress }">
 						<div class="flex items-center gap-2">
@@ -223,7 +223,7 @@
 </template>
 
 <script setup lang="ts">
-import ColorInput from "@builder/components/Controls/ColorInput.vue";
+import ColorInput from "@web/components/Controls/ColorInput.vue";
 import { Button, FileUploader, FormControl } from "frappe-ui";
 import { computed, reactive, ref, watchEffect } from "vue";
 import {

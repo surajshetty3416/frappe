@@ -20,13 +20,13 @@
 	</div>
 </template>
 <script setup lang="ts">
-import { __ } from "@builder/translation";
-import ComponentUpdates from "@builder/components/ComponentUpdates.vue";
-import PlayIcon from "@builder/components/Icons/Play.vue";
-import SettingsGearIcon from "@builder/components/Icons/SettingsGear.vue";
-import useBuilderStore from "@builder/stores/builderStore";
-import useCanvasStore from "@builder/stores/canvasStore";
-import usePageStore from "@builder/stores/pageStore";
+import { __ } from "@web/translation";
+import ComponentUpdates from "@web/components/ComponentUpdates.vue";
+import PlayIcon from "@web/components/Icons/Play.vue";
+import SettingsGearIcon from "@web/components/Icons/SettingsGear.vue";
+import useBuilderStore from "@web/stores/builderStore";
+import useCanvasStore from "@web/stores/canvasStore";
+import usePageStore from "@web/stores/pageStore";
 import { Tooltip } from "frappe-ui";
 import { computed } from "vue";
 

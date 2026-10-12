@@ -69,22 +69,22 @@
 </template>
 
 <script setup lang="ts">
-import { __ } from "@builder/translation";
-import Block from "@builder/block";
-import useBuilderStore from "@builder/stores/builderStore";
-import usePageStore from "@builder/stores/pageStore";
-import blockController from "@builder/utils/blockController";
+import { __ } from "@web/translation";
+import Block from "@web/block";
+import useBuilderStore from "@web/stores/builderStore";
+import usePageStore from "@web/stores/pageStore";
+import blockController from "@web/utils/blockController";
 import {
 	getDataArray,
 	getDefaultPropsList,
 	getParentProps,
 	getPropValue,
 	getRepeaterScopedData,
-} from "@builder/utils/helpers";
+} from "@web/utils/helpers";
 import { computed, ref } from "vue";
 import MiddleTruncate from "../MiddleTruncate.vue";
-import useCanvasStore from "@builder/stores/canvasStore.js";
-import componentController from "@builder/utils/componentController.js";
+import useCanvasStore from "@web/stores/canvasStore.js";
+import componentController from "@web/utils/componentController.js";
 
 const pageStore = usePageStore();
 const builderStore = useBuilderStore();

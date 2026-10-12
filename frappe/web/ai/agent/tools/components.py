@@ -10,12 +10,12 @@ import copy
 
 import frappe
 
-from frappe.builder.ai.agent.registry import Tool
-from frappe.builder.utils import compact_json
+from frappe.web.ai.agent.registry import Tool
+from frappe.web.utils import compact_json
 
 
 def run_extract_component(ctx, args: dict) -> str:
-	from frappe.builder.ai.agent.tree import WorkingTree
+	from frappe.web.ai.agent.tree import WorkingTree
 
 	block_id = (args.get("block_id") or "").strip()
 	name = (args.get("component_name") or "").strip()
@@ -36,7 +36,7 @@ def run_extract_component(ctx, args: dict) -> str:
 	parent = view.parent_of(block_id)
 	if parent is None:
 		return f"FAILED: block_id '{block_id}' has no parent in the tree."
-	from frappe.builder.ai.page_writer import component_instance_children
+	from frappe.web.ai.page_writer import component_instance_children
 
 	component_id = create_component_doc(name, target)
 	# Swap the subtree for an instance SKELETON — the same shape the editor's own
@@ -88,7 +88,7 @@ EDIT_OPS = ("update_block", "update_blocks", "add_block", "remove_block", "move_
 
 def run_edit_component(ctx, args: dict) -> str:
 	"""Apply block ops to a Builder Component's own definition, save it and sync every page that embeds it."""
-	from frappe.builder.ai.agent.tree import ComponentTree
+	from frappe.web.ai.agent.tree import ComponentTree
 
 	component_id = (args.get("component_id") or "").strip()
 	ops = [op for op in args.get("ops") or [] if isinstance(op, dict)]
@@ -123,7 +123,7 @@ def apply_component_op(tree, op: dict) -> str:
 
 def refresh_open_page(ctx, synced_pages: list[str]) -> None:
 	"""The sync rewrote the open page in the database; point the working tree and canvas at it."""
-	from frappe.builder.ai.page_writer import load_page_root
+	from frappe.web.ai.page_writer import load_page_root
 
 	page_id = getattr(ctx, "page_id", None)
 	if page_id in synced_pages and (root := load_page_root(page_id)):

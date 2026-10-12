@@ -13,7 +13,7 @@ def execute():
     `modified` stays where the author left it: this restores the layout they
     already had rather than editing their dashboard.
     """
-    frappe.reload_doc("insights", "doctype", "insights_dashboard_v3")
+    frappe.reload_doc("analytics", "doctype", "insights_dashboard_v3")
     frappe.db.set_value(
         "Insights Dashboard v3",
         {"vertical_compact_layout": 0},

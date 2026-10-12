@@ -6,9 +6,9 @@ from unittest.mock import patch
 import frappe
 from frappe.tests import IntegrationTestCase
 
-from frappe.flow.permissions import has_app_permission
-from frappe.flow.tests.test_ai_api import OTHER, _ensure_user
-from frappe.www import _frontend as page
+from frappe.ai.permissions import has_app_permission
+from frappe.ai.tests.test_ai_api import OTHER, _ensure_user
+from frappe.www import _studio as page
 
 
 def render_page() -> frappe._dict:

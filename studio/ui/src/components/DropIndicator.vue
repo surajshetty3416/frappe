@@ -26,7 +26,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue"
-import useCanvasStore from "@studio/stores/canvasStore"
+import useCanvasStore from "@ui/stores/canvasStore"
 
 const LINE_WIDTH = 3
 

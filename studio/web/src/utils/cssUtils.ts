@@ -1,7 +1,7 @@
 // CSS value parsing / normalization helpers (px, spacing shorthand, background).
 // Extracted from helpers.ts; re-exported there for backwards compatibility.
 
-import Block from "@builder/block";
+import Block from "@web/block";
 
 const numericValuePattern = /^(-?(?:\d+(?:\.\d*)?|\.\d+))([a-z%]*)$/i;
 

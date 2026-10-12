@@ -50,30 +50,30 @@
 </template>
 
 <script setup lang="ts">
-import { __ } from "@builder/translation";
-import ContextMenu from "@builder/components/ContextMenu.vue";
-import Autocomplete from "@builder/components/Controls/Autocomplete.vue";
-import StylePropertyControl from "@builder/components/Controls/StylePropertyControl.vue";
-import useCanvasStore from "@builder/stores/canvasStore";
-import blockController from "@builder/utils/blockController";
+import { __ } from "@web/translation";
+import ContextMenu from "@web/components/ContextMenu.vue";
+import Autocomplete from "@web/components/Controls/Autocomplete.vue";
+import StylePropertyControl from "@web/components/Controls/StylePropertyControl.vue";
+import useCanvasStore from "@web/stores/canvasStore";
+import blockController from "@web/utils/blockController";
 import {
 	getCSSPropertyControl,
 	getCSSPropertyOptions,
 	getCSSValueOptions,
 	isValidCSSPropertyName,
 	type StyleControlConfig,
-} from "@builder/utils/cssMetadata";
+} from "@web/utils/cssMetadata";
 import {
 	getStylePropertiesWithControls,
 	getStylePropertiesWithoutControls,
 	isStylePropertyWithControls,
-} from "@builder/utils/stylePropertiesWithControls";
+} from "@web/utils/stylePropertiesWithControls";
 import {
 	isInteractiveControl,
 	normalizeCSSPropertyName,
 	toStyleProperty,
 	toTitleCase,
-} from "@builder/utils/helpers";
+} from "@web/utils/helpers";
 import { Combobox, type ComboboxOptionValue, type SelectionExposed } from "frappe-ui";
 import { computed, nextTick, reactive, ref, watch } from "vue";
 

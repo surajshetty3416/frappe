@@ -1,6 +1,6 @@
 from frappe.tests.utils import FrappeTestCase
 
-from frappe.builder.ai.agent.loop import (
+from frappe.web.ai.agent.loop import (
 	SYSTEM_CACHE_CONTROL,
 	TURN_CACHE_CONTROL,
 	AgentRunner,

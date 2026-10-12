@@ -64,14 +64,14 @@
 // panel can't show them, so they are collected here to copy from and remove.
 import { computed, ref } from "vue"
 import { Tooltip } from "frappe-ui"
-import Block from "@studio/utils/block"
-import Code from "@studio/components/Code.vue"
-import InlineInput from "@studio/components/InlineInput.vue"
-import DynamicValueSelector from "@studio/components/DynamicValueSelector.vue"
-import components from "@studio/data/components"
-import { isObjectEmpty } from "@studio/utils/helpers"
-import { isDynamicValue } from "@studio/utils/code"
-import type { ComponentProps } from "@studio/types"
+import Block from "@ui/utils/block"
+import Code from "@ui/components/Code.vue"
+import InlineInput from "@ui/components/InlineInput.vue"
+import DynamicValueSelector from "@ui/components/DynamicValueSelector.vue"
+import components from "@ui/data/components"
+import { isObjectEmpty } from "@ui/utils/helpers"
+import { isDynamicValue } from "@ui/utils/code"
+import type { ComponentProps } from "@ui/types"
 import { Badge } from "frappe-ui"
 
 const PASS_THROUGH_ATTRS = ["class", "style", "id", "key", "ref", "slot"]

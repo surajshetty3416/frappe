@@ -9,14 +9,14 @@ vi.mock('frappe-ui', async (importOriginal) => ({
 	toast: { error: () => {} },
 	call: (method: string, args: any) => {
 		calls.push({ method, args })
-		if (method === 'frappe.insights.api.view.get_dashboard') {
+		if (method === 'frappe.analytics.api.view.get_dashboard') {
 			return Promise.resolve(answer.dashboard)
 		}
 		if (answer.refuseSave && method === 'frappe.client.set_value') {
 			return Promise.reject(Object.assign(new Error('refused'), { status: 417 }))
 		}
 		if (
-			(method === 'frappe.insights.api.get_doc' || method === 'frappe.client.set_value') &&
+			(method === 'frappe.analytics.api.get_doc' || method === 'frappe.client.set_value') &&
 			args.doctype === 'Insights Dashboard v3'
 		) {
 			return Promise.resolve({
@@ -27,7 +27,7 @@ vi.mock('frappe-ui', async (importOriginal) => ({
 				items: '[]',
 			})
 		}
-		if (method === 'frappe.insights.api.get_doc' || method === 'frappe.client.set_value') {
+		if (method === 'frappe.analytics.api.get_doc' || method === 'frappe.client.set_value') {
 			return Promise.resolve({
 				doctype: 'Insights Chart v3',
 				name: 'chart-1',
@@ -101,9 +101,9 @@ async function opened(route = 'sales') {
 }
 
 const dashboardCalls = () =>
-	calls.filter((call) => call.method === 'frappe.insights.api.view.get_dashboard')
+	calls.filter((call) => call.method === 'frappe.analytics.api.view.get_dashboard')
 
-const dataCalls = () => calls.filter((call) => call.method === 'frappe.insights.api.view.get_chart_data')
+const dataCalls = () => calls.filter((call) => call.method === 'frappe.analytics.api.view.get_chart_data')
 
 beforeEach(() => {
 	calls.length = 0
@@ -189,8 +189,8 @@ describe('a dashboard refreshed', () => {
 
 		const asked = calls.slice(before)
 		expect(asked.map((call) => call.method)).toEqual([
-			'frappe.insights.api.view.get_dashboard',
-			'frappe.insights.api.view.get_chart_data',
+			'frappe.analytics.api.view.get_dashboard',
+			'frappe.analytics.api.view.get_chart_data',
 		])
 		expect(asked[1].args.force).toBe(true)
 		expect(view.chartView('chart-1')?.doc.chart_type).toBe('Line')

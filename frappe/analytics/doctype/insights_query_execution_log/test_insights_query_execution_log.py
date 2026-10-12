@@ -5,8 +5,8 @@ import frappe
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import add_days, now_datetime
 
-from frappe.insights.doctype.insights_data_source_v3.data_warehouse import UNUSED_TABLE_DAYS
-from frappe.insights.doctype.insights_query_execution_log.insights_query_execution_log import (
+from frappe.analytics.doctype.insights_data_source_v3.data_warehouse import UNUSED_TABLE_DAYS
+from frappe.analytics.doctype.insights_query_execution_log.insights_query_execution_log import (
     InsightsQueryExecutionLog,
 )
 

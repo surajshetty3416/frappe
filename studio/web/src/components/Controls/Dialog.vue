@@ -12,8 +12,8 @@
 </template>
 
 <script setup lang="ts">
-import { __ } from "@builder/translation";
-import { confirm } from "@builder/utils/helpers";
+import { __ } from "@web/translation";
+import { confirm } from "@web/utils/helpers";
 import { useEventListener } from "@vueuse/core";
 import { Dialog } from "frappe-ui";
 import { useAttrs } from "vue";

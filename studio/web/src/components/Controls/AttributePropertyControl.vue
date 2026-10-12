@@ -11,8 +11,8 @@ d
 </template>
 
 <script lang="ts" setup>
-import BasePropertyControl from "@builder/components/Controls/BasePropertyControl.vue";
-import blockController from "@builder/utils/blockController";
+import BasePropertyControl from "@web/components/Controls/BasePropertyControl.vue";
+import blockController from "@web/utils/blockController";
 import type { Component } from "vue";
 import { computed } from "vue";
 

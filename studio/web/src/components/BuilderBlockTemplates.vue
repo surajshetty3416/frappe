@@ -45,11 +45,11 @@
 	</div>
 </template>
 <script setup lang="ts">
-import { __ } from "@builder/translation";
-import builderBlockTemplate from "@builder/data/builderBlockTemplate";
-import useBlockTemplateStore from "@builder/stores/blockTemplateStore";
-import useCanvasStore from "@builder/stores/canvasStore";
-import { BlockTemplate } from "@builder/types/doctypes";
+import { __ } from "@web/translation";
+import builderBlockTemplate from "@web/data/builderBlockTemplate";
+import useBlockTemplateStore from "@web/stores/blockTemplateStore";
+import useCanvasStore from "@web/stores/canvasStore";
+import { BlockTemplate } from "@web/types/doctypes";
 import { computed, onMounted, ref } from "vue";
 import CollapsibleSection from "./CollapsibleSection.vue";
 

@@ -223,14 +223,14 @@
 import { computed, ref, watch } from "vue"
 import { createResource, Dialog, FormControl, Checkbox, ErrorMessage, Button, Badge } from "frappe-ui"
 import Link from "@framework/ui/components/Link/Link.vue"
-import ScriptSection from "@studio/components/ScriptSection.vue"
-import Filters from "@studio/components/Filters.vue"
-import Grid from "@studio/components/Grid.vue"
+import ScriptSection from "@ui/components/ScriptSection.vue"
+import Filters from "@ui/components/Filters.vue"
+import Grid from "@ui/components/Grid.vue"
 
-import type { DocTypeField, SelectOption } from "@studio/types"
-import type { ResourceType, Resource } from "@studio/types/Studio/StudioResource"
-import { getParamsArray, isObjectEmpty } from "@studio/utils/helpers"
-import { useStudioCompletions } from "@studio/utils/completions/useStudioCompletions"
+import type { DocTypeField, SelectOption } from "@ui/types"
+import type { ResourceType, Resource } from "@ui/types/Studio/StudioResource"
+import { getParamsArray, isObjectEmpty } from "@ui/utils/helpers"
+import { useStudioCompletions } from "@ui/utils/completions/useStudioCompletions"
 import type { CompletionContext } from "@codemirror/autocomplete"
 
 const props = defineProps<{
@@ -269,7 +269,7 @@ const newResource = ref<Resource>({ ...emptyResource })
 const filterFields = ref<DocTypeField[]>([])
 
 const doctypeFields = createResource({
-	url: "frappe.studio.api.get_doctype_fields",
+	url: "frappe.ui.api.get_doctype_fields",
 	makeParams: () => ({ ...makeParams(), with_standard_fields: true }),
 	transform: (data: DocTypeField[]) => {
 		filterFields.value = data
@@ -283,7 +283,7 @@ const doctypeFields = createResource({
 })
 
 const whitelistedMethods = createResource({
-	url: "frappe.studio.api.get_whitelisted_methods",
+	url: "frappe.ui.api.get_whitelisted_methods",
 	makeParams,
 	transform: (data: string[]) => {
 		return data.map((method) => {
@@ -296,7 +296,7 @@ const whitelistedMethods = createResource({
 })
 
 const sortFields = createResource({
-	url: "frappe.studio.api.get_sort_fields",
+	url: "frappe.ui.api.get_sort_fields",
 	makeParams,
 })
 

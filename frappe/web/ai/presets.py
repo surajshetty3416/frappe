@@ -12,7 +12,7 @@ AI Provider / Builder AI Model row, editable afterwards like any other.
 import frappe
 from frappe import _
 
-from frappe.builder.ai.models import ModelRegistry
+from frappe.web.ai.models import ModelRegistry
 
 PRESETS = [
 	{
@@ -232,7 +232,7 @@ def verify_key(preset: dict, api_key: str, api_base: str, model_id: str) -> dict
 	right but is revoked, out of credit or scoped wrong fails HERE rather than
 	three screens later on the user's first build."""
 	if preset["id"] == "codex":
-		from frappe.builder.ai import codex
+		from frappe.web.ai import codex
 
 		return codex.verify_credential(api_key)
 	import litellm

@@ -1,7 +1,7 @@
-import userFont from "@builder/data/userFonts";
-import { useBuilderToken } from "@builder/utils/useBuilderToken";
+import userFont from "@web/data/userFonts";
+import { useBuilderToken } from "@web/utils/useBuilderToken";
 import { shallowRef } from "vue";
-import { __ } from "@builder/translation";
+import { __ } from "@web/translation";
 
 interface FontListItem {
 	family: string;
@@ -60,7 +60,7 @@ let fontListPromise: Promise<FontListItem[]> | null = null;
 
 export function loadFontList(): Promise<FontListItem[]> {
 	if (!fontListPromise) {
-		fontListPromise = import("@builder/utils/fontList.json").then((m) => {
+		fontListPromise = import("@web/utils/fontList.json").then((m) => {
 			fontListItems.value = m.default.items as FontListItem[];
 			return fontListItems.value;
 		});

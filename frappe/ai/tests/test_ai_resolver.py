@@ -7,8 +7,8 @@ from unittest.mock import patch
 import frappe
 from frappe.tests import IntegrationTestCase, UnitTestCase
 
-from frappe.flow.lib.resolver import schema_from_code
-from frappe.flow.lib.tool import Tool, ToolContext, tool
+from frappe.ai.lib.resolver import schema_from_code
+from frappe.ai.lib.tool import Tool, ToolContext, tool
 
 
 class TestSchemaFromCode(UnitTestCase):
@@ -119,7 +119,7 @@ def _module_doc(**overrides: Any) -> dict:
 		"slug": "weather",
 		"type": "Imported",
 		"description": "Look up the weather.",
-		"import_path": "frappe.flow.tools.builtins.weather",
+		"import_path": "frappe.ai.tools.builtins.weather",
 	}
 	doc.update(overrides)
 	return doc

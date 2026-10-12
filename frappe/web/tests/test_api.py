@@ -6,7 +6,7 @@ import frappe
 from frappe.tests.utils import FrappeTestCase
 from PIL import Image
 
-from frappe.builder.api import (
+from frappe.web.api import (
 	create_import_folder,
 	duplicate_page,
 	get_copy_script_name,
@@ -46,8 +46,8 @@ class Response:
 @contextmanager
 def serving(*responses):
 	with (
-		patch("frappe.builder.api.requests.get", side_effect=list(responses)) as get,
-		patch("frappe.builder.api.assert_not_private_url"),
+		patch("frappe.web.api.requests.get", side_effect=list(responses)) as get,
+		patch("frappe.web.api.assert_not_private_url"),
 	):
 		yield get
 
@@ -107,14 +107,14 @@ class TestImportRemoteAssets(FrappeTestCase):
 		self.assertIn(kept, imported)
 
 	def test_leaves_out_an_asset_over_the_size_limit(self):
-		with serving(Response(png_bytes())), patch("frappe.builder.api.MAX_ASSET_BYTES", 10):
+		with serving(Response(png_bytes())), patch("frappe.web.api.MAX_ASSET_BYTES", 10):
 			imported = import_remote_assets([f"{self.cdn}/huge.png"])
 
 		self.assertEqual(imported, {})
 
 	def test_stops_at_the_import_limit(self):
 		urls = [f"{self.cdn}/{i}.png" for i in range(3)]
-		with serving(*[Response(png_bytes()) for _ in urls]), patch("frappe.builder.api.MAX_IMPORTED_ASSETS", 2):
+		with serving(*[Response(png_bytes()) for _ in urls]), patch("frappe.web.api.MAX_IMPORTED_ASSETS", 2):
 			imported = import_remote_assets(urls)
 
 		self.assertEqual(len(imported), 2)
@@ -161,7 +161,7 @@ class TestImportRemoteFonts(FrappeTestCase):
 		self.assertEqual(imported, {})
 
 	def test_leaves_out_a_font_over_the_size_limit(self):
-		with serving(Response(b"font", "font/woff2")), patch("frappe.builder.api.MAX_FONT_BYTES", 2):
+		with serving(Response(b"font", "font/woff2")), patch("frappe.web.api.MAX_FONT_BYTES", 2):
 			imported = import_remote_fonts([{"family": "Too Big Import", "url": FONT}])
 
 		self.assertEqual(imported, {})
@@ -177,7 +177,7 @@ class TestImportRemoteFonts(FrappeTestCase):
 		fonts = [{"family": f"Limit {i}", "url": FONT} for i in range(3)]
 		with (
 			serving(*[Response(b"font", "font/woff2") for _ in fonts]),
-			patch("frappe.builder.api.MAX_IMPORTED_FONTS", 2),
+			patch("frappe.web.api.MAX_IMPORTED_FONTS", 2),
 		):
 			imported = import_remote_fonts(fonts)
 
@@ -245,8 +245,8 @@ def fake_hub_get(method, page=None):
 	return {"page": {"page_title": page, "route": ROUTES[page], "blocks": [{"element": "div"}]}}
 
 
-@patch("frappe.builder.api.hub_get", fake_hub_get)
-@patch("frappe.builder.api.get_template_groups", lambda: [GROUP])
+@patch("frappe.web.api.hub_get", fake_hub_get)
+@patch("frappe.web.api.get_template_groups", lambda: [GROUP])
 class TestImportTemplateGroup(FrappeTestCase):
 	# each test counts folders and prefixes from scratch
 	def tearDown(self):
@@ -274,6 +274,6 @@ class TestImportTemplateGroup(FrappeTestCase):
 		self.assertEqual(create_import_folder("Zz Harbour", "zz-harbour"), ("Zz Harbour 2", "zz-harbour-2"))
 
 	def test_a_group_with_no_fetchable_pages_creates_no_folder(self):
-		with patch("frappe.builder.api.hub_get", lambda method, page=None: None):
+		with patch("frappe.web.api.hub_get", lambda method, page=None: None):
 			self.assertRaises(frappe.ValidationError, import_template_group, "zz-harbour")
 		self.assertFalse(frappe.db.exists("Builder Project Folder", "Zz Harbour"))

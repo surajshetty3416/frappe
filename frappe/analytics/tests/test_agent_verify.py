@@ -8,12 +8,12 @@ from unittest.mock import patch
 
 import frappe
 
-from frappe.insights.api.ai.verify import error_message, verify_workbook
-from frappe.insights.doctype.insights_data_source_v3.data_warehouse import WarehouseTable
-from frappe.insights.doctype.insights_data_source_v3.insights_data_source_v3 import db_connections
-from frappe.insights.doctype.insights_query_v3.insights_query_v3 import InsightsQueryv3
-from frappe.insights.tests.base import InsightsIntegrationTestCase
-from frappe.insights.tests.factories import (
+from frappe.analytics.api.ai.verify import error_message, verify_workbook
+from frappe.analytics.doctype.insights_data_source_v3.data_warehouse import WarehouseTable
+from frappe.analytics.doctype.insights_data_source_v3.insights_data_source_v3 import db_connections
+from frappe.analytics.doctype.insights_query_v3.insights_query_v3 import InsightsQueryv3
+from frappe.analytics.tests.base import InsightsIntegrationTestCase
+from frappe.analytics.tests.factories import (
     DT,
     as_user,
     create_test_chart,

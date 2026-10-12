@@ -85,7 +85,7 @@ async function checkUnresolvedRegions() {
 
 	loadingUnresolved.value = true
 	try {
-		const response = await call('frappe.insights.api.maps.find_unresolved_regions', {
+		const response = await call('frappe.analytics.api.maps.find_unresolved_regions', {
 			map_type: config.value.map_type,
 			user_regions: userRegions.value,
 			chart_name: props.chartName,

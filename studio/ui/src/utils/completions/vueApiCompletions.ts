@@ -2,8 +2,8 @@ import type { Completion, CompletionContext, CompletionResult } from "@codemirro
 import type { EditorView } from "@codemirror/view"
 import type { EditorState } from "@codemirror/state"
 import { syntaxTree } from "@codemirror/language"
-import type { CompletionSource } from "@studio/types"
-import { vueReactivityApis } from "@studio/page/pageScope"
+import type { CompletionSource } from "@ui/types"
+import { vueReactivityApis } from "@ui/page/pageScope"
 
 // Single source of truth: the Vue APIs injected into interpreted scripts are also the ones we
 // suggest (and auto-import) in code files.

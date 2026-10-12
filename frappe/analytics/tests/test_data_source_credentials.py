@@ -11,8 +11,8 @@ permlevel instead.
 
 import frappe
 
-from frappe.insights.tests.base import InsightsIntegrationTestCase
-from frappe.insights.tests.factories import DT, create_user, delete_users
+from frappe.analytics.tests.base import InsightsIntegrationTestCase
+from frappe.analytics.tests.factories import DT, create_user, delete_users
 
 ADMIN = "credentials_admin@test.com"
 USER = "credentials_user@test.com"

@@ -1,5 +1,5 @@
-import type Block from "@builder/block";
-import { generateId } from "@builder/utils/helpers";
+import type Block from "@web/block";
+import { generateId } from "@web/utils/helpers";
 
 export function resetBlock(
 	block: Block | BlockOptions,

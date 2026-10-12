@@ -5,11 +5,11 @@ from typing import Annotated
 
 import frappe
 from frappe import _
-from frappe.builder.ai.block_codec import BlockCodec
-from frappe.builder.ai.page_writer import expand_page_yaml, persist_page
-from frappe.builder.hooks import builder_path
-from frappe.flow import tool
-from frappe.flow.lib.tool import ToolContext
+from frappe.web.ai.block_codec import BlockCodec
+from frappe.web.ai.page_writer import expand_page_yaml, persist_page
+from frappe.web.hooks import builder_path
+from frappe.ai import tool
+from frappe.ai.lib.tool import ToolContext
 
 PAGE_YAML_GUIDE = f"""Create a website page with Frappe Builder and open it in the editor. The page stays a draft until it is published.
 

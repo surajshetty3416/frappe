@@ -7,16 +7,16 @@ import frappe
 from frappe.utils import split_emails, validate_email_address
 from frappe.utils.user import get_users_with_role
 
-from frappe.insights.decorators import insights_whitelist
-from frappe.insights.doctype.insights_team.insights_team import (
+from frappe.analytics.decorators import insights_whitelist
+from frappe.analytics.doctype.insights_team.insights_team import (
     get_teams as get_user_teams,
 )
-from frappe.insights.doctype.insights_team.insights_team import is_admin
-from frappe.insights.doctype.insights_user_invitation.insights_user_invitation import (
+from frappe.analytics.doctype.insights_team.insights_team import is_admin
+from frappe.analytics.doctype.insights_user_invitation.insights_user_invitation import (
     get_invitation_by_key,
 )
-from frappe.insights.permissions import get_insights_users
-from frappe.insights.utils import get_app_url
+from frappe.analytics.permissions import get_insights_users
+from frappe.analytics.utils import get_app_url
 
 # the roster is a directory to share from, so it includes what a picker shows
 # and nothing else
@@ -108,7 +108,7 @@ def get_roles():
     The picker lists what the server accepts: `UNNAMEABLE_ROLES` is where the
     rule lives, and `validate_visibility` is what enforces it.
     """
-    from frappe.insights.permissions import UNNAMEABLE_ROLES
+    from frappe.analytics.permissions import UNNAMEABLE_ROLES
 
     return frappe.get_all(
         "Role",

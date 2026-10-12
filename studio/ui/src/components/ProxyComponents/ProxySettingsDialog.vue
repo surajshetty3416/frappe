@@ -15,7 +15,7 @@
 <script setup lang="ts">
 import { ref, watch } from "vue"
 import { TabsRoot } from "reka-ui"
-import ProxyDialog from "@studio/components/ProxyComponents/ProxyDialog.vue"
+import ProxyDialog from "@ui/components/ProxyComponents/ProxyDialog.vue"
 
 // StudioComponent binds all of SettingsDialog's props; only `tab` and `size` matter here.
 // The modal/teleport/shortcut behaviour is intentionally dropped so the dialog shows inline.

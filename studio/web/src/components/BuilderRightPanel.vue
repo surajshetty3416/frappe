@@ -16,7 +16,7 @@
 	</div>
 </template>
 <script setup lang="ts">
-import useBuilderStore from "@builder/stores/builderStore";
+import useBuilderStore from "@web/stores/builderStore";
 import BlockProperties from "./BlockProperties.vue";
 import PanelResizer from "./PanelResizer.vue";
 import VersionHistory from "./VersionHistory.vue";

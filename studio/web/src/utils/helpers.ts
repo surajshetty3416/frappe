@@ -1,9 +1,9 @@
-import Block from "@builder/block";
-import useCanvasStore from "@builder/stores/canvasStore";
-import { __ } from "@builder/translation";
-import { BuilderPage } from "@builder/types/doctypes";
-import getBlockTemplate from "@builder/utils/blockTemplate";
-import { editorDemo } from "@builder/utils/editorDemo";
+import Block from "@web/block";
+import useCanvasStore from "@web/stores/canvasStore";
+import { __ } from "@web/translation";
+import { BuilderPage } from "@web/types/doctypes";
+import getBlockTemplate from "@web/utils/blockTemplate";
+import { editorDemo } from "@web/utils/editorDemo";
 import { dialog, FileUploadHandler, toast, type DialogSize, type DialogTheme } from "frappe-ui";
 import { reactive, toRaw } from "vue";
 import { getRGB, HexToHSV, HSVToHex } from "./colors";
@@ -367,7 +367,7 @@ async function uploadBuilderAsset(file: File, silent = false) {
 	const upload = uploader.upload(file, {
 		private: false,
 		folder: "Home/Builder Uploads",
-		upload_endpoint: "/api/method/frappe.builder.api.upload_builder_asset",
+		upload_endpoint: "/api/method/frappe.web.api.upload_builder_asset",
 	});
 	await new Promise((resolve) => {
 		if (silent) {
@@ -549,7 +549,7 @@ async function uploadUserFont(
 	file: File,
 	options: UploadUserFontOptions = {},
 ): Promise<UploadUserFontResult | null> {
-	const { default: userFont } = await import("@builder/data/userFonts");
+	const { default: userFont } = await import("@web/data/userFonts");
 
 	const fontName = await getFontNameFromFile(file);
 

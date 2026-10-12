@@ -52,11 +52,11 @@
 </template>
 
 <script setup lang="ts">
-import { __ } from "@builder/translation";
-import usePageStore from "@builder/stores/pageStore";
-import { BuilderPage } from "@builder/types/doctypes";
-import { promptRenamePage } from "@builder/utils/dialogs";
-import { openInDesk } from "@builder/utils/helpers";
+import { __ } from "@web/translation";
+import usePageStore from "@web/stores/pageStore";
+import { BuilderPage } from "@web/types/doctypes";
+import { promptRenamePage } from "@web/utils/dialogs";
+import { openInDesk } from "@web/utils/helpers";
 import { Dropdown } from "frappe-ui";
 
 const pageStore = usePageStore();

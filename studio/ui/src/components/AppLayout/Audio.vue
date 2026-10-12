@@ -46,7 +46,7 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from "vue"
 
-import type { AudioProps } from "@studio/types/studio_components/Audio"
+import type { AudioProps } from "@ui/types/studio_components/Audio"
 import LucideSkipBack from "~icons/lucide/skip-back"
 import LucidePause from "~icons/lucide/pause"
 import LucidePlay from "~icons/lucide/play"

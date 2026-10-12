@@ -11,8 +11,8 @@
 	</div>
 </template>
 <script setup lang="ts">
-import useBuilderStore from "@builder/stores/builderStore";
-import { __ } from "@builder/translation";
+import useBuilderStore from "@web/stores/builderStore";
+import { __ } from "@web/translation";
 
 const builderStore = useBuilderStore();
 

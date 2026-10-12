@@ -37,8 +37,8 @@ from frappe.modules.export_file import strip_default_fields
 from frappe.modules.import_file import import_file_by_path
 from frappe.utils import get_url, now
 
-from frappe.builder.export_import_standard_page import extract_fonts_from_blocks, import_fonts
-from frappe.builder.utils import (
+from frappe.web.export_import_standard_page import extract_fonts_from_blocks, import_fonts
+from frappe.web.utils import (
 	export_client_scripts,
 	extract_components_from_blocks,
 	make_records,
@@ -309,7 +309,7 @@ def ensure_template_preview(page_doc, app="frappe"):
 	public preview url whenever the .webp exists (so the fixture's preview field
 	is correct even when generation is skipped). Preview generation needs an
 	external service, so failures are non-fatal."""
-	from frappe.builder.utils import get_builder_page_preview_file_paths
+	from frappe.web.utils import get_builder_page_preview_file_paths
 
 	public_path, local_path = get_builder_page_preview_file_paths(page_doc, app=app)
 	if not os.path.exists(local_path):

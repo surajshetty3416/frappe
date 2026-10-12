@@ -5,8 +5,8 @@ from typing import Annotated
 
 import frappe
 from frappe import _
-from frappe.flow import tool
-from frappe.flow.lib.tool import ToolContext
+from frappe.ai import tool
+from frappe.ai.lib.tool import ToolContext
 
 
 def editor_url(app: str) -> str:

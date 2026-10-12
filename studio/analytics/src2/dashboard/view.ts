@@ -1,4 +1,4 @@
-// A dashboard as a reader gets it, through `frappe.insights.api.view` only.
+// A dashboard as a reader gets it, through `frappe.analytics.api.view` only.
 //
 // The client names the dashboard and the server decides what runs. This holds
 // for the desk island, the public page and the SPA's dashboard page. The query
@@ -576,7 +576,7 @@ function makeDashboardPage(
 		filterValues: (filter_name: string, search_term?: string) =>
 			fetchFilterValues(state.name, filter_name, search_term, state.filters),
 		filterRange: (filter_name: string) =>
-			call('frappe.insights.api.view.get_filter_range', {
+			call('frappe.analytics.api.view.get_filter_range', {
 				dashboard: state.name,
 				filter_name,
 				filters: state.filters,
@@ -584,14 +584,14 @@ function makeDashboardPage(
 		cardFilters: computed(() => state.cardFilters),
 		setCardFilters,
 		cardValues: (chart: string, column: string, search_term?: string) =>
-			call('frappe.insights.api.view.get_card_values', {
+			call('frappe.analytics.api.view.get_card_values', {
 				dashboard: state.name,
 				chart,
 				column,
 				search_term,
 			}),
 		cardRange: (chart: string, column: string) =>
-			call('frappe.insights.api.view.get_card_range', { dashboard: state.name, chart, column }),
+			call('frappe.analytics.api.view.get_card_range', { dashboard: state.name, chart, column }),
 		filtered,
 		resetCardFilters,
 		chartView: (chart: string) => reads.get(chart),
@@ -624,7 +624,7 @@ function makeDashboardPage(
 export type DashboardSurface = 'dashboards' | 'shared' | 'desk'
 
 function fetchDashboard(dashboard: string, surface: DashboardSurface): Promise<DashboardViewDoc> {
-	return call('frappe.insights.api.view.get_dashboard', { dashboard, surface })
+	return call('frappe.analytics.api.view.get_dashboard', { dashboard, surface })
 }
 
 /**
@@ -640,7 +640,7 @@ function fetchFilterValues(
 	search_term?: string,
 	filters?: FilterValues,
 ): Promise<string[]> {
-	return call('frappe.insights.api.view.get_filter_values', {
+	return call('frappe.analytics.api.view.get_filter_values', {
 		dashboard,
 		filter_name,
 		search_term,

@@ -5,12 +5,12 @@ from unittest.mock import patch
 import frappe
 from frappe.utils.password import delete_all_passwords_for
 
-from frappe.insights.doctype.insights_data_source_v3.ibis_utils import (
+from frappe.analytics.doctype.insights_data_source_v3.ibis_utils import (
     IbisQueryBuilder,
     get_code_results,
 )
-from frappe.insights.tests.base import InsightsIntegrationTestCase
-from frappe.insights.tests.factories import as_user, create_user, delete_users
+from frappe.analytics.tests.base import InsightsIntegrationTestCase
+from frappe.analytics.tests.factories import as_user, create_user, delete_users
 
 SCRIPT_READER = "script-cache-reader@test.com"
 
@@ -92,7 +92,7 @@ class TestScriptQueryLogs(InsightsIntegrationTestCase):
         Its output shows that user's data, but the realtime room is the caller's,
         so no logs are published. The author running their own query still gets
         their logs."""
-        from frappe.insights.permission_user import permission_user
+        from frappe.analytics.permission_user import permission_user
 
         create_user(SCRIPT_READER, roles="Insights User")
         self.addCleanup(delete_users, SCRIPT_READER)
@@ -125,7 +125,7 @@ class TestScriptQueryLogs(InsightsIntegrationTestCase):
         """A copy made by `copy_cross_workbook_query_sources` has a variable's name
         but not its secret, so the error names the variable. A stored value still
         reaches the script."""
-        from frappe.insights.tests.factories import create_test_workbook
+        from frappe.analytics.tests.factories import create_test_workbook
 
         workbook = create_test_workbook("Administrator")
         query = frappe.get_doc(
@@ -158,7 +158,7 @@ class TestScriptSandbox(InsightsIntegrationTestCase):
     """What `get_code_results` gives a script. Every run of a script query uses it."""
 
     def before_test(self):
-        from frappe.insights.tests.factories import create_test_workbook
+        from frappe.analytics.tests.factories import create_test_workbook
 
         self.workbook = create_test_workbook("Administrator").name
         self.addCleanup(frappe.delete_doc, "Insights Workbook", self.workbook, force=True)
@@ -215,7 +215,7 @@ class TestScriptSandbox(InsightsIntegrationTestCase):
         """`script_session` swaps the user but not the session data. A chart run as
         its owner caches the script's rows for all its readers, so the script must
         not see the caller's session. The caller's own run also sees only `user`."""
-        from frappe.insights.permission_user import permission_user
+        from frappe.analytics.permission_user import permission_user
 
         create_user(SCRIPT_READER, roles="Insights User")
         self.addCleanup(delete_users, SCRIPT_READER)
@@ -315,7 +315,7 @@ class TestScriptSandbox(InsightsIntegrationTestCase):
     def test_a_script_cannot_act_beyond_a_read(self):
         """Runs as the caller and as another user, because a chart run as its owner
         changes the session user."""
-        from frappe.insights.permission_user import permission_user
+        from frappe.analytics.permission_user import permission_user
 
         todo = frappe.get_doc({"doctype": "ToDo", "description": "sandbox"}).insert(ignore_permissions=True)
         self.addCleanup(frappe.delete_doc, "ToDo", todo.name, force=True)
@@ -389,7 +389,7 @@ class TestScriptAuthor(InsightsIntegrationTestCase):
     stored procedure call) to a query, a chart or an alert, through any API."""
 
     def before_test(self):
-        from frappe.insights.tests.factories import create_test_workbook
+        from frappe.analytics.tests.factories import create_test_workbook
 
         create_user(SCRIPT_READER, roles="Insights User")
         self.addCleanup(delete_users, SCRIPT_READER)
@@ -418,8 +418,8 @@ class TestScriptAuthor(InsightsIntegrationTestCase):
         a script an admin wrote."""
         from frappe.client import insert, set_value
 
-        from frappe.insights.api import run_doc_method
-        from frappe.insights.tests.test_run_as_owner import as_http_request
+        from frappe.analytics.api import run_doc_method
+        from frappe.analytics.tests.test_run_as_owner import as_http_request
 
         with as_user(SCRIPT_READER), self.assertRaisesRegex(frappe.PermissionError, "Editor Script"):
             insert(self.script_query("Editor Script").as_dict())
@@ -453,8 +453,8 @@ class TestScriptAuthor(InsightsIntegrationTestCase):
         SELECT."""
         from frappe.client import insert, set_value
 
-        from frappe.insights.api import run_doc_method
-        from frappe.insights.tests.test_run_as_owner import as_http_request
+        from frappe.analytics.api import run_doc_method
+        from frappe.analytics.tests.test_run_as_owner import as_http_request
 
         frappe.db.set_value("Insights Data Source v3", "Site DB", "enable_stored_procedure_execution", 1)
         self.addCleanup(
@@ -511,8 +511,8 @@ class TestScriptAuthor(InsightsIntegrationTestCase):
         """The caller controls the variable rows in the request body. If they point
         to another query's row or hold their own value, the script still reads
         its stored query's secret."""
-        from frappe.insights.api import run_doc_method
-        from frappe.insights.tests.test_run_as_owner import as_http_request
+        from frappe.analytics.api import run_doc_method
+        from frappe.analytics.tests.test_run_as_owner import as_http_request
 
         def with_token(title, value):
             query = self.script_query(title, "results = [{'v': token}]")
@@ -546,8 +546,8 @@ class TestScriptAuthor(InsightsIntegrationTestCase):
         run and save an admin's expression, and write one that runs no SQL."""
         from frappe.client import insert, set_value
 
-        from frappe.insights.api import run_doc_method
-        from frappe.insights.tests.test_run_as_owner import as_http_request
+        from frappe.analytics.api import run_doc_method
+        from frappe.analytics.tests.test_run_as_owner import as_http_request
 
         def sql_query(title, expression):
             return frappe.get_doc(
@@ -629,8 +629,8 @@ class TestScriptAuthor(InsightsIntegrationTestCase):
         import frappe.share
         from frappe.client import insert
 
-        from frappe.insights.api import get_user_info
-        from frappe.insights.doctype.insights_team.insights_team import clear_cache
+        from frappe.analytics.api import get_user_info
+        from frappe.analytics.doctype.insights_team.insights_team import clear_cache
 
         manager, role_holder = "script-manager@test.com", "script-role-holder@test.com"
         create_user(manager, roles=["Insights User", "System Manager"])
@@ -683,8 +683,8 @@ class TestScriptAuthor(InsightsIntegrationTestCase):
         """The alert dialog sends the condition on screen, saved or not. The
         scheduled run sends the stored one. An editor may send an admin's stored
         condition, or their own condition that runs no SQL."""
-        from frappe.insights.api import run_doc_method
-        from frappe.insights.tests.test_run_as_owner import as_http_request
+        from frappe.analytics.api import run_doc_method
+        from frappe.analytics.tests.test_run_as_owner import as_http_request
 
         query = self.admin_sql_query()
         admin_condition = "q.sql('select 1 as a').a.max() > 5"
@@ -728,11 +728,11 @@ class TestScriptAuthor(InsightsIntegrationTestCase):
         """The query builder sends its unsaved operations to `get_drill_dimensions`.
         They run as a preview that belongs to no stored document. An editor may
         drill an admin's stored `q.sql`, but not one of their own."""
-        from frappe.insights.api.authoring import get_drill_dimensions
-        from frappe.insights.doctype.insights_data_source_v3.insights_data_source_v3 import (
+        from frappe.analytics.api.authoring import get_drill_dimensions
+        from frappe.analytics.doctype.insights_data_source_v3.insights_data_source_v3 import (
             db_connections,
         )
-        from frappe.insights.tests.test_run_as_owner import as_http_request
+        from frappe.analytics.tests.test_run_as_owner import as_http_request
 
         summarize = {
             "type": "summarize",
@@ -768,7 +768,7 @@ class TestScriptAuthor(InsightsIntegrationTestCase):
     def test_an_import_or_copy_that_brings_a_script_names_the_script_queries(self):
         """An editor who wrote none of the scripts cannot duplicate, paste or import
         them. An admin can import the same file."""
-        from frappe.insights.api.workbooks import import_workbook
+        from frappe.analytics.api.workbooks import import_workbook
 
         source = self.script_query("Source Script").insert()
         consumer = self.script_query(
@@ -824,7 +824,7 @@ class TestScriptQueryCache(InsightsIntegrationTestCase):
 
     # @feature query.script-variables
     def test_a_variable_change_reruns_the_script(self):
-        from frappe.insights.tests.factories import create_test_workbook
+        from frappe.analytics.tests.factories import create_test_workbook
 
         workbook = create_test_workbook("Administrator").name
         self.addCleanup(frappe.delete_doc, "Insights Workbook", workbook, force=True)
@@ -851,7 +851,7 @@ class TestScriptQueryCache(InsightsIntegrationTestCase):
         code = f"import_count = frappe.db.count('DocType')\nresults = [{{'a': import_count, 'run': '{run}'}}]"
 
         with patch(
-            "frappe.insights.doctype.insights_data_source_v3.ibis_utils.get_code_results",
+            "frappe.analytics.doctype.insights_data_source_v3.ibis_utils.get_code_results",
             wraps=get_code_results,
         ) as spy:
             self.build(code).execute()
@@ -866,7 +866,7 @@ class TestScriptQueryCache(InsightsIntegrationTestCase):
         """A script reads as the user it runs for, so its cached output belongs to
         that user. Two readers of a chart each run the script for themselves. The
         query is stored because only an admin may run an unsaved script (Q17)."""
-        from frappe.insights.tests.factories import create_test_workbook
+        from frappe.analytics.tests.factories import create_test_workbook
 
         create_user(SCRIPT_READER, roles="Insights User")
         self.addCleanup(delete_users, SCRIPT_READER)
@@ -896,7 +896,7 @@ class AVariableSecretGoesWithItsVariable(InsightsIntegrationTestCase):
     So a script query's variables would leave their secrets in `__Auth`."""
 
     def before_test(self):
-        from frappe.insights.tests.factories import create_test_workbook
+        from frappe.analytics.tests.factories import create_test_workbook
 
         self.workbook = create_test_workbook("Administrator").name
         self.addCleanup(frappe.delete_doc, "Insights Workbook", self.workbook, force=True)
@@ -945,7 +945,7 @@ class AVariableSecretGoesWithItsVariable(InsightsIntegrationTestCase):
     def test_a_migrate_clears_the_secrets_a_deleted_variable_left(self):
         from frappe.utils.password import set_encrypted_password
 
-        from frappe.insights.patches.delete_orphaned_variable_secrets import execute
+        from frappe.analytics.patches.delete_orphaned_variable_secrets import execute
 
         kept = self.script_query("Script Secret Survives").variables[0]
         set_encrypted_password("Insights Query Variable", "deleted-variable", "left", "variable_value")

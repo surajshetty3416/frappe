@@ -1,8 +1,8 @@
 import { defineStore } from "pinia"
 import { ref, shallowRef, inject, getCurrentInstance, type ComputedRef, type InjectionKey } from "vue"
 import type { Router } from "vue-router"
-import { onPageScriptHotUpdate } from "@studio/data/studioPageScripts"
-import { createPageScope, type PageScope } from "@studio/page/pageScope"
+import { onPageScriptHotUpdate } from "@ui/data/studioPageScripts"
+import { createPageScope, type PageScope } from "@ui/page/pageScope"
 
 // The editor's page scope. Rendered apps give each page its own (see AppPage.vue).
 const useCodeStore = defineStore("codeStore", () => {

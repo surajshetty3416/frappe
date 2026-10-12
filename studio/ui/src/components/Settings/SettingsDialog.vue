@@ -35,11 +35,11 @@
 <script setup lang="ts">
 import { computed } from "vue"
 import { Button, Dialog } from "frappe-ui"
-import useStudioStore from "@studio/stores/studioStore"
-import AppSettings from "@studio/components/Settings/AppSettings.vue"
-import PagesSettings from "@studio/components/Settings/PagesSettings.vue"
-import AISettings from "@studio/components/Settings/AISettings.vue"
-import type { SettingsTab } from "@studio/types"
+import useStudioStore from "@ui/stores/studioStore"
+import AppSettings from "@ui/components/Settings/AppSettings.vue"
+import PagesSettings from "@ui/components/Settings/PagesSettings.vue"
+import AISettings from "@ui/components/Settings/AISettings.vue"
+import type { SettingsTab } from "@ui/types"
 
 const store = useStudioStore()
 

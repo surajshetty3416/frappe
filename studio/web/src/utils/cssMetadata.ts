@@ -1,14 +1,14 @@
-import Autocomplete from "@builder/components/Controls/Autocomplete.vue";
-import ColorInput from "@builder/components/Controls/ColorInput.vue";
-import RangeInput from "@builder/components/Controls/RangeInput.vue";
-import cssPropertyMetadata from "@builder/data/cssPropertyMetadata.json";
-import { filterOptions } from "@builder/utils/autocompleteOptions";
+import Autocomplete from "@web/components/Controls/Autocomplete.vue";
+import ColorInput from "@web/components/Controls/ColorInput.vue";
+import RangeInput from "@web/components/Controls/RangeInput.vue";
+import cssPropertyMetadata from "@web/data/cssPropertyMetadata.json";
+import { filterOptions } from "@web/utils/autocompleteOptions";
 import {
 	BORDER_UNIT_OPTIONS,
 	BOX_UNIT_OPTIONS,
 	DIMENSION_UNIT_OPTIONS,
 	ROTATION_UNIT_OPTIONS,
-} from "@builder/utils/unitOptions";
+} from "@web/utils/unitOptions";
 import type { Component } from "vue";
 
 // see scripts/generate-css-property-metadata.mjs

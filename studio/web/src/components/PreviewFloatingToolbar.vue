@@ -21,7 +21,7 @@
 	</div>
 </template>
 <script lang="ts" setup>
-import PublishButton from "@builder/components/PublishButton.vue";
+import PublishButton from "@web/components/PublishButton.vue";
 import { Position, StorageSerializers, clamp, useDraggable, useEventListener, useStorage } from "@vueuse/core";
 import { Button } from "frappe-ui";
 import { onMounted, ref, watch } from "vue";

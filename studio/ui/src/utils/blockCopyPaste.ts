@@ -1,20 +1,20 @@
 import { dialog, toast, call } from "frappe-ui"
-import useStudioStore from "@studio/stores/studioStore"
-import useCanvasStore from "@studio/stores/canvasStore"
-import { usePageScope } from "@studio/stores/codeStore"
-import useComponentStore from "@studio/stores/componentStore"
-import { studioPages } from "@studio/data/studioPages"
-import { hasPageScript as hasCompiledPageScript } from "@studio/data/studioPageScripts"
+import useStudioStore from "@ui/stores/studioStore"
+import useCanvasStore from "@ui/stores/canvasStore"
+import { usePageScope } from "@ui/stores/codeStore"
+import useComponentStore from "@ui/stores/componentStore"
+import { studioPages } from "@ui/data/studioPages"
+import { hasPageScript as hasCompiledPageScript } from "@ui/data/studioPageScripts"
 import {
 	showPasteConflictDialog,
 	type PasteConflictChoice,
 	type PasteConflictKind,
-} from "@studio/components/PasteConflictDialog.vue"
-import PasteWarningToast from "@studio/components/PasteWarningToast.vue"
-import { getBlockCopy, getBlockCopyWithoutParent, getBlockInstance, isJSONString } from "@studio/utils/serializer"
-import { setClipboardData } from "@studio/utils/helpers"
-import Block from "@studio/utils/block"
-import type { BlockOptions } from "@studio/types"
+} from "@ui/components/PasteConflictDialog.vue"
+import PasteWarningToast from "@ui/components/PasteWarningToast.vue"
+import { getBlockCopy, getBlockCopyWithoutParent, getBlockInstance, isJSONString } from "@ui/utils/serializer"
+import { setClipboardData } from "@ui/utils/helpers"
+import Block from "@ui/utils/block"
+import type { BlockOptions } from "@ui/types"
 
 const CLIPBOARD_FORMAT = "studio-copied-blocks"
 const CLIPBOARD_PREFIX = `${CLIPBOARD_FORMAT}:`
@@ -162,7 +162,7 @@ async function createDataSource(resource: DataSourceClipboardPayload) {
 
 	try {
 		const result = await call(
-			"frappe.studio.doctype.studio_page.copy_paste_handler.paste_data_source",
+			"frappe.ui.doctype.studio_page.copy_paste_handler.paste_data_source",
 			{
 				app_name: store.activeApp!.name,
 				page_name: page.name,
@@ -396,7 +396,7 @@ async function createMissingDependencies(
 	const store = useStudioStore()
 	const pageName = store.activePage!.name
 	const result = await call(
-		"frappe.studio.doctype.studio_page.copy_paste_handler.create_missing_dependencies",
+		"frappe.ui.doctype.studio_page.copy_paste_handler.create_missing_dependencies",
 		{
 			app_name: store.activeApp!.name,
 			page_name: pageName,

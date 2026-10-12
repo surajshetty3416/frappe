@@ -1,6 +1,6 @@
 from frappe.tests.utils import FrappeTestCase
 
-from frappe.builder.ai.lucide import kebab, lucide_svg
+from frappe.web.ai.lucide import kebab, lucide_svg
 
 
 class TestLucide(FrappeTestCase):

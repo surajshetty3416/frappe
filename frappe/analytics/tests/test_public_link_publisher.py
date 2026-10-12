@@ -16,9 +16,9 @@ from unittest.mock import patch
 
 import frappe
 
-from frappe.insights.patches.run_public_charts_as_owner import execute as run_public_charts_as_owner
-from frappe.insights.tests.base import InsightsIntegrationTestCase
-from frappe.insights.tests.factories import (
+from frappe.analytics.patches.run_public_charts_as_owner import execute as run_public_charts_as_owner
+from frappe.analytics.tests.base import InsightsIntegrationTestCase
+from frappe.analytics.tests.factories import (
     DT,
     create_test_chart,
     create_test_dashboard,
@@ -104,9 +104,9 @@ class TestPublicLinkPublisher(InsightsIntegrationTestCase):
 
         with (
             patch(
-                "frappe.insights.doctype.insights_table_v3.insights_table_v3.is_site_db", return_value=False
+                "frappe.analytics.doctype.insights_table_v3.insights_table_v3.is_site_db", return_value=False
             ),
-            patch("frappe.insights.doctype.insights_team.insights_team.is_site_db", return_value=False),
+            patch("frappe.analytics.doctype.insights_team.insights_team.is_site_db", return_value=False),
         ):
             self.run_patch_without_the_column()
 
@@ -133,7 +133,7 @@ class TestPublicLinkPublisher(InsightsIntegrationTestCase):
         """The owner would get no rows. A later grant to the owner would then show
         the table to guests, and nobody would have decided that."""
         with patch(
-            "frappe.insights.doctype.insights_team.insights_team.check_table_permission",
+            "frappe.analytics.doctype.insights_team.insights_team.check_table_permission",
             side_effect=lambda data_source, table, user=None, raise_error=True: user == PUBLISHER,
         ):
             self.published_by_another_person_on(EXTERNAL_TABLE)

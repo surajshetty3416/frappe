@@ -10,11 +10,11 @@ import logging
 import frappe
 import litellm
 
-from frappe.studio.ai.models import ModelRegistry
+from frappe.ui.ai.models import ModelRegistry
 
 litellm.drop_params = True
 
-logger = frappe.logger("frappe.studio.ai.llm")
+logger = frappe.logger("frappe.ui.ai.llm")
 logger.setLevel(logging.INFO)
 
 
@@ -175,7 +175,7 @@ def complete_with_tools(
 
 def get_api_key(model: str | None = None) -> str | None:
 	"""The key in Studio Settings, else the AI layer's key for the model's provider."""
-	from frappe.flow.lib.model import resolve_provider_credentials
+	from frappe.ai.lib.model import resolve_provider_credentials
 
 	settings = frappe.get_single("Studio Settings")
 	if key := settings.get_password("ai_api_key", raise_exception=False):

@@ -5,7 +5,7 @@ toolDispatch.applyBlockUpdate / applyToolOperation so the two can't drift.
 
 import unittest
 
-from frappe.builder.ai.agent.tree import WorkingTree
+from frappe.web.ai.agent.tree import WorkingTree
 
 
 def sample_root() -> dict:
@@ -191,7 +191,7 @@ class TestMutatingUpdate(unittest.TestCase):
 		self.assertIn("FAILED", msg)
 
 	def test_generation_absorbs_pure_moustache_values(self):
-		from frappe.builder.ai.page_writer import convert_yaml_block
+		from frappe.web.ai.page_writer import convert_yaml_block
 
 		block = convert_yaml_block(
 			{"el": "div", "attrs": {"data-city": "{{ item.city }}"}, "text": "{{ item.title }}"}

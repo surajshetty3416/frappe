@@ -59,12 +59,12 @@ import { indentMore, indentLess } from "@codemirror/commands"
 import { indentationMarkers } from "@replit/codemirror-indentation-markers"
 import { tomorrow } from "thememirror"
 import JSON5 from "json5"
-import { isPrivateKey } from "@studio/utils/helpers"
-import { normalizeCode } from "@studio/utils/code"
-import { jsonReplacer, parseObjectString } from "@studio/utils/serializer"
+import { isPrivateKey } from "@ui/utils/helpers"
+import { normalizeCode } from "@ui/utils/code"
+import { jsonReplacer, parseObjectString } from "@ui/utils/serializer"
 
-import InputLabel from "@studio/components/InputLabel.vue"
-import FormInputLabel from "@studio/components/FormInputLabel.vue"
+import InputLabel from "@ui/components/InputLabel.vue"
+import FormInputLabel from "@ui/components/FormInputLabel.vue"
 
 const props = withDefaults(
 	defineProps<{

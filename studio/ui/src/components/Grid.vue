@@ -100,10 +100,10 @@ import { FormControl, Checkbox, Button } from "frappe-ui"
 import Draggable from "vuedraggable"
 
 import Link from "@framework/ui/components/Link/Link.vue"
-import { generateId } from "@studio/utils/helpers"
-import FormInputLabel from "@studio/components/FormInputLabel.vue"
-import Code from "@studio/components/Code.vue"
-import type { GridColumn, GridRow } from "@studio/types/doctype"
+import { generateId } from "@ui/utils/helpers"
+import FormInputLabel from "@ui/components/FormInputLabel.vue"
+import Code from "@ui/components/Code.vue"
+import type { GridColumn, GridRow } from "@ui/types/doctype"
 
 const props = defineProps<{
 	label?: string

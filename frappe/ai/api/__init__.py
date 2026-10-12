@@ -1,5 +1,5 @@
 # Re-exported so whitelisted endpoints stay reachable at flow.api.<name>.
-from frappe.flow.api.api import (
+from frappe.ai.api.api import (
 	abort,
 	attach_file,
 	boot,

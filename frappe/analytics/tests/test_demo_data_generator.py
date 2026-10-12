@@ -7,8 +7,8 @@ import os
 import tempfile
 import unittest
 
-from frappe.insights.setup.demo_data import DEMO_SPEC, BrokenFixture, check_integrity, generate
-from frappe.insights.setup.demo_data.generator import build_rows
+from frappe.analytics.setup.demo_data import DEMO_SPEC, BrokenFixture, check_integrity, generate
+from frappe.analytics.setup.demo_data.generator import build_rows
 
 
 def fingerprint(rows):

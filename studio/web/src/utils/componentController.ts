@@ -1,7 +1,7 @@
-import { useLatestRequest } from "@builder/composables/useLatestRequest";
-import useCanvasStore from "@builder/stores/canvasStore";
-import useComponentStore from "@builder/stores/componentStore";
-import { BuilderComponent } from "@builder/types/doctypes";
+import { useLatestRequest } from "@web/composables/useLatestRequest";
+import useCanvasStore from "@web/stores/canvasStore";
+import useComponentStore from "@web/stores/componentStore";
+import { BuilderComponent } from "@web/types/doctypes";
 import { createResource } from "frappe-ui";
 import { computed, reactive, watch } from "vue";
 import { parseJSONWithFallback } from "./helpers";
@@ -118,7 +118,7 @@ const componentController = {
 		const requestKey = `${componentId}::preview`;
 		const result = await runLatestRequest(requestKey, () =>
 			createResource({
-				url: "frappe.builder.api.get_component_data",
+				url: "frappe.web.api.get_component_data",
 				method: "POST",
 				auto: false,
 			})

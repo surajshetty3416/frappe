@@ -15,7 +15,7 @@ from pathlib import Path
 import frappe
 from frappe.tests import UnitTestCase
 
-LAYER = Path(frappe.get_app_path("frappe", "insights"))
+LAYER = Path(frappe.get_app_path("frappe", "analytics"))
 FRONTEND = Path(frappe.get_app_path("frappe")).parent / "frontend" / "insights"
 
 

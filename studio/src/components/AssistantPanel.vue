@@ -25,7 +25,7 @@ const route = useRoute()
 const opened = () => ({ title: document.title, path: route.fullPath })
 
 const FlowApp = defineAsyncComponent(async () => {
-	await import("@flow/index.css")
-	return import("@flow/App.vue")
+	await import("@ai/index.css")
+	return import("@ai/App.vue")
 })
 </script>

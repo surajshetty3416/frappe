@@ -2,10 +2,10 @@ from unittest.mock import patch
 
 import frappe
 
-from frappe.insights.api import get_currency_info, get_site_info
-from frappe.insights.tests.base import InsightsIntegrationTestCase
-from frappe.insights.tests.factories import as_user
-from frappe.insights.utils import get_currency_symbols
+from frappe.analytics.api import get_currency_info, get_site_info
+from frappe.analytics.tests.base import InsightsIntegrationTestCase
+from frappe.analytics.tests.factories import as_user
+from frappe.analytics.utils import get_currency_symbols
 
 
 def _defaults(currency=None, hide_symbol=None):

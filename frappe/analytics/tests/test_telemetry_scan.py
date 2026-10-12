@@ -13,10 +13,10 @@ import duckdb
 import frappe
 from frappe.utils import add_days, now_datetime
 
-from frappe.insights import telemetry_scan
-from frappe.insights.doctype.insights_data_source_v3.connectors.duckdb import get_duckdb_path
-from frappe.insights.telemetry import default_properties, is_standard_app
-from frappe.insights.telemetry_scan import (
+from frappe.analytics import telemetry_scan
+from frappe.analytics.doctype.insights_data_source_v3.connectors.duckdb import get_duckdb_path
+from frappe.analytics.telemetry import default_properties, is_standard_app
+from frappe.analytics.telemetry_scan import (
     LIST_LIMIT,
     PROPERTY_CAP,
     read_catalog,
@@ -29,8 +29,8 @@ from frappe.insights.telemetry_scan import (
     tables_queries_read,
     within_cap,
 )
-from frappe.insights.tests.base import InsightsIntegrationTestCase
-from frappe.insights.tests.factories import (
+from frappe.analytics.tests.base import InsightsIntegrationTestCase
+from frappe.analytics.tests.factories import (
     DT,
     create_test_chart,
     create_test_dashboard,
@@ -94,7 +94,7 @@ class TestSiteScan(InsightsIntegrationTestCase):
                 {
                     "doctype": "DocType",
                     "name": CUSTOM_DOCTYPE,
-                    "module": "Insights",
+                    "module": "Analytics",
                     "custom": 1,
                     "fields": [{"fieldname": "title", "fieldtype": "Data", "label": "Title"}],
                     "permissions": [{"role": "System Manager", "read": 1}],
@@ -177,7 +177,7 @@ class TestSiteScan(InsightsIntegrationTestCase):
     # @feature telemetry.site-scan
     def test_the_install_date_survives_a_migrate(self):
         first_patch = frappe.get_all(
-            "Patch Log", filters={"patch": ["like", "frappe.insights.%"]}, order_by="creation asc", pluck="name"
+            "Patch Log", filters={"patch": ["like", "frappe.analytics.%"]}, order_by="creation asc", pluck="name"
         )[0]
         frappe.db.set_value("Patch Log", first_patch, "creation", add_days(now_datetime(), -400))
         frappe.get_single("Installed Applications").update_versions()
@@ -353,7 +353,7 @@ class TestSiteScan(InsightsIntegrationTestCase):
         ]
         source._get_ibis_backend = lambda: backend
 
-        with patch("frappe.insights.utils.InsightsDataSourcev3.get_doc", return_value=source):
+        with patch("frappe.analytics.utils.InsightsDataSourcev3.get_doc", return_value=source):
             estimates = read_catalog("pg", {"public.orders", "sales.orders"})
 
         self.assertEqual(estimates, {"public.orders": 12, "sales.orders": 3400})

@@ -16,9 +16,9 @@ from frappe.utils import get_datetime, now, now_datetime
 from frappe.utils.password import get_decrypted_password
 from frappe.utils.safe_exec import safe_exec
 
-from frappe.insights.doctype.insights_data_source_v3.data_warehouse import WarehouseTableWriter
-from frappe.insights.doctype.insights_data_source_v3.sandbox import script_globals
-from frappe.insights.utils import InsightsDataSourcev3
+from frappe.analytics.doctype.insights_data_source_v3.data_warehouse import WarehouseTableWriter
+from frappe.analytics.doctype.insights_data_source_v3.sandbox import script_globals
+from frappe.analytics.utils import InsightsDataSourcev3
 
 parse_cron = lru_cache(croniter)
 
@@ -32,7 +32,7 @@ class InsightsTableImportJob(Document):
     if TYPE_CHECKING:
         from frappe.types import DF
 
-        from frappe.insights.doctype.insights_secret_key.insights_secret_key import InsightsSecretKey
+        from frappe.analytics.doctype.insights_secret_key.insights_secret_key import InsightsSecretKey
 
         data_source: DF.Link
         enabled: DF.Check
@@ -95,7 +95,7 @@ class InsightsTableImportJob(Document):
 
 def enqueue_table_import_job(import_job_name: str):
     frappe.enqueue(
-        "frappe.insights.doctype.insights_table_import_job.insights_table_import_job.execute_table_import_job",
+        "frappe.analytics.doctype.insights_table_import_job.insights_table_import_job.execute_table_import_job",
         import_job_name=import_job_name,
         queue="long",
         timeout=30 * 60,
@@ -111,7 +111,7 @@ def execute_table_import_job(import_job_name: str):
 def bulk_enqueue_runs(import_job_name: str, run_count: int):
     """Enqueue a chain of sequential job runs."""
     frappe.enqueue(
-        "frappe.insights.doctype.insights_table_import_job.insights_table_import_job.bulk_execute_runs",
+        "frappe.analytics.doctype.insights_table_import_job.insights_table_import_job.bulk_execute_runs",
         import_job_name=import_job_name,
         run_count=run_count,
         queue="long",

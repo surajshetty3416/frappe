@@ -1,7 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-from frappe.builder.not_found import use_builder_page
+from frappe.web.not_found import use_builder_page
 
 
 def get_context(context):

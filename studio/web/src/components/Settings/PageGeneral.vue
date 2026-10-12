@@ -64,7 +64,7 @@
 								:src="
 									pageStore.activePage?.favicon ||
 									builderSettings.doc?.favicon ||
-									'/assets/frappe/builder/images/frappe_black.png'
+									'/assets/frappe/web/images/frappe_black.png'
 								"
 								alt="Favicon"
 								class="size-6 rounded-4" />
@@ -174,14 +174,14 @@
 	</div>
 </template>
 <script setup lang="ts">
-import { __ } from "@builder/translation";
-import ImageUploader from "@builder/components/Controls/ImageUploader.vue";
-import builderProjectFolder from "@builder/data/builderProjectFolder";
-import { builderSettings } from "@builder/data/builderSettings";
-import useBuilderStore from "@builder/stores/builderStore";
-import usePageStore from "@builder/stores/pageStore";
-import { BuilderProjectFolder } from "@builder/types/doctypes";
-import { toTitleCase } from "@builder/utils/helpers";
+import { __ } from "@web/translation";
+import ImageUploader from "@web/components/Controls/ImageUploader.vue";
+import builderProjectFolder from "@web/data/builderProjectFolder";
+import { builderSettings } from "@web/data/builderSettings";
+import useBuilderStore from "@web/stores/builderStore";
+import usePageStore from "@web/stores/pageStore";
+import { BuilderProjectFolder } from "@web/types/doctypes";
+import { toTitleCase } from "@web/utils/helpers";
 import { createResource, Switch, toast } from "frappe-ui";
 import { computed } from "vue";
 

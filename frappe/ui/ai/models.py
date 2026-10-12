@@ -1,6 +1,6 @@
 import frappe
 
-from frappe.studio.utils import has_page_write_perm
+from frappe.ui.utils import has_page_write_perm
 
 
 class ModelRegistry:

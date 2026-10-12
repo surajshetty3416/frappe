@@ -1,4 +1,4 @@
-import { __ } from "@builder/translation";
+import { __ } from "@web/translation";
 import { createResource } from "frappe-ui";
 import { toast } from "frappe-ui";
 
@@ -41,7 +41,7 @@ export const optimizeImage = ({ imageUrl, onSuccess }: ImageOptimizationOptions)
 	}
 
 	const convertToWebP = createResource({
-		url: "/api/method/frappe.builder.api.convert_to_webp",
+		url: "/api/method/frappe.web.api.convert_to_webp",
 		params: {
 			image_url: imageUrl,
 		},

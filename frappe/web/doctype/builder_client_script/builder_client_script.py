@@ -12,8 +12,8 @@ from frappe.utils.telemetry import capture
 from frappe.website.utils import clear_cache
 from jsmin import jsmin
 
-from frappe.builder.export_import_standard_page import StandardFileSync
-from frappe.builder.utils import is_bulk_import
+from frappe.web.export_import_standard_page import StandardFileSync
+from frappe.web.utils import is_bulk_import
 
 
 class BuilderClientScript(StandardFileSync, Document):
@@ -55,7 +55,7 @@ class BuilderClientScript(StandardFileSync, Document):
 	def export_standard_files(self) -> None:
 		if not frappe.conf.developer_mode or is_bulk_import():
 			return
-		from frappe.builder.export_import_standard_page import export_client_scripts
+		from frappe.web.export_import_standard_page import export_client_scripts
 
 		for app in self.referencing_apps:
 			client_scripts_path = os.path.join(frappe.get_app_path(app), "builder_files", "client_scripts")

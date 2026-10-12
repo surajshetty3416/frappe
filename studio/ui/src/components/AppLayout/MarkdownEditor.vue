@@ -48,7 +48,7 @@ import LucideListOrdered from "~icons/lucide/list-ordered"
 import LucideMinus from "~icons/lucide/minus"
 import LucideCornerDownLeft from "~icons/lucide/corner-down-left"
 
-import type { MarkdownEditorProps } from "@studio/types/studio_components/MarkdownEditor"
+import type { MarkdownEditorProps } from "@ui/types/studio_components/MarkdownEditor"
 
 const props = withDefaults(defineProps<MarkdownEditorProps>(), {
 	modelValue: "",

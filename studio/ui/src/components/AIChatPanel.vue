@@ -231,13 +231,13 @@ import { ref, computed, inject, watch, nextTick } from "vue"
 import { ErrorMessage, Button, Badge, call, createResource, Popover, toast } from "frappe-ui"
 import { marked } from "marked"
 import DOMPurify from "dompurify"
-import useStudioStore from "@studio/stores/studioStore"
-import useCanvasStore from "@studio/stores/canvasStore"
-import { usePageScope } from "@studio/stores/codeStore"
-import { AIChatController } from "@studio/components/AIChatController"
-import { getBlockInstance, getBlockString } from "@studio/utils/serializer"
-import type { BlockOptions } from "@studio/types"
-import { studioSettings } from "@studio/data/studioSettings"
+import useStudioStore from "@ui/stores/studioStore"
+import useCanvasStore from "@ui/stores/canvasStore"
+import { usePageScope } from "@ui/stores/codeStore"
+import { AIChatController } from "@ui/components/AIChatController"
+import { getBlockInstance, getBlockString } from "@ui/utils/serializer"
+import type { BlockOptions } from "@ui/types"
+import { studioSettings } from "@ui/data/studioSettings"
 import LucideSparkle from "~icons/lucide/sparkle"
 
 const store = useStudioStore()
@@ -270,7 +270,7 @@ const selectedBlock = computed(() => {
 const isModifyMode = computed(() => !!selectedBlock.value)
 
 const aiModels = createResource({
-	url: "frappe.studio.ai.models.get_ai_models",
+	url: "frappe.ui.ai.models.get_ai_models",
 	auto: true,
 })
 
@@ -289,7 +289,7 @@ const isVisionModel = computed(() => {
 })
 
 const sessionResource = createResource({
-	url: "frappe.studio.ai.api.get_ai_session",
+	url: "frappe.ui.ai.api.get_ai_session",
 	onSuccess(data: any) {
 		messages.value = data.messages ?? []
 		controller.sessionId = data.session_id ?? ""
@@ -439,7 +439,7 @@ function sendPrompt(text: string) {
 }
 
 async function clearSession() {
-	await call("frappe.studio.ai.api.clear_ai_session", { page_id: pageId.value })
+	await call("frappe.ui.ai.api.clear_ai_session", { page_id: pageId.value })
 	messages.value = []
 }
 </script>

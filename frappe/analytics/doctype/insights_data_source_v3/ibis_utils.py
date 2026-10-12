@@ -22,22 +22,22 @@ from ibis.expr.operations.relations import DatabaseTable, Field
 from ibis.expr.types import Expr
 from ibis.expr.types import Table as IbisQuery
 
-from frappe import insights
-from frappe.insights import not_permitted, user_permissions
-from frappe.insights.cache_utils import make_digest
-from frappe.insights.exceptions import (
+from frappe import analytics as insights
+from frappe.analytics import not_permitted, user_permissions
+from frappe.analytics.cache_utils import make_digest
+from frappe.analytics.exceptions import (
     ExpressionSyntaxError,
     QueryRefused,
     QueryTimeout,
     UnknownColumn,
 )
-from frappe.insights.doctype.insights_data_source_v3.data_warehouse import is_warehouse
-from frappe.insights.doctype.insights_table_v3.insights_table_v3 import (
+from frappe.analytics.doctype.insights_data_source_v3.data_warehouse import is_warehouse
+from frappe.analytics.doctype.insights_table_v3.insights_table_v3 import (
     InsightsTablev3,
     held_back_key,
     strip_schema_prefix,
 )
-from frappe.insights.query_builders.sql_functions import (
+from frappe.analytics.query_builders.sql_functions import (
     day_bounds,
     handle_timespan,
     is_calendar,
@@ -45,16 +45,16 @@ from frappe.insights.query_builders.sql_functions import (
     typed_instant,
     within_days,
 )
-from frappe.insights.query_utils import (
+from frappe.analytics.query_utils import (
     check_source_workbook,
     extract_sql_table_refs,
     get_direct_dependencies,
     real_table_refs,
     runs_stored_procedure,
 )
-from frappe.insights.permission_user import get_permission_user, script_session
-from frappe.insights.utils import create_execution_log
-from frappe.insights.utils import deep_convert_dict_to_dict as _dict
+from frappe.analytics.permission_user import get_permission_user, script_session
+from frappe.analytics.utils import create_execution_log
+from frappe.analytics.utils import deep_convert_dict_to_dict as _dict
 
 from .ibis.functions import _apply_granularity
 from .ibis.utils import (
@@ -337,7 +337,7 @@ class IbisQueryBuilder:
         frappe.throw(error.operation_message, error)
 
     def check_trusted_code(self):
-        from frappe.insights.permissions import check_trusted_code_author
+        from frappe.analytics.permissions import check_trusted_code_author
 
         # the Builder runs unsaved content, so compare it with the saved chart it
         # runs as. Otherwise compare it with its query: for a throwaway preview,
@@ -406,7 +406,7 @@ class IbisQueryBuilder:
         `check_chart_query_access` authorized when it was saved. That chart is
         the one `runs_as` entered, never one named in the request.
         """
-        from frappe.insights.permission_user import declaring_document
+        from frappe.analytics.permission_user import declaring_document
 
         references = set(get_direct_dependencies(self.doc.get("name")))
 
@@ -432,7 +432,7 @@ class IbisQueryBuilder:
         if query_name in self.saved_references:
             return
 
-        from frappe.insights.permissions import check_referenced_query_access
+        from frappe.analytics.permissions import check_referenced_query_access
 
         check_referenced_query_access(query_name)
 
@@ -1600,7 +1600,7 @@ def execute_ibis_query(
                 title="Query execution time exceeded the limit.",
                 message=f"Query: {sql}",
             )
-            from frappe.insights.doctype.insights_settings.insights_settings import (
+            from frappe.analytics.doctype.insights_settings.insights_settings import (
                 get_max_execution_time,
             )
 

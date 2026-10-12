@@ -20,17 +20,17 @@ from ibis.backends.sql.datatypes import DuckDBType
 from ibis.common.exceptions import TableNotFound
 from ibis.expr.types import Expr, Table
 
-from frappe import insights
-from frappe.insights.exceptions import TableNotStored
-from frappe.insights.doctype.insights_data_source_v3.connectors.duckdb import (
+from frappe import analytics as insights
+from frappe.analytics.exceptions import TableNotStored
+from frappe.analytics.doctype.insights_data_source_v3.connectors.duckdb import (
     IMPORT_WRITE_LOCK_TIMEOUT,
     WRITE_LOCK_TIMEOUT,
     local_duckdb_write_connection,
     local_duckdb_write_lock,
     open_local_duckdb,
 )
-from frappe.insights.doctype.insights_table_v3.insights_table_v3 import store_columns
-from frappe.insights.utils import InsightsDataSourcev3, InsightsTablev3
+from frappe.analytics.doctype.insights_table_v3.insights_table_v3 import store_columns
+from frappe.analytics.utils import InsightsDataSourcev3, InsightsTablev3
 
 WAREHOUSE_DB_NAME = "insights"
 
@@ -324,7 +324,7 @@ class WarehouseTableWriter:
 
 class WarehouseTable:
     def __init__(self, data_source: str, table_name: str):
-        from frappe.insights.doctype.insights_table_v3.insights_table_v3 import get_table_name
+        from frappe.analytics.doctype.insights_table_v3.insights_table_v3 import get_table_name
 
         self.data_source = data_source
         self.table_name = table_name
@@ -477,7 +477,7 @@ class WarehouseTableImporter:
         return False
 
     def start_import(self):
-        from frappe.insights.doctype.insights_data_source_v3.insights_data_source_v3 import (
+        from frappe.analytics.doctype.insights_data_source_v3.insights_data_source_v3 import (
             db_connections,
         )
 
@@ -757,7 +757,7 @@ class WarehouseTableImporter:
         The table, the source and the query stay here. Only the outcome, the
         size and the duration travel, and the counts as buckets.
         """
-        from frappe.insights.telemetry import capture, duration_bucket, rows_bucket
+        from frappe.analytics.telemetry import capture, duration_bucket, rows_bucket
 
         rows = self.log.rows_imported or 0
         capture(
@@ -833,7 +833,7 @@ class WarehouseTableImporter:
 def enqueue_warehouse_table_import(data_source: str, table_name: str):
     job_id = f"import_{frappe.scrub(data_source)}_{frappe.scrub(table_name)}"
     frappe.enqueue(
-        "frappe.insights.doctype.insights_data_source_v3.data_warehouse.execute_warehouse_table_import",
+        "frappe.analytics.doctype.insights_data_source_v3.data_warehouse.execute_warehouse_table_import",
         data_source=data_source,
         table_name=table_name,
         queue="long",

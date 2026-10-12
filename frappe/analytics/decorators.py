@@ -6,7 +6,7 @@ from functools import wraps
 
 import frappe
 
-from frappe.insights.doctype.insights_team.insights_team import is_admin
+from frappe.analytics.doctype.insights_team.insights_team import is_admin
 
 
 def check_role(role):

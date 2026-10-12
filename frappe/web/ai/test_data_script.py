@@ -3,7 +3,7 @@ from unittest.mock import patch
 import frappe
 from frappe.tests.utils import FrappeTestCase
 
-from frappe.builder.ai.agent.tools.data import write_page_data_script
+from frappe.web.ai.agent.tools.data import write_page_data_script
 
 
 class Ctx:

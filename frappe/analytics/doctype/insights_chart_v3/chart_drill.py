@@ -30,24 +30,24 @@ import frappe
 from frappe import _
 from frappe.utils import add_to_date, get_datetime, get_time
 
-from frappe.insights import user_permissions
-from frappe.insights.doctype.insights_chart_v3.chart_query import (
+from frappe.analytics import user_permissions
+from frappe.analytics.doctype.insights_chart_v3.chart_query import (
     ORDERED_TYPES,
     count_of_rows,
     grain_step,
     plotted_measures,
 )
-from frappe.insights.doctype.insights_chart_v3.record_link import record_links
-from frappe.insights.doctype.insights_data_source_v3.ibis_utils import (
+from frappe.analytics.doctype.insights_chart_v3.record_link import record_links
+from frappe.analytics.doctype.insights_data_source_v3.ibis_utils import (
     ADDITIVE_AGGREGATIONS,
     PIVOT_OTHERS,
     folded_a_tail,
     get_columns_from_schema,
 )
-from frappe.insights.query_builders.sql_functions import read_on, resolve_timespan
-from frappe.insights.not_permitted import refuse
-from frappe.insights.permission_user import runs_as
-from frappe.insights.permissions import can_read_rows
+from frappe.analytics.query_builders.sql_functions import read_on, resolve_timespan
+from frappe.analytics.not_permitted import refuse
+from frappe.analytics.permission_user import runs_as
+from frappe.analytics.permissions import can_read_rows
 
 ROWS = "rows"
 BREAKDOWN = "breakdown"

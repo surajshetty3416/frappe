@@ -28,7 +28,7 @@
 	</div>
 </template>
 <script setup lang="ts">
-import { __ } from "@builder/translation";
+import { __ } from "@web/translation";
 import { Button, toast } from "frappe-ui";
 
 const site = window.location.origin;

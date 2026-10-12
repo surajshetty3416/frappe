@@ -1,8 +1,8 @@
-import useBuilderStore from "@builder/stores/builderStore";
-import usePageStore from "@builder/stores/pageStore";
+import useBuilderStore from "@web/stores/builderStore";
+import usePageStore from "@web/stores/pageStore";
 import { frappeRequest, toast } from "frappe-ui";
 import { nextTick, onMounted, watch } from "vue";
-import { __ } from "@builder/translation";
+import { __ } from "@web/translation";
 
 const TOAST_ID = "site-read-only-mode";
 const POLL_INTERVAL = 10 * 1000;
@@ -23,7 +23,7 @@ export function useSiteReadOnlyNotice() {
 	}
 
 	function checkIfSiteIsWritable() {
-		frappeRequest({ url: "frappe.builder.api.is_site_read_only" })
+		frappeRequest({ url: "frappe.web.api.is_site_read_only" })
 			.then((readOnly) => (builderStore.isSiteInReadOnlyMode = Boolean(readOnly)))
 			.catch(() => {});
 	}

@@ -131,8 +131,8 @@
 	</div>
 </template>
 <script setup lang="ts">
-import type Block from "@builder/block";
-import useCanvasStore from "@builder/stores/canvasStore";
+import type Block from "@web/block";
+import useCanvasStore from "@web/stores/canvasStore";
 import { nextTick, ref, watch } from "vue";
 import draggable from "vuedraggable";
 import BlockLayers from "./BlockLayers.vue";

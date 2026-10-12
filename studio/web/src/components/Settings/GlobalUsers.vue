@@ -89,9 +89,9 @@
 	</div>
 </template>
 <script setup lang="ts">
-import { __ } from "@builder/translation";
-import router, { sessionUser } from "@builder/router";
-import { confirm } from "@builder/utils/helpers";
+import { __ } from "@web/translation";
+import router, { sessionUser } from "@web/router";
+import { confirm } from "@web/utils/helpers";
 import { UseTimeAgo } from "@vueuse/components";
 import { Avatar, Badge, Dialog, createResource, toast } from "frappe-ui";
 import { computed, nextTick, ref } from "vue";
@@ -116,12 +116,12 @@ const inviteInputRef = ref<any>(null);
 const builderPath = router.resolve({ name: "builder-home" }).path;
 
 const builderUsers = createResource({
-	url: "frappe.builder.api.get_builder_users",
+	url: "frappe.web.api.get_builder_users",
 	auto: true,
 });
 
 const pendingInvites = createResource({
-	url: "frappe.builder.api.get_pending_invitations",
+	url: "frappe.web.api.get_pending_invitations",
 	auto: true,
 });
 

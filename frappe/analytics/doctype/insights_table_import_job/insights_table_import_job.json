@@ -132,7 +132,7 @@
  ],
  "modified": "2026-01-29 13:16:15.575743",
  "modified_by": "Administrator",
- "module": "Insights",
+ "module": "Analytics",
  "name": "Insights Table Import Job",
  "naming_rule": "By fieldname",
  "owner": "Administrator",

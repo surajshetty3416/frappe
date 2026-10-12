@@ -2,8 +2,8 @@ import re
 
 import frappe
 
-from frappe.studio.doctype.studio_page.patches.migrate_dialog_to_frappe_ui_v1 import migrate_dialog_props
-from frappe.studio.utils import walk_blocks
+from frappe.ui.doctype.studio_page.patches.migrate_dialog_to_frappe_ui_v1 import migrate_dialog_props
+from frappe.ui.utils import walk_blocks
 
 RADIUS_SIDES = ("t", "r", "b", "l", "tl", "tr", "br", "bl", "s", "e", "ss", "se", "es", "ee")
 RADIUS_STEPS = {"sm": "1", "md": "5", "lg": "6", "xl": "7", "2xl": "8"}

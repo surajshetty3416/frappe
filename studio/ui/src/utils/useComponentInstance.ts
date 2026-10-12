@@ -1,6 +1,6 @@
 import { ref, watch } from "vue"
-import Block from "@studio/utils/block"
-import { customVueComponentsRegistry } from "@studio/globals"
+import Block from "@ui/utils/block"
+import { customVueComponentsRegistry } from "@ui/globals"
 
 async function resolveComponent(component: any) {
 	if (!component) return {}

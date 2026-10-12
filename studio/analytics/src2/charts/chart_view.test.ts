@@ -129,7 +129,7 @@ describe('a card asked for its rows again', () => {
 describe('a link to a chart the reader cannot open', () => {
 	// @feature shared.missing-link
 	it('fails with the server sentence instead of loading forever', async () => {
-		answers.set('frappe.insights.api.view.get_chart', () => Promise.reject(new Error('Not Found')))
+		answers.set('frappe.analytics.api.view.get_chart', () => Promise.reject(new Error('Not Found')))
 		const read = useChartView('chart-missing')
 
 		await read.load()
@@ -229,7 +229,7 @@ describe('a card and the chart it renders', () => {
 		// `view.ts` `openReads` passes each read the chart document from the dashboard
 		// response, on every visit. The rows on screen belong to the first chart document.
 		const first = chartDocOf('chart-20', 'Sales')
-		answers.set('frappe.insights.api.view.get_chart_data', () =>
+		answers.set('frappe.analytics.api.view.get_chart_data', () =>
 			Promise.resolve(rowsOf(first, 'North')),
 		)
 		await useChartView(first.name, undefined, first).load()
@@ -244,10 +244,10 @@ describe('a card and the chart it renders', () => {
 	it('renders a refreshed chart only once its new rows have landed', async () => {
 		// `SharedChart` and `ChartIsland` open a chart without a chart document. The card's
 		// Refresh reloads it with force.
-		answers.set('frappe.insights.api.view.get_chart', () =>
+		answers.set('frappe.analytics.api.view.get_chart', () =>
 			Promise.resolve(chartDocOf('chart-21', 'Sales')),
 		)
-		answers.set('frappe.insights.api.view.get_chart_data', () =>
+		answers.set('frappe.analytics.api.view.get_chart_data', () =>
 			Promise.resolve(rowsOf(chartDocOf('chart-21', 'Sales'), 'North')),
 		)
 		const read = useChartView('chart-21')
@@ -256,8 +256,8 @@ describe('a card and the chart it renders', () => {
 
 		const edited = chartDocOf('chart-21', 'Sales by region')
 		const rows = deferred<any>()
-		answers.set('frappe.insights.api.view.get_chart', () => Promise.resolve(edited))
-		answers.set('frappe.insights.api.view.get_chart_data', () => rows.promise)
+		answers.set('frappe.analytics.api.view.get_chart', () => Promise.resolve(edited))
+		answers.set('frappe.analytics.api.view.get_chart_data', () => rows.promise)
 		const refreshed = read.load(true)
 		await settled()
 
@@ -275,7 +275,7 @@ describe('a card and the chart it renders', () => {
 		// `ChartDrillDown.vue` sends the subject's `modified` with each level.
 		// `view.get_drill_data` refuses a stale `modified`.
 		const first = { ...chartDocOf('chart-23', 'Sales'), modified: '2026-09-22 10:00:00' }
-		answers.set('frappe.insights.api.view.get_chart_data', () =>
+		answers.set('frappe.analytics.api.view.get_chart_data', () =>
 			Promise.resolve(rowsOf(first, 'North')),
 		)
 		await useChartView(first.name, undefined, first).load()
@@ -292,10 +292,10 @@ describe('a card and the chart it renders', () => {
 	it('is not asked again when the island that renders it is mounted again', async () => {
 		// Desk's `chart_widget.js` remounts `ChartIsland` on every render. Each
 		// mount opens the chart by name and loads it.
-		answers.set('frappe.insights.api.view.get_chart', () =>
+		answers.set('frappe.analytics.api.view.get_chart', () =>
 			Promise.resolve(chartDocOf('chart-22', 'Sales')),
 		)
-		answers.set('frappe.insights.api.view.get_chart_data', () =>
+		answers.set('frappe.analytics.api.view.get_chart_data', () =>
 			Promise.resolve(rowsOf(chartDocOf('chart-22', 'Sales'), 'North')),
 		)
 		await useChartView('chart-22').load()
@@ -329,7 +329,7 @@ describe('the builder grid rendering a chart its author edited', () => {
 			id: 'dashboard:dashboard-30',
 			filterContext: (chart_name: string) => ({ chart: chart_name, cardFilters: [] }),
 		}
-		answers.set('frappe.insights.api.authoring.get_chart_data', () =>
+		answers.set('frappe.analytics.api.authoring.get_chart_data', () =>
 			Promise.resolve({
 				columns: [{ name: 'region', type: 'String' }],
 				rows: [{ region: 'North' }],
@@ -342,7 +342,7 @@ describe('the builder grid rendering a chart its author edited', () => {
 		expect(read.doc.config.limit).toBe(10)
 
 		const rows = deferred<any>()
-		answers.set('frappe.insights.api.authoring.get_chart_data', () => rows.promise)
+		answers.set('frappe.analytics.api.authoring.get_chart_data', () => rows.promise)
 		const edited = read.load()
 		await settled()
 		expect(read.doc.config.limit).toBe(10)
@@ -369,7 +369,7 @@ describe('the builder grid rendering a card the dashboard lent a Period', () => 
 				config: { date_column: { column_name: 'date', dimension_name: 'date' } } as any,
 			},
 		}) as unknown as Chart
-		answers.set('frappe.insights.api.authoring.get_chart_data', () =>
+		answers.set('frappe.analytics.api.authoring.get_chart_data', () =>
 			Promise.resolve({
 				columns: [{ name: 'date', type: 'Date' }],
 				rows: [{ date: '2026-07-01' }, { date: '2026-08-01' }],
@@ -401,7 +401,7 @@ describe('the builder drilling a chart its author is editing', () => {
 				config: { limit: 10 } as any,
 			},
 		}) as unknown as Chart
-		answers.set('frappe.insights.api.authoring.get_chart_data', () =>
+		answers.set('frappe.analytics.api.authoring.get_chart_data', () =>
 			Promise.resolve({
 				modified: '2026-09-22 10:00:00',
 				columns: [{ name: 'region', type: 'String' }],
@@ -427,7 +427,7 @@ describe('the builder drilling a chart its author is editing', () => {
 				config: { limit: 10 } as any,
 			},
 		}) as unknown as Chart
-		answers.set('frappe.insights.api.authoring.get_chart_data', () =>
+		answers.set('frappe.analytics.api.authoring.get_chart_data', () =>
 			Promise.resolve({ columns: [{ name: 'region', type: 'String' }], rows: [] }),
 		)
 		const read = useChartPreview(chart)
@@ -443,7 +443,7 @@ describe('the builder drilling a chart its author is editing', () => {
 			page: 1,
 		})
 
-		const drilled = calls.filter((c) => c.method === 'frappe.insights.api.authoring.get_drill_data')
+		const drilled = calls.filter((c) => c.method === 'frappe.analytics.api.authoring.get_drill_data')
 		expect((read.drillSubject.chart.config as any).limit).toBe(10)
 		expect(drilled.map((c) => c.args.config.limit)).toEqual([10, 10])
 	})
@@ -463,7 +463,7 @@ describe('the builder rendering a chart its reader may not write', () => {
 				config: { limit: 1 } as any,
 			},
 		}) as unknown as Chart
-		answers.set('frappe.insights.api.authoring.get_chart_data', () =>
+		answers.set('frappe.analytics.api.authoring.get_chart_data', () =>
 			Promise.resolve({
 				chart: {
 					name: 'chart-31',
@@ -494,7 +494,7 @@ describe('the builder rendering a chart its reader may not write', () => {
 				config: { limit: 1 } as any,
 			},
 		}) as unknown as Chart
-		answers.set('frappe.insights.api.authoring.get_chart_data', () =>
+		answers.set('frappe.analytics.api.authoring.get_chart_data', () =>
 			Promise.resolve({
 				chart: { name: 'chart-33', title: 'Sales', chart_type: 'Table', config: {} },
 				columns: [{ name: 'region', type: 'String' }],
@@ -618,7 +618,7 @@ describe('a reader sorting a saved table', () => {
 
 	// @feature charts.table-header-sort
 	it('asks for the chart in their order, starting from the order on screen', async () => {
-		answers.set('frappe.insights.api.view.get_chart_data', () =>
+		answers.set('frappe.analytics.api.view.get_chart_data', () =>
 			northThenSouth(1).then((answer) => ({ ...answer, can_read_rows: true })),
 		)
 		const config = { order_by: [sortedBy('region', 'desc')] } as any
@@ -636,7 +636,7 @@ describe('a reader sorting a saved table', () => {
 
 	// @feature charts.table-header-sort
 	it('is not offered to a reader allowed only the chart', async () => {
-		answers.set('frappe.insights.api.view.get_chart_data', () =>
+		answers.set('frappe.analytics.api.view.get_chart_data', () =>
 			northThenSouth(1).then((answer) => ({ ...answer, can_read_rows: false })),
 		)
 		const chartDoc = { name: 'chart-12', title: '', chart_type: 'Table', config: {} as any }

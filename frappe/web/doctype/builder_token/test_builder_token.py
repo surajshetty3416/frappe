@@ -8,10 +8,10 @@ import tempfile
 import frappe
 from frappe.tests.utils import FrappeTestCase
 
-from frappe.builder.doctype.builder_page.builder_page import get_font_family, resolve_font_token
-from frappe.builder.doctype.builder_token.builder_token import get_css_variables, get_variables_css
-from frappe.builder.patches.refactor_builder_variables import build_maps, rewrite_doctype_blocks
-from frappe.builder.utils import import_fixture_record, normalize_renamed_doc, sync_builder_tokens
+from frappe.web.doctype.builder_page.builder_page import get_font_family, resolve_font_token
+from frappe.web.doctype.builder_token.builder_token import get_css_variables, get_variables_css
+from frappe.web.patches.refactor_builder_variables import build_maps, rewrite_doctype_blocks
+from frappe.web.utils import import_fixture_record, normalize_renamed_doc, sync_builder_tokens
 
 
 def make_token(**kwargs):

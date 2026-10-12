@@ -18,14 +18,14 @@ import unittest
 
 from frappe import _
 
-from frappe.insights.doctype.insights_chart_v3.chart_query import (
+from frappe.analytics.doctype.insights_chart_v3.chart_query import (
     comparison_timespans,
     config_errors,
     derive_operations,
     reads_newest_first,
     sparkline_operations,
 )
-from frappe.insights.tests.factories import chart_derivation_fixtures, derivation_case
+from frappe.analytics.tests.factories import chart_derivation_fixtures, derivation_case
 
 CHART_TYPES = {
     "Bar",

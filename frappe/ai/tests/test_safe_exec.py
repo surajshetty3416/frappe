@@ -4,7 +4,7 @@
 import frappe
 from frappe.tests import IntegrationTestCase
 
-from frappe.flow.utils.safe_exec import get_flow_safe_globals, safe_exec
+from frappe.ai.utils.safe_exec import get_flow_safe_globals, safe_exec
 
 
 class TestFlowSafeExecNamespace(IntegrationTestCase):

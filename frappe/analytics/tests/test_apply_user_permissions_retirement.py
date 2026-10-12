@@ -6,10 +6,10 @@ migrate` runs against the Singles row a released site holds.
 
 import frappe
 
-from frappe.insights.patches.retire_site_apply_user_permissions import FIELD, SETTINGS
-from frappe.insights.patches.retire_site_apply_user_permissions import execute as retire
-from frappe.insights.tests.base import InsightsIntegrationTestCase
-from frappe.insights.tests.factories import DT, create_test_chart, create_test_query, create_test_workbook
+from frappe.analytics.patches.retire_site_apply_user_permissions import FIELD, SETTINGS
+from frappe.analytics.patches.retire_site_apply_user_permissions import execute as retire
+from frappe.analytics.tests.base import InsightsIntegrationTestCase
+from frappe.analytics.tests.factories import DT, create_test_chart, create_test_query, create_test_workbook
 
 OWNER = "Administrator"
 PREFIX = "Retirement Test"

@@ -56,11 +56,11 @@
 </template>
 
 <script setup lang="ts">
-import useStudioStore from "@studio/stores/studioStore"
-import RouterScript from "@studio/components/RouterScript.vue"
-import type { StudioPage } from "@studio/types/Studio/StudioPage"
-import { isObjectEmpty } from "@studio/utils/helpers"
-import { copyEntirePage } from "@studio/utils/blockCopyPaste"
+import useStudioStore from "@ui/stores/studioStore"
+import RouterScript from "@ui/components/RouterScript.vue"
+import type { StudioPage } from "@ui/types/Studio/StudioPage"
+import { isObjectEmpty } from "@ui/utils/helpers"
+import { copyEntirePage } from "@ui/utils/blockCopyPaste"
 import { useRouter } from "vue-router"
 import { Dropdown, Button, Badge, Tooltip } from "frappe-ui"
 

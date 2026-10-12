@@ -10,15 +10,15 @@ import frappe
 from frappe.model.document import Document
 from ibis import BaseBackend
 
-from frappe import insights
-from frappe.insights.doctype.insights_table_link_v3.insights_table_link_v3 import (
+from frappe import analytics as insights
+from frappe.analytics.doctype.insights_table_link_v3.insights_table_link_v3 import (
     InsightsTableLinkv3,
 )
-from frappe.insights.doctype.insights_table_v3.insights_table_v3 import (
+from frappe.analytics.doctype.insights_table_v3.insights_table_v3 import (
     InsightsTablev3,
 )
-from frappe.insights.doctype.insights_table_v3.table_rename import rename_tables
-from frappe.insights.telemetry import capture, error_kind
+from frappe.analytics.doctype.insights_table_v3.table_rename import rename_tables
+from frappe.analytics.telemetry import capture, error_kind
 
 from .connectors.bigquery import get_bigquery_connection
 from .connectors.clickhouse import get_clickhouse_connection
@@ -295,7 +295,7 @@ class InsightsDataSourcev3(InsightsDataSourceDocument, Document):
             except Exception:
                 db.raw_sql("SET SESSION TRANSACTION_READ_ONLY = 1")
 
-            from frappe.insights.doctype.insights_settings.insights_settings import (
+            from frappe.analytics.doctype.insights_settings.insights_settings import (
                 get_max_execution_time,
             )
 

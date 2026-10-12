@@ -9,9 +9,9 @@ alone would open the gaps in every dashboard already rendered. See
 
 import frappe
 
-from frappe.insights.patches.close_dashboard_layout_gaps import execute as run_patch
-from frappe.insights.tests.base import InsightsIntegrationTestCase
-from frappe.insights.tests.factories import DT, create_test_workbook
+from frappe.analytics.patches.close_dashboard_layout_gaps import execute as run_patch
+from frappe.analytics.tests.base import InsightsIntegrationTestCase
+from frappe.analytics.tests.factories import DT, create_test_workbook
 
 OWNER = "Administrator"
 WORKBOOK_TITLE = "Compact Layout Test Workbook"

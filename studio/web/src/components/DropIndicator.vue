@@ -21,7 +21,7 @@
 </template>
 
 <script setup lang="ts">
-import useCanvasStore from "@builder/stores/canvasStore";
+import useCanvasStore from "@web/stores/canvasStore";
 import { computed, ref } from "vue";
 
 const canvasStore = useCanvasStore();

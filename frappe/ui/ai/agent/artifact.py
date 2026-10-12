@@ -16,14 +16,14 @@ import logging
 
 import frappe
 
-from frappe.studio.ai import llm
-from frappe.studio.ai.agent.tools.introspect import describe_page_data
-from frappe.studio.ai.block_codec import BlockCodec
-from frappe.studio.ai.models import ModelRegistry
-from frappe.studio.ai.prompts import GENERATION
-from frappe.studio.ai.session import AISession
+from frappe.ui.ai import llm
+from frappe.ui.ai.agent.tools.introspect import describe_page_data
+from frappe.ui.ai.block_codec import BlockCodec
+from frappe.ui.ai.models import ModelRegistry
+from frappe.ui.ai.prompts import GENERATION
+from frappe.ui.ai.session import AISession
 
-logger = frappe.logger("frappe.studio.ai.agent.artifact")
+logger = frappe.logger("frappe.ui.ai.agent.artifact")
 logger.setLevel(logging.INFO)
 
 
@@ -60,7 +60,7 @@ def generate_page_json(ctx, args: dict) -> list[dict]:
 				stream.close()
 			except Exception:
 				pass
-			from frappe.studio.ai.agent.loop import CancelledError
+			from frappe.ui.ai.agent.loop import CancelledError
 
 			raise CancelledError
 		if not chunk.choices:

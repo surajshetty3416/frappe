@@ -87,22 +87,22 @@ import {
 	ListGroup,
 } from "frappe-ui/list"
 
-import Container from "@studio/components/AppLayout/Container.vue"
-import FitContainer from "@studio/components/AppLayout/FitContainer.vue"
-import SplitView from "@studio/components/AppLayout/SplitView.vue"
-import Repeater from "@studio/components/AppLayout/Repeater.vue"
-import HTML from "@studio/components/AppLayout/HTML.vue"
-import CardList from "@studio/components/AppLayout/CardList.vue"
-import AvatarCard from "@studio/components/AppLayout/AvatarCard.vue"
-import Audio from "@studio/components/AppLayout/Audio.vue"
-import ImageView from "@studio/components/AppLayout/ImageView.vue"
-import TextBlock from "@studio/components/AppLayout/TextBlock.vue"
-import AppHeader from "@studio/components/AppLayout/AppHeader.vue"
-import BottomTabs from "@studio/components/AppLayout/BottomTabs.vue"
-import MarkdownEditor from "@studio/components/AppLayout/MarkdownEditor.vue"
+import Container from "@ui/components/AppLayout/Container.vue"
+import FitContainer from "@ui/components/AppLayout/FitContainer.vue"
+import SplitView from "@ui/components/AppLayout/SplitView.vue"
+import Repeater from "@ui/components/AppLayout/Repeater.vue"
+import HTML from "@ui/components/AppLayout/HTML.vue"
+import CardList from "@ui/components/AppLayout/CardList.vue"
+import AvatarCard from "@ui/components/AppLayout/AvatarCard.vue"
+import Audio from "@ui/components/AppLayout/Audio.vue"
+import ImageView from "@ui/components/AppLayout/ImageView.vue"
+import TextBlock from "@ui/components/AppLayout/TextBlock.vue"
+import AppHeader from "@ui/components/AppLayout/AppHeader.vue"
+import BottomTabs from "@ui/components/AppLayout/BottomTabs.vue"
+import MarkdownEditor from "@ui/components/AppLayout/MarkdownEditor.vue"
 
-import { vueComponents } from "@studio/data/vueComponents"
-import { CustomVueComponentMeta } from "@studio/types/vue"
+import { vueComponents } from "@ui/data/vueComponents"
+import { CustomVueComponentMeta } from "@ui/types/vue"
 
 export function registerGlobalComponents(app: App) {
 	// the editor shares the app with other layers, which register some of the same frappe-ui components

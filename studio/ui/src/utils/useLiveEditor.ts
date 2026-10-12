@@ -1,10 +1,10 @@
 import { onMounted, onBeforeUnmount } from "vue"
 
-import { useSocket } from "@studio/socket"
-import { fetchApp } from "@studio/utils/helpers"
-import { invalidateComponentCache, getComponentSlots } from "@studio/utils/components"
-import useStudioStore from "@studio/stores/studioStore"
-import useComponentStore from "@studio/stores/componentStore"
+import { useSocket } from "@ui/socket"
+import { fetchApp } from "@ui/utils/helpers"
+import { invalidateComponentCache, getComponentSlots } from "@ui/utils/components"
+import useStudioStore from "@ui/stores/studioStore"
+import useComponentStore from "@ui/stores/componentStore"
 
 // Keep the open editor in sync with changes made outside it. Three sources, two transports:
 //   - page/app/component JSON synced from disk -> backend socket (studio_doc_update)

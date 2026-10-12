@@ -1,7 +1,7 @@
 // Ported from Builder, modified later
-import Block from "@studio/utils/block"
-import { getLayoutDirection } from "@studio/utils/dropGeometry"
-import type { FrappeUIComponent } from "@studio/types"
+import Block from "@ui/utils/block"
+import { getLayoutDirection } from "@ui/utils/dropGeometry"
+import type { FrappeUIComponent } from "@ui/types"
 
 const BLOCK_SELECTOR = ".__studio_component__"
 // blocks inside a studio component instance aren't editable, so the instance root is the hit target

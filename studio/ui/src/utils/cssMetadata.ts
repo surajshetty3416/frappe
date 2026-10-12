@@ -1,6 +1,6 @@
-import cssPropertyMetadata from "@studio/data/cssPropertyMetadata.json"
-import { camelToKebabCase } from "@studio/utils/helpers"
-import { BORDER_UNIT_OPTIONS, DIMENSION_UNIT_OPTIONS } from "@studio/utils/unitOptions"
+import cssPropertyMetadata from "@ui/data/cssPropertyMetadata.json"
+import { camelToKebabCase } from "@ui/utils/helpers"
+import { BORDER_UNIT_OPTIONS, DIMENSION_UNIT_OPTIONS } from "@ui/utils/unitOptions"
 
 // see scripts/generate-css-property-metadata.mjs
 type CSSPropertyMetadata = {

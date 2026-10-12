@@ -2,13 +2,13 @@ from unittest.mock import patch
 
 import frappe
 
-from frappe.insights.permissions import (
+from frappe.analytics.permissions import (
     VISIBILITY_LEVELS,
     get_permission_query_conditions,
     has_doc_permission,
 )
-from frappe.insights.tests.base import InsightsIntegrationTestCase
-from frappe.insights.tests.factories import (
+from frappe.analytics.tests.base import InsightsIntegrationTestCase
+from frappe.analytics.tests.factories import (
     DT,
     create_test_chart,
     create_test_dashboard,
@@ -902,7 +902,7 @@ class TestOrgShareMigration(InsightsIntegrationTestCase):
         return chart, dashboard
 
     def migrate(self):
-        from frappe.insights.patches.set_visibility_from_org_shares import execute
+        from frappe.analytics.patches.set_visibility_from_org_shares import execute
 
         execute()
 

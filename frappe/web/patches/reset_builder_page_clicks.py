@@ -1,6 +1,6 @@
 import frappe
 
-from frappe.builder.builder_analytics import setup_clicks_table
+from frappe.web.builder_analytics import setup_clicks_table
 
 
 def execute():

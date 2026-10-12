@@ -1,14 +1,14 @@
-import type Block from "@builder/block";
-import builderTokens from "@builder/data/builderToken";
-import { type AIChatHandlers, attachAIChatListeners, detachAIChatListeners } from "@builder/components/ai/realtime";
-import { type AffectedItems, type PageCanvas, ToolDispatcher } from "@builder/components/ai/toolDispatch";
-import type { AIProvider, AITurnStep, ChatMessage } from "@builder/components/ai/types";
-import { buildLocalMessage } from "@builder/components/ai/yaml";
-import type BuilderCanvas from "@builder/components/BuilderCanvas.vue";
-import useBuilderStore from "@builder/stores/builderStore";
-import useCanvasStore from "@builder/stores/canvasStore";
-import usePageStore from "@builder/stores/pageStore";
-import { confirm, getErrorMessage } from "@builder/utils/helpers";
+import type Block from "@web/block";
+import builderTokens from "@web/data/builderToken";
+import { type AIChatHandlers, attachAIChatListeners, detachAIChatListeners } from "@web/components/ai/realtime";
+import { type AffectedItems, type PageCanvas, ToolDispatcher } from "@web/components/ai/toolDispatch";
+import type { AIProvider, AITurnStep, ChatMessage } from "@web/components/ai/types";
+import { buildLocalMessage } from "@web/components/ai/yaml";
+import type BuilderCanvas from "@web/components/BuilderCanvas.vue";
+import useBuilderStore from "@web/stores/builderStore";
+import useCanvasStore from "@web/stores/canvasStore";
+import usePageStore from "@web/stores/pageStore";
+import { confirm, getErrorMessage } from "@web/utils/helpers";
 import { useLocalStorage } from "@vueuse/core";
 import { createResource, toast } from "frappe-ui";
 import { computed, inject, nextTick, ref, shallowRef, watch } from "vue";
@@ -16,7 +16,7 @@ import { useRoute } from "vue-router";
 
 /**
  * Orchestrates the Builder AI chat: holds UI state, sends each user turn to the
- * single `frappe.builder.ai.api.run` endpoint, and reacts to the `ai_chat_*` realtime
+ * single `frappe.web.ai.api.run` endpoint, and reacts to the `ai_chat_*` realtime
  * events. Block-tree mutation lives in ToolDispatcher; YAML parsing in ./ai/yaml.
  */
 export class AIChatController {
@@ -119,7 +119,7 @@ export class AIChatController {
 	private async syncActiveBuild() {
 		const pid = this.pageId.value;
 		if (!pid || pid === "new") return;
-		const build: any = await createResource({ url: "frappe.builder.ai.api.get_active_build" })
+		const build: any = await createResource({ url: "frappe.web.ai.api.get_active_build" })
 			.submit({ page_id: pid })
 			.catch(() => null);
 		if (this.pageId.value !== pid) return;
@@ -139,7 +139,7 @@ export class AIChatController {
 		if (!draft || this.isImprovingPrompt.value) return;
 		this.isImprovingPrompt.value = true;
 		try {
-			const improved = (await createResource({ url: "frappe.builder.ai.api.improve_prompt" }).submit({
+			const improved = (await createResource({ url: "frappe.web.ai.api.improve_prompt" }).submit({
 				prompt: draft,
 				model: this.selectedModel.value,
 			})) as string;
@@ -390,7 +390,7 @@ export class AIChatController {
 		this.isLoadingSession.value = true;
 		try {
 			const result = await createResource({
-				url: "frappe.builder.ai.api.get_ai_session",
+				url: "frappe.web.ai.api.get_ai_session",
 				makeParams: () => ({
 					page_id: pageId,
 					model: this.selectedModel.value,
@@ -417,7 +417,7 @@ export class AIChatController {
 	loadSessions = async () => {
 		if (!this.pageId.value || this.isUnsavedPage.value) return;
 		const pageId = this.pageId.value;
-		const rows = await createResource({ url: "frappe.builder.ai.api.list_page_ai_sessions" })
+		const rows = await createResource({ url: "frappe.web.ai.api.list_page_ai_sessions" })
 			.submit({ page_id: pageId })
 			.catch(() => null);
 		if (rows && this.pageId.value === pageId)
@@ -448,7 +448,7 @@ export class AIChatController {
 		if (!(await confirm("Delete this chat? Its messages are removed; the page itself is untouched."))) return;
 		const intent = ++this.sessionIntentEpoch;
 		const pageId = this.pageId.value;
-		await createResource({ url: "frappe.builder.ai.api.delete_ai_session" })
+		await createResource({ url: "frappe.web.ai.api.delete_ai_session" })
 			.submit({ session_id: this.sessionId.value })
 			.catch(() => null);
 		if (intent !== this.sessionIntentEpoch || this.pageId.value !== pageId) return;
@@ -702,7 +702,7 @@ export class AIChatController {
 
 		const localMeta = { ...meta };
 		if (completedSession && (localMeta.affectedBlocks?.length || localMeta.affectedScripts?.length)) {
-			createResource({ url: "frappe.builder.ai.api.update_session_message_metadata" })
+			createResource({ url: "frappe.web.ai.api.update_session_message_metadata" })
 				.submit({ session_id: completedSession, metadata: localMeta })
 				.catch(() => null);
 		}
@@ -810,7 +810,7 @@ export class AIChatController {
 	confirmPendingAction = async (message: ChatMessage, decision: "apply" | "skip") => {
 		try {
 			const res = await createResource({
-				url: "frappe.builder.ai.api.confirm_pending_settings",
+				url: "frappe.web.ai.api.confirm_pending_settings",
 				method: "POST",
 			}).submit({ message_id: message.id, decision });
 			await this.loadSession();
@@ -861,7 +861,7 @@ export class AIChatController {
 			toast.info("That run is no longer active.");
 		};
 		try {
-			const res: any = await createResource({ url: "frappe.builder.ai.api.cancel" }).submit({
+			const res: any = await createResource({ url: "frappe.web.ai.api.cancel" }).submit({
 				session_id: this.sessionId.value,
 			});
 			// No live turn holds the session lock (it crashed or timed out): nothing
@@ -927,7 +927,7 @@ export class AIChatController {
 			await this.pageStore.savePage();
 			if (!stillOwned()) return;
 			const result = await createResource({
-				url: "frappe.builder.ai.api.run",
+				url: "frappe.web.ai.api.run",
 				makeParams: () => ({
 					prompt: userText,
 					page_id: pageId,
@@ -979,7 +979,7 @@ export class AIChatController {
 		);
 		if (!confirmed) return;
 		// 1. Rewind the conversation server-side (delete this turn + everything after).
-		await createResource({ url: "frappe.builder.ai.api.revert_to_message" })
+		await createResource({ url: "frappe.web.ai.api.revert_to_message" })
 			.submit({ session_id: this.sessionId.value, message_id: message.id })
 			.catch(() => null);
 		// 2. Restore the page draft + scripts from the pre-turn snapshot. restore_snapshot
@@ -1006,7 +1006,7 @@ export class AIChatController {
 	 * without this the picker keeps whatever list it was given at mount. */
 	loadModels() {
 		createResource({
-			url: "frappe.builder.ai.api.get_ai_models",
+			url: "frappe.web.ai.api.get_ai_models",
 			auto: true,
 			onSuccess: (data: AIProvider[]) => {
 				this.availableModels.value = data;

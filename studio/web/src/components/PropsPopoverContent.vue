@@ -51,20 +51,20 @@
 </template>
 
 <script setup lang="ts">
-import { __ } from "@builder/translation";
-import InputLabel from "@builder/components/Controls/InputLabel.vue";
-import OptionToggle from "@builder/components/Controls/OptionToggle.vue";
+import { __ } from "@web/translation";
+import InputLabel from "@web/components/Controls/InputLabel.vue";
+import OptionToggle from "@web/components/Controls/OptionToggle.vue";
 
 import { computed, nextTick, reactive, ref, watch } from "vue";
 
-import NumberOptions from "@builder/components/PropsOptions/NumberOptions.vue";
-import StringOptions from "@builder/components/PropsOptions/StringOptions.vue";
-import ArrayOptions from "@builder/components/PropsOptions/ArrayOptions.vue";
-import ObjectOptions from "@builder/components/PropsOptions/ObjectOptions.vue";
-import BooleanOptions from "@builder/components/PropsOptions/BooleanOptions.vue";
-import SelectOptions from "@builder/components/PropsOptions/SelectOptions.vue";
+import NumberOptions from "@web/components/PropsOptions/NumberOptions.vue";
+import StringOptions from "@web/components/PropsOptions/StringOptions.vue";
+import ArrayOptions from "@web/components/PropsOptions/ArrayOptions.vue";
+import ObjectOptions from "@web/components/PropsOptions/ObjectOptions.vue";
+import BooleanOptions from "@web/components/PropsOptions/BooleanOptions.vue";
+import SelectOptions from "@web/components/PropsOptions/SelectOptions.vue";
 
-import { toKebabCase } from "@builder/utils/helpers";
+import { toKebabCase } from "@web/utils/helpers";
 import ColorOptions from "./PropsOptions/ColorOptions.vue";
 import ImageOptions from "./PropsOptions/ImageOptions.vue";
 import InlineInput from "./Controls/InlineInput.vue";

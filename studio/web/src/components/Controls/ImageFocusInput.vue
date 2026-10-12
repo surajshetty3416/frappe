@@ -55,11 +55,11 @@
 </template>
 
 <script setup lang="ts">
-import RangeInput from "@builder/components/Controls/RangeInput.vue";
-import useCanvasStore from "@builder/stores/canvasStore";
+import RangeInput from "@web/components/Controls/RangeInput.vue";
+import useCanvasStore from "@web/stores/canvasStore";
 import { Button } from "frappe-ui";
-import { __ } from "@builder/translation";
-import type { PauseId } from "@builder/utils/useCanvasHistory";
+import { __ } from "@web/translation";
+import type { PauseId } from "@web/utils/useCanvasHistory";
 import { useElementSize, useMouseInElement } from "@vueuse/core";
 import { computed, nextTick, onMounted, ref, watch } from "vue";
 

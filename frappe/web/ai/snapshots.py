@@ -8,10 +8,10 @@ mutates the page — so no-op, clarify, and plan turns leave nothing behind.
 
 import frappe
 
-from frappe.builder.component_versions import pin_components_in_page_data
-from frappe.builder.doctype.builder_snapshot.builder_snapshot import create_snapshot, prune_snapshots
+from frappe.web.component_versions import pin_components_in_page_data
+from frappe.web.doctype.builder_snapshot.builder_snapshot import create_snapshot, prune_snapshots
 
-logger = frappe.logger("frappe.builder.ai.snapshots")
+logger = frappe.logger("frappe.web.ai.snapshots")
 
 # How many auto "AI" snapshots to keep per page. Independent of Publish/Manual snapshots.
 KEEP_AI_SNAPSHOTS = 10

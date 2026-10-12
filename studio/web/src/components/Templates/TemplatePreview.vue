@@ -35,8 +35,8 @@
 	</div>
 </template>
 <script setup lang="ts">
-import { __ } from "@builder/translation";
-import { TemplatePageSummary } from "@builder/types/template";
+import { __ } from "@web/translation";
+import { TemplatePageSummary } from "@web/types/template";
 import { useElementSize } from "@vueuse/core";
 import { Button } from "frappe-ui";
 import { computed, ref } from "vue";
@@ -76,6 +76,6 @@ const frameStyle = computed(() => ({
 const src = computed(
 	() =>
 		props.page.live_url ||
-		`/api/method/frappe.builder.api.get_page_preview_html?page=${encodeURIComponent(props.page.name)}`,
+		`/api/method/frappe.web.api.get_page_preview_html?page=${encodeURIComponent(props.page.name)}`,
 );
 </script>

@@ -2,12 +2,12 @@ import { pinia } from "../support/component"
 
 import { setActivePinia } from "pinia"
 
-import Block from "@studio/utils/block"
-import { COMPONENTS } from "@studio/data/components"
-import { getBlockInstance } from "@studio/utils/serializer"
-import getBlockTemplate from "@studio/utils/blockTemplate"
-import { canPasteStylesTo, copyBlockStyles, pasteBlockStyles } from "@studio/utils/styleCopyPaste"
-import type { BlockOptions } from "@studio/types"
+import Block from "@ui/utils/block"
+import { COMPONENTS } from "@ui/data/components"
+import { getBlockInstance } from "@ui/utils/serializer"
+import getBlockTemplate from "@ui/utils/blockTemplate"
+import { canPasteStylesTo, copyBlockStyles, pasteBlockStyles } from "@ui/utils/styleCopyPaste"
+import type { BlockOptions } from "@ui/types"
 
 function container(componentId: string, styles: Partial<BlockOptions> = {}) {
 	return getBlockInstance({ componentId, componentName: "container", originalElement: "div", ...styles })

@@ -421,15 +421,15 @@
 </template>
 
 <script setup lang="ts">
-import { __ } from "@builder/translation";
-import ContextMenu from "@builder/components/ContextMenu.vue";
-import Autocomplete from "@builder/components/Controls/Autocomplete.vue";
-import ColorPicker from "@builder/components/Controls/ColorPicker.vue";
-import DraggablePopup from "@builder/components/Controls/DraggablePopup.vue";
-import FontInput from "@builder/components/Controls/FontInput.vue";
-import { BuilderToken } from "@builder/types/doctypes";
-import { confirm } from "@builder/utils/helpers";
-import { tokenType, useBuilderToken } from "@builder/utils/useBuilderToken";
+import { __ } from "@web/translation";
+import ContextMenu from "@web/components/ContextMenu.vue";
+import Autocomplete from "@web/components/Controls/Autocomplete.vue";
+import ColorPicker from "@web/components/Controls/ColorPicker.vue";
+import DraggablePopup from "@web/components/Controls/DraggablePopup.vue";
+import FontInput from "@web/components/Controls/FontInput.vue";
+import { BuilderToken } from "@web/types/doctypes";
+import { confirm } from "@web/utils/helpers";
+import { tokenType, useBuilderToken } from "@web/utils/useBuilderToken";
 import { useDebounceFn } from "@vueuse/core";
 import { Button, Dialog, TabButtons, toast, Tooltip } from "frappe-ui";
 import { computed, nextTick, reactive, ref, type ComponentPublicInstance } from "vue";

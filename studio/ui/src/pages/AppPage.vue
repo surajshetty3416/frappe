@@ -6,13 +6,13 @@
 import { provide, onUnmounted } from "vue"
 import { usePageMeta } from "frappe-ui"
 
-import { useLoadedPage } from "@studio/page/pageLoader"
-import { onPageScriptHotUpdate } from "@studio/data/studioPageScripts"
-import AppComponent from "@studio/components/AppComponent.vue"
+import { useLoadedPage } from "@ui/page/pageLoader"
+import { onPageScriptHotUpdate } from "@ui/data/studioPageScripts"
+import AppComponent from "@ui/components/AppComponent.vue"
 
-import useAppStore from "@studio/stores/appStore"
-import useComponentStore from "@studio/stores/componentStore"
-import { pageScopeKey } from "@studio/stores/codeStore"
+import useAppStore from "@ui/stores/appStore"
+import useComponentStore from "@ui/stores/componentStore"
+import { pageScopeKey } from "@ui/stores/codeStore"
 
 const { page, scope, root } = useLoadedPage()
 

@@ -10,8 +10,8 @@ from typing import Any, Literal
 import frappe
 from frappe import _
 
-from frappe.flow.lib.tool import Tool, ToolContext, tool
-from frappe.flow.utils.safe_exec import safe_exec
+from frappe.ai.lib.tool import Tool, ToolContext, tool
+from frappe.ai.utils.safe_exec import safe_exec
 
 MAX_READ_LIMIT = 200
 LAYOUT_FIELDTYPES = frozenset({"Section Break", "Column Break", "Tab Break", "HTML", "Heading"})
@@ -289,7 +289,7 @@ def bind_search_knowledge(kbs: list[str]) -> Tool:
 	registered builtin binds an empty list, so an unbound call fails closed in `retrieve`."""
 
 	def search_knowledge(query: str, *, ctx: ToolContext) -> list[dict[str, Any]]:
-		from frappe.flow.knowledge.retriever import retrieve
+		from frappe.ai.knowledge.retriever import retrieve
 
 		return retrieve(query, kbs=kbs)
 
@@ -327,7 +327,7 @@ def bind_search_attachments(session: str | None) -> Tool:
 	"""A `search_attachments` tool scoped to one session. Unbound (None), it finds nothing."""
 
 	def search_attachments(query: str, *, ctx: ToolContext) -> list[dict[str, Any]]:
-		from frappe.flow.knowledge.retriever import retrieve_attachments
+		from frappe.ai.knowledge.retriever import retrieve_attachments
 
 		if not session:
 			return []
@@ -374,7 +374,7 @@ def bind_update_memory(agent: str | None, session: str | None = None) -> Tool:
 		*,
 		ctx: ToolContext,
 	) -> dict[str, Any]:
-		from frappe.flow.memory.memory import save_memory
+		from frappe.ai.memory.memory import save_memory
 
 		if not agent:
 			frappe.throw(_("Memory is not configured for this agent."), title=_("Memory Unavailable"))
@@ -712,7 +712,7 @@ def sync_builtin_tools() -> None:
 	"""Upsert builtin tools as Flow Tool rows. Uses db.set_value to bypass the immutability
 	guard in FlowTool.validate (which protects user edits, not system migration)."""
 	for builtin in BUILTIN_TOOLS:
-		import_path = f"frappe.flow.tools.builtins.{builtin.name}"
+		import_path = f"frappe.ai.tools.builtins.{builtin.name}"
 		if frappe.db.exists("Flow Tool", builtin.name):
 			frappe.db.set_value(
 				"Flow Tool",

@@ -76,8 +76,8 @@
 	</div>
 </template>
 <script lang="ts" setup>
-import InlineInput from "@studio/components/InlineInput.vue"
-import OptionToggle from "@studio/components/OptionToggle.vue"
-import blockController from "@studio/utils/blockController"
-import PlacementControl from "@studio/components/PlacementControl.vue"
+import InlineInput from "@ui/components/InlineInput.vue"
+import OptionToggle from "@ui/components/OptionToggle.vue"
+import blockController from "@ui/utils/blockController"
+import PlacementControl from "@ui/components/PlacementControl.vue"
 </script>

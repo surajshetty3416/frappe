@@ -1,5 +1,5 @@
-import useBuilderStore from "@builder/stores/builderStore";
-import type { CanvasProps } from "@builder/types/Builder/BuilderCanvas";
+import useBuilderStore from "@web/stores/builderStore";
+import type { CanvasProps } from "@web/types/Builder/BuilderCanvas";
 import { useEventListener } from "@vueuse/core";
 import { onScopeDispose, type Ref, watch } from "vue";
 

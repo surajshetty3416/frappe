@@ -35,7 +35,7 @@
 import { ref } from "vue"
 import { useResizeObserver } from "@vueuse/core"
 import { Switch } from "frappe-ui"
-import Input from "@studio/components/Input.vue"
+import Input from "@ui/components/Input.vue"
 
 defineProps<{ appRoute?: string }>()
 const title = defineModel<string>("title", { required: true })

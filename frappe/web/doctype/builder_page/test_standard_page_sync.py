@@ -11,7 +11,7 @@ import frappe
 from frappe.modules.export_file import delete_folder
 from frappe.tests.utils import FrappeTestCase
 
-from frappe.builder.utils import Block
+from frappe.web.utils import Block
 
 
 class TestStandardPageSync(FrappeTestCase):
@@ -23,9 +23,9 @@ class TestStandardPageSync(FrappeTestCase):
 
 	# frappe is always installed, so frappe.get_app_path succeeds
 	FIXTURE_APP = "frappe"
-	EXPORT_MODULE = "frappe.builder.export_import_standard_page"
+	EXPORT_MODULE = "frappe.web.export_import_standard_page"
 	# export_page_as_standard is imported into builder_page, so patch it there
-	PAGE_MODULE = "frappe.builder.doctype.builder_page.builder_page"
+	PAGE_MODULE = "frappe.web.doctype.builder_page.builder_page"
 
 	# ------------------------------------------------------------------ helpers
 
@@ -210,7 +210,7 @@ class TestStandardPageSync(FrappeTestCase):
 
 	def test_export_page_without_data_script(self):
 		"""A page with no data script exports an empty data_script.py."""
-		from frappe.builder.export_import_standard_page import export_page_as_standard
+		from frappe.web.export_import_standard_page import export_page_as_standard
 
 		page = self.make_secondary_standard_page("export-without-data-script")
 		export_root = tempfile.mkdtemp()
@@ -230,7 +230,7 @@ class TestStandardPageSync(FrappeTestCase):
 
 	def test_export_client_script_without_body(self):
 		"""A script with no body exports, and a CSS script lands in a .css file."""
-		from frappe.builder.utils import export_client_scripts
+		from frappe.web.utils import export_client_scripts
 
 		# script is mandatory, so only a fixture import or ignore_mandatory gets here
 		script = frappe.get_doc(
@@ -507,7 +507,7 @@ class TestStandardPageSync(FrappeTestCase):
 		variable.save(ignore_permissions=True)
 		try:
 			with mock.patch(
-				"frappe.builder.doctype.builder_token.builder_token.delete_folder"
+				"frappe.web.doctype.builder_token.builder_token.delete_folder"
 			) as mock_delete_folder:
 				with self.with_developer_mode():
 					variable.is_standard = 0

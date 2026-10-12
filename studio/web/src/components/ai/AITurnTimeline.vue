@@ -64,8 +64,8 @@
 </template>
 
 <script setup lang="ts">
-import { renderMarkdown } from "@builder/components/ai/markdown";
-import type { AITurnStep } from "@builder/components/ai/types";
+import { renderMarkdown } from "@web/components/ai/markdown";
+import type { AITurnStep } from "@web/components/ai/types";
 import { computed, ref } from "vue";
 
 /** The steps of one assistant turn, in the order they happened. Fed live from

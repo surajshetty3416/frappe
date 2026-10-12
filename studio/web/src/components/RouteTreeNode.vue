@@ -110,10 +110,10 @@
 </template>
 
 <script setup lang="ts">
-import PageActionsDropdown from "@builder/components/PageActionsDropdown.vue";
-import PageStatusLine from "@builder/components/PageStatusLine.vue";
-import { __ } from "@builder/translation";
-import { BuilderPage } from "@builder/types/doctypes";
+import PageActionsDropdown from "@web/components/PageActionsDropdown.vue";
+import PageStatusLine from "@web/components/PageStatusLine.vue";
+import { __ } from "@web/translation";
+import { BuilderPage } from "@web/types/doctypes";
 import { UseTimeAgo } from "@vueuse/components";
 import { Tooltip } from "frappe-ui";
 import HomeIcon from "~icons/lucide/house";

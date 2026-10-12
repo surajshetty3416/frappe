@@ -1,6 +1,6 @@
-// A saved chart sends its name to `frappe.insights.api.view`. The reader never sends
+// A saved chart sends its name to `frappe.analytics.api.view`. The reader never sends
 // the query and never gets the operations back. The builder has no saved chart,
-// so it sends the config it is editing to `frappe.insights.api.authoring` and gets the
+// so it sends the config it is editing to `frappe.analytics.api.authoring` and gets the
 // operations back with the rows. Only users with an Insights role may call it.
 //
 // A read holds the chart and its rows as one snapshot. Only a load that returns
@@ -639,7 +639,7 @@ function makeSavedChartView(
 			doc,
 			fetchDoc: chartDoc
 				? undefined
-				: () => call('frappe.insights.api.view.get_chart', { chart: chart_name }),
+				: () => call('frappe.analytics.api.view.get_chart', { chart: chart_name }),
 			takeChartDoc: (chart_doc) => assignChartDoc(doc, chart_doc),
 			// Each reading of a Number card is its own cell, and each cell loads the
 			// chart. Without a key, each one runs the same query again. The server
@@ -648,15 +648,15 @@ function makeSavedChartView(
 			// Refresh.
 			requestKey: (filterContext) => stableStringify(request(filterContext)),
 			fetchData: (force, filterContext, page) =>
-				call('frappe.insights.api.view.get_chart_data', {
+				call('frappe.analytics.api.view.get_chart_data', {
 					...request(filterContext),
 					force,
 					page,
 				}),
 			fetchCount: (filterContext, force) =>
-				call('frappe.insights.api.view.get_chart_count', { ...request(filterContext), force }),
+				call('frappe.analytics.api.view.get_chart_count', { ...request(filterContext), force }),
 			fetchExport: (format, filterContext) =>
-				call('frappe.insights.api.view.download_chart_rows', {
+				call('frappe.analytics.api.view.download_chart_rows', {
 					...request(filterContext),
 					format,
 				}),

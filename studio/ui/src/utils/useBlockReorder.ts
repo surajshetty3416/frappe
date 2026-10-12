@@ -1,7 +1,7 @@
 // Ported from Builder, modified later
-import type Block from "@studio/utils/block"
-import useCanvasStore from "@studio/stores/canvasStore"
-import { getBlockInfo } from "@studio/utils/helpers"
+import type Block from "@ui/utils/block"
+import useCanvasStore from "@ui/stores/canvasStore"
+import { getBlockInfo } from "@ui/utils/helpers"
 import {
 	clusterLines,
 	collectChildRects,
@@ -10,10 +10,10 @@ import {
 	getLayoutDirection,
 	type ChildRect,
 	type LayoutDirection,
-} from "@studio/utils/dropGeometry"
-import { DropZoneResolver, familyPlacementMessage, type DropZone } from "@studio/utils/reorderDropZone"
+} from "@ui/utils/dropGeometry"
+import { DropZoneResolver, familyPlacementMessage, type DropZone } from "@ui/utils/reorderDropZone"
 import { toast } from "frappe-ui"
-import type { PauseId } from "@studio/utils/useCanvasHistory"
+import type { PauseId } from "@ui/utils/useCanvasHistory"
 
 const DRAG_THRESHOLD = 4 // px before a mousedown becomes a drag
 const GHOST_OPACITY = 0.9

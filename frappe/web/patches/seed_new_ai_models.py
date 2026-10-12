@@ -8,7 +8,7 @@ ever reaches fresh installs. That seeder creates just what is missing, so
 re-running it is the whole fix.
 """
 
-from frappe.builder.patches.seed_ai_providers_and_models import execute as seed_shortlist
+from frappe.web.patches.seed_ai_providers_and_models import execute as seed_shortlist
 
 
 def execute():

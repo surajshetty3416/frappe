@@ -120,7 +120,7 @@
 										background:
 											editor?.isActive('textStyle') && editor?.getAttributes('textStyle').color
 												? editor?.getAttributes('textStyle').color
-												: `url(/assets/frappe/builder/images/color-circle.png) center / contain`,
+												: `url(/assets/frappe/web/images/color-circle.png) center / contain`,
 									}"></div>
 							</div>
 						</button>
@@ -139,10 +139,10 @@
 </template>
 
 <script setup lang="ts">
-import type Block from "@builder/block";
-import ColorPicker from "@builder/components/Controls/ColorPicker.vue";
-import Input from "@builder/components/Controls/Input.vue";
-import { __ } from "@builder/translation";
+import type Block from "@web/block";
+import ColorPicker from "@web/components/Controls/ColorPicker.vue";
+import Input from "@web/components/Controls/Input.vue";
+import { __ } from "@web/translation";
 import type { Editor } from "@tiptap/vue-3";
 import { BubbleMenu } from "@tiptap/vue-3/menus";
 import { vOnClickOutside } from "@vueuse/components";

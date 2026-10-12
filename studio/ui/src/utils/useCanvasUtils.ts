@@ -1,12 +1,12 @@
-import type { CanvasProps } from "@studio/types/StudioCanvas"
-import Block from "@studio/utils/block"
+import type { CanvasProps } from "@ui/types/StudioCanvas"
+import Block from "@ui/utils/block"
 
 import { nextTick, reactive, Ref } from "vue"
-import { useCanvasHistory, type PauseId } from "@studio/utils/useCanvasHistory"
+import { useCanvasHistory, type PauseId } from "@ui/utils/useCanvasHistory"
 import { useElementBounding } from "@vueuse/core"
 import { toast } from "frappe-ui"
-import useCanvasStore from "@studio/stores/canvasStore"
-import type { StudioMode } from "@studio/types"
+import useCanvasStore from "@ui/stores/canvasStore"
+import type { StudioMode } from "@ui/types"
 
 const canvasStore = useCanvasStore()
 

@@ -16,7 +16,7 @@ base_template_path = "www/sitemap.xml"
 
 def get_context(context):
 	"""generate the sitemap XML"""
-	from frappe.builder.sitemap import get_context as get_builder_sitemap
+	from frappe.web.sitemap import get_context as get_builder_sitemap
 
 	return get_builder_sitemap(context)
 

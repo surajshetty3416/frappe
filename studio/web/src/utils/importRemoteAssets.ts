@@ -1,6 +1,6 @@
-import type Block from "@builder/block";
-import userFont from "@builder/data/userFonts";
-import { registerCustomFont } from "@builder/utils/fontManager";
+import type Block from "@web/block";
+import userFont from "@web/data/userFonts";
+import { registerCustomFont } from "@web/utils/fontManager";
 import { call, toast } from "frappe-ui";
 
 const REMOTE_URL = /^https?:\/\//;
@@ -22,7 +22,7 @@ export function collectRemoteAssets(blocks: (Block | BlockOptions)[]): string[] 
 export async function importRemoteAssets(blocks: (Block | BlockOptions)[], urls: string[]) {
 	toast.loading(`Importing ${urls.length} images...`, { id: "import-assets" });
 	try {
-		const map = (await call("frappe.builder.api.import_remote_assets", { urls })) as Record<string, string>;
+		const map = (await call("frappe.web.api.import_remote_assets", { urls })) as Record<string, string>;
 		const imported = Object.keys(map).length;
 		blocks.forEach((block) => rewrite(block as BlockOptions, map));
 		toast.success(`Imported ${imported} of ${urls.length} images`, { id: "import-assets" });
@@ -47,7 +47,7 @@ export async function importRemoteFonts(fonts: RemoteFont[]) {
 	if (!fonts.length) return {};
 	toast.loading(`Importing ${fonts.length} fonts...`, { id: "import-fonts" });
 	try {
-		const map = (await call("frappe.builder.api.import_remote_fonts", { fonts })) as Record<string, string>;
+		const map = (await call("frappe.web.api.import_remote_fonts", { fonts })) as Record<string, string>;
 		await Promise.all(Object.entries(map).map(([family, url]) => registerCustomFont(family, url)));
 		await userFont.fetch();
 		toast.success(`Imported ${Object.keys(map).length} of ${fonts.length} fonts`, { id: "import-fonts" });

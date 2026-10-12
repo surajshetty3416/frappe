@@ -525,7 +525,7 @@ function makeDashboard(name: string) {
 	// the view endpoints: card values and ranges come from the saved grid, so the
 	// builder needs none of its own
 	function getCardColumnValues(chart_name: string, column: string, search_term?: string) {
-		return call('frappe.insights.api.view.get_card_values', {
+		return call('frappe.analytics.api.view.get_card_values', {
 			dashboard: dashboard.doc.name,
 			chart: chart_name,
 			column,
@@ -534,7 +534,7 @@ function makeDashboard(name: string) {
 	}
 
 	function getCardColumnRange(chart_name: string, column: string) {
-		return call('frappe.insights.api.view.get_card_range', {
+		return call('frappe.analytics.api.view.get_card_range', {
 			dashboard: dashboard.doc.name,
 			chart: chart_name,
 			column,

@@ -148,14 +148,14 @@
 <script setup lang="ts">
 import { ref, markRaw, computed } from "vue"
 import { Combobox, Popover, FormControl, Button } from "frappe-ui"
-import EmptyState from "@studio/components/EmptyState.vue"
-import type { ComponentInput } from "@studio/types/Studio/StudioComponent"
-import Code from "@studio/components/Code.vue"
-import ColorInput from "@studio/components/ColorInput.vue"
-import PropsEditor from "@studio/components/PropsEditor.vue"
-import SectionContainer from "@studio/components/SectionContainer.vue"
-import useComponentEditorStore from "@studio/stores/componentEditorStore"
-import { isCtrlOrCmd } from "@studio/utils/helpers"
+import EmptyState from "@ui/components/EmptyState.vue"
+import type { ComponentInput } from "@ui/types/Studio/StudioComponent"
+import Code from "@ui/components/Code.vue"
+import ColorInput from "@ui/components/ColorInput.vue"
+import PropsEditor from "@ui/components/PropsEditor.vue"
+import SectionContainer from "@ui/components/SectionContainer.vue"
+import useComponentEditorStore from "@ui/stores/componentEditorStore"
+import { isCtrlOrCmd } from "@ui/utils/helpers"
 
 const componentEditorStore = useComponentEditorStore()
 const componentInputs = computed(() => componentEditorStore.componentInputs)

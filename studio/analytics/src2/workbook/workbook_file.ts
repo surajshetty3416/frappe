@@ -22,6 +22,6 @@ export async function pastedWorkbook(text: string) {
 		return undefined
 	}
 	if (!json || typeof json !== 'object' || Array.isArray(json)) return undefined
-	const isWorkbook = await call('frappe.insights.api.workbooks.is_workbook_file', { workbook: json })
+	const isWorkbook = await call('frappe.analytics.api.workbooks.is_workbook_file', { workbook: json })
 	return isWorkbook ? json : undefined
 }

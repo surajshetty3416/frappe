@@ -10,7 +10,7 @@ const errors: string[] = []
 vi.mock('frappe-ui', async () => ({
 	...((await vi.importActual('frappe-ui')) as object),
 	call: (method: string, args: any) => {
-		if (method === 'frappe.insights.api.get_doc') {
+		if (method === 'frappe.analytics.api.get_doc') {
 			if (args.doctype === 'Insights Workbook') {
 				return Promise.resolve({
 					doctype: 'Insights Workbook',

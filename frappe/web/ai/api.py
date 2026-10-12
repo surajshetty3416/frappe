@@ -12,13 +12,13 @@ import frappe
 import litellm
 from frappe import _
 
-from frappe.builder.ai.agent.loop import run_agent_job
-from frappe.builder.ai.block_codec import BlockCodec
-from frappe.builder.ai.models import ModelRegistry
-from frappe.builder.ai.session import AISession
-from frappe.builder.utils import has_page_write
+from frappe.web.ai.agent.loop import run_agent_job
+from frappe.web.ai.block_codec import BlockCodec
+from frappe.web.ai.models import ModelRegistry
+from frappe.web.ai.session import AISession
+from frappe.web.utils import has_page_write
 
-logger = frappe.logger("frappe.builder.ai.api")
+logger = frappe.logger("frappe.web.ai.api")
 logger.setLevel(logging.INFO)
 
 
@@ -27,7 +27,7 @@ def resolve_api_key(model: str | None = None) -> str:
 	local or self-hosted gateway needs no OpenRouter account at all), otherwise
 	the OpenRouter key from Builder Settings."""
 	if model:
-		from frappe.builder.ai.llm import provider_api_key
+		from frappe.web.ai.llm import provider_api_key
 
 		info = ModelRegistry.find(model)
 		if info and (key := provider_api_key(info)):
@@ -160,7 +160,7 @@ Write it as the user speaking, plain text, no headings or bullets unless the dra
 def improve_prompt(prompt: str, model: str | None = None) -> str:
 	"""One cheap completion that sharpens the composer draft in place — the user
 	reviews and edits the result before sending it."""
-	from frappe.builder.ai import llm
+	from frappe.web.ai import llm
 
 	prompt = (prompt or "").strip()
 	if not prompt:
@@ -192,7 +192,7 @@ def confirm_pending_settings(message_id: str, decision: str = "apply"):
 	"""Apply (or skip) a sensitive action the agent proposed. The privileged write runs
 	HERE, on this user-triggered call — never inside the model's turn. Reads the stored
 	payload off the pending-action message and dispatches to apply_pending_action."""
-	from frappe.builder.ai.agent.pending import apply_pending_action
+	from frappe.web.ai.agent.pending import apply_pending_action
 
 	if not frappe.has_permission("Builder Settings", "write"):
 		frappe.throw(_("You are not permitted to apply this change"), frappe.PermissionError)
@@ -263,8 +263,8 @@ def cancel(session_id: str):
 	"""Request that the currently-running turn for this session abort at its
 	next stream chunk. The loop closes the LLM stream — Anthropic / OpenRouter
 	stop billing for further tokens once the connection drops."""
-	from frappe.builder.ai import locks
-	from frappe.builder.ai.agent.loop import EVENT_PREFIX
+	from frappe.web.ai import locks
+	from frappe.web.ai.agent.loop import EVENT_PREFIX
 
 	if not session_id:
 		return {"status": "ok"}
@@ -387,7 +387,7 @@ def get_ai_models():
 def ai_setup_state():
 	"""What the setup flow needs to decide whether to run: the provider catalogue,
 	and whether anything usable is already configured. Never returns a key."""
-	from frappe.builder.ai import presets
+	from frappe.web.ai import presets
 
 	# An install that hasn't migrated has no provider table at all. Say so plainly
 	# rather than raising behind a screen that then renders empty.
@@ -411,7 +411,7 @@ def ai_setup_state():
 @has_page_write()
 def verify_ai_key(preset: str, api_key: str = "", api_base: str = "", model_id: str = ""):
 	"""Make one small real call so a bad key fails here, not on the first build."""
-	from frappe.builder.ai import presets
+	from frappe.web.ai import presets
 
 	found = presets.find_preset(preset)
 	if not found:
@@ -432,7 +432,7 @@ def verify_ai_key(preset: str, api_key: str = "", api_base: str = "", model_id: 
 def start_codex_login():
 	"""Begin a ChatGPT browser sign-in: the URL to open, the state to poll on,
 	and whether the localhost redirect can be captured from here."""
-	from frappe.builder.ai import codex_login
+	from frappe.web.ai import codex_login
 
 	return codex_login.start()
 
@@ -442,7 +442,7 @@ def start_codex_login():
 def poll_codex_login(state: str):
 	"""Where a started sign-in stands: pending, connected, failed or expired.
 	Connecting installs the ChatGPT provider; models come from setup_ai_provider."""
-	from frappe.builder.ai import codex_login
+	from frappe.web.ai import codex_login
 
 	return codex_login.poll(state)
 
@@ -452,8 +452,8 @@ def poll_codex_login(state: str):
 def finish_codex_login(redirect_url: str):
 	"""Complete a sign-in from the pasted redirect URL, for when the localhost
 	listener couldn't see it (remote server, port in use)."""
-	from frappe.builder.ai import codex_login
-	from frappe.builder.ai.codex import CodexError
+	from frappe.web.ai import codex_login
+	from frappe.web.ai.codex import CodexError
 
 	try:
 		return codex_login.finish(redirect_url)
@@ -471,7 +471,7 @@ def setup_ai_provider(
 	provider_name: str = "",
 ):
 	"""Finish setup: save the provider and switch on the chosen models."""
-	from frappe.builder.ai import presets
+	from frappe.web.ai import presets
 
 	found = presets.find_preset(preset)
 	if not found:
@@ -621,7 +621,7 @@ def test_api_key(provider: str | None = None, api_key: str | None = None):
 			return {"success": False, "message": _("Please set an OpenRouter API key")}
 		actual_model = ModelRegistry.get_default("openrouter")
 
-	from frappe.builder.ai.llm import route
+	from frappe.web.ai.llm import route
 
 	# route() prefers the provider's stored key, and the typed one is what's under test
 	call_model, overrides, routed_key = route(actual_model, api_key)
@@ -644,7 +644,7 @@ def test_api_key(provider: str | None = None, api_key: str | None = None):
 def get_active_build(page_id: str):
 	"""The in-flight generation stream for this page, so an editor that loads (or
 	refreshes) mid-build replays the live preview instead of the stale draft."""
-	from frappe.builder.ai.agent.artifact import stream_buffer_key
+	from frappe.web.ai.agent.artifact import stream_buffer_key
 
 	raw = frappe.cache().get_value(stream_buffer_key(page_id))
 	return frappe.parse_json(raw) if raw else None

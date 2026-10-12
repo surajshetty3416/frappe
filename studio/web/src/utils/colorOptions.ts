@@ -1,7 +1,7 @@
-import { __ } from "@builder/translation";
-import { BuilderToken } from "@builder/types/doctypes";
-import { filterOptions } from "@builder/utils/autocompleteOptions";
-import { tokenType } from "@builder/utils/useBuilderToken";
+import { __ } from "@web/translation";
+import { BuilderToken } from "@web/types/doctypes";
+import { filterOptions } from "@web/utils/autocompleteOptions";
+import { tokenType } from "@web/utils/useBuilderToken";
 import { defineComponent, h, shallowRef } from "vue";
 
 export function getColorVariableOptions(

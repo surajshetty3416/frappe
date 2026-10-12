@@ -3,9 +3,9 @@ from unittest.mock import patch
 import frappe
 from frappe.tests.utils import FrappeTestCase
 
-from frappe.builder.ai import api
-from frappe.builder.ai.session import AISession
-from frappe.builder.utils import Block
+from frappe.web.ai import api
+from frappe.web.ai.session import AISession
+from frappe.web.utils import Block
 
 
 class TestLazySessions(FrappeTestCase):

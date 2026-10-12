@@ -10,12 +10,12 @@ from unittest.mock import patch
 
 import frappe
 
-from frappe import insights
-from frappe.insights.doctype.insights_data_source_v3.insights_data_source_v3 import (
+from frappe import analytics as insights
+from frappe.analytics.doctype.insights_data_source_v3.insights_data_source_v3 import (
     DataSourceConnectionError,
 )
-from frappe.insights.tests.base import InsightsIntegrationTestCase
-from frappe.insights.tests.factories import DT, create_user, delete_users
+from frappe.analytics.tests.base import InsightsIntegrationTestCase
+from frappe.analytics.tests.factories import DT, create_user, delete_users
 
 ADMIN = "connection_errors_admin@test.com"
 USER = "connection_errors_user@test.com"

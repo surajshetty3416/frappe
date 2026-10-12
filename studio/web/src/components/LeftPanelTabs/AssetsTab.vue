@@ -7,6 +7,6 @@
 	</div>
 </template>
 <script setup lang="ts">
-import BuilderAssets from "@builder/components/BuilderAssets.vue";
-import { __ } from "@builder/translation";
+import BuilderAssets from "@web/components/BuilderAssets.vue";
+import { __ } from "@web/translation";
 </script>

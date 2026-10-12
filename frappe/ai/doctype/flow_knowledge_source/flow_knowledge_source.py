@@ -6,7 +6,7 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import cint
 
-from frappe.flow.utils.system_generated import block_delete, validate_immutable
+from frappe.ai.utils.system_generated import block_delete, validate_immutable
 
 REQUIRED_INPUT = {
 	"Text": "content",
@@ -49,7 +49,7 @@ class FlowKnowledgeSource(Document):
 
 	def validate(self):
 		if self.is_new():
-			from frappe.flow.doctype.flow_knowledge_settings.flow_knowledge_settings import (
+			from frappe.ai.doctype.flow_knowledge_settings.flow_knowledge_settings import (
 				require_embedding_model,
 			)
 
@@ -78,7 +78,7 @@ class FlowKnowledgeSource(Document):
 	def after_insert(self):
 		if self.flags.skip_auto_ingest:
 			return
-		from frappe.flow.knowledge.ingest import enqueue_ingestion
+		from frappe.ai.knowledge.ingest import enqueue_ingestion
 
 		enqueue_ingestion(self.name)
 
@@ -93,7 +93,7 @@ class FlowKnowledgeSource(Document):
 
 	def on_trash(self):
 		block_delete(self)
-		from frappe.flow.knowledge.ingest import purge_source
+		from frappe.ai.knowledge.ingest import purge_source
 
 		purge_source(self.name)
 
@@ -101,13 +101,13 @@ class FlowKnowledgeSource(Document):
 	def resync(self, rebuild: bool = False):
 		"""rebuild forces a full re-chunk; used when chunk settings change and the
 		existing chunks are stale."""
-		from frappe.flow.knowledge.ingest import enqueue_ingestion
+		from frappe.ai.knowledge.ingest import enqueue_ingestion
 
 		self.db_set("status", "Pending", update_modified=False)
 		enqueue_ingestion(self.name, rebuild=bool(rebuild))
 
 	@frappe.whitelist()
 	def reconcile(self):
-		from frappe.flow.knowledge.ingest import enqueue_reconciliation
+		from frappe.ai.knowledge.ingest import enqueue_reconciliation
 
 		enqueue_reconciliation(self.name)

@@ -81,11 +81,11 @@
 <script setup lang="ts">
 import { computed } from "vue"
 import { Dropdown, Button } from "frappe-ui"
-import useStudioStore from "@studio/stores/studioStore"
+import useStudioStore from "@ui/stores/studioStore"
 import LucideCircleDashed from "~icons/lucide/circle-dashed"
 import LucideGlobe from "~icons/lucide/globe"
 import LucideRotateCcw from "~icons/lucide/rotate-ccw"
-import GlobeOff from "@studio/components/Icons/GlobeOff.vue"
+import GlobeOff from "@ui/components/Icons/GlobeOff.vue"
 
 defineProps<{
 	disabled?: boolean

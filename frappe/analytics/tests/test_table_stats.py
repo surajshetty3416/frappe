@@ -14,14 +14,14 @@ status "Completed", so that is the value the last-import filter has to name.
 import frappe
 from frappe.utils import add_days, now_datetime, set_request
 
-from frappe.insights.api import run_doc_method
-from frappe.insights.doctype.insights_table_v3.insights_table_v3 import (
+from frappe.analytics.api import run_doc_method
+from frappe.analytics.doctype.insights_table_v3.insights_table_v3 import (
     get_table_name,
     get_table_stats,
 )
-from frappe.insights.tests.base import InsightsIntegrationTestCase
-from frappe.insights.tests.factories import DT, as_user, create_test_workbook
-from frappe.insights.tests.permissions_utils import (
+from frappe.analytics.tests.base import InsightsIntegrationTestCase
+from frappe.analytics.tests.factories import DT, as_user, create_test_workbook
+from frappe.analytics.tests.permissions_utils import (
     TEST_DS,
     USER_1,
     USER_2,
@@ -99,7 +99,7 @@ class StatsNameReadableQueriesOnly:
 
     def before_test(self):
         self.set_team_permissions(self.ENABLE_PERMISSIONS)
-        set_request(method="POST", path="/api/method/frappe.insights.api.run_doc_method")
+        set_request(method="POST", path="/api/method/frappe.analytics.api.run_doc_method")
 
     def referencing_queries(self, user):
         with self.as_user(user):

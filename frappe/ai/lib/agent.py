@@ -14,10 +14,10 @@ from frappe import _
 if TYPE_CHECKING:
 	from collections.abc import Iterator
 
-	from frappe.flow.doctype.flow_run.flow_run import FlowRun
-	from frappe.flow.doctype.flow_session.flow_session import FlowSession
-	from frappe.flow.knowledge import Knowledge
-	from frappe.flow.lib.tool import Tool
+	from frappe.ai.doctype.flow_run.flow_run import FlowRun
+	from frappe.ai.doctype.flow_session.flow_session import FlowSession
+	from frappe.ai.knowledge import Knowledge
+	from frappe.ai.lib.tool import Tool
 
 DEFAULT_MAX_ITERATIONS = 100
 
@@ -117,7 +117,7 @@ class Agent:
 
 	def new_session(self, *, title: str | None = None) -> FlowSession:
 		"""Start a conversation with this agent on the flow server."""
-		from frappe.flow.lib.session import new_session
+		from frappe.ai.lib.session import new_session
 
 		return new_session(self.name, title=title, auto_approve=self.auto_approve)
 
@@ -137,11 +137,13 @@ def _ensure_tool(tool: Tool) -> str:
 		"is_system_generated": 1,
 	}
 	row = frappe.db.get_value("Flow Tool", tool.name, ["import_path", *definition], as_dict=True)
-	if row and row.import_path != import_path:
+	# a tool this sync wrote follows its code when the module moves; any other row is someone else's
+	if row and row.import_path != import_path and not row.is_system_generated:
 		frappe.throw(
 			_("Flow Tool {0} already exists with a different definition.").format(tool.name),
 			title=_("Tool Conflict"),
 		)
+	definition["import_path"] = import_path
 	if row and all(row.get(key) == value for key, value in definition.items()):
 		return tool.name
 	if row:

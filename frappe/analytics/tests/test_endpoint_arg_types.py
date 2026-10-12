@@ -8,7 +8,7 @@ nothing. It now decorates the endpoint itself.
 
 import frappe
 
-from frappe.insights.api.workbooks import (
+from frappe.analytics.api.workbooks import (
     create_folder,
     delete_folder,
     import_workbook,
@@ -16,9 +16,9 @@ from frappe.insights.api.workbooks import (
     rename_folder,
     toggle_folder_expanded,
 )
-from frappe.insights.decorators import insights_whitelist
-from frappe.insights.tests.base import InsightsIntegrationTestCase
-from frappe.insights.tests.factories import (
+from frappe.analytics.decorators import insights_whitelist
+from frappe.analytics.tests.base import InsightsIntegrationTestCase
+from frappe.analytics.tests.factories import (
     DT,
     USER_1,
     as_user,

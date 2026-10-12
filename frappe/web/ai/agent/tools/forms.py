@@ -18,8 +18,8 @@ import re
 import frappe
 from frappe.model import child_table_fields, default_fields
 
-from frappe.builder.ai.agent import pending
-from frappe.builder.ai.agent.registry import Tool
+from frappe.web.ai.agent import pending
+from frappe.web.ai.agent.registry import Tool
 
 # Fieldtypes a public form can safely write. Anything else (Link, Table, Attach…)
 # is coerced to Data. Select is deliberately EXCLUDED: an HTML <select> submits its
@@ -125,7 +125,7 @@ def normalize_field(f: dict) -> dict:
 
 def is_builder_submission_doctype(name: str) -> bool:
 	row = frappe.db.get_value("DocType", name, ["custom", "module"], as_dict=True)
-	return bool(row and row.custom and row.module == "Builder")
+	return bool(row and row.custom and row.module == "Web")
 
 
 def desk_slug(doctype: str) -> str:

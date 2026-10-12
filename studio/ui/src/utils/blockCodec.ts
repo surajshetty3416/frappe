@@ -1,4 +1,4 @@
-import { BlockOptions } from "@studio/types"
+import { BlockOptions } from "@ui/types"
 
 /**
  * Expand a compact node (name/style/c/props...) into Studio block format

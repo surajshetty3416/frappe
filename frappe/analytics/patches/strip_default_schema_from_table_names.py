@@ -1,6 +1,6 @@
 import frappe
 
-from frappe.insights.doctype.insights_table_v3.table_rename import rename_tables
+from frappe.analytics.doctype.insights_table_v3.table_rename import rename_tables
 
 
 def execute():

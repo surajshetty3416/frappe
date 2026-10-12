@@ -1,6 +1,6 @@
-import builder from "@builder/layer"
-import flow from "@flow/layer"
-import insights from "@insights/layer"
-import studio from "@studio/layer"
+import ai from "@ai/layer"
+import analytics from "@analytics/layer"
+import ui from "@ui/layer"
+import web from "@web/layer"
 
-export const layers = [flow, builder, insights, studio]
+export const layers = [ai, web, analytics, ui]

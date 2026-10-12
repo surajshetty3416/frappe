@@ -53,15 +53,15 @@
 </template>
 
 <script setup lang="ts">
-import { __ } from "@builder/translation";
-import PageCard from "@builder/components/PageCard.vue";
-import PageListItem from "@builder/components/PageListItem.vue";
-import RouteTreeView from "@builder/components/RouteTreeView.vue";
-import { useDashboardState } from "@builder/composables/useDashboardState";
-import { pagesWithUnpublishedChanges, webPages } from "@builder/data/webPage";
-import vOnClickAndHold from "@builder/directives/vOnClickAndHold";
-import useBuilderStore from "@builder/stores/builderStore";
-import { BuilderPage } from "@builder/types/doctypes";
+import { __ } from "@web/translation";
+import PageCard from "@web/components/PageCard.vue";
+import PageListItem from "@web/components/PageListItem.vue";
+import RouteTreeView from "@web/components/RouteTreeView.vue";
+import { useDashboardState } from "@web/composables/useDashboardState";
+import { pagesWithUnpublishedChanges, webPages } from "@web/data/webPage";
+import vOnClickAndHold from "@web/directives/vOnClickAndHold";
+import useBuilderStore from "@web/stores/builderStore";
+import { BuilderPage } from "@web/types/doctypes";
 import { watchDebounced } from "@vueuse/core";
 import { useKeyboardShortcut } from "frappe-ui";
 import { useTelemetry } from "@framework/ui/telemetry";

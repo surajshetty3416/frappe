@@ -110,14 +110,14 @@
 <script setup lang="ts">
 import { onActivated, ref } from "vue"
 import { Dropdown, Button, TabButtons } from "frappe-ui"
-import { studioApps } from "@studio/data/studioApps"
+import { studioApps } from "@ui/data/studioApps"
 import { UseTimeAgo } from "@vueuse/components"
-import Input from "@studio/components/Input.vue"
-import AppDialog from "@studio/components/AppDialog.vue"
-import StudioLogo from "@studio/components/Icons/StudioLogo.vue"
+import Input from "@ui/components/Input.vue"
+import AppDialog from "@ui/components/AppDialog.vue"
+import StudioLogo from "@ui/components/Icons/StudioLogo.vue"
 import { watchDebounced } from "@vueuse/core"
-import useStudioStore from "@studio/stores/studioStore"
-import { openAppInDesk } from "@studio/utils/helpers"
+import useStudioStore from "@ui/stores/studioStore"
+import { openAppInDesk } from "@ui/utils/helpers"
 
 const store = useStudioStore()
 

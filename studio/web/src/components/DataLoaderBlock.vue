@@ -21,10 +21,10 @@
 </template>
 
 <script setup lang="ts">
-import { __ } from "@builder/translation";
-import type Block from "@builder/block";
-import usePageStore from "@builder/stores/pageStore";
-import { getDataForKey, getStandardPropValue } from "@builder/utils/helpers";
+import { __ } from "@web/translation";
+import type Block from "@web/block";
+import usePageStore from "@web/stores/pageStore";
+import { getDataForKey, getStandardPropValue } from "@web/utils/helpers";
 import { Ref, computed, ref } from "vue";
 import BuilderBlock from "./BuilderBlock.vue";
 

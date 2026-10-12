@@ -7,7 +7,7 @@ from typing import Annotated, Literal
 from frappe.tests import UnitTestCase
 from pydantic import BaseModel, Field, ValidationError
 
-from frappe.flow.lib.tool import Tool, ToolContext, build_schema, tool
+from frappe.ai.lib.tool import Tool, ToolContext, build_schema, tool
 
 CTX = ToolContext(session_id="test", agent="Test Agent", user="Administrator")
 

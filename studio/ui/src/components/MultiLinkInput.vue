@@ -30,7 +30,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue"
 import { MultiSelect, createResource, frappeRequest, debounce } from "frappe-ui"
-import type { DocTypeField } from "@studio/types"
+import type { DocTypeField } from "@ui/types"
 
 const props = defineProps<{
 	field: DocTypeField

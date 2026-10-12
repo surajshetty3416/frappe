@@ -1,5 +1,5 @@
 import { defineAsyncComponent } from "vue"
-import type { FrappeUIComponents } from "@studio/types"
+import type { FrappeUIComponents } from "@ui/types"
 
 import LucideAppWindowMac from "~icons/lucide/app-window-mac"
 import LucideCircleDot from "~icons/lucide/circle-dot"
@@ -29,7 +29,7 @@ export const COMPONENT_FAMILIES: FrappeUIComponents = {
 			columns: {
 				type: "array",
 				inputType: "array",
-				editor: defineAsyncComponent(() => import("@studio/components/PropEditors/ListColumnsEditor.vue")),
+				editor: defineAsyncComponent(() => import("@ui/components/PropEditors/ListColumnsEditor.vue")),
 			},
 			// v-model state leaked in as props by defineModel
 			selection: {
@@ -104,14 +104,14 @@ export const COMPONENT_FAMILIES: FrappeUIComponents = {
 		isGroup: true,
 		blockTemplate: "settings-dialog",
 		editInFragmentMode: true,
-		proxyComponent: defineAsyncComponent(() => import("@studio/components/ProxyComponents/ProxySettingsDialog.vue")),
+		proxyComponent: defineAsyncComponent(() => import("@ui/components/ProxyComponents/ProxySettingsDialog.vue")),
 		overrideProps: {
 			// tabs manager: adds/removes NavItem + Panel pairs atomically and tracks
 			// the active tab (the `tab` prop) via the leading dot
 			tab: {
 				type: "string",
 				inputType: "custom",
-				editor: defineAsyncComponent(() => import("@studio/components/PropEditors/SettingsTabsEditor.vue")),
+				editor: defineAsyncComponent(() => import("@ui/components/PropEditors/SettingsTabsEditor.vue")),
 			},
 		},
 	},

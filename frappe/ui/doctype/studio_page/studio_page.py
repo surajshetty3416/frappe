@@ -10,7 +10,7 @@ from frappe.model.document import Document
 from frappe.model.naming import append_number_if_name_exists
 from frappe.utils import get_datetime
 
-from frappe.studio.export import (
+from frappe.ui.export import (
 	can_export,
 	delete_file,
 	delete_folder,
@@ -18,15 +18,15 @@ from frappe.studio.export import (
 	write_code_file,
 	write_document_file,
 )
-from frappe.studio.realtime import publish_doc_change
-from frappe.studio.doctype.studio_component.studio_component import get_components_for_blocks
-from frappe.studio.doctype.studio_page.copy_paste_handler import (
+from frappe.ui.realtime import publish_doc_change
+from frappe.ui.doctype.studio_component.studio_component import get_components_for_blocks
+from frappe.ui.doctype.studio_page.copy_paste_handler import (
 	PAGE_RESOURCE_FIELDS,
 	PAGE_VARIABLE_FIELDS,
 	parse_list,
 	pick,
 )
-from frappe.studio.utils import camel_case_to_kebab_case
+from frappe.ui.utils import camel_case_to_kebab_case
 
 # A variable is referenced as {{ name }} and spread into the page's JS eval context, so its
 # name must be a bare JS identifier.
@@ -42,8 +42,8 @@ class StudioPage(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
-		from frappe.studio.doctype.studio_page_resource.studio_page_resource import StudioPageResource
-		from frappe.studio.doctype.studio_page_variable.studio_page_variable import StudioPageVariable
+		from frappe.ui.doctype.studio_page_resource.studio_page_resource import StudioPageResource
+		from frappe.ui.doctype.studio_page_variable.studio_page_variable import StudioPageVariable
 
 		allow_guest: DF.Check
 		blocks: DF.LongText | None

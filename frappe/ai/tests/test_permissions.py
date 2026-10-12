@@ -4,11 +4,11 @@
 import frappe
 from frappe.tests import IntegrationTestCase
 
-from frappe.flow import api
-from frappe.flow.memory import store as memory_store
-from frappe.flow.patches.grant_flow_role import FLOW_USER_ROLE_PROFILE
-from frappe.flow.patches.grant_flow_role import execute as grant_flow_role
-from frappe.flow.permissions import FLOW_USER_ROLE, ensure_flow_role
+from frappe.ai import api
+from frappe.ai.memory import store as memory_store
+from frappe.ai.patches.grant_flow_role import FLOW_USER_ROLE_PROFILE
+from frappe.ai.patches.grant_flow_role import execute as grant_flow_role
+from frappe.ai.permissions import FLOW_USER_ROLE, ensure_flow_role
 
 ROLE_DOCTYPES = ("Flow Agent", "Flow Model", "Flow Session", "Flow Run")
 

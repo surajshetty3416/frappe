@@ -1,8 +1,8 @@
 import {
 	DYNAMIC_EXPRESSION_REGEX,
 	QUOTED_STRING_CONTENT_REGEX,
-} from "@studio/utils/constants"
-import { isFunctionExpression } from "@studio/utils/parseCode"
+} from "@ui/utils/constants"
+import { isFunctionExpression } from "@ui/utils/parseCode"
 
 export function isDynamicValue(value: string) {
 	// Check if the prop value is a string and contains a dynamic expression

@@ -1,7 +1,7 @@
-import InlineInput from "@builder/components/Controls/InlineInput.vue";
-import OptionToggle from "@builder/components/Controls/OptionToggle.vue";
-import blockController from "@builder/utils/blockController";
-import { __ } from "@builder/translation";
+import InlineInput from "@web/components/Controls/InlineInput.vue";
+import OptionToggle from "@web/components/Controls/OptionToggle.vue";
+import blockController from "@web/utils/blockController";
+import { __ } from "@web/translation";
 
 const inputOptionsSectionProperties = [
 	{

@@ -8,8 +8,8 @@ import ibis.selectors as s
 import pandas as pd
 from frappe.utils import now_datetime
 
-from frappe.insights.exceptions import QueryRefused
-from frappe.insights.query_builders.sql_functions import (
+from frappe.analytics.exceptions import QueryRefused
+from frappe.analytics.query_builders.sql_functions import (
     get_fiscal_year_start_date,
     get_week_start_day_index,
     handle_timespan,

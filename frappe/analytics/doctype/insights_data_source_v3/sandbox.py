@@ -14,7 +14,7 @@ import frappe.client
 import pandas as pd
 from frappe.utils.safe_exec import NamespaceDict, get_python_builtins, get_safe_globals
 
-from frappe.insights.permission_user import script_session
+from frappe.analytics.permission_user import script_session
 
 from .ibis.utils import BACKEND_ATTRIBUTE_NAMES, is_column_attribute, is_io_attribute
 
@@ -345,7 +345,7 @@ class DocumentRead:
 
     def __getattr__(self, name):
         if name in QUERY_READS and self._doc.doctype == "Insights Query v3":
-            from frappe.insights.permissions import check_referenced_query_access
+            from frappe.analytics.permissions import check_referenced_query_access
 
             check_referenced_query_access(self._doc.name)
             return getattr(self._doc, name)

@@ -29,15 +29,15 @@
 </template>
 
 <script setup lang="ts">
-import type Block from "@builder/block";
-import TextBlockBubbleMenu from "@builder/components/TextBlockBubbleMenu.vue";
-import useBuilderStore from "@builder/stores/builderStore";
-import useCanvasStore from "@builder/stores/canvasStore";
-import blockController from "@builder/utils/blockController";
-import { BlockValueResolver } from "@builder/utils/blockValueResolver";
-import { hasCopiedBlocks } from "@builder/utils/builderBlockCopyPaste";
-import { setFontFromHTML } from "@builder/utils/fontManager";
-import type { PauseId } from "@builder/utils/useCanvasHistory";
+import type Block from "@web/block";
+import TextBlockBubbleMenu from "@web/components/TextBlockBubbleMenu.vue";
+import useBuilderStore from "@web/stores/builderStore";
+import useCanvasStore from "@web/stores/canvasStore";
+import blockController from "@web/utils/blockController";
+import { BlockValueResolver } from "@web/utils/blockValueResolver";
+import { hasCopiedBlocks } from "@web/utils/builderBlockCopyPaste";
+import { setFontFromHTML } from "@web/utils/fontManager";
+import type { PauseId } from "@web/utils/useCanvasHistory";
 import { Color } from "@tiptap/extension-color";
 import { FontFamily } from "@tiptap/extension-font-family";
 import { TextStyle } from "@tiptap/extension-text-style";

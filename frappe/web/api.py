@@ -19,11 +19,11 @@ from frappe.utils.safe_exec import NamespaceDict, get_safe_globals
 from PIL import Image
 from werkzeug.wrappers import Response
 
-from frappe.builder import builder_analytics
-from frappe.builder.doctype.builder_page.builder_page import BuilderPageRenderer
-from frappe.builder.doctype.builder_snapshot import builder_snapshot
-from frappe.builder.user_invitation import INVITATION_APP, INVITATION_PATH
-from frappe.builder.utils import compact_json, has_page_read, has_page_write, normalize_renamed_doc
+from frappe.web import builder_analytics
+from frappe.web.doctype.builder_page.builder_page import BuilderPageRenderer
+from frappe.web.doctype.builder_snapshot import builder_snapshot
+from frappe.web.user_invitation import INVITATION_APP, INVITATION_PATH
+from frappe.web.utils import compact_json, has_page_read, has_page_write, normalize_renamed_doc
 
 
 @frappe.whitelist()
@@ -875,7 +875,7 @@ def reorder_client_scripts(script_order: list[str]):
 def get_component_data(
 	component_name: str, props: dict | str | None = None, script: str | None = None
 ) -> dict:
-	from frappe.builder.doctype.builder_component.builder_component import (
+	from frappe.web.doctype.builder_component.builder_component import (
 		get_component_data as _get_component_data,
 	)
 

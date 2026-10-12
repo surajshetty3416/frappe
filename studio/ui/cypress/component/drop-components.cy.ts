@@ -5,14 +5,14 @@ import { createRouter, createMemoryHistory } from "vue-router"
 // @ts-ignore
 import { resourcesPlugin } from "frappe-ui"
 
-import StudioCanvas from "@studio/components/StudioCanvas.vue"
-import Block from "@studio/utils/block"
-import componentsData, { COMPONENTS } from "@studio/data/components"
-import { getBlockInstance, getComponentBlock } from "@studio/utils/serializer"
-import getBlockTemplate from "@studio/utils/blockTemplate"
-import { registerGlobalComponents } from "@studio/globals"
-import useCanvasStore from "@studio/stores/canvasStore"
-import type { FrappeUIComponent } from "@studio/types"
+import StudioCanvas from "@ui/components/StudioCanvas.vue"
+import Block from "@ui/utils/block"
+import componentsData, { COMPONENTS } from "@ui/data/components"
+import { getBlockInstance, getComponentBlock } from "@ui/utils/serializer"
+import getBlockTemplate from "@ui/utils/blockTemplate"
+import { registerGlobalComponents } from "@ui/globals"
+import useCanvasStore from "@ui/stores/canvasStore"
+import type { FrappeUIComponent } from "@ui/types"
 
 // These fetch a doctype from the server: the rejected request fails whichever test is
 // running when it lands. Every other component renders from its initialState or

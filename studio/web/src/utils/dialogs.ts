@@ -1,17 +1,17 @@
-import type Block from "@builder/block";
-import { useDashboardState } from "@builder/composables/useDashboardState";
-import builderProjectFolder from "@builder/data/builderProjectFolder";
-import webComponent from "@builder/data/webComponent";
-import { webPages } from "@builder/data/webPage";
-import useBuilderStore from "@builder/stores/builderStore";
-import useCanvasStore from "@builder/stores/canvasStore";
-import useComponentStore from "@builder/stores/componentStore";
-import usePageStore from "@builder/stores/pageStore";
-import { BuilderComponent, BuilderPage, BuilderProjectFolder } from "@builder/types/doctypes";
-import { getBlockCopy, getBlockString } from "@builder/utils/helpers";
+import type Block from "@web/block";
+import { useDashboardState } from "@web/composables/useDashboardState";
+import builderProjectFolder from "@web/data/builderProjectFolder";
+import webComponent from "@web/data/webComponent";
+import { webPages } from "@web/data/webPage";
+import useBuilderStore from "@web/stores/builderStore";
+import useCanvasStore from "@web/stores/canvasStore";
+import useComponentStore from "@web/stores/componentStore";
+import usePageStore from "@web/stores/pageStore";
+import { BuilderComponent, BuilderPage, BuilderProjectFolder } from "@web/types/doctypes";
+import { getBlockCopy, getBlockString } from "@web/utils/helpers";
 import { useDateFormat, useStorage } from "@vueuse/core";
 import { createResource, dialog, toast } from "frappe-ui";
-import { __ } from "@builder/translation";
+import { __ } from "@web/translation";
 
 // Imperative dialogs that replace single-purpose modal components. Each opens
 // a frappe-ui prompt that auto-closes once `onConfirm` resolves; throwing from
@@ -176,7 +176,7 @@ export function promptSelectFolder() {
 			if (folder === builderStore.activeFolder) return;
 			await createResource({
 				method: "POST",
-				url: "frappe.builder.api.update_page_folder",
+				url: "frappe.web.api.update_page_folder",
 			}).submit({
 				pages: Array.from(selectedPages.value),
 				folder_name: folder,

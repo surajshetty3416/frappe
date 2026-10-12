@@ -1,19 +1,19 @@
-import { __ } from "@builder/translation";
-import type Block from "@builder/block";
-import { useLatestRequest } from "@builder/composables/useLatestRequest";
-import { getVersionedDoc } from "@builder/data/snapshot";
-import { webPages } from "@builder/data/webPage";
-import webComponent from "@builder/data/webComponent";
-import useCanvasStore from "@builder/stores/canvasStore";
-import usePageStore from "@builder/stores/pageStore";
-import { BuilderComponent } from "@builder/types/doctypes";
-import getBlockTemplate from "@builder/utils/blockTemplate";
-import { alert, confirm, getBlockInstance, getBlockString } from "@builder/utils/helpers";
-import { editorDemo } from "@builder/utils/editorDemo";
+import { __ } from "@web/translation";
+import type Block from "@web/block";
+import { useLatestRequest } from "@web/composables/useLatestRequest";
+import { getVersionedDoc } from "@web/data/snapshot";
+import { webPages } from "@web/data/webPage";
+import webComponent from "@web/data/webComponent";
+import useCanvasStore from "@web/stores/canvasStore";
+import usePageStore from "@web/stores/pageStore";
+import { BuilderComponent } from "@web/types/doctypes";
+import getBlockTemplate from "@web/utils/blockTemplate";
+import { alert, confirm, getBlockInstance, getBlockString } from "@web/utils/helpers";
+import { editorDemo } from "@web/utils/editorDemo";
 import { createDocumentResource, createResource, toast } from "frappe-ui";
 import { defineStore } from "pinia";
 import { markRaw } from "vue";
-import { ComponentDocDraft } from "@builder/utils/componentController";
+import { ComponentDocDraft } from "@web/utils/componentController";
 
 export type ComponentDataStore = Record<string, Record<string, Record<string, any>>>;
 
@@ -119,7 +119,7 @@ const useComponentStore = defineStore("componentStore", {
 							label: __("Sync in all pages"),
 							onClick: async () => {
 								const componentResource = createResource({
-									url: "frappe.builder.api.sync_component",
+									url: "frappe.web.api.sync_component",
 									method: "POST",
 									params: {
 										component_id: data.name,
@@ -473,7 +473,7 @@ const useComponentStore = defineStore("componentStore", {
 			const script = versionedDoc?.component_data_script ?? undefined;
 			const result = await runLatestRequest(requestKey, () =>
 				createResource({
-					url: "frappe.builder.api.get_component_data",
+					url: "frappe.web.api.get_component_data",
 					method: "POST",
 					auto: false,
 				})

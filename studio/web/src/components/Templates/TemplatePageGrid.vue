@@ -21,7 +21,7 @@
 	</div>
 </template>
 <script setup lang="ts">
-import type { TemplateGroup, TemplatePageSummary } from "@builder/types/template";
+import type { TemplateGroup, TemplatePageSummary } from "@web/types/template";
 import BlankPageCard from "./BlankPageCard.vue";
 import TemplatePageCard from "./TemplatePageCard.vue";
 

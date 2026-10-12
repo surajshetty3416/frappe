@@ -11,7 +11,7 @@ the model can only *propose*.
 
 import frappe
 
-from frappe.builder.ai.session import AISession
+from frappe.web.ai.session import AISession
 
 # Sensitive action kinds the confirm card understands. Kept explicit so an unknown
 # kind can never be applied.
@@ -117,7 +117,7 @@ def apply_create_doctype(payload: dict) -> str:
 		{
 			"doctype": "DocType",
 			"name": name,
-			"module": "Builder",
+			"module": "Web",
 			"custom": 1,
 			"naming_rule": "Random",
 			"fields": fields,
@@ -150,7 +150,7 @@ def apply_connect_form(payload: dict) -> str:
 	Web Form (the trusted, rate-limited, field-whitelisted boundary) + a client
 	script that POSTs the form's fields to the Web Form's accept endpoint. Reused
 	if the doctype/web form already exist. Returns the Desk link to the entries."""
-	from frappe.builder.ai.agent.tools.forms import desk_slug
+	from frappe.web.ai.agent.tools.forms import desk_slug
 
 	doctype = (payload.get("doctype_name") or "").strip()
 	fields = payload.get("fields") or []
@@ -173,7 +173,7 @@ def apply_connect_form(payload: dict) -> str:
 			{
 				"doctype": "DocType",
 				"name": doctype,
-				"module": "Builder",
+				"module": "Web",
 				"custom": 1,
 				"naming_rule": "Random",
 				"fields": doctype_fields,
@@ -191,7 +191,7 @@ def apply_connect_form(payload: dict) -> str:
 				"title": doctype,
 				"route": f"forms/{wf_name}",
 				"doc_type": doctype,
-				"module": "Builder",
+				"module": "Web",
 				"published": 1,
 				"login_required": 0,
 				"allow_multiple": 1,

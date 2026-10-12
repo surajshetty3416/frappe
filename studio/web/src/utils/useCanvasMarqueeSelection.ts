@@ -1,7 +1,7 @@
-import type Block from "@builder/block";
-import useBuilderStore from "@builder/stores/builderStore";
-import useCanvasStore from "@builder/stores/canvasStore";
-import type { CanvasProps } from "@builder/types/Builder/BuilderCanvas";
+import type Block from "@web/block";
+import useBuilderStore from "@web/stores/builderStore";
+import useCanvasStore from "@web/stores/canvasStore";
+import type { CanvasProps } from "@web/types/Builder/BuilderCanvas";
 import { computed, reactive, ref, type Ref } from "vue";
 
 const MIN_MARQUEE_DRAG = 5;

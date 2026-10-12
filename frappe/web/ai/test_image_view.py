@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 from frappe.tests.utils import FrappeTestCase
 
-from frappe.builder.ai.agent.tools.preview import MAX_IMAGE_VIEWS_PER_TURN, attach_block_images
+from frappe.web.ai.agent.tools.preview import MAX_IMAGE_VIEWS_PER_TURN, attach_block_images
 
 IMAGE = {"element": "img", "attributes": {"src": "/files/light.png", "darkSrc": "/files/dark.svg"}}
 
@@ -12,8 +12,8 @@ def make_ctx():
 	return SimpleNamespace(loop_model="vision-model", image_views=0, pending_images=[])
 
 
-@patch("frappe.builder.ai.models.ModelRegistry.supports_vision", return_value=True)
-@patch("frappe.builder.html_preview_image.render", return_value=b"webp")
+@patch("frappe.web.ai.models.ModelRegistry.supports_vision", return_value=True)
+@patch("frappe.web.html_preview_image.render", return_value=b"webp")
 class TestImageView(FrappeTestCase):
 	def test_attaches_the_image_and_its_dark_mode_version(self, render, _vision):
 		ctx = make_ctx()
@@ -46,7 +46,7 @@ class TestImageView(FrappeTestCase):
 		)
 		block = {"element": "img", "attributes": {"src": "https://images.example.com/hero.png"}}
 
-		with patch("frappe.builder.ai.agent.tools.web.fetch_public", return_value=(response, "")):
+		with patch("frappe.web.ai.agent.tools.web.fetch_public", return_value=(response, "")):
 			attach_block_images(make_ctx(), block)
 
 		rendered = render.call_args.args[0]

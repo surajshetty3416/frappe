@@ -138,14 +138,14 @@
 </template>
 
 <script lang="ts" setup>
-import { __ } from "@builder/translation";
-import ColorInput from "@builder/components/Controls/ColorInput.vue";
-import Input from "@builder/components/Controls/Input.vue";
-import OptionToggle from "@builder/components/Controls/OptionToggle.vue";
-import StylePropertyControl from "@builder/components/Controls/StylePropertyControl.vue";
-import blockController from "@builder/utils/blockController";
+import { __ } from "@web/translation";
+import ColorInput from "@web/components/Controls/ColorInput.vue";
+import Input from "@web/components/Controls/Input.vue";
+import OptionToggle from "@web/components/Controls/OptionToggle.vue";
+import StylePropertyControl from "@web/components/Controls/StylePropertyControl.vue";
+import blockController from "@web/utils/blockController";
 import { useEventListener } from "@vueuse/core";
-import { useAnchoredPopover } from "@builder/utils/useAnchoredPopover";
+import { useAnchoredPopover } from "@web/utils/useAnchoredPopover";
 import { Button, Popover, Tooltip } from "frappe-ui";
 import { computed, reactive, ref, watch } from "vue";
 

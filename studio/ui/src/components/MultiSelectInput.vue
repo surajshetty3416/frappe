@@ -20,7 +20,7 @@
 <script setup lang="ts">
 import { computed } from "vue"
 import { MultiSelect } from "frappe-ui"
-import type { DocTypeField } from "@studio/types"
+import type { DocTypeField } from "@ui/types"
 
 const props = defineProps<{
 	field: DocTypeField

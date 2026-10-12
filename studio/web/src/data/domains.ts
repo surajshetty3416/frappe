@@ -1,10 +1,10 @@
 import { createResource } from "frappe-ui";
 import { ref } from "vue";
 import { toast } from "frappe-ui";
-import { __ } from "@builder/translation";
-import { getErrorMessage } from "@builder/utils/helpers";
+import { __ } from "@web/translation";
+import { getErrorMessage } from "@web/utils/helpers";
 
-const API = "frappe.builder.domain";
+const API = "frappe.web.domain";
 
 export function useDomains() {
 	const domains = ref<any[]>([]);

@@ -22,10 +22,10 @@
 </template>
 
 <script setup lang="ts">
-import { __ } from "@builder/translation";
-import InputLabel from "@builder/components/Controls/InputLabel.vue";
+import { __ } from "@web/translation";
+import InputLabel from "@web/components/Controls/InputLabel.vue";
 import ObjectEditor from "../ObjectEditor.vue";
-import InlineInput from "@builder/components/Controls/InlineInput.vue";
+import InlineInput from "@web/components/Controls/InlineInput.vue";
 
 import { nextTick, ref, watch } from "vue";
 import { Ref } from "vue";

@@ -10,11 +10,11 @@ import logging
 import frappe
 import litellm
 
-from frappe.builder.ai.models import ModelRegistry
+from frappe.web.ai.models import ModelRegistry
 
 litellm.drop_params = True
 
-logger = frappe.logger("frappe.builder.ai.llm")
+logger = frappe.logger("frappe.web.ai.llm")
 logger.setLevel(logging.INFO)
 
 
@@ -197,7 +197,7 @@ def provider_api_key(info: dict) -> str | None:
 
 def flow_model_api_key(flow_model: str) -> str | None:
 	"""A Flow Model's own key, else its Flow Provider's."""
-	from frappe.flow.lib.model import resolve_provider_credentials
+	from frappe.ai.lib.model import resolve_provider_credentials
 
 	doc = frappe.get_cached_doc("Flow Model", flow_model)
 	return doc.get_password("api_key", raise_exception=False) or resolve_provider_credentials(
@@ -210,7 +210,7 @@ def complete(model: str, messages: list, params: dict, *, stream: bool, api_key:
 	text content. Transient failures are retried by litellm (and, for streaming
 	rounds, by the agent loop's own retry layer — litellm can't fall back mid-stream)."""
 	if target := codex_route(model):
-		from frappe.builder.ai import codex
+		from frappe.web.ai import codex
 
 		return codex.complete(target[1], messages, params, provider=target[0], stream=stream)
 	model, overrides, api_key = route(model, api_key)
@@ -255,7 +255,7 @@ def complete_with_tools(
 ):
 	"""Tool-calling completion. Returns the raw response (iterator when streaming)."""
 	if target := codex_route(model):
-		from frappe.builder.ai import codex
+		from frappe.web.ai import codex
 
 		return codex.complete(target[1], messages, params, provider=target[0], tools=tools, stream=stream)
 	model, overrides, api_key = route(model, api_key)

@@ -31,11 +31,11 @@
 </template>
 
 <script lang="ts" setup>
-import Input from "@builder/components/Controls/Input.vue";
-import SplitInput from "@builder/components/Controls/SplitInput.vue";
-import { __ } from "@builder/translation";
-import blockController from "@builder/utils/blockController";
-import { expandBoxShorthand } from "@builder/utils/cssUtils";
+import Input from "@web/components/Controls/Input.vue";
+import SplitInput from "@web/components/Controls/SplitInput.vue";
+import { __ } from "@web/translation";
+import blockController from "@web/utils/blockController";
+import { expandBoxShorthand } from "@web/utils/cssUtils";
 import { TabButtons, type TabButton, type TabButtonValue } from "frappe-ui";
 import type { HTMLAttributes } from "vue";
 import { computed, ref, useAttrs, watch } from "vue";

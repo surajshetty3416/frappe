@@ -1,8 +1,8 @@
-import { runPageScripts } from "@builder/components/EditorDemo/pageScripts";
-import useBuilderStore from "@builder/stores/builderStore";
-import useCanvasStore from "@builder/stores/canvasStore";
-import usePageStore from "@builder/stores/pageStore";
-import { editorDemo, postToLauncher } from "@builder/utils/editorDemo";
+import { runPageScripts } from "@web/components/EditorDemo/pageScripts";
+import useBuilderStore from "@web/stores/builderStore";
+import useCanvasStore from "@web/stores/canvasStore";
+import usePageStore from "@web/stores/pageStore";
+import { editorDemo, postToLauncher } from "@web/utils/editorDemo";
 import { until } from "@vueuse/core";
 import { useColorScheme } from "frappe-ui";
 

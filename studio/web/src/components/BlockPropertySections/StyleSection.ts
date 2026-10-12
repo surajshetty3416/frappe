@@ -1,6 +1,6 @@
-import BackgroundHandler from "@builder/components/BackgroundHandler.vue";
-import { cssUrl } from "@builder/utils/helpers";
-import { getOptimizeButtonText, optimizeImage, shouldShowOptimizeButton } from "@builder/utils/imageUtils";
+import BackgroundHandler from "@web/components/BackgroundHandler.vue";
+import { cssUrl } from "@web/utils/helpers";
+import { getOptimizeButtonText, optimizeImage, shouldShowOptimizeButton } from "@web/utils/imageUtils";
 import { Button } from "frappe-ui";
 import { computed } from "vue";
 
@@ -8,14 +8,14 @@ const backgroundImageURL = () => {
 	const bg = (blockController.getStyle("backgroundImage") as string) || "";
 	return bg && !bg.includes("gradient") ? bg.replace(/^url\(['"]?|['"]?\)$/g, "") : "";
 };
-import ColorInput from "@builder/components/Controls/ColorInput.vue";
-import StylePropertyControl from "@builder/components/Controls/StylePropertyControl.vue";
-import blockController from "@builder/utils/blockController";
-import { BORDER_UNIT_OPTIONS, RADIUS_UNIT_OPTIONS, ROTATION_UNIT_OPTIONS } from "@builder/utils/unitOptions";
+import ColorInput from "@web/components/Controls/ColorInput.vue";
+import StylePropertyControl from "@web/components/Controls/StylePropertyControl.vue";
+import blockController from "@web/utils/blockController";
+import { BORDER_UNIT_OPTIONS, RADIUS_UNIT_OPTIONS, ROTATION_UNIT_OPTIONS } from "@web/utils/unitOptions";
 import RangeInput from "../Controls/RangeInput.vue";
-import ShadowHandler from "@builder/components/ShadowHandler.vue";
-import SplitPropertyControl from "@builder/components/Controls/SplitPropertyControl.vue";
-import { __ } from "@builder/translation";
+import ShadowHandler from "@web/components/ShadowHandler.vue";
+import SplitPropertyControl from "@web/components/Controls/SplitPropertyControl.vue";
+import { __ } from "@web/translation";
 
 const hasBorder = () =>
 	Boolean(blockController.getStyle("borderColor") || blockController.getStyle("borderWidth"));

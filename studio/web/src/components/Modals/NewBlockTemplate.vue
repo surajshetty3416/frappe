@@ -57,10 +57,10 @@
 	</Dialog>
 </template>
 <script setup lang="ts">
-import { __ } from "@builder/translation";
-import type Block from "@builder/block";
-import Dialog from "@builder/components/Controls/Dialog.vue";
-import useBlockTemplateStore from "@builder/stores/blockTemplateStore";
+import { __ } from "@web/translation";
+import type Block from "@web/block";
+import Dialog from "@web/components/Controls/Dialog.vue";
+import useBlockTemplateStore from "@web/stores/blockTemplateStore";
 import { FileUploader } from "frappe-ui";
 import { ref } from "vue";
 

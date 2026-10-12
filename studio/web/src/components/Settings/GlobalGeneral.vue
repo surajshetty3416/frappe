@@ -30,7 +30,7 @@
 				<div
 					class="flex items-center justify-center rounded-4 border border-outline-gray-1 bg-surface-gray-2 px-20 py-5">
 					<img
-						:src="builderSettings.doc?.favicon || '/assets/frappe/builder/images/frappe_black.png'"
+						:src="builderSettings.doc?.favicon || '/assets/frappe/web/images/frappe_black.png'"
 						alt="Site Favicon"
 						class="size-6 rounded-4" />
 				</div>
@@ -83,12 +83,12 @@
 	</div>
 </template>
 <script setup lang="ts">
-import { __ } from "@builder/translation";
-import { allWebPages } from "@builder/data/allWebPages";
-import { builderSettings } from "@builder/data/builderSettings";
-import { websiteSettings } from "@builder/data/websiteSettings";
-import useBuilderStore from "@builder/stores/builderStore";
-import { BuilderPage } from "@builder/types/doctypes";
+import { __ } from "@web/translation";
+import { allWebPages } from "@web/data/allWebPages";
+import { builderSettings } from "@web/data/builderSettings";
+import { websiteSettings } from "@web/data/websiteSettings";
+import useBuilderStore from "@web/stores/builderStore";
+import { BuilderPage } from "@web/types/doctypes";
 import { Switch } from "frappe-ui";
 import { computed } from "vue";
 import ImageUploader from "../Controls/ImageUploader.vue";

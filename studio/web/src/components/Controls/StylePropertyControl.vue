@@ -11,9 +11,9 @@
 </template>
 
 <script lang="ts" setup>
-import BasePropertyControl from "@builder/components/Controls/BasePropertyControl.vue";
-import { __ } from "@builder/translation";
-import blockController from "@builder/utils/blockController";
+import BasePropertyControl from "@web/components/Controls/BasePropertyControl.vue";
+import { __ } from "@web/translation";
+import blockController from "@web/utils/blockController";
 import type { Component } from "vue";
 import { computed } from "vue";
 

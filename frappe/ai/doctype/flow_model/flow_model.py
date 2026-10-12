@@ -43,7 +43,7 @@ class FlowModel(Document):
 	def after_insert(self):
 		if not self.enabled:
 			return
-		from frappe.flow.assistant import ensure_builtin_assistant
+		from frappe.ai.assistant import ensure_builtin_assistant
 
 		ensure_builtin_assistant(model=self.name)
 
@@ -123,7 +123,7 @@ class FlowModel(Document):
 				title=_("Missing Dependency"),
 			)
 
-		from frappe.flow.lib.model import resolve_provider_credentials
+		from frappe.ai.lib.model import resolve_provider_credentials
 
 		provider_creds = resolve_provider_credentials(self.model_id)
 		api_key = self.get_password("api_key", raise_exception=False) or provider_creds.get("api_key") or None

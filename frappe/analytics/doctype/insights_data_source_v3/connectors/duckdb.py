@@ -127,7 +127,7 @@ def local_duckdb_write_lock(
     """
     from frappe.utils.synchronization import filelock
 
-    from frappe import insights
+    from frappe import analytics as insights
     deadline = time.monotonic() + timeout
     lock_name = f"insights_duckdb_write_{frappe.scrub(os.path.basename(path))}"
     with filelock(lock_name, timeout=timeout):

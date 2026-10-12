@@ -56,11 +56,11 @@
 <script lang="ts" setup>
 import { computed, ref, watch } from "vue"
 import { useRouter } from "vue-router"
-import { studioApps } from "@studio/data/studioApps"
+import { studioApps } from "@ui/data/studioApps"
 import { Dialog, FormControl, ErrorMessage, Button } from "frappe-ui"
-import type { StudioApp } from "@studio/types/Studio/StudioApp"
+import type { StudioApp } from "@ui/types/Studio/StudioApp"
 import { toast } from "frappe-ui"
-import AppExportSettings from "@studio/components/AppExportSettings.vue"
+import AppExportSettings from "@ui/components/AppExportSettings.vue"
 
 const props = defineProps<{ app?: StudioApp | null }>()
 const showDialog = defineModel("showDialog", { type: Boolean, required: true })

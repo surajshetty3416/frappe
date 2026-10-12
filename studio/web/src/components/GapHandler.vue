@@ -28,9 +28,9 @@
 	</div>
 </template>
 <script setup lang="ts">
-import type Block from "@builder/block";
-import { useRotatedCursors } from "@builder/composables/useRotatedCursors";
-import { HANDLE_MIN_SCALE, Position, useSpacingHandler } from "@builder/composables/useSpacingHandler";
+import type Block from "@web/block";
+import { useRotatedCursors } from "@web/composables/useRotatedCursors";
+import { HANDLE_MIN_SCALE, Position, useSpacingHandler } from "@web/composables/useSpacingHandler";
 import { computed, onBeforeUnmount, onMounted, ref, watchEffect } from "vue";
 import { getNumberFromPx } from "../utils/helpers";
 import CursorTooltip from "./CursorTooltip.vue";

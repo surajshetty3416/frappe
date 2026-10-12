@@ -13,7 +13,7 @@ import frappe
 from frappe.bundler import get_node_env
 from frappe.utils import get_files_path
 
-from frappe.studio.utils import walk_blocks
+from frappe.ui.utils import walk_blocks
 
 ANSI_ESCAPE_REGEX = re.compile(r"\x1b\[[0-9;]*[a-zA-Z]")
 LUCIDE_ICON_REGEX = re.compile(r"\blucide-[a-z0-9]+(?:-[a-z0-9]+)*")
@@ -317,7 +317,7 @@ def build_standard_apps(apps: list[str] | None = None) -> None:
 			continue
 
 		if frappe_app == "frappe":
-			apps_list_file = frappe.get_app_path("frappe", "studio", "studio_apps.txt")
+			apps_list_file = frappe.get_app_path("frappe", "ui", "studio_apps.txt")
 			if os.path.exists(apps_list_file):
 				studio_apps = frappe.get_file_items(apps_list_file)
 			else:

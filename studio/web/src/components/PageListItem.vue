@@ -11,7 +11,7 @@
 					height="82"
 					:src="page.meta_image || page.preview"
 					alt=""
-					onerror="this.src='/assets/frappe/builder/images/fallback.png'"
+					onerror="this.src='/assets/frappe/web/images/fallback.png'"
 					class="block aspect-video w-36 flex-shrink-0 overflow-hidden rounded-6 bg-surface-gray-1 object-cover shadow-md" />
 				<div class="flex flex-1 items-start justify-between overflow-hidden">
 					<span class="flex h-full w-full flex-col justify-between text-base">
@@ -64,12 +64,12 @@
 	</router-link>
 </template>
 <script setup lang="ts">
-import { __ } from "@builder/translation";
-import PageActionsDropdown from "@builder/components/PageActionsDropdown.vue";
-import { useDashboardState } from "@builder/composables/useDashboardState";
-import PageStatusLine from "@builder/components/PageStatusLine.vue";
-import { BuilderPage } from "@builder/types/doctypes";
-import { getUserInfo } from "@builder/usersInfo";
+import { __ } from "@web/translation";
+import PageActionsDropdown from "@web/components/PageActionsDropdown.vue";
+import { useDashboardState } from "@web/composables/useDashboardState";
+import PageStatusLine from "@web/components/PageStatusLine.vue";
+import { BuilderPage } from "@web/types/doctypes";
+import { getUserInfo } from "@web/usersInfo";
 import { UseTimeAgo } from "@vueuse/components";
 import { Avatar } from "frappe-ui";
 import { computed } from "vue";

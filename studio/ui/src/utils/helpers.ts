@@ -2,10 +2,10 @@ import { Ref } from "vue"
 import { createDocumentResource, createResource, dialog } from "frappe-ui"
 import { toast } from "frappe-ui"
 
-import type { ObjectLiteral, StyleValue, SelectOption, HashString, RGBString } from "@studio/types"
-import type { Variable } from "@studio/types/Studio/StudioPageVariable"
-import type { StudioApp } from "@studio/types/Studio/StudioApp"
-import type { StudioPage } from "@studio/types/Studio/StudioPage"
+import type { ObjectLiteral, StyleValue, SelectOption, HashString, RGBString } from "@ui/types"
+import type { Variable } from "@ui/types/Studio/StudioPageVariable"
+import type { StudioApp } from "@ui/types/Studio/StudioApp"
+import type { StudioPage } from "@ui/types/Studio/StudioPage"
 import DOMPurify from "dompurify"
 
 function isEditor() {
@@ -296,7 +296,7 @@ async function fetchPage(pageName: string) {
 // Data the page renders stays permission-checked by the endpoints its resources call.
 async function fetchAppPage(appName: string, pageName: string, preview: boolean = false) {
 	const page = createResource({
-		url: "frappe.studio.doctype.studio_page.studio_page.get_page",
+		url: "frappe.ui.doctype.studio_page.studio_page.get_page",
 		method: "GET",
 		params: { app_name: appName, page_name: pageName, preview },
 		// a published page changes only on publish; the preview must see every draft save

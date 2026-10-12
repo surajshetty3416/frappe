@@ -65,13 +65,13 @@
 import { isNumber } from "@tiptap/vue-3"
 import { Tooltip } from "frappe-ui"
 import { computed, StyleValue, useAttrs } from "vue"
-import { isDynamicValue } from "@studio/utils/code"
-import { extractNumberAndUnit, normalizeValueWithUnits } from "@studio/utils/helpers"
-import Input from "@studio/components/Input.vue"
-import Autocomplete from "@studio/components/Autocomplete.vue"
-import ColorInput from "@studio/components/ColorInput.vue"
-import IconPicker from "@studio/components/IconPicker.vue"
-import InputLabel from "@studio/components/InputLabel.vue"
+import { isDynamicValue } from "@ui/utils/code"
+import { extractNumberAndUnit, normalizeValueWithUnits } from "@ui/utils/helpers"
+import Input from "@ui/components/Input.vue"
+import Autocomplete from "@ui/components/Autocomplete.vue"
+import ColorInput from "@ui/components/ColorInput.vue"
+import IconPicker from "@ui/components/IconPicker.vue"
+import InputLabel from "@ui/components/InputLabel.vue"
 
 const props = withDefaults(
 	defineProps<{

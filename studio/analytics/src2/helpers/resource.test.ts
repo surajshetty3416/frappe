@@ -11,7 +11,7 @@ let inserted = 0
 vi.mock('frappe-ui', async () => ({
 	...((await vi.importActual('frappe-ui')) as object),
 	call: (method: string, args: any) => {
-		if (method === 'frappe.insights.api.get_doc') {
+		if (method === 'frappe.analytics.api.get_doc') {
 			return Promise.resolve({
 				doctype: 'Insights Chart v3',
 				name: 'chart-1',

@@ -9,7 +9,7 @@ import pandas as pd
 from frappe.model.base_document import BaseDocument
 from frappe.website.page_renderers.template_page import TemplatePage
 
-from frappe.insights.hooks import insights_path
+from frappe.analytics.hooks import insights_path
 
 
 def get_app_url(path: str = "") -> str:
@@ -140,7 +140,7 @@ def get_owned_file(filename: str):
 
     The upload flow only ever reads back a file the caller just uploaded.
     """
-    from frappe.insights.doctype.insights_team.insights_team import is_admin
+    from frappe.analytics.doctype.insights_team.insights_team import is_admin
 
     file = frappe.get_doc("File", filename)
     if file.owner != frappe.session.user and not is_admin(frappe.session.user):

@@ -11,12 +11,12 @@ from frappe.query_builder import Interval
 from frappe.query_builder.functions import Now
 from frappe.website.utils import cleanup_page_name
 
-from frappe.insights import standard
-from frappe.insights.desk import claims_on, refuse_delete_while_claimed
-from frappe.insights.query_utils import referenced_queries
-from frappe.insights.permissions import ROLES, UNNAMEABLE_ROLES, can_copy, can_write, check_trusted_code_author
-from frappe.insights.telemetry import capture
-from frappe.insights.utils import deep_convert_dict_to_dict
+from frappe.analytics import standard
+from frappe.analytics.desk import claims_on, refuse_delete_while_claimed
+from frappe.analytics.query_utils import referenced_queries
+from frappe.analytics.permissions import ROLES, UNNAMEABLE_ROLES, can_copy, can_write, check_trusted_code_author
+from frappe.analytics.telemetry import capture
+from frappe.analytics.utils import deep_convert_dict_to_dict
 
 # `tabSeries` key the workbook counter lives under.
 WORKBOOK_SERIES_KEY = "Insights Workbook"
@@ -563,13 +563,13 @@ class InsightsWorkbook(Document):
 
     @frappe.whitelist()
     def import_query(self, query: dict | str):
-        from frappe.insights.doctype.insights_query_v3.insights_query_v3 import import_query
+        from frappe.analytics.doctype.insights_query_v3.insights_query_v3 import import_query
 
         return import_query(query, self.name)
 
     @frappe.whitelist()
     def import_chart(self, chart: dict | str):
-        from frappe.insights.doctype.insights_chart_v3.insights_chart_v3 import import_chart
+        from frappe.analytics.doctype.insights_chart_v3.insights_chart_v3 import import_chart
 
         return import_chart(chart, self.name)
 
@@ -963,7 +963,7 @@ def _kept_for_desk(workbook: str, dropped: dict) -> set[str]:
     These are the members a desk document shows, the charts on a kept
     dashboard, and the queries those charts read.
     """
-    from frappe.insights.query_utils import transitive_closure
+    from frappe.analytics.query_utils import transitive_closure
 
     claims = [
         claim

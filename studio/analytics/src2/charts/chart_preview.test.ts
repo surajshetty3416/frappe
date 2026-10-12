@@ -9,7 +9,7 @@ vi.mock('frappe-ui', async (importOriginal) => ({
 	...(await importOriginal<object>()),
 	call: (method: string, args: any) => {
 		calls.push(method)
-		if (method === 'frappe.insights.api.get_doc') {
+		if (method === 'frappe.analytics.api.get_doc') {
 			return Promise.resolve({
 				doctype: 'Insights Query v3',
 				name: args.name,
@@ -54,6 +54,6 @@ describe('a card rendering a chart in the builder', () => {
 
 		await preview.load()
 
-		expect(calls.filter((method) => method === 'frappe.insights.api.get_doc')).toEqual([])
+		expect(calls.filter((method) => method === 'frappe.analytics.api.get_doc')).toEqual([])
 	})
 })

@@ -4,18 +4,18 @@ from unittest.mock import patch
 import frappe
 import ibis
 
-from frappe.insights import user_permissions
-from frappe.insights.api import run_doc_method as insights_run_doc_method
-from frappe.insights.api.view import get_chart_data
-from frappe.insights.api.workbooks import update_share_permissions
-from frappe.insights.doctype.insights_data_source_v3.insights_data_source_v3 import db_connections
-from frappe.insights.doctype.insights_table_v3.insights_table_v3 import (
+from frappe.analytics import user_permissions
+from frappe.analytics.api import run_doc_method as insights_run_doc_method
+from frappe.analytics.api.view import get_chart_data
+from frappe.analytics.api.workbooks import update_share_permissions
+from frappe.analytics.doctype.insights_data_source_v3.insights_data_source_v3 import db_connections
+from frappe.analytics.doctype.insights_table_v3.insights_table_v3 import (
     apply_user_permissions as filter_rows_for,
 )
-from frappe.insights.permission_user import get_permission_user, permission_user_for
-from frappe.insights.permissions import can_read_rows
-from frappe.insights.tests.base import InsightsIntegrationTestCase
-from frappe.insights.tests.factories import DT, as_user, create_user, delete_users, delete_workbooks
+from frappe.analytics.permission_user import get_permission_user, permission_user_for
+from frappe.analytics.permissions import can_read_rows
+from frappe.analytics.tests.base import InsightsIntegrationTestCase
+from frappe.analytics.tests.factories import DT, as_user, create_user, delete_users, delete_workbooks
 
 OWNER = "run_as_owner_owner@test.com"
 READER = "run_as_owner_reader@test.com"
@@ -34,7 +34,7 @@ TEST_DS = frappe.scrub(TEST_DS_TITLE)
 
 @contextmanager
 def as_http_request():
-    """`frappe.insights.api.run_doc_method` validates the HTTP method, so fake a request."""
+    """`frappe.analytics.api.run_doc_method` validates the HTTP method, so fake a request."""
     frappe.local.request = frappe._dict(method="POST", headers={})
     try:
         yield
@@ -287,7 +287,7 @@ class TestRunAsOwner(InsightsIntegrationTestCase):
     def test_the_builder_shows_the_rows_the_card_shows(self):
         """The builder read as the caller while the card read as the owner. The
         author then saw a number that no reader sees."""
-        from frappe.insights.api.authoring import get_chart_data as authoring_chart_data
+        from frappe.analytics.api.authoring import get_chart_data as authoring_chart_data
 
         self.set_run_as_owner(1)
 
@@ -381,7 +381,7 @@ class TestRunAsOwner(InsightsIntegrationTestCase):
     def test_a_chart_answers_its_rows_through_no_method_of_its_own(self):
         """The chart's own `get_data` took the page from the request. A reader of
         a chart run as its owner could then page past the owner's saved `limit`.
-        Readers use `frappe.insights.api.view` instead."""
+        Readers use `frappe.analytics.api.view` instead."""
         self.set_run_as_owner(1)
         docs = frappe.as_json({"doctype": DT.CHART, "name": self.chart.name})
 
@@ -403,7 +403,7 @@ class TestRunAsOwner(InsightsIntegrationTestCase):
     def test_a_reader_reads_the_site_rows_desk_or_a_team_grant_allows(self):
         """On site data a team grant adds rows to what desk allows. It never
         removes rows."""
-        from frappe.insights.doctype.insights_team.insights_team import clear_cache
+        from frappe.analytics.doctype.insights_team.insights_team import clear_cache
 
         self.set_team_permissions(1)
 
@@ -422,7 +422,7 @@ class TestRunAsOwner(InsightsIntegrationTestCase):
 
         # When desk allows no row, only the Table Restriction filters the rows.
         with patch(
-            "frappe.insights.doctype.insights_table_v3.insights_table_v3.desk_predicate",
+            "frappe.analytics.doctype.insights_table_v3.insights_table_v3.desk_predicate",
             return_value=None,
         ):
             result = self.fetch_chart_data(READER)
@@ -444,13 +444,13 @@ class TestRunAsOwner(InsightsIntegrationTestCase):
         """The owner's Table Restriction narrows the rows. The card tells the
         owner, but not the reader of a chart run as its owner: the reader does
         not hold that restriction."""
-        from frappe.insights.api.authoring import get_chart_data as get_authoring_data
+        from frappe.analytics.api.authoring import get_chart_data as get_authoring_data
 
         self.set_team_permissions(1)
         self.grant_todos(OWNER, f"description == '{READER_TODOS[0]}'")
         # Desk allows no row, so only the restriction filters the rows (Q15).
         desk_allows_none = patch(
-            "frappe.insights.doctype.insights_table_v3.insights_table_v3.desk_predicate",
+            "frappe.analytics.doctype.insights_table_v3.insights_table_v3.desk_predicate",
             return_value=None,
         )
 
@@ -475,7 +475,7 @@ class TestRunAsOwner(InsightsIntegrationTestCase):
     def test_an_admin_reads_the_site_rows_desk_allows_whatever_their_team_grants(self):
         """An Insights Admin passes every team check, but that is not a grant. On
         site data an admin reads only what desk allows."""
-        from frappe.insights.doctype.insights_team.insights_team import clear_cache, is_admin
+        from frappe.analytics.doctype.insights_team.insights_team import clear_cache, is_admin
 
         self.set_team_permissions(1)
         frappe.get_doc(
@@ -539,7 +539,7 @@ class TestRunAsOwner(InsightsIntegrationTestCase):
         # Desk allows every row, so the grant narrows no row. The card still says
         # the blanked column narrowed it.
         desk_allows_every_row = patch(
-            "frappe.insights.doctype.insights_table_v3.insights_table_v3.desk_predicate",
+            "frappe.analytics.doctype.insights_table_v3.insights_table_v3.desk_predicate",
             return_value=True,
         )
         with desk_allows_every_row, as_user(READER), db_connections():
@@ -620,8 +620,8 @@ class TestRunAsOwner(InsightsIntegrationTestCase):
     def test_the_table_browser_and_a_rows_level_mark_the_cells_they_show_blanked(self):
         """The table browser and a drill's rows level show every column. Both show
         `status` empty on rows only desk allows, and say so as the card does."""
-        from frappe.insights.api.data_sources import get_data_source_table
-        from frappe.insights.api.view import get_drill_data
+        from frappe.analytics.api.data_sources import get_data_source_table
+        from frappe.analytics.api.view import get_drill_data
 
         self.blank_status()
 
@@ -655,8 +655,8 @@ class TestRunAsOwner(InsightsIntegrationTestCase):
 
     def grant_todos(self, user, restriction=None):
         """A team that grants `user` the `tabToDo` table, saved as the Teams page saves it."""
-        from frappe.insights.doctype.insights_table_v3.insights_table_v3 import get_table_name
-        from frappe.insights.doctype.insights_team.insights_team import clear_cache
+        from frappe.analytics.doctype.insights_table_v3.insights_table_v3 import get_table_name
+        from frappe.analytics.doctype.insights_team.insights_team import clear_cache
 
         table = get_table_name("Site DB", "tabToDo")
         if not frappe.db.exists(DT.TABLE, table):
@@ -683,8 +683,8 @@ class TestRunAsOwner(InsightsIntegrationTestCase):
         """The builder's table list must match the tables the reader can query. On
         site data desk allows a table as a team grant does. This reader is in no
         team."""
-        from frappe.insights.api.data_sources import get_data_source_tables
-        from frappe.insights.doctype.insights_table_v3.insights_table_v3 import get_table_name
+        from frappe.analytics.api.data_sources import get_data_source_tables
+        from frappe.analytics.doctype.insights_table_v3.insights_table_v3 import get_table_name
 
         self.set_team_permissions(1)
         for table in ("tabToDo", "tabError Log"):

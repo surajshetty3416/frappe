@@ -1,10 +1,10 @@
-import { __ } from "@builder/translation";
-import BlockContextMenu from "@builder/components/BlockContextMenu.vue";
-import type { AISetupState } from "@builder/components/ai/types";
-import { builderSettings } from "@builder/data/builderSettings";
-import { BuilderSettings } from "@builder/types/doctypes";
-import { editorDemo } from "@builder/utils/editorDemo";
-import RealTimeHandler from "@builder/utils/realtimeHandler";
+import { __ } from "@web/translation";
+import BlockContextMenu from "@web/components/BlockContextMenu.vue";
+import type { AISetupState } from "@web/components/ai/types";
+import { builderSettings } from "@web/data/builderSettings";
+import { BuilderSettings } from "@web/types/doctypes";
+import { editorDemo } from "@web/utils/editorDemo";
+import RealTimeHandler from "@web/utils/realtimeHandler";
 import { breakpointsTailwind, useBreakpoints, useStorage } from "@vueuse/core";
 import { createResource, toast } from "frappe-ui";
 import { useTelemetry } from "@framework/ui/telemetry";
@@ -85,7 +85,7 @@ const useBuilderStore = defineStore("builderStore", {
 	},
 	actions: {
 		async refreshAIState() {
-			const state = (await createResource({ url: "frappe.builder.ai.api.ai_setup_state" })
+			const state = (await createResource({ url: "frappe.web.ai.api.ai_setup_state" })
 				.submit()
 				.catch(() => null)) as AISetupState | null;
 			this.aiConfigured = !!state?.configured;

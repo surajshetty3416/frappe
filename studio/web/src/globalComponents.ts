@@ -1,4 +1,4 @@
-import BuilderInput from "@builder/components/Controls/Input.vue";
+import BuilderInput from "@web/components/Controls/Input.vue";
 import { Button, FormControl } from "frappe-ui";
 import type { App, Component } from "vue";
 

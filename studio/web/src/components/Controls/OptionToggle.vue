@@ -14,7 +14,7 @@
 	</div>
 </template>
 <script setup lang="ts">
-import InputLabel from "@builder/components/Controls/InputLabel.vue";
+import InputLabel from "@web/components/Controls/InputLabel.vue";
 import { TabButtons, type TabButtonValue } from "frappe-ui";
 import { computed, type Component } from "vue";
 

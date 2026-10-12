@@ -30,7 +30,7 @@
 
 <script setup lang="ts">
 import { Button } from "frappe-ui"
-import Code from "@studio/components/Code.vue"
+import Code from "@ui/components/Code.vue"
 import type { CompletionContext } from "@codemirror/autocomplete"
 
 const modelValue = defineModel<string | null>({ default: null })

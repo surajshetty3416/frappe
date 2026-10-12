@@ -17,7 +17,7 @@ const tables = ref<Record<string, DataSourceTable[]>>({})
 const loading = ref(false)
 export async function getTables(data_source?: string, search_term?: string, limit: number = 100) {
 	loading.value = true
-	const _tables = await call('frappe.insights.api.data_sources.get_data_source_tables', {
+	const _tables = await call('frappe.analytics.api.data_sources.get_data_source_tables', {
 		data_source,
 		search_term,
 		limit,
@@ -51,7 +51,7 @@ async function fetchTable(
 	table_name: string,
 ): Promise<DataSourceTablePreview | undefined> {
 	fetchingTable.value = true
-	return call('frappe.insights.api.data_sources.get_data_source_table', {
+	return call('frappe.analytics.api.data_sources.get_data_source_table', {
 		data_source,
 		table_name,
 	})
@@ -65,7 +65,7 @@ async function fetchTable(
 }
 
 async function getTableColumns(data_source: string, table_name: string) {
-	return call('frappe.insights.api.data_sources.get_data_source_table_columns', {
+	return call('frappe.analytics.api.data_sources.get_data_source_table_columns', {
 		data_source,
 		table_name,
 	}).then((columns: any[]) => {
@@ -88,7 +88,7 @@ export async function getRowCount(
 	data_source: string,
 	table_name: string,
 ): Promise<number | undefined> {
-	return call('frappe.insights.api.data_sources.get_data_source_table_row_count', {
+	return call('frappe.analytics.api.data_sources.get_data_source_table_row_count', {
 		data_source,
 		table_name,
 	}).catch((e: Error) => {
@@ -101,7 +101,7 @@ const updatingDataSourceTables = ref(false)
 async function updateDataSourceTables(data_source: string) {
 	updatingDataSourceTables.value = true
 	toast.info(__('Updating tables for {0}', data_source))
-	return call('frappe.insights.api.data_sources.update_data_source_tables', { data_source })
+	return call('frappe.analytics.api.data_sources.update_data_source_tables', { data_source })
 		.then(() => {
 			getTables(data_source)
 			toast.success(__('Tables updated for {0}', data_source))
@@ -125,7 +125,7 @@ async function getTableLinks(
 	left_table: string,
 	right_table: string,
 ): Promise<TableLink[]> {
-	return call('frappe.insights.api.data_sources.get_table_links', {
+	return call('frappe.analytics.api.data_sources.get_table_links', {
 		data_source,
 		left_table,
 		right_table,
@@ -136,7 +136,7 @@ async function updateTableLinks(data_source: string) {
 	toast.info(__('Updating table links'), {
 		description: __('Updating table links for {0}. This may take a while.', data_source),
 	})
-	return call('frappe.insights.api.data_sources.update_table_links', { data_source }).then(() => {
+	return call('frappe.analytics.api.data_sources.update_table_links', { data_source }).then(() => {
 		toast.success(__('Table links updated for {0}', data_source))
 	})
 }

@@ -11,8 +11,8 @@ Models a site added itself, and anything behind a custom gateway, are left alone
 
 import frappe
 
-from frappe.builder.ai.models import ModelRegistry
-from frappe.builder.ai.presets import PRESETS, add_model
+from frappe.web.ai.models import ModelRegistry
+from frappe.web.ai.presets import PRESETS, add_model
 
 # litellm provider -> retired model id -> its successor
 SUCCESSORS = {

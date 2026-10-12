@@ -28,8 +28,8 @@
 
 <script setup lang="ts">
 import { Button } from "frappe-ui"
-import Input from "@studio/components/Input.vue"
-import { mapToObject, replaceMapKey } from "@studio/utils/helpers"
+import Input from "@ui/components/Input.vue"
+import { mapToObject, replaceMapKey } from "@ui/utils/helpers"
 import { nextTick, ref } from "vue"
 
 const props = defineProps<{

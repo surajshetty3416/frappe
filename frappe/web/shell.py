@@ -1,5 +1,5 @@
 import frappe
-from frappe.builder.hooks import builder_path
+from frappe.web.hooks import builder_path
 from frappe.integrations.frappe_providers.frappecloud_billing import is_fc_site
 from frappe.pulse.utils import get_app_version
 

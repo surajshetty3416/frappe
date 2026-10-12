@@ -14,12 +14,12 @@ every test turns on.
 
 import frappe
 
-from frappe.insights.doctype.insights_data_source_v3.insights_data_source_v3 import (
+from frappe.analytics.doctype.insights_data_source_v3.insights_data_source_v3 import (
     db_connections,
 )
-from frappe.insights.permission_user import get_permission_user, permission_user
-from frappe.insights.tests.base import InsightsIntegrationTestCase
-from frappe.insights.tests.factories import (
+from frappe.analytics.permission_user import get_permission_user, permission_user
+from frappe.analytics.tests.base import InsightsIntegrationTestCase
+from frappe.analytics.tests.factories import (
     DT,
     as_user,
     create_test_query,
@@ -65,7 +65,7 @@ class TestPreviewKeyNamesItsUser(InsightsIntegrationTestCase):
 
     # @feature dashboard.preview-image
     def test_a_preview_key_names_the_user_it_was_cut_for(self):
-        from frappe.insights.preview_key import cache_key, generate_preview_key
+        from frappe.analytics.preview_key import cache_key, generate_preview_key
 
         with as_user(PUBLISHER), generate_preview_key("some-dashboard") as key:
             stored = frappe.cache.get_value(cache_key(key))
@@ -148,7 +148,7 @@ class TestAlertRunsAsItsEnabler(InsightsIntegrationTestCase):
         to reach only the Error Log."""
         from unittest.mock import patch
 
-        from frappe.insights.doctype.insights_alert.insights_alert import send_alerts
+        from frappe.analytics.doctype.insights_alert.insights_alert import send_alerts
 
         alert = self.create_alert()
         self.repoint_query(error_log_operations())
@@ -180,8 +180,8 @@ class TestAlertRunsAsItsEnabler(InsightsIntegrationTestCase):
         workbook, owns both but may write neither. So the alert stops sending."""
         from unittest.mock import patch
 
-        from frappe.insights.api.workbooks import update_share_permissions
-        from frappe.insights.doctype.insights_alert.insights_alert import InsightsAlert
+        from frappe.analytics.api.workbooks import update_share_permissions
+        from frappe.analytics.doctype.insights_alert.insights_alert import InsightsAlert
 
         with as_user(PUBLISHER):
             update_share_permissions(self.workbook, [{"user": EDITOR, "read": 1, "write": 1}])
@@ -211,7 +211,7 @@ class TestAlertRunsAsItsEnabler(InsightsIntegrationTestCase):
         """Runs `send_alerts` as the scheduler does, with the alert due."""
         from unittest.mock import patch
 
-        from frappe.insights.doctype.insights_alert.insights_alert import InsightsAlert, send_alerts
+        from frappe.analytics.doctype.insights_alert.insights_alert import InsightsAlert, send_alerts
 
         frappe.db.set_value("Insights Alert", alert.name, "last_execution", None)
         frappe.db.commit()  # nosemgrep
@@ -241,7 +241,7 @@ class TestAlertRunsAsItsEnabler(InsightsIntegrationTestCase):
     def test_an_alert_whose_enabler_is_disabled_stops_and_tells_the_workbook_owner(self):
         """The alert runs as the editor who enabled it, not the publisher who
         made it."""
-        from frappe.insights.api.workbooks import update_share_permissions
+        from frappe.analytics.api.workbooks import update_share_permissions
 
         with as_user(PUBLISHER):
             update_share_permissions(self.workbook, [{"user": EDITOR, "read": 1, "write": 1}])
@@ -276,7 +276,7 @@ class TestAlertRunsAsItsEnabler(InsightsIntegrationTestCase):
     def test_an_alert_whose_enabler_left_the_workbook_stops_and_tells_the_workbook_owner(self):
         """The editor made the alert, so they are its owner. After they leave the
         workbook, the notice goes to the workbook's owner instead."""
-        from frappe.insights.api.workbooks import update_share_permissions
+        from frappe.analytics.api.workbooks import update_share_permissions
 
         with as_user(PUBLISHER):
             update_share_permissions(self.workbook, [{"user": EDITOR, "read": 1, "write": 1}])

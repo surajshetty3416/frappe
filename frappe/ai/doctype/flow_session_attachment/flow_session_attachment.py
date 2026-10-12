@@ -19,10 +19,10 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import cint
 
-from frappe.flow.knowledge.extract import FILE_EXTENSIONS, IMAGE_EXTENSIONS, extract_file
+from frappe.ai.knowledge.extract import FILE_EXTENSIONS, IMAGE_EXTENSIONS, extract_file
 
 if TYPE_CHECKING:
-	from frappe.flow.doctype.flow_session.flow_session import FlowSession
+	from frappe.ai.doctype.flow_session.flow_session import FlowSession
 
 CACHE_PREFIX = "chat_attachment"
 CACHE_TTL = 3600
@@ -150,7 +150,7 @@ def cleanup_indexed_files(session: str, files: list[str]) -> None:
 	"""Best-effort rollback for retrieval files whose turn was not accepted."""
 	if not files:
 		return
-	from frappe.flow.knowledge import attachment_store
+	from frappe.ai.knowledge import attachment_store
 
 	for file in files:
 		try:
@@ -241,9 +241,9 @@ def _retrieval_files(text_files: list[tuple[dict[str, Any], str]], budget: int) 
 
 def _index(session: str, file: str, text: str) -> None:
 	"""Replace one file's chunks in the session retrieval index."""
-	from frappe.flow.knowledge import attachment_store
-	from frappe.flow.knowledge.chunker import chunk_text
-	from frappe.flow.knowledge.embedder import embed_texts
+	from frappe.ai.knowledge import attachment_store
+	from frappe.ai.knowledge.chunker import chunk_text
+	from frappe.ai.knowledge.embedder import embed_texts
 
 	settings = frappe.get_cached_doc("Flow Knowledge Settings")
 	try:
@@ -268,7 +268,7 @@ def _file_block(name: str, text: str, limit: int) -> str:
 
 def _excerpts(query: str, session: str) -> str:
 	"""The session's best-matching retrieval chunks as a message block; "" when none match."""
-	from frappe.flow.knowledge.retriever import retrieve_attachments
+	from frappe.ai.knowledge.retriever import retrieve_attachments
 
 	try:
 		hits = retrieve_attachments(query, session=session, limit=RETRIEVAL_TOP_K)

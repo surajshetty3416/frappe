@@ -1,14 +1,14 @@
 """A link names what its author can read.
 
 A chart's `query` and a dashboard's `linked_charts` are grants: the permission
-queries in `frappe.insights.permissions` read a link as access. So a link is checked
+queries in `frappe.analytics.permissions` read a link as access. So a link is checked
 where it is written, not where it is followed.
 """
 
 import frappe
 
-from frappe.insights.tests.base import InsightsIntegrationTestCase
-from frappe.insights.tests.factories import (
+from frappe.analytics.tests.base import InsightsIntegrationTestCase
+from frappe.analytics.tests.factories import (
     DT,
     as_user,
     create_test_chart,
@@ -17,7 +17,7 @@ from frappe.insights.tests.factories import (
     create_test_workbook,
     delete_users,
 )
-from frappe.insights.tests.permissions_utils import USER_1, USER_2, create_test_users
+from frappe.analytics.tests.permissions_utils import USER_1, USER_2, create_test_users
 
 OWNER = USER_1
 OTHER = USER_2
@@ -224,7 +224,7 @@ class TestCardFilterRouting(InsightsIntegrationTestCase):
         """It names a column the card shows, so it reaches no other query.
         `InsightsChartv3.fetch` routes it; the chart runs as its owner, and only
         the owner may filter it."""
-        from frappe.insights.doctype.insights_dashboard_v3.insights_dashboard_v3 import (
+        from frappe.analytics.doctype.insights_dashboard_v3.insights_dashboard_v3 import (
             route_card_filters,
         )
 
@@ -247,7 +247,7 @@ class TestCardFilterRouting(InsightsIntegrationTestCase):
 
     # @feature dashboard.card-filter
     def test_a_card_filter_joins_the_routed_ones(self):
-        from frappe.insights.doctype.insights_dashboard_v3.insights_dashboard_v3 import (
+        from frappe.analytics.doctype.insights_dashboard_v3.insights_dashboard_v3 import (
             route_card_filters,
         )
 
@@ -260,7 +260,7 @@ class TestCardFilterRouting(InsightsIntegrationTestCase):
 
     # @feature dashboard.card-filter
     def test_a_card_filter_that_names_no_column_is_dropped(self):
-        from frappe.insights.doctype.insights_dashboard_v3.insights_dashboard_v3 import (
+        from frappe.analytics.doctype.insights_dashboard_v3.insights_dashboard_v3 import (
             route_card_filters,
         )
 
@@ -268,7 +268,7 @@ class TestCardFilterRouting(InsightsIntegrationTestCase):
 
     # @feature shared.filters-on-public-dashboard
     def test_a_reader_cannot_ask_for_a_column_the_card_does_not_show(self):
-        from frappe.insights.api.view import get_card_values
+        from frappe.analytics.api.view import get_card_values
 
         with self.assertRaises(frappe.DoesNotExistError):
             get_card_values(self.chart, "a_column_nobody_drew", self.dashboard.name)
@@ -276,7 +276,7 @@ class TestCardFilterRouting(InsightsIntegrationTestCase):
     # @feature shared.filters-on-public-dashboard
     def test_a_reader_cannot_ask_about_a_chart_this_grid_does_not_hold(self):
         other = create_test_chart(OWNER, self.workbook, query=self.query, title="Off Grid").name
-        from frappe.insights.api.view import get_card_values
+        from frappe.analytics.api.view import get_card_values
 
         with self.assertRaises(frappe.DoesNotExistError):
             get_card_values(other, "region", self.dashboard.name)

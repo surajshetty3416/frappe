@@ -21,11 +21,11 @@ import copy
 
 import frappe
 
-from frappe.builder.doctype.builder_snapshot.builder_snapshot import (
+from frappe.web.doctype.builder_snapshot.builder_snapshot import (
 	get_snapshot_data,
 	prune_snapshots,
 )
-from frappe.builder.utils import compact_json
+from frappe.web.utils import compact_json
 
 COMPONENT_VERSION_TYPE = "Component Version"
 # A pin to a pruned version degrades to the latest live component, so pruning is safe.

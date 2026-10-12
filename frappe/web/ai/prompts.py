@@ -1,4 +1,4 @@
-from frappe.builder.ai.block_codec import BlockCodec
+from frappe.web.ai.block_codec import BlockCodec
 
 
 class Prompts:

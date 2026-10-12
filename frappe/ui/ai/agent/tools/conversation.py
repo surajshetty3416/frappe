@@ -6,8 +6,8 @@ Approval of a proposed plan is just the user's next ordinary message.
 
 import frappe
 
-from frappe.studio.ai.agent.registry import Tool
-from frappe.studio.ai.session import AISession
+from frappe.ui.ai.agent.registry import Tool
+from frappe.ui.ai.session import AISession
 
 
 def _ask_clarification(ctx, args: dict) -> None:

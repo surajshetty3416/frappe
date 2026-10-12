@@ -35,10 +35,10 @@
 
 <script setup lang="ts">
 import { computed } from "vue"
-import Block from "@studio/utils/block"
-import useCanvasStore from "@studio/stores/canvasStore"
-import useComponentStore from "@studio/stores/componentStore"
-import useComponentEditorStore from "@studio/stores/componentEditorStore"
+import Block from "@ui/utils/block"
+import useCanvasStore from "@ui/stores/canvasStore"
+import useComponentStore from "@ui/stores/componentStore"
+import useComponentEditorStore from "@ui/stores/componentEditorStore"
 import LucideArrowUpRight from "~icons/lucide/arrow-up-right"
 
 const props = defineProps<{

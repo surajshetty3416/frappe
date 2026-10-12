@@ -26,13 +26,13 @@
 </template>
 
 <script setup lang="ts">
-import AnalyticsFilters from "@builder/components/Settings/AnalyticsFilters.vue";
-import AnalyticsOverview from "@builder/components/Settings/AnalyticsOverview.vue";
-import TopClicksList from "@builder/components/Settings/TopClicksList.vue";
-import TopReferrersList from "@builder/components/Settings/TopReferrersList.vue";
-import TrackingDisabledNotice from "@builder/components/Settings/TrackingDisabledNotice.vue";
-import { useAnalytics } from "@builder/composables/useAnalytics";
-import usePageStore from "@builder/stores/pageStore";
+import AnalyticsFilters from "@web/components/Settings/AnalyticsFilters.vue";
+import AnalyticsOverview from "@web/components/Settings/AnalyticsOverview.vue";
+import TopClicksList from "@web/components/Settings/TopClicksList.vue";
+import TopReferrersList from "@web/components/Settings/TopReferrersList.vue";
+import TrackingDisabledNotice from "@web/components/Settings/TrackingDisabledNotice.vue";
+import { useAnalytics } from "@web/composables/useAnalytics";
+import usePageStore from "@web/stores/pageStore";
 
 const pageStore = usePageStore();
 const {
@@ -47,8 +47,8 @@ const {
 	ctr,
 	ctrData,
 } = useAnalytics({
-	apiUrl: "frappe.builder.api.get_page_analytics",
-	ctrApiUrl: "frappe.builder.api.get_page_ctr",
+	apiUrl: "frappe.web.api.get_page_analytics",
+	ctrApiUrl: "frappe.web.api.get_page_ctr",
 	initialRange: "last_30_days",
 	initialRouteFilterType: "exact",
 	initialRoute: pageStore.getResolvedPageURL(false),

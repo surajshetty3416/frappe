@@ -382,7 +382,7 @@ def get_overall_analytics(
 
 def enqueue_web_page_view_ingesion():
 	frappe.enqueue(
-		"frappe.builder.builder_analytics.ingest_web_page_views_to_duckdb",
+		"frappe.web.builder_analytics.ingest_web_page_views_to_duckdb",
 		queue="long",
 	)
 

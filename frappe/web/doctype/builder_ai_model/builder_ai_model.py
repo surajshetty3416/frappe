@@ -31,7 +31,7 @@ class BuilderAIModel(Document):
 		model only asks for its id. OpenRouter answers for its own models, litellm's
 		model map for the rest. Anything already filled in is left alone, so an edit
 		(or a model nobody knows) stands."""
-		from frappe.builder.ai.models import lookup_metadata
+		from frappe.web.ai.models import lookup_metadata
 
 		found = lookup_metadata(self.qualified_name(), self.model_id)
 		if not found:
@@ -48,6 +48,6 @@ class BuilderAIModel(Document):
 		self.clear_registry_cache()
 
 	def clear_registry_cache(self) -> None:
-		from frappe.builder.ai.models import ModelRegistry
+		from frappe.web.ai.models import ModelRegistry
 
 		ModelRegistry.clear_cache()

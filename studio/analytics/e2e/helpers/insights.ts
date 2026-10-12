@@ -86,7 +86,7 @@ export function uniqueTitle(label: string): string {
  * Fail early when the demo Data Source is missing or unsynced.
  *
  * Generating the dataset takes long enough that no test should pay for it, so
- * the site build calls `frappe.insights.setup.setup_wizard.setup_demo_data` once and
+ * the site build calls `frappe.analytics.setup.setup_wizard.setup_demo_data` once and
  * this only checks the result. A test that skipped the check would fail deep
  * inside a chart assertion instead of at its first line.
  */
@@ -262,7 +262,7 @@ export async function shareWorkbook(
 	name: string,
 	grants: { user: string; access: 'view' | 'edit' }[],
 ): Promise<void> {
-	await api.callMethod('frappe.insights.api.workbooks.update_share_permissions', {
+	await api.callMethod('frappe.analytics.api.workbooks.update_share_permissions', {
 		workbook_name: name,
 		user_permissions: grants.map((grant) => ({
 			user: grant.user,
@@ -297,13 +297,13 @@ export async function setTeamPermissions(api: FrappeApi, enabled: boolean): Prom
 
 /** Delete a Team. Teardown for a flow that builds one through the interface. */
 export async function deleteTeam(api: FrappeApi, teamName: string): Promise<void> {
-	await api.callMethod('frappe.insights.api.user.delete_team', { team_name: teamName }).catch(() => {})
+	await api.callMethod('frappe.analytics.api.user.delete_team', { team_name: teamName }).catch(() => {})
 }
 
 /**
  * The Data Source the upload dialog writes into.
  *
- * `frappe.insights.api.get_file_data` creates it on the first upload a site ever
+ * `frappe.analytics.api.get_file_data` creates it on the first upload a site ever
  * takes, so a flow that uploads finds it there whether or not it existed.
  */
 export const UPLOADS_DATA_SOURCE = 'uploads'
@@ -354,7 +354,7 @@ export async function uploadCsvTable(
 	csv: string,
 ): Promise<UploadedTable> {
 	const file = await api.uploadFile(`${tableName}-${Date.now()}.csv`, csv)
-	await api.callMethod('frappe.insights.api.import_csv_data', {
+	await api.callMethod('frappe.analytics.api.import_csv_data', {
 		filename: file.name,
 		tablename: tableName,
 	})
@@ -376,7 +376,7 @@ export async function clearDataStoreTable(
 	const name = await findTableDocName(api, dataSource, tableName)
 	if (!name) return
 	const docs = await api.getDoc(DOCTYPE.TABLE, name)
-	await api.callMethod('frappe.insights.api.run_doc_method', {
+	await api.callMethod('frappe.analytics.api.run_doc_method', {
 		method: 'clear_warehouse_data',
 		docs,
 		args: {},

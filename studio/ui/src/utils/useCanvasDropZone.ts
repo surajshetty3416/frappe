@@ -1,13 +1,13 @@
-import useCanvasStore from "@studio/stores/canvasStore"
-import Block from "@studio/utils/block"
-import { getBlockInstance, getComponentBlock } from "@studio/utils/serializer"
-import getBlockTemplate from "@studio/utils/blockTemplate"
+import useCanvasStore from "@ui/stores/canvasStore"
+import Block from "@ui/utils/block"
+import { getBlockInstance, getComponentBlock } from "@ui/utils/serializer"
+import getBlockTemplate from "@ui/utils/blockTemplate"
 import { useDropZone } from "@vueuse/core"
 import { toast } from "frappe-ui"
 import { Ref } from "vue"
-import { FrappeUIComponent } from "@studio/types"
-import { getLayoutDirection, type LayoutDirection } from "@studio/utils/dropGeometry"
-import { familyPlacementMessage } from "@studio/utils/reorderDropZone"
+import { FrappeUIComponent } from "@ui/types"
+import { getLayoutDirection, type LayoutDirection } from "@ui/utils/dropGeometry"
+import { familyPlacementMessage } from "@ui/utils/reorderDropZone"
 
 const canvasStore = useCanvasStore()
 

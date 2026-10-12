@@ -16,11 +16,11 @@ from frappe.model.sync import get_doc_files
 from frappe.modules import get_module_path
 from frappe.modules.import_file import import_doc
 
-from frappe.insights import standard
-from frappe.insights.api import get_site_info
-from frappe.insights.migrate import after_app_install, sync_standard_workbooks
-from frappe.insights.tests.base import InsightsIntegrationTestCase
-from frappe.insights.tests.factories import DT
+from frappe.analytics import standard
+from frappe.analytics.api import get_site_info
+from frappe.analytics.migrate import after_app_install, sync_standard_workbooks
+from frappe.analytics.tests.base import InsightsIntegrationTestCase
+from frappe.analytics.tests.factories import DT
 
 MODULE = "Insights"
 WORKBOOK = "test-standard-workbook"
@@ -124,7 +124,7 @@ def is_imported() -> bool:
 
 def insights_hooks(hook: str) -> list[str]:
     """Insights' own methods for `hook`, out of the frappe app's hooks its layers merge into."""
-    return [fn for fn in frappe.get_hooks(hook, app_name="frappe") if fn.startswith("frappe.insights.")]
+    return [fn for fn in frappe.get_hooks(hook, app_name="frappe") if fn.startswith("frappe.analytics.")]
 
 
 class AShippedFileRestoresItsMembersUnderTheirOwnNames(InsightsIntegrationTestCase):
@@ -252,7 +252,7 @@ class AShippedFileRestoresItsMembersUnderTheirOwnNames(InsightsIntegrationTestCa
         """For a new workbook, `after_insert` sends a telemetry event and restores
         the backup of a deleted workbook. An import needs neither, and the file
         already has the members."""
-        with patch("frappe.insights.doctype.insights_workbook.insights_workbook.capture") as reported:
+        with patch("frappe.analytics.doctype.insights_workbook.insights_workbook.capture") as reported:
             self.import_file()
 
         reported.assert_not_called()
@@ -849,7 +849,7 @@ class AMemberKeptForDeskLeavesWithItsClaim(InsightsIntegrationTestCase):
     it."""
 
     def before_test(self):
-        from frappe.insights.desk import install_custom_fields
+        from frappe.analytics.desk import install_custom_fields
 
         install_custom_fields()
         delete_standard_workbooks()

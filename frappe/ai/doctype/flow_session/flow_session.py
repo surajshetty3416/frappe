@@ -11,8 +11,8 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 
-from frappe.flow.daemon.client import DaemonClient, DaemonError
-from frappe.flow.lib.session import (
+from frappe.ai.daemon.client import DaemonClient, DaemonError
+from frappe.ai.lib.session import (
 	ABANDONED,
 	GONE,
 	READ_ONLY,
@@ -24,7 +24,7 @@ from frappe.flow.lib.session import (
 )
 
 if TYPE_CHECKING:
-	from frappe.flow.doctype.flow_run.flow_run import FlowRun
+	from frappe.ai.doctype.flow_run.flow_run import FlowRun
 
 
 class FlowSession(Document):
@@ -36,8 +36,8 @@ class FlowSession(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
-		from frappe.flow.doctype.flow_session_attachment.flow_session_attachment import FlowSessionAttachment
-		from frappe.flow.doctype.flow_session_message.flow_session_message import FlowSessionMessage
+		from frappe.ai.doctype.flow_session_attachment.flow_session_attachment import FlowSessionAttachment
+		from frappe.ai.doctype.flow_session_message.flow_session_message import FlowSessionMessage
 
 		agent: DF.Link
 		attachments: DF.Table[FlowSessionAttachment]
@@ -108,9 +108,9 @@ class FlowSession(Document):
 
 	def server_config(self) -> dict[str, Any]:
 		"""This session's flow server config. Tools go as schemas; the server calls back to run them."""
-		from frappe.flow.daemon import lifecycle
-		from frappe.flow.doctype.flow_agent.flow_agent import DEFAULT_MAX_ITERATIONS
-		from frappe.flow.lib.model import model_config
+		from frappe.ai.daemon import lifecycle
+		from frappe.ai.doctype.flow_agent.flow_agent import DEFAULT_MAX_ITERATIONS
+		from frappe.ai.lib.model import model_config
 
 		agent = frappe.get_doc("Flow Agent", self.agent)
 		if not agent.enabled:
@@ -158,12 +158,12 @@ class FlowSession(Document):
 		"""Start a turn and return its Running Flow Run, or the active run it joined.
 		`attachments` are File names whose content travels with this turn. Once the run
 		ends, Flow calls the function at the dotted path `on_complete` with it."""
-		from frappe.flow.doctype.flow_session_attachment.flow_session_attachment import (
+		from frappe.ai.doctype.flow_session_attachment.flow_session_attachment import (
 			build_turn,
 			cleanup_indexed_files,
 		)
-		from frappe.flow.doctype.flow_skill.flow_skill import expand_skill_command
-		from frappe.flow.memory.memory import memory_block
+		from frappe.ai.doctype.flow_skill.flow_skill import expand_skill_command
+		from frappe.ai.memory.memory import memory_block
 
 		if not (input or "").strip():
 			frappe.throw(_("Message is required."), title=_("Invalid Message"))
@@ -243,7 +243,7 @@ class FlowSession(Document):
 
 	def _assert_can_run(self) -> None:
 		"""Enforce current agent and model access before the daemon uses its stored config."""
-		from frappe.flow.lib.model import model_config
+		from frappe.ai.lib.model import model_config
 
 		agent = frappe.get_doc("Flow Agent", self.agent)
 		frappe.has_permission("Flow Agent", "read", agent.name, throw=True)
@@ -252,7 +252,7 @@ class FlowSession(Document):
 		model_config(self.model or agent.model)
 
 	def set_model(self, model: str, reasoning_effort: str | None = None) -> None:
-		from frappe.flow.lib.model import model_config
+		from frappe.ai.lib.model import model_config
 
 		config = model_config(model)
 		with flow_server() as client:
@@ -395,7 +395,7 @@ def _delete_attachment_files(sessions: list[str]) -> None:
 def _purge_attachment_chunks(session: str | list[str]) -> None:
 	"""Best-effort removal of a session's (or batch's) retrieval chunks. The chunk index is
 	disposable, so a failure here must never block deleting the session."""
-	from frappe.flow.knowledge import attachment_store
+	from frappe.ai.knowledge import attachment_store
 
 	try:
 		attachment_store.delete(session=session)

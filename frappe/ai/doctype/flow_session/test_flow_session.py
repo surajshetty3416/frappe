@@ -9,16 +9,16 @@ import frappe
 from flow_harness.session.config import SessionConfig
 from frappe.tests import IntegrationTestCase
 
-from frappe.flow.daemon import lifecycle
-from frappe.flow.daemon.client import DaemonClient, DaemonError
-from frappe.flow.doctype.flow_session.flow_session import FlowSession
-from frappe.flow.doctype.flow_session_attachment.test_flow_session_attachment import png_bytes
-from frappe.flow.memory import store as memory_store
-from frappe.flow.permissions import FLOW_USER_ROLE
-from frappe.flow.tests.test_fake_daemon import PENDING, TITLE, FakeDaemon, pause, turn
-from frappe.flow.tools.builtins import sync_builtin_tools
+from frappe.ai.daemon import lifecycle
+from frappe.ai.daemon.client import DaemonClient, DaemonError
+from frappe.ai.doctype.flow_session.flow_session import FlowSession
+from frappe.ai.doctype.flow_session_attachment.test_flow_session_attachment import png_bytes
+from frappe.ai.memory import store as memory_store
+from frappe.ai.permissions import FLOW_USER_ROLE
+from frappe.ai.tests.test_fake_daemon import PENDING, TITLE, FakeDaemon, pause, turn
+from frappe.ai.tools.builtins import sync_builtin_tools
 
-DELETE = "frappe.flow.doctype.flow_session.flow_session._delete_server_session"
+DELETE = "frappe.ai.doctype.flow_session.flow_session._delete_server_session"
 
 
 def _insert_agent() -> str:
@@ -177,13 +177,13 @@ class TestAttachmentCleanup(IntegrationTestCase):
 
 	def test_on_trash_purges_session_chunks(self):
 		s = frappe.get_doc({"doctype": "Flow Session", "agent": self.agent}).insert(ignore_permissions=True)
-		with patch("frappe.flow.knowledge.attachment_store.delete") as delete:
+		with patch("frappe.ai.knowledge.attachment_store.delete") as delete:
 			frappe.delete_doc("Flow Session", s.name, ignore_permissions=True)
 		delete.assert_called_once_with(session=s.name)
 
 	def test_cleanup_failure_does_not_block_delete(self):
 		s = frappe.get_doc({"doctype": "Flow Session", "agent": self.agent}).insert(ignore_permissions=True)
-		with patch("frappe.flow.knowledge.attachment_store.delete", side_effect=RuntimeError("store down")):
+		with patch("frappe.ai.knowledge.attachment_store.delete", side_effect=RuntimeError("store down")):
 			frappe.delete_doc("Flow Session", s.name, ignore_permissions=True)
 		self.assertFalse(frappe.db.exists("Flow Session", s.name))
 
@@ -192,7 +192,7 @@ class TestAttachmentCleanup(IntegrationTestCase):
 		run = frappe.get_doc(
 			{"doctype": "Flow Run", "session": s.name, "source": "Manual", "status": "Completed"}
 		).insert(ignore_permissions=True)
-		with patch("frappe.flow.knowledge.attachment_store.delete"):
+		with patch("frappe.ai.knowledge.attachment_store.delete"):
 			frappe.delete_doc("Flow Session", s.name, ignore_permissions=True)
 		self.assertFalse(frappe.db.exists("Flow Run", run.name))
 
@@ -202,7 +202,7 @@ class TestAttachmentCleanup(IntegrationTestCase):
 		)
 		old = frappe.utils.add_days(frappe.utils.now(), -100)
 		frappe.db.set_value("Flow Session", s.name, "modified", old, update_modified=False)
-		with patch("frappe.flow.knowledge.attachment_store.delete") as delete:
+		with patch("frappe.ai.knowledge.attachment_store.delete") as delete:
 			FlowSession.clear_old_logs(days=30)
 		batch = delete.call_args.kwargs["session"]
 		self.assertIn(s.name, batch)
@@ -214,7 +214,7 @@ class TestFlowSessionOnTheServer(IntegrationTestCase):
 	def setUp(self):
 		sync_builtin_tools()
 		self.enterContext(patch.dict(frappe.local.conf, {"flow_server_secret": "site-token"}))
-		self.enterContext(patch("frappe.flow.lib.model.resolve_provider_credentials", return_value={}))
+		self.enterContext(patch("frappe.ai.lib.model.resolve_provider_credentials", return_value={}))
 		self.daemon = FakeDaemon()
 		self.enterContext(patch.object(DaemonClient, "for_site", return_value=self.daemon))
 		self.model = frappe.get_doc(
@@ -372,11 +372,11 @@ class TestFlowSessionOnTheServer(IntegrationTestCase):
 		frappe.clear_document_cache("Flow Knowledge Settings", "Flow Knowledge Settings")
 		self.daemon.paused = True
 		with (
-			patch("frappe.flow.knowledge.embedder.embed_texts", return_value=[[1.0, 0, 0, 0]]),
-			patch("frappe.flow.knowledge.attachment_store.ensure_table"),
-			patch("frappe.flow.knowledge.attachment_store.add"),
-			patch("frappe.flow.knowledge.attachment_store.delete") as delete,
-			patch("frappe.flow.knowledge.retriever.retrieve_attachments", return_value=[]),
+			patch("frappe.ai.knowledge.embedder.embed_texts", return_value=[[1.0, 0, 0, 0]]),
+			patch("frappe.ai.knowledge.attachment_store.ensure_table"),
+			patch("frappe.ai.knowledge.attachment_store.add"),
+			patch("frappe.ai.knowledge.attachment_store.delete") as delete,
+			patch("frappe.ai.knowledge.retriever.retrieve_attachments", return_value=[]),
 			self.assertRaisesRegex(frappe.ValidationError, "paused"),
 		):
 			self.session.chat("look", attachments=[file_doc.name])
@@ -523,7 +523,7 @@ class TestFlowSessionOnTheServer(IntegrationTestCase):
 
 	def test_deleting_a_session_drops_the_server_copy_first(self):
 		self.daemon.running = True
-		with patch("frappe.flow.knowledge.attachment_store.delete"):
+		with patch("frappe.ai.knowledge.attachment_store.delete"):
 			with self.assertRaisesRegex(frappe.ValidationError, "409"):
 				self.session.delete()
 			self.assertTrue(frappe.db.exists("Flow Session", self.session.name))
@@ -539,7 +539,7 @@ class TestFlowSessionServerConfig(IntegrationTestCase):
 	def setUp(self):
 		sync_builtin_tools()
 		self.enterContext(patch.dict(frappe.local.conf, {"flow_server_secret": "site-token"}))
-		self.enterContext(patch("frappe.flow.lib.model.resolve_provider_credentials", return_value={}))
+		self.enterContext(patch("frappe.ai.lib.model.resolve_provider_credentials", return_value={}))
 		self.model = frappe.get_doc(
 			{
 				"doctype": "Flow Model",
@@ -676,7 +676,7 @@ class TestFlowSessionServerConfig(IntegrationTestCase):
 			{"doctype": "Flow Model", "title": "Bare Model", "model_id": "openai/gpt-4o", "enabled": 1}
 		).insert()
 		provider = {"api_key": "sk-provider", "base_url": "https://provider.example.com"}
-		with patch("frappe.flow.lib.model.resolve_provider_credentials", return_value=provider):
+		with patch("frappe.ai.lib.model.resolve_provider_credentials", return_value=provider):
 			config = self.config(model=bare.name)
 			own = self.config()
 		self.assertEqual(
@@ -763,7 +763,7 @@ class TestFlowSessionModelPermission(IntegrationTestCase):
 	def setUp(self):
 		sync_builtin_tools()
 		self.enterContext(patch.dict(frappe.local.conf, {"flow_server_secret": "site-token"}))
-		self.enterContext(patch("frappe.flow.lib.model.resolve_provider_credentials", return_value={}))
+		self.enterContext(patch("frappe.ai.lib.model.resolve_provider_credentials", return_value={}))
 		self.daemon = FakeDaemon()
 		self.enterContext(patch.object(DaemonClient, "for_site", return_value=self.daemon))
 		self.allowed = self.model("Allowed Model")

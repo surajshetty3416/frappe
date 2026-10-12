@@ -43,7 +43,7 @@ if (teamPermissions.value.length) {
 		.map((p) => p.resource_name)
 
 	if (permittedTableNames.length) {
-		call('frappe.insights.api.data_sources.get_data_sources_of_tables', {
+		call('frappe.analytics.api.data_sources.get_data_sources_of_tables', {
 			table_names: permittedTableNames,
 		}).then((tablesBySource: Record<string, string[]>) => {
 			selectedTables.value = tablesBySource

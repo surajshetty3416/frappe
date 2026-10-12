@@ -48,10 +48,10 @@
 </template>
 
 <script setup lang="ts">
-import Autocomplete from "@builder/components/Controls/Autocomplete.vue";
-import InputLabel from "@builder/components/Controls/InputLabel.vue";
-import { aiModels, aiProviders, defaultModel } from "@builder/data/aiModels";
-import { BuilderAIModel } from "@builder/types/doctypes";
+import Autocomplete from "@web/components/Controls/Autocomplete.vue";
+import InputLabel from "@web/components/Controls/InputLabel.vue";
+import { aiModels, aiProviders, defaultModel } from "@web/data/aiModels";
+import { BuilderAIModel } from "@web/types/doctypes";
 import { Dialog, toast } from "frappe-ui";
 import { computed, ref, watch } from "vue";
 

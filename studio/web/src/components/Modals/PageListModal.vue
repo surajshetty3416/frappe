@@ -28,8 +28,8 @@
 	</Dialog>
 </template>
 <script setup lang="ts">
-import Dialog from "@builder/components/Controls/Dialog.vue";
-import { BuilderPage } from "@builder/types/doctypes";
+import Dialog from "@web/components/Controls/Dialog.vue";
+import { BuilderPage } from "@web/types/doctypes";
 import { ref } from "vue";
 const showModel = ref(true);
 defineProps<{

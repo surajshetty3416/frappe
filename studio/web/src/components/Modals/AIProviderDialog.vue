@@ -94,10 +94,10 @@
 </template>
 
 <script setup lang="ts">
-import InputLabel from "@builder/components/Controls/InputLabel.vue";
-import { defaultProvider } from "@builder/data/aiModels";
-import { BuilderAIProvider } from "@builder/types/doctypes";
-import { getErrorMessage } from "@builder/utils/helpers";
+import InputLabel from "@web/components/Controls/InputLabel.vue";
+import { defaultProvider } from "@web/data/aiModels";
+import { BuilderAIProvider } from "@web/types/doctypes";
+import { getErrorMessage } from "@web/utils/helpers";
 import { Button, createResource, Dialog, Switch, toast } from "frappe-ui";
 import { computed, ref, watch } from "vue";
 
@@ -157,7 +157,7 @@ const save = async () => {
 		return;
 	}
 	try {
-		await createResource({ url: "frappe.builder.ai.api.save_ai_provider" }).submit({
+		await createResource({ url: "frappe.web.ai.api.save_ai_provider" }).submit({
 			provider: {
 				...provider.value,
 				...(apiKey.value && !isDummyKey(apiKey.value) ? { api_key: apiKey.value } : {}),
@@ -178,7 +178,7 @@ const test = async () => {
 	testing.value = true;
 	testResult.value = "";
 	try {
-		const result = (await createResource({ url: "frappe.builder.ai.api.test_api_key" }).submit({
+		const result = (await createResource({ url: "frappe.web.ai.api.test_api_key" }).submit({
 			provider: props.providerName,
 			// the key just typed, not the stored one it would replace
 			...(apiKey.value && !isDummyKey(apiKey.value) ? { api_key: apiKey.value } : {}),
@@ -197,7 +197,7 @@ const importModels = async () => {
 	if (baseEdited.value) return;
 	importing.value = true;
 	try {
-		const result = (await createResource({ url: "frappe.builder.ai.api.import_provider_models" }).submit({
+		const result = (await createResource({ url: "frappe.web.ai.api.import_provider_models" }).submit({
 			provider: props.providerName,
 		})) as { added: string[]; skipped: string[]; found: number };
 		const parts = [`Added ${result.added.length} of ${result.found}`];

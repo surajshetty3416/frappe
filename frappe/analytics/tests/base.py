@@ -9,9 +9,9 @@ from frappe.database.database import Database
 from frappe.tests import IntegrationTestCase
 from frappe.utils import background_jobs
 
-from frappe.insights.doctype.insights_data_source_v3 import data_warehouse
-from frappe.insights.doctype.insights_data_source_v3.connectors import duckdb
-from frappe.insights.tests.factories import as_user, is_visible
+from frappe.analytics.doctype.insights_data_source_v3 import data_warehouse
+from frappe.analytics.doctype.insights_data_source_v3.connectors import duckdb
+from frappe.analytics.tests.factories import as_user, is_visible
 
 
 def get_whitelisted_caller():
@@ -41,7 +41,7 @@ def watch_get_writes(writes: list[str]) -> ExitStack:
         fn = get_whitelisted_caller()
         if (
             fn
-            and fn.__module__.startswith("frappe.insights.")
+            and fn.__module__.startswith("frappe.analytics.")
             and "GET" in frappe.allowed_http_methods_for_whitelisted_func[fn]
         ):
             writes.append(f"{fn.__module__}.{fn.__qualname__} {write} but accepts GET")
@@ -160,7 +160,7 @@ class InsightsIntegrationTestCase(IntegrationTestCase):
         a workbook's contents, so a rule over those has to hold either way. The
         allowed-resource lookup is site-cached, so the cache goes with it.
         """
-        from frappe.insights.doctype.insights_team.insights_team import clear_cache
+        from frappe.analytics.doctype.insights_team.insights_team import clear_cache
 
         original = frappe.db.get_single_value("Insights Settings", "enable_permissions")
         frappe.db.set_single_value("Insights Settings", "enable_permissions", enabled)

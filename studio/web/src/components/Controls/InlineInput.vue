@@ -38,7 +38,7 @@
 	</div>
 </template>
 <script setup lang="ts">
-import { extractNumberAndUnit } from "@builder/utils/helpers";
+import { extractNumberAndUnit } from "@web/utils/helpers";
 import { isNumber } from "@tiptap/vue-3";
 import { computed, ref } from "vue";
 import Autocomplete from "./Autocomplete.vue";

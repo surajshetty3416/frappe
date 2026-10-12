@@ -7,16 +7,16 @@ from unittest.mock import patch
 import frappe
 from frappe.utils import add_days, now_datetime
 
-from frappe import insights
-from frappe.insights.doctype.insights_data_source_v3 import data_warehouse
-from frappe.insights.doctype.insights_data_source_v3.connectors.duckdb import open_local_duckdb
-from frappe.insights.doctype.insights_data_source_v3.data_warehouse import (
+from frappe import analytics as insights
+from frappe.analytics.doctype.insights_data_source_v3 import data_warehouse
+from frappe.analytics.doctype.insights_data_source_v3.connectors.duckdb import open_local_duckdb
+from frappe.analytics.doctype.insights_data_source_v3.data_warehouse import (
     compact_warehouse,
     drop_orphan_warehouse_tables,
     prune_unused_tables,
 )
-from frappe.insights.doctype.insights_table_v3.insights_table_v3 import get_table_name
-from frappe.insights.tests.base import InsightsIntegrationTestCase
+from frappe.analytics.doctype.insights_table_v3.insights_table_v3 import get_table_name
+from frappe.analytics.tests.base import InsightsIntegrationTestCase
 
 DATA_SOURCE = "Site DB"
 

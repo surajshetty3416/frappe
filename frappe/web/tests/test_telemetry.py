@@ -3,10 +3,10 @@ from unittest.mock import patch
 import frappe
 from frappe.tests.utils import FrappeTestCase
 
-from frappe.builder.api import create_page_from_bundle, duplicate_page, identify_persona
-from frappe.builder.utils import count_blocks
+from frappe.web.api import create_page_from_bundle, duplicate_page, identify_persona
+from frappe.web.utils import count_blocks
 
-CAPTURE = "frappe.builder.doctype.builder_page.builder_page.capture"
+CAPTURE = "frappe.web.doctype.builder_page.builder_page.capture"
 IDENTIFY = "frappe.utils.telemetry.pulse.client.identify"
 
 ROOT = {"element": "div"}

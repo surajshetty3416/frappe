@@ -1,5 +1,5 @@
-import type Block from "@builder/block";
-import { findBlockInTree } from "@builder/utils/block/tree";
+import type Block from "@web/block";
+import { findBlockInTree } from "@web/utils/block/tree";
 import { computed, Ref, ref } from "vue";
 
 export function useBlockSelection(rootBlock: Ref<Block>) {

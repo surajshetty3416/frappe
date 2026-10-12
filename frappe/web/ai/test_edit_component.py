@@ -3,8 +3,8 @@ from types import SimpleNamespace
 import frappe
 from frappe.tests.utils import FrappeTestCase
 
-from frappe.builder.ai.agent.tools.components import run_edit_component
-from frappe.builder.component_versions import ensure_component_version, resolve_component
+from frappe.web.ai.agent.tools.components import run_edit_component
+from frappe.web.component_versions import ensure_component_version, resolve_component
 
 
 def make_component():

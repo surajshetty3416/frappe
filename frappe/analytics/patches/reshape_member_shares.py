@@ -1,6 +1,6 @@
 import frappe
 
-from frappe.insights.permissions import VISIBILITY_DOCTYPES, WORKBOOK_MEMBERS
+from frappe.analytics.permissions import VISIBILITY_DOCTYPES, WORKBOOK_MEMBERS
 
 
 def execute():

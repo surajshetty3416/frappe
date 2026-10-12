@@ -46,10 +46,10 @@
 	</div>
 </template>
 <script setup lang="ts">
-import { leftPanelTabs, type LeftPanelTab } from "@builder/components/LeftPanelTabs";
-import TokenManager from "@builder/components/Modals/TokenManager.vue";
-import { editorDemo } from "@builder/utils/editorDemo";
-import useBuilderStore from "@builder/stores/builderStore";
+import { leftPanelTabs, type LeftPanelTab } from "@web/components/LeftPanelTabs";
+import TokenManager from "@web/components/Modals/TokenManager.vue";
+import { editorDemo } from "@web/utils/editorDemo";
+import useBuilderStore from "@web/stores/builderStore";
 import { KeyboardShortcut, Tooltip, useKeyboardShortcut } from "frappe-ui";
 import { reactive, Ref, ref, watch, watchEffect } from "vue";
 import { useRoute } from "vue-router";

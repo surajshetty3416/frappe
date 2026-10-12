@@ -68,11 +68,11 @@
 	</div>
 </template>
 <script setup lang="ts">
-import { __ } from "@builder/translation";
-import InlineInput from "@builder/components/Controls/InlineInput.vue";
-import StylePropertyControl from "@builder/components/Controls/StylePropertyControl.vue";
-import blockController from "@builder/utils/blockController";
-import { POSITION_UNIT_OPTIONS } from "@builder/utils/unitOptions";
+import { __ } from "@web/translation";
+import InlineInput from "@web/components/Controls/InlineInput.vue";
+import StylePropertyControl from "@web/components/Controls/StylePropertyControl.vue";
+import blockController from "@web/utils/blockController";
+import { POSITION_UNIT_OPTIONS } from "@web/utils/unitOptions";
 import { computed, watch } from "vue";
 
 const position = computed({

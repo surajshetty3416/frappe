@@ -1,9 +1,9 @@
-import type Block from "@studio/utils/block"
-import type { styleProperty } from "@studio/utils/block"
-import type { BlockOptions, StyleValue } from "@studio/types"
-import { expandBlock } from "@studio/utils/blockCodec"
-import { isDynamicValue } from "@studio/utils/code"
-import { getBlockCopyWithoutParent } from "@studio/utils/serializer"
+import type Block from "@ui/utils/block"
+import type { styleProperty } from "@ui/utils/block"
+import type { BlockOptions, StyleValue } from "@ui/types"
+import { expandBlock } from "@ui/utils/blockCodec"
+import { isDynamicValue } from "@ui/utils/code"
+import { getBlockCopyWithoutParent } from "@ui/utils/serializer"
 
 interface Canvas {
 	findBlock: (componentId: string) => Block | null

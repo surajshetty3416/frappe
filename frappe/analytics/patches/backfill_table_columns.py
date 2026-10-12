@@ -3,9 +3,9 @@
 
 import frappe
 
-from frappe.insights.doctype.insights_data_source_v3.insights_data_source_v3 import after_request
-from frappe.insights.doctype.insights_table_v3.insights_table_v3 import store_columns
-from frappe.insights.utils import InsightsDataSourcev3
+from frappe.analytics.doctype.insights_data_source_v3.insights_data_source_v3 import after_request
+from frappe.analytics.doctype.insights_table_v3.insights_table_v3 import store_columns
+from frappe.analytics.utils import InsightsDataSourcev3
 
 
 def execute():

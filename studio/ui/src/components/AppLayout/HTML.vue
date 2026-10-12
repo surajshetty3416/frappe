@@ -4,9 +4,9 @@
 
 <script setup lang="ts">
 import { ref, computed } from "vue"
-import type { HTMLProps } from "@studio/types/studio_components/HTML"
-import { isEditor } from "@studio/utils/helpers"
-import { sanitizeHTML } from "@studio/utils/helpers"
+import type { HTMLProps } from "@ui/types/studio_components/HTML"
+import { isEditor } from "@ui/utils/helpers"
+import { sanitizeHTML } from "@ui/utils/helpers"
 
 const component = ref<HTMLElement | null>(null)
 const props = defineProps<HTMLProps>()

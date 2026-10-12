@@ -14,10 +14,10 @@ from frappe.model.document import Document
 from frappe.utils.password import delete_all_passwords_for
 from ibis import _
 
-from frappe.insights import standard
-from frappe.insights.decorators import insights_whitelist
-from frappe.insights.exceptions import QueryRefused, UnknownColumn
-from frappe.insights.doctype.insights_data_source_v3.ibis_utils import (
+from frappe.analytics import standard
+from frappe.analytics.decorators import insights_whitelist
+from frappe.analytics.exceptions import QueryRefused, UnknownColumn
+from frappe.analytics.doctype.insights_data_source_v3.ibis_utils import (
     CircularQueryReferenceError,
     IbisQueryBuilder,
     clamp,
@@ -26,8 +26,8 @@ from frappe.insights.doctype.insights_data_source_v3.ibis_utils import (
     is_carried_currency_column,
     is_hidden_column,
 )
-from frappe.insights.doctype.insights_data_source_v3.insights_data_source_v3 import source_type
-from frappe.insights.query_utils import (
+from frappe.analytics.doctype.insights_data_source_v3.insights_data_source_v3 import source_type
+from frappe.analytics.query_utils import (
     check_source_workbook,
     extract_query_deps_from_operations,
     find_cycle,
@@ -36,8 +36,8 @@ from frappe.insights.query_utils import (
     source_tables,
     sync_query_references,
 )
-from frappe.insights.not_permitted import answers_refusal
-from frappe.insights.utils import (
+from frappe.analytics.not_permitted import answers_refusal
+from frappe.analytics.utils import (
     as_text,
     deep_convert_dict_to_dict,
     get_currency_symbols,
@@ -56,7 +56,7 @@ class InsightsQueryv3(Document):
     if TYPE_CHECKING:
         from frappe.types import DF
 
-        from frappe.insights.doctype.insights_query_variable.insights_query_variable import (
+        from frappe.analytics.doctype.insights_query_variable.insights_query_variable import (
             InsightsQueryVariable,
         )
 
@@ -80,7 +80,7 @@ class InsightsQueryv3(Document):
         return super().get_valid_dict(*args, **kwargs)
 
     def as_dict(self, *args, **kwargs):
-        from frappe.insights.permissions import can_write
+        from frappe.analytics.permissions import can_write
 
         d = super().as_dict(*args, **kwargs)
         d.read_only = not can_write(self)
@@ -113,7 +113,7 @@ class InsightsQueryv3(Document):
         delete_variable_secrets(self.variables)
 
     def validate(self):
-        from frappe.insights.permissions import check_trusted_code_author
+        from frappe.analytics.permissions import check_trusted_code_author
 
         standard.guard_member(self)
         before = self.get_doc_before_save()
@@ -127,7 +127,7 @@ class InsightsQueryv3(Document):
         Read access is checked for a newly added reference only, so an existing
         one stays saveable by anyone who may already read this query.
         """
-        from frappe.insights.permissions import check_referenced_query_access
+        from frappe.analytics.permissions import check_referenced_query_access
 
         before = self.get_doc_before_save()
         existing = referenced_queries(before.operations) if before else set()
@@ -267,7 +267,7 @@ class InsightsQueryv3(Document):
         Nothing else about it leaves the site: the SQL, the message and the names
         of columns and tables all stay here.
         """
-        from frappe.insights.telemetry import caller, capture, error_kind
+        from frappe.analytics.telemetry import caller, capture, error_kind
 
         with suppress(Exception):  # nosemgrep - telemetry never fails the run it reports on
             capture(
@@ -403,7 +403,7 @@ class InsightsQueryv3(Document):
     ):
         """Download this query's rows as a file, if `can_export` allows it. A
         View's drill download checks the same."""
-        from frappe.insights.permissions import can_export
+        from frappe.analytics.permissions import can_export
 
         if not can_export(self):
             frappe.throw(
@@ -657,7 +657,7 @@ class InsightsQueryv3(Document):
 
     @insights_whitelist()
     def export(self):
-        from frappe.insights.permissions import check_referenced_query_access
+        from frappe.analytics.permissions import check_referenced_query_access
 
         query = {
             "version": "1.0",
@@ -712,7 +712,7 @@ class InsightsQueryv3(Document):
             data_source = table.get("data_source")
             table_name = table.get("table_name")
             if data_source and table_name:
-                from frappe.insights.doctype.insights_table_v3.insights_table_v3 import get_table_name
+                from frappe.analytics.doctype.insights_table_v3.insights_table_v3 import get_table_name
 
                 table_doc_name = get_table_name(data_source, table_name)
                 if frappe.db.exists("Insights Table v3", table_doc_name):
@@ -780,10 +780,10 @@ def import_query(query, workbook, id_map=None):
     `export` nests, so a query two branches both build on appears once per branch.
     `id_map` is shared down the recursion, so it is imported once.
     """
-    from frappe.insights.doctype.insights_workbook.insights_workbook import (
+    from frappe.analytics.doctype.insights_workbook.insights_workbook import (
         _rewrite_query_references,
     )
-    from frappe.insights.permissions import check_trusted_code_author
+    from frappe.analytics.permissions import check_trusted_code_author
 
     query = frappe.parse_json(query)
     query = deep_convert_dict_to_dict(query)

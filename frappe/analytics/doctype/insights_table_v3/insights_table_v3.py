@@ -14,11 +14,11 @@ from frappe.query_builder.functions import Count, Max, Sum
 from ibis import Table
 from ibis.backends.duckdb import Backend as DuckDBBackend
 
-from frappe import insights
-from frappe.insights import not_permitted, user_permissions
-from frappe.insights.exceptions import TableNotStored
-from frappe.insights.permission_user import get_permission_user
-from frappe.insights.utils import InsightsDataSourcev3
+from frappe import analytics as insights
+from frappe.analytics import not_permitted, user_permissions
+from frappe.analytics.exceptions import TableNotStored
+from frappe.analytics.permission_user import get_permission_user
+from frappe.analytics.utils import InsightsDataSourcev3
 
 
 class InsightsTablev3(Document):
@@ -63,7 +63,7 @@ class InsightsTablev3(Document):
             self._validate_incremental_sync_config()
 
         if self.before_import_script:
-            from frappe.insights.doctype.insights_data_source_v3.ibis_utils import exec_with_return
+            from frappe.analytics.doctype.insights_data_source_v3.ibis_utils import exec_with_return
 
             try:
                 table = self.get_ibis_table(self.data_source, self.table, use_live_connection=True)
@@ -85,7 +85,7 @@ class InsightsTablev3(Document):
         if self.sync_mode != "Incremental":
             return
 
-        from frappe.insights.doctype.insights_data_source_v3.data_warehouse import (
+        from frappe.analytics.doctype.insights_data_source_v3.data_warehouse import (
             WarehouseTableImporter,
         )
 
@@ -197,7 +197,7 @@ class InsightsTablev3(Document):
 
     @staticmethod
     def get_ibis_table(data_source, table_name, use_live_connection=False, import_if_not_exists=True):
-        from frappe.insights.doctype.insights_team.insights_team import (
+        from frappe.analytics.doctype.insights_team.insights_team import (
             apply_table_restrictions,
             check_table_permission,
             team_grant,
@@ -287,7 +287,7 @@ def store_columns(data_source: str, table_name: str, schema: ibis.Schema) -> Non
     A failure is never the caller's problem: the caller wanted the table, not the
     record of its columns.
     """
-    from frappe.insights.doctype.insights_data_source_v3.ibis_utils import (
+    from frappe.analytics.doctype.insights_data_source_v3.ibis_utils import (
         get_columns_from_schema,
     )
 
@@ -333,7 +333,7 @@ def get_stored_columns(
     needle = (contains or "").lower()
 
     # insights_team imports this module, so its import stays inside the function
-    from frappe.insights.doctype.insights_team.insights_team import check_table_permission
+    from frappe.analytics.doctype.insights_team.insights_team import check_table_permission
 
     permitted = {}
     for table in tables:
@@ -367,7 +367,7 @@ def filter_permitted_columns(
     if not is_site_db(data_source):
         return columns
 
-    from frappe.insights.doctype.insights_team.insights_team import team_grant
+    from frappe.analytics.doctype.insights_team.insights_team import team_grant
 
     # a team grant includes every column
     if team_grant(data_source, table_name, user=user) is not None:
@@ -543,7 +543,7 @@ def apply_user_permissions(t: Table, data_source, table_name, user=None, granted
             )
         return desk
 
-    from frappe.insights.doctype.insights_team.insights_team import restriction_predicate
+    from frappe.analytics.doctype.insights_team.insights_team import restriction_predicate
 
     # The grant is restricted, so it gives less than the whole table: rows
     # desk does not allow, and cells of columns desk hides. Where desk allows
@@ -782,7 +782,7 @@ def get_permission_query(doctype, parent_doctype=None, user=None):
     #
     # `frappe.get_list` is the supported path: every permission-filtered chart
     # must run the same SQL as frappe's own list. What narrowed the rows is read
-    # separately (`frappe.insights.user_permissions.narrowing`), because a card that
+    # separately (`frappe.analytics.user_permissions.narrowing`), because a card that
     # does not say it is scoped reads as the whole number.
     user = user or frappe.session.user
     sql = str(

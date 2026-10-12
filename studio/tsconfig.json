@@ -16,13 +16,13 @@
 		"types": ["node", "vite/client", "unplugin-icons/types/vue"],
 		"paths": {
 			"@shell/*": ["./src/*"],
-			"@builder/*": ["./builder/src/*"],
-			"@insights/*": ["./insights/src2/*"],
-			"@studio/*": ["./studio/src/*"],
-			"@flow/*": ["./flow/src/*"],
+			"@web/*": ["./web/src/*"],
+			"@analytics/*": ["./analytics/src2/*"],
+			"@ui/*": ["./ui/src/*"],
+			"@ai/*": ["./ai/src/*"],
 			"@framework/ui": ["../ui/src/index.ts"],
 			"@framework/ui/*": ["../ui/src/*"]
 		}
 	},
-	"include": ["src/**/*", "*/src/**/*", "insights/src2/**/*"]
+	"include": ["src/**/*", "*/src/**/*", "analytics/src2/**/*"]
 }

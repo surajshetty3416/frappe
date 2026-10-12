@@ -1,8 +1,8 @@
 import frappe
 import pandas as pd
 
-from frappe.insights.doctype.insights_data_source_v3.ibis_utils import cache_results, get_cached_results
-from frappe.insights.tests.base import InsightsIntegrationTestCase
+from frappe.analytics.doctype.insights_data_source_v3.ibis_utils import cache_results, get_cached_results
+from frappe.analytics.tests.base import InsightsIntegrationTestCase
 
 
 class TestResultsCache(InsightsIntegrationTestCase):

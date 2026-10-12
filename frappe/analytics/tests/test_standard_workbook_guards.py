@@ -9,9 +9,9 @@ can write both fields and ignores `read_only`, so the document refuses both.
 
 import frappe
 
-from frappe.insights.doctype.insights_workbook.insights_workbook import _rename_members
-from frappe.insights.tests.base import InsightsIntegrationTestCase
-from frappe.insights.tests.factories import DT, create_test_dashboard, create_test_workbook
+from frappe.analytics.doctype.insights_workbook.insights_workbook import _rename_members
+from frappe.analytics.tests.base import InsightsIntegrationTestCase
+from frappe.analytics.tests.factories import DT, create_test_dashboard, create_test_workbook
 
 OWNER = "Administrator"
 PREFIX = "Standard Guard Test"
@@ -52,7 +52,7 @@ class TestStandardWorkbookGuards(InsightsIntegrationTestCase):
         frappe.conf.developer_mode = 0
 
         with self.assertRaises(frappe.ValidationError):
-            frappe.client.set_value(DT.WORKBOOK, self.workbook, {"is_standard": 1, "module": "Insights"})
+            frappe.client.set_value(DT.WORKBOOK, self.workbook, {"is_standard": 1, "module": "Analytics"})
 
         self.assertFalse(frappe.db.get_value(DT.WORKBOOK, self.workbook, "is_standard"))
 

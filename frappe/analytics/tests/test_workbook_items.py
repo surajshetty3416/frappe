@@ -8,9 +8,9 @@ access covers it.
 
 import frappe
 
-from frappe.insights.api.workbooks import create_folder, update_sort_orders
-from frappe.insights.tests.base import InsightsIntegrationTestCase
-from frappe.insights.tests.factories import (
+from frappe.analytics.api.workbooks import create_folder, update_sort_orders
+from frappe.analytics.tests.base import InsightsIntegrationTestCase
+from frappe.analytics.tests.factories import (
     DT,
     as_user,
     create_test_chart,
@@ -19,7 +19,7 @@ from frappe.insights.tests.factories import (
     delete_users,
     execute_test_query,
 )
-from frappe.insights.tests.permissions_utils import USER_1, USER_2, create_test_users
+from frappe.analytics.tests.permissions_utils import USER_1, USER_2, create_test_users
 
 OWNER = USER_1
 OTHER = USER_2

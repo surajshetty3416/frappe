@@ -50,12 +50,12 @@
 </template>
 
 <script setup lang="ts">
-import { __ } from "@builder/translation";
-import AnalyticsFilters from "@builder/components/Settings/AnalyticsFilters.vue";
-import AnalyticsOverview from "@builder/components/Settings/AnalyticsOverview.vue";
-import TopReferrersList from "@builder/components/Settings/TopReferrersList.vue";
-import TrackingDisabledNotice from "@builder/components/Settings/TrackingDisabledNotice.vue";
-import { useAnalytics } from "@builder/composables/useAnalytics";
+import { __ } from "@web/translation";
+import AnalyticsFilters from "@web/components/Settings/AnalyticsFilters.vue";
+import AnalyticsOverview from "@web/components/Settings/AnalyticsOverview.vue";
+import TopReferrersList from "@web/components/Settings/TopReferrersList.vue";
+import TrackingDisabledNotice from "@web/components/Settings/TrackingDisabledNotice.vue";
+import { useAnalytics } from "@web/composables/useAnalytics";
 import { ListView } from "frappe-ui/experimental";
 
 const {
@@ -69,7 +69,7 @@ const {
 	analytics,
 	onPageRowClick,
 } = useAnalytics({
-	apiUrl: "frappe.builder.api.get_overall_analytics",
+	apiUrl: "frappe.web.api.get_overall_analytics",
 	initialRange: "last_30_days",
 	routePersistKey: "builderGlobalAnalyticsRoute",
 });

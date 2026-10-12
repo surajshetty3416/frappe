@@ -147,24 +147,24 @@
 <script setup lang="ts">
 import { ref, computed, watch } from "vue"
 import { Combobox, FormControl, createResource, Dialog, TabButtons, Button } from "frappe-ui"
-import useStudioStore from "@studio/stores/studioStore"
-import Block from "@studio/utils/block"
-import EmptyState from "@studio/components/EmptyState.vue"
-import ItemActions from "@studio/components/ItemActions.vue"
-import blockController from "@studio/utils/blockController"
+import useStudioStore from "@ui/stores/studioStore"
+import Block from "@ui/utils/block"
+import EmptyState from "@ui/components/EmptyState.vue"
+import ItemActions from "@ui/components/ItemActions.vue"
+import blockController from "@ui/utils/blockController"
 
-import { isObjectEmpty, confirm } from "@studio/utils/helpers"
+import { isObjectEmpty, confirm } from "@ui/utils/helpers"
 
-import type { ActionConfigurations, ComponentEvent } from "@studio/types/ComponentEvent"
+import type { ActionConfigurations, ComponentEvent } from "@ui/types/ComponentEvent"
 import Link from "@framework/ui/components/Link/Link.vue"
-import Grid from "@studio/components/Grid.vue"
-import Code from "@studio/components/Code.vue"
-import { useStudioCompletions } from "@studio/utils/completions/useStudioCompletions"
-import type { DocTypeField } from "@studio/types"
+import Grid from "@ui/components/Grid.vue"
+import Code from "@ui/components/Code.vue"
+import { useStudioCompletions } from "@ui/utils/completions/useStudioCompletions"
+import type { DocTypeField } from "@ui/types"
 import { toast } from "frappe-ui"
 import type { CompletionContext } from "@codemirror/autocomplete"
-import { usePageScope } from "@studio/stores/codeStore"
-import useComponentInstance from "@studio/utils/useComponentInstance"
+import { usePageScope } from "@ui/stores/codeStore"
+import useComponentInstance from "@ui/utils/useComponentInstance"
 
 const props = defineProps<{
 	block?: Block
@@ -246,7 +246,7 @@ const selectDoctype = async (doctype: string) => {
 
 const loadDoctypeFields = async (doctype: string) => {
 	const fields = createResource({
-		url: "frappe.studio.api.get_doctype_fields",
+		url: "frappe.ui.api.get_doctype_fields",
 		params: { doctype },
 		transform: (data: DocTypeField[]) => {
 			return data.map((field) => {

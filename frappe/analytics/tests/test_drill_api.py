@@ -13,23 +13,23 @@ from unittest.mock import patch
 import frappe
 import frappe.share
 
-from frappe.insights.api.authoring import get_chart_data as get_authoring_chart_data
-from frappe.insights.api.authoring import get_drill_data as get_authoring_drill_data
-from frappe.insights.api.authoring import get_drill_rows_range as get_authoring_drill_rows_range
-from frappe.insights.api.authoring import get_drill_rows_values as get_authoring_drill_rows_values
-from frappe.insights.api.view import (
+from frappe.analytics.api.authoring import get_chart_data as get_authoring_chart_data
+from frappe.analytics.api.authoring import get_drill_data as get_authoring_drill_data
+from frappe.analytics.api.authoring import get_drill_rows_range as get_authoring_drill_rows_range
+from frappe.analytics.api.authoring import get_drill_rows_values as get_authoring_drill_rows_values
+from frappe.analytics.api.view import (
     download_drill_rows,
     get_chart_data,
     get_drill_data,
     get_drill_rows_range,
     get_drill_rows_values,
 )
-from frappe.insights.doctype.insights_chart_v3.chart_drill import drill_data, drill_dimensions
-from frappe.insights.doctype.insights_chart_v3.insights_chart_v3 import InsightsChartv3
-from frappe.insights.doctype.insights_dashboard_v3.insights_dashboard_v3 import route_filters
-from frappe.insights.doctype.insights_data_source_v3.insights_data_source_v3 import db_connections
-from frappe.insights.tests.base import InsightsIntegrationTestCase
-from frappe.insights.tests.factories import DT, as_user, create_user, delete_users, delete_workbooks
+from frappe.analytics.doctype.insights_chart_v3.chart_drill import drill_data, drill_dimensions
+from frappe.analytics.doctype.insights_chart_v3.insights_chart_v3 import InsightsChartv3
+from frappe.analytics.doctype.insights_dashboard_v3.insights_dashboard_v3 import route_filters
+from frappe.analytics.doctype.insights_data_source_v3.insights_data_source_v3 import db_connections
+from frappe.analytics.tests.base import InsightsIntegrationTestCase
+from frappe.analytics.tests.factories import DT, as_user, create_user, delete_users, delete_workbooks
 
 OWNER = "drill_api_owner@test.com"
 # visibility allows them, but they hold no Insights role: a desk user
@@ -496,7 +496,7 @@ class TestDrillAPI(InsightsIntegrationTestCase):
         """
         _, chart, dashboard = self.make_content()
 
-        with patch("frappe.insights.doctype.insights_chart_v3.chart_drill.BREAKDOWN_SIZE", 2):
+        with patch("frappe.analytics.doctype.insights_chart_v3.chart_drill.BREAKDOWN_SIZE", 2):
             result = self.drill(
                 OWNER,
                 chart.name,
@@ -513,7 +513,7 @@ class TestDrillAPI(InsightsIntegrationTestCase):
         """A rows page is bounded by the page size, not the ranking size."""
         _, chart, dashboard = self.make_content()
 
-        with patch("frappe.insights.doctype.insights_chart_v3.chart_drill.BREAKDOWN_SIZE", 1):
+        with patch("frappe.analytics.doctype.insights_chart_v3.chart_drill.BREAKDOWN_SIZE", 1):
             result = self.drill(
                 OWNER,
                 chart.name,
@@ -647,7 +647,7 @@ class TestDrillAPI(InsightsIntegrationTestCase):
         _, chart, dashboard = self.make_content()
         alphabetical = [{"column": "description", "direction": "asc"}]
 
-        with patch("frappe.insights.doctype.insights_chart_v3.chart_drill.PAGE_SIZE", 2):
+        with patch("frappe.analytics.doctype.insights_chart_v3.chart_drill.PAGE_SIZE", 2):
             first = self.drill(
                 OWNER, chart.name, dashboard.name, drill_stack=[rows_level()], sort=alphabetical
             )
@@ -698,7 +698,7 @@ class TestDrillAPI(InsightsIntegrationTestCase):
         self.assertEqual(narrowed["total_row_count"], 1)
 
         # and the pages split the narrowed rows, not the whole segment
-        with patch("frappe.insights.doctype.insights_chart_v3.chart_drill.PAGE_SIZE", 1):
+        with patch("frappe.analytics.doctype.insights_chart_v3.chart_drill.PAGE_SIZE", 1):
             first = self.drill(
                 OWNER,
                 chart.name,
@@ -917,7 +917,7 @@ class TestDrillAPI(InsightsIntegrationTestCase):
         """Never a top-N by measure, which would take buckets out of the middle."""
         _, chart, dashboard = self.timeline()
 
-        with patch("frappe.insights.doctype.insights_chart_v3.chart_drill.BREAKDOWN_SIZE", 2):
+        with patch("frappe.analytics.doctype.insights_chart_v3.chart_drill.BREAKDOWN_SIZE", 2):
             result = self.drill(
                 OWNER,
                 chart.name,
@@ -1160,7 +1160,7 @@ class TestDrillAPI(InsightsIntegrationTestCase):
             },
         )
 
-        with patch("frappe.insights.query_builders.sql_functions.nowdate", return_value="2024-02-17"):
+        with patch("frappe.analytics.query_builders.sql_functions.nowdate", return_value="2024-02-17"):
             shown = frappe.get_doc(DT.CHART, chart.name).fetch(force=True)
             clicked_the_next_day = self.drill(
                 OWNER,
@@ -1198,7 +1198,7 @@ class TestDrillAPI(InsightsIntegrationTestCase):
             },
         )
 
-        with patch("frappe.insights.query_builders.sql_functions.nowdate", return_value="2024-03-01"):
+        with patch("frappe.analytics.query_builders.sql_functions.nowdate", return_value="2024-03-01"):
             clicked_next_month = self.drill(
                 OWNER,
                 chart.name,
@@ -1227,7 +1227,7 @@ class TestDrillAPI(InsightsIntegrationTestCase):
         query, chart, dashboard = self.timeline(chart_type="Number", config=config)
         level = rows_level(filters=[equals("date", "2024-02-01")], measure="Todos", read_on="2024-02-17")
 
-        with patch("frappe.insights.query_builders.sql_functions.nowdate", return_value="2024-03-01"):
+        with patch("frappe.analytics.query_builders.sql_functions.nowdate", return_value="2024-03-01"):
             with as_user(OWNER), db_connections():
                 built = get_authoring_drill_data(
                     query=query.name,
@@ -1275,7 +1275,7 @@ class TestDrillAPI(InsightsIntegrationTestCase):
                     )
 
                 with patch(
-                    "frappe.insights.query_builders.sql_functions.nowdate", return_value="2024-03-01"
+                    "frappe.analytics.query_builders.sql_functions.nowdate", return_value="2024-03-01"
                 ):
                     with as_user(OWNER), db_connections():
                         opened = frappe.get_doc(
@@ -1372,7 +1372,7 @@ class TestDrillAPI(InsightsIntegrationTestCase):
         }
         level = rows_level(filters=[equals("date", "2024-02-01")], measure="Todos", read_on="2024-02-17")
 
-        with patch("frappe.insights.query_builders.sql_functions.nowdate", return_value="2024-03-01"):
+        with patch("frappe.analytics.query_builders.sql_functions.nowdate", return_value="2024-03-01"):
             with as_user(OWNER), db_connections():
                 clicked_next_month = drill_data(chart, [level], adhoc_filters=this_month)
 
@@ -1392,7 +1392,7 @@ class TestDrillAPI(InsightsIntegrationTestCase):
             },
         )
 
-        with patch("frappe.insights.query_builders.sql_functions.nowdate", return_value="2024-03-01"):
+        with patch("frappe.analytics.query_builders.sql_functions.nowdate", return_value="2024-03-01"):
             with as_user(OWNER), db_connections():
                 card = get_chart_data(chart=chart.name, dashboard=dashboard.name, force=True)
 
@@ -1415,7 +1415,7 @@ class TestDrillAPI(InsightsIntegrationTestCase):
         )
         level = rows_level(measure="Todos", read_on="2024-02-17")
 
-        with patch("frappe.insights.query_builders.sql_functions.nowdate", return_value="2024-03-01"):
+        with patch("frappe.analytics.query_builders.sql_functions.nowdate", return_value="2024-03-01"):
             with as_user(OWNER), db_connections():
                 clicked_next_month = drill_data(chart, [level])
 
@@ -1914,7 +1914,7 @@ class TestDrillAPI(InsightsIntegrationTestCase):
         # the query-keyed group still narrows the rows
         self.assertEqual(self.descriptions(result), [OPEN_LOW])
 
-    # who may drill, through `frappe.insights.api.view`
+    # who may drill, through `frappe.analytics.api.view`
 
     def view_drill(self, user, chart, dashboard, **kwargs):
         with as_user(user), db_connections():
@@ -2100,7 +2100,7 @@ class TestDrillAPI(InsightsIntegrationTestCase):
         """A reader's own card filter slices the owner's rows another way, as a
         breakdown does. A dashboard filter the owner linked only narrows the
         chart the owner saved. `view.get_card_values` follows the same rule."""
-        from frappe.insights.api.view import get_card_values
+        from frappe.analytics.api.view import get_card_values
 
         _, chart, dashboard = self.make_content(run_as_owner=1)
         self.share_dashboard_with(dashboard.name, OUTSIDER)

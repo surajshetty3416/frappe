@@ -20,7 +20,7 @@
 							onError: (e: Event) => {
 								const img = e.target as HTMLImageElement | null;
 								if (img) {
-									img.src = '/assets/frappe/builder/images/fallback-favicon.ico';
+									img.src = '/assets/frappe/web/images/fallback-favicon.ico';
 								}
 							},
 						});
@@ -35,7 +35,7 @@
 </template>
 
 <script setup lang="ts">
-import { __ } from "@builder/translation";
+import { __ } from "@web/translation";
 import { ListView } from "frappe-ui/experimental";
 import { h } from "vue";
 

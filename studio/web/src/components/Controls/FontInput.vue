@@ -17,14 +17,14 @@
 </template>
 
 <script setup lang="ts">
-import { __ } from "@builder/translation";
-import Autocomplete from "@builder/components/Controls/Autocomplete.vue";
-import FontUploader from "@builder/components/Controls/FontUploader.vue";
-import userFonts from "@builder/data/userFonts";
-import { BuilderToken, UserFont } from "@builder/types/doctypes";
-import { filterOptions } from "@builder/utils/autocompleteOptions";
-import { enqueuePreviewLoad, fontListItems, loadFontList, previewFontStyle } from "@builder/utils/fontManager";
-import { useBuilderToken } from "@builder/utils/useBuilderToken";
+import { __ } from "@web/translation";
+import Autocomplete from "@web/components/Controls/Autocomplete.vue";
+import FontUploader from "@web/components/Controls/FontUploader.vue";
+import userFonts from "@web/data/userFonts";
+import { BuilderToken, UserFont } from "@web/types/doctypes";
+import { filterOptions } from "@web/utils/autocompleteOptions";
+import { enqueuePreviewLoad, fontListItems, loadFontList, previewFontStyle } from "@web/utils/fontManager";
+import { useBuilderToken } from "@web/utils/useBuilderToken";
 import { Tooltip } from "frappe-ui";
 import { computed, ref, watch } from "vue";
 

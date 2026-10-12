@@ -7,14 +7,14 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 
-import codeCompletions from "@builder/data/codeCompletions";
-import blockController from "@builder/utils/blockController";
-import { createStartingState } from "@builder/utils/createCodeMirrorState";
-import { getDefaultPropsList, getParentProps } from "@builder/utils/helpers";
+import codeCompletions from "@web/data/codeCompletions";
+import blockController from "@web/utils/blockController";
+import { createStartingState } from "@web/utils/createCodeMirrorState";
+import { getDefaultPropsList, getParentProps } from "@web/utils/helpers";
 import { openSearchPanel } from "@codemirror/search";
 import { Compartment } from "@codemirror/state";
 import { oneDark } from "@codemirror/theme-one-dark";
-import { useDarkMode } from "@builder/composables/useDarkMode";
+import { useDarkMode } from "@web/composables/useDarkMode";
 import { EditorView } from "codemirror";
 import { tomorrow } from "thememirror";
 

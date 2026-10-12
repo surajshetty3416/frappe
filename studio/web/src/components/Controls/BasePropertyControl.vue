@@ -89,15 +89,15 @@
 </template>
 
 <script lang="ts" setup>
-import { __ } from "@builder/translation";
-import DraggablePopup from "@builder/components/Controls/DraggablePopup.vue";
-import DynamicValueHandler from "@builder/components/Controls/DynamicValueHandler.vue";
-import Input from "@builder/components/Controls/Input.vue";
-import PropertyControlInput from "@builder/components/Controls/PropertyControlInput.vue";
-import PropertyLabel from "@builder/components/Controls/PropertyLabel.vue";
-import VariantControl from "@builder/components/Controls/VariantControl.vue";
-import blockController from "@builder/utils/blockController";
-import { extractNumberAndUnit, normalizeValueWithUnits, removeDefaultUnit } from "@builder/utils/helpers";
+import { __ } from "@web/translation";
+import DraggablePopup from "@web/components/Controls/DraggablePopup.vue";
+import DynamicValueHandler from "@web/components/Controls/DynamicValueHandler.vue";
+import Input from "@web/components/Controls/Input.vue";
+import PropertyControlInput from "@web/components/Controls/PropertyControlInput.vue";
+import PropertyLabel from "@web/components/Controls/PropertyLabel.vue";
+import VariantControl from "@web/components/Controls/VariantControl.vue";
+import blockController from "@web/utils/blockController";
+import { extractNumberAndUnit, normalizeValueWithUnits, removeDefaultUnit } from "@web/utils/helpers";
 import type { Component } from "vue";
 import { computed, ref, useAttrs, watch } from "vue";
 

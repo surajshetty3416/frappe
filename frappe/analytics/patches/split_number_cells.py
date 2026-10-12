@@ -3,7 +3,7 @@ import math
 
 import frappe
 
-from frappe.insights.patches.resize_dashboard_cells import (
+from frappe.analytics.patches.resize_dashboard_cells import (
     card_rows,
     number_chart_configs,
     number_readings,

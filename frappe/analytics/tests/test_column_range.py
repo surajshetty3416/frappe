@@ -12,9 +12,9 @@ import json
 import frappe
 from frappe.utils.response import json_handler
 
-from frappe.insights.doctype.insights_data_source_v3.insights_data_source_v3 import db_connections
-from frappe.insights.tests.base import InsightsIntegrationTestCase
-from frappe.insights.tests.factories import DT, as_user, create_user, delete_users, delete_workbooks
+from frappe.analytics.doctype.insights_data_source_v3.insights_data_source_v3 import db_connections
+from frappe.analytics.tests.base import InsightsIntegrationTestCase
+from frappe.analytics.tests.factories import DT, as_user, create_user, delete_users, delete_workbooks
 
 AUTHOR = "column_range_author@test.com"
 

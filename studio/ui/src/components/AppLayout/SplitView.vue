@@ -20,7 +20,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from "vue"
-import type { SplitViewProps } from "@studio/types/studio_components/SplitView"
+import type { SplitViewProps } from "@ui/types/studio_components/SplitView"
 
 const props = withDefaults(defineProps<SplitViewProps>(), {
 	leftPaneWidth: 570,

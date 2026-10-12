@@ -1,6 +1,6 @@
 import frappe
 
-from frappe.builder.doctype.builder_page.builder_page import find_page_with_path
+from frappe.web.doctype.builder_page.builder_page import find_page_with_path
 
 
 def use_builder_page(context):
@@ -18,4 +18,4 @@ def use_builder_page(context):
 	# BuilderPage.get_context does `del context.favicon`, which assumes the key exists.
 	context.setdefault("favicon", None)
 	doc.get_context(context)
-	context.template = "builder/templates/generators/webpage.html"
+	context.template = "web/templates/generators/webpage.html"

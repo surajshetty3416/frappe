@@ -6,7 +6,7 @@ import frappe
 import yaml
 from frappe import _
 
-from frappe.builder.utils import to_compact_yaml
+from frappe.web.utils import to_compact_yaml
 
 STANDARD_ATTRS = {"src", "darkSrc", "alt", "href", "title", "value", "type", "placeholder"}
 
@@ -109,7 +109,7 @@ class BlockCodec:
 		# Props compressed to name -> effective value (declarations on a definition,
 		# per-page values on an instance).
 		if isinstance(block.get("props"), dict) and block["props"]:
-			from frappe.builder.doctype.builder_component.builder_component import (
+			from frappe.web.doctype.builder_component.builder_component import (
 				get_component_prop_values,
 			)
 
@@ -163,7 +163,7 @@ class BlockCodec:
 		# Icon ref: one expansion path — page_writer owns the wrapper defaults and
 		# the baked SVG (lazy import; page_writer imports this module at top level).
 		if node.get("icon"):
-			from frappe.builder.ai.page_writer import convert_icon_block
+			from frappe.web.ai.page_writer import convert_icon_block
 
 			return convert_icon_block(node)
 

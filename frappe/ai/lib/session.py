@@ -13,12 +13,12 @@ from typing import TYPE_CHECKING, Any
 import frappe
 from frappe import _
 
-from frappe.flow.daemon.client import DaemonClient, DaemonError
+from frappe.ai.daemon.client import DaemonClient, DaemonError
 
 if TYPE_CHECKING:
-	from frappe.flow.doctype.flow_agent.flow_agent import FlowAgent
-	from frappe.flow.doctype.flow_run.flow_run import FlowRun
-	from frappe.flow.doctype.flow_session.flow_session import FlowSession
+	from frappe.ai.doctype.flow_agent.flow_agent import FlowAgent
+	from frappe.ai.doctype.flow_run.flow_run import FlowRun
+	from frappe.ai.doctype.flow_session.flow_session import FlowSession
 
 STOPPED = "Stopped by user."
 STATUS = {
@@ -297,7 +297,7 @@ def _dump(value: Any) -> str:
 
 
 def _default_agent_name() -> str:
-	from frappe.flow.assistant import ASSISTANT_AGENT_TITLE
+	from frappe.ai.assistant import ASSISTANT_AGENT_TITLE
 
 	if not frappe.db.exists("Flow Agent", ASSISTANT_AGENT_TITLE):
 		frappe.throw(

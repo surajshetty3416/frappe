@@ -4,13 +4,13 @@ import frappe
 # Includes in <head>
 # ------------------
 # include js, css files in header of desk.html
-# app_include_css = "/assets/frappe/builder/css/builder.css"
-app_include_js = "/assets/frappe/builder/js/builder.js"
+# app_include_css = "/assets/frappe/web/css/builder.css"
+app_include_js = "/assets/frappe/web/js/builder.js"
 
 
 # include js, css files in header of web template
-# web_include_css = "/assets/frappe/builder/css/builder.css"
-# web_include_js = "/assets/frappe/builder/js/builder.js"
+# web_include_css = "/assets/frappe/web/css/builder.css"
+# web_include_js = "/assets/frappe/web/js/builder.js"
 
 # include custom scss in every website theme (without file extension ".scss")
 # website_theme_scss = "builder/public/scss/website"
@@ -48,22 +48,22 @@ website_generators = ["Builder Page"]
 # add methods and filters to jinja environment
 jinja = {
 	"methods": [
-		"frappe.builder.doctype.builder_component.builder_component.get_component_data",
+		"frappe.web.doctype.builder_component.builder_component.get_component_data",
 	],
 	"filters": [
-		"frappe.builder.utils.combine",
-		"frappe.builder.utils.hash",
-		"frappe.builder.utils.to_safe_json",
+		"frappe.web.utils.combine",
+		"frappe.web.utils.hash",
+		"frappe.web.utils.to_safe_json",
 	],
 }
 
 # Installation
 # ------------
 
-# before_install = "frappe.builder.install.before_install"
-after_install = "frappe.builder.install.after_install"
-after_migrate = "frappe.builder.install.after_migrate"
-after_app_install = "frappe.builder.install.after_app_install"
+# before_install = "frappe.web.install.before_install"
+after_install = "frappe.web.install.after_install"
+after_migrate = "frappe.web.install.after_migrate"
+after_app_install = "frappe.web.install.after_app_install"
 
 # Uninstallation
 # ------------
@@ -92,7 +92,7 @@ after_app_install = "frappe.builder.install.after_app_install"
 # no allowed_roles: a layer's hooks merge into the frappe app's, whose invitations skip the
 # role check, so any inviter role listed here could invite users with any role
 user_invitation = {
-	"after_accept": ["frappe.builder.user_invitation.after_accept"],
+	"after_accept": ["frappe.web.user_invitation.after_accept"],
 }
 
 # DocType Class
@@ -109,11 +109,11 @@ user_invitation = {
 
 doc_events = {
 	"User Invitation": {
-		"after_insert": "frappe.builder.user_invitation.capture_user_invited",
+		"after_insert": "frappe.web.user_invitation.capture_user_invited",
 	},
 	("Flow Model", "Flow Provider"): {
-		"on_update": "frappe.builder.ai.models.clear_flow_models",
-		"on_trash": "frappe.builder.ai.models.clear_flow_models",
+		"on_update": "frappe.web.ai.models.clear_flow_models",
+		"on_trash": "frappe.web.ai.models.clear_flow_models",
 	},
 }
 
@@ -123,8 +123,8 @@ doc_events = {
 scheduler_events = {
 	"cron": {
 		"*/10 * * * *": [
-			"frappe.builder.builder_analytics.ingest_web_page_views_to_duckdb",
-			"frappe.builder.builder_analytics.ingest_clicks_to_duckdb",
+			"frappe.web.builder_analytics.ingest_web_page_views_to_duckdb",
+			"frappe.web.builder_analytics.ingest_clicks_to_duckdb",
 		],
 	}
 }
@@ -132,7 +132,7 @@ scheduler_events = {
 # Testing
 # -------
 
-# before_tests = "frappe.builder.install.before_tests"
+# before_tests = "frappe.web.install.before_tests"
 
 # Overriding Methods
 # ------------------------------
@@ -190,40 +190,32 @@ scheduler_events = {
 # ]
 
 try:
-	builder_path = frappe.conf.builder_path or "builder"
+	builder_path = frappe.conf.builder_path or "studio/web"
 except RuntimeError:
 	# frappe.conf is unbound when hooks are imported without a site,
 	# as done by `bench generate-pot-file --app builder`.
-	builder_path = "builder"
-website_route_rules = [
-	{"from_route": f"/{builder_path}/<path:app_path>", "to_route": "_frontend"},
-	{"from_route": f"/{builder_path}", "to_route": "_frontend"},
-]
+	builder_path = "studio/web"
 
-website_path_resolver = "frappe.builder.doctype.builder_page.builder_page.resolve_path"
-page_renderer = "frappe.builder.doctype.builder_page.builder_page.BuilderPageRenderer"
+website_path_resolver = "frappe.web.doctype.builder_page.builder_page.resolve_path"
+page_renderer = "frappe.web.doctype.builder_page.builder_page.BuilderPageRenderer"
 
 get_web_pages_with_dynamic_routes = (
-	"frappe.builder.doctype.builder_page.builder_page.get_web_pages_with_dynamic_routes"
+	"frappe.web.doctype.builder_page.builder_page.get_web_pages_with_dynamic_routes"
 )
 
 get_website_user_home_page = (
-	"frappe.builder.doctype.builder_settings.builder_settings.get_website_user_home_page"
+	"frappe.web.doctype.builder_settings.builder_settings.get_website_user_home_page"
 )
 
-add_to_apps_screen = [
-	{
-		"name": "builder",
-		"logo": "/assets/frappe/frontend/builder_logo.png",
-		"title": "Builder",
-		"route": f"/{builder_path}",
-		"has_permission": "frappe.builder.api.check_app_permission",
-	}
-]
 
 # what the AI layer (flow) can do with Builder
 flow_tools = [
-	"frappe.builder.flow_tools.list_web_pages",
-	"frappe.builder.flow_tools.create_web_page",
-	"frappe.builder.flow_tools.publish_web_page",
+	"frappe.web.flow_tools.list_web_pages",
+	"frappe.web.flow_tools.create_web_page",
+	"frappe.web.flow_tools.publish_web_page",
 ]
+
+# what Studio opens beside the chat for an artifact of this layer
+studio_artifacts = {
+	"Builder Page": {"label": "Web page", "route": "/studio/web/page/{name}", "title_field": "page_title"},
+}

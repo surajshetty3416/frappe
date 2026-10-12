@@ -20,7 +20,7 @@ server decides what runs.
 import frappe
 from frappe import _
 
-from frappe.insights.doctype.insights_chart_v3.chart_drill import (
+from frappe.analytics.doctype.insights_chart_v3.chart_drill import (
     asks_for_rows,
     drill_data,
     drill_dimensions,
@@ -28,16 +28,16 @@ from frappe.insights.doctype.insights_chart_v3.chart_drill import (
     drill_rows_range,
     drill_rows_values,
 )
-from frappe.insights.doctype.insights_chart_v3.chart_query import config_errors
-from frappe.insights.doctype.insights_dashboard_v3.insights_dashboard_v3 import (
+from frappe.analytics.doctype.insights_chart_v3.chart_query import config_errors
+from frappe.analytics.doctype.insights_dashboard_v3.insights_dashboard_v3 import (
     can_filter_card,
     card_filter_source,
     route_filters,
 )
-from frappe.insights.not_permitted import answers_refusal
-from frappe.insights.permission_user import runs_as
-from frappe.insights.permissions import can_copy, can_export, can_read_rows, can_write
-from frappe.insights.resolver import CHART, DASHBOARD, may_read, not_found, resolve, resolve_for_read
+from frappe.analytics.not_permitted import answers_refusal
+from frappe.analytics.permission_user import runs_as
+from frappe.analytics.permissions import can_copy, can_export, can_read_rows, can_write
+from frappe.analytics.resolver import CHART, DASHBOARD, may_read, not_found, resolve, resolve_for_read
 
 QUERY = "Insights Query v3"
 

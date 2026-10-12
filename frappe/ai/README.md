@@ -38,7 +38,7 @@ Flow also ships as a Python framework for building agents in code.
 
 ```python
 import frappe
-from frappe.flow import ToolContext, tool
+from frappe.ai import ToolContext, tool
 
 @tool(display_template="Listing open ToDos for {{ allocated_to }}")  # shown while it runs
 def get_open_todos(allocated_to: str, *, ctx: ToolContext) -> list[dict]:
@@ -63,7 +63,7 @@ def yearly_report(year: int, *, ctx: ToolContext) -> dict:
 ### Run an agent
 
 ```python
-from frappe.flow import Agent
+from frappe.ai import Agent
 
 agent = Agent(
 	name="Todo Assistant",

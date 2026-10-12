@@ -4,7 +4,7 @@
 import frappe
 from frappe.model.document import Document
 
-from frappe.insights import standard
+from frappe.analytics import standard
 
 
 class InsightsFolder(Document):

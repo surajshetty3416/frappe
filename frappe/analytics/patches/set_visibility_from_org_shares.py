@@ -1,6 +1,6 @@
 import frappe
 
-from frappe.insights.permissions import EVERYONE, VISIBILITY_DOCTYPES, visibility_level
+from frappe.analytics.permissions import EVERYONE, VISIBILITY_DOCTYPES, visibility_level
 
 
 def execute():

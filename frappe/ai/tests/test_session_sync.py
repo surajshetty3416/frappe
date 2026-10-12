@@ -7,10 +7,10 @@ from unittest.mock import Mock, patch
 import frappe
 from frappe.tests import IntegrationTestCase
 
-from frappe.flow.api import api
-from frappe.flow.daemon.client import DaemonClient
-from frappe.flow.lib import session as sessions
-from frappe.flow.tests.test_fake_daemon import (
+from frappe.ai.api import api
+from frappe.ai.daemon.client import DaemonClient
+from frappe.ai.lib import session as sessions
+from frappe.ai.tests.test_fake_daemon import (
 	PENDING,
 	TITLE,
 	FakeDaemon,
@@ -22,7 +22,7 @@ from frappe.flow.tests.test_fake_daemon import (
 	turn,
 )
 
-ON_COMPLETE = "frappe.flow.tests.test_session_sync.ended"
+ON_COMPLETE = "frappe.ai.tests.test_session_sync.ended"
 
 
 def ended(run):
@@ -430,6 +430,6 @@ class TestSync(IntegrationTestCase):
 		daemon = FakeDaemon(turn(1, "r1")[:2], running=True)
 		with patch.object(DaemonClient, "for_site", return_value=daemon):
 			joined = self.session.chat("and this", on_complete=ON_COMPLETE)
-			self.session.chat("and that", on_complete="frappe.flow.tests.test_session_sync.other")
+			self.session.chat("and that", on_complete="frappe.ai.tests.test_session_sync.other")
 		self.assertEqual(joined.name, run.name)
 		self.assertEqual(frappe.db.get_value("Flow Run", run.name, "on_complete"), ON_COMPLETE)

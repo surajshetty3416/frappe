@@ -49,10 +49,10 @@
 <script setup lang="ts">
 import { ref, computed, watch } from "vue"
 import { useWindowSize } from "@vueuse/core"
-import Code from "@studio/components/Code.vue"
-import PanelResizer from "@studio/components/PanelResizer.vue"
-import useStudioStore from "@studio/stores/studioStore"
-import type { LeftPanelOptions } from "@studio/types"
+import Code from "@ui/components/Code.vue"
+import PanelResizer from "@ui/components/PanelResizer.vue"
+import useStudioStore from "@ui/stores/studioStore"
+import type { LeftPanelOptions } from "@ui/types"
 
 const props = withDefaults(
 	defineProps<{

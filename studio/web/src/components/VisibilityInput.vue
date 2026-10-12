@@ -8,13 +8,13 @@
 		@update:modelValue="handleModelValueUpdate" />
 </template>
 <script setup lang="ts">
-import InlineInput from "@builder/components/Controls/InlineInput.vue";
-import useCanvasStore from "@builder/stores/canvasStore";
-import usePageStore from "@builder/stores/pageStore";
-import { filterOptions } from "@builder/utils/autocompleteOptions";
-import blockController from "@builder/utils/blockController";
-import componentController from "@builder/utils/componentController";
-import { getDataArray, getDefaultPropsList, getParentProps, getRepeaterScopedData } from "@builder/utils/helpers";
+import InlineInput from "@web/components/Controls/InlineInput.vue";
+import useCanvasStore from "@web/stores/canvasStore";
+import usePageStore from "@web/stores/pageStore";
+import { filterOptions } from "@web/utils/autocompleteOptions";
+import blockController from "@web/utils/blockController";
+import componentController from "@web/utils/componentController";
+import { getDataArray, getDefaultPropsList, getParentProps, getRepeaterScopedData } from "@web/utils/helpers";
 import { computed, ref, watch } from "vue";
 
 const props = defineProps<{

@@ -77,12 +77,12 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue"
 import { createResource, Dialog, FormControl, Button } from "frappe-ui"
-import Block from "@studio/utils/block"
-import { getComponentBlock } from "@studio/utils/serializer"
-import type { DocTypeField, SelectOption } from "@studio/types"
-import components from "@studio/data/components"
+import Block from "@ui/utils/block"
+import { getComponentBlock } from "@ui/utils/serializer"
+import type { DocTypeField, SelectOption } from "@ui/types"
+import components from "@ui/data/components"
 import Link from "@framework/ui/components/Link/Link.vue"
-import Grid from "@studio/components/Grid.vue"
+import Grid from "@ui/components/Grid.vue"
 import { toast } from "frappe-ui"
 
 const props = defineProps<{
@@ -105,7 +105,7 @@ const formMeta = ref<{
 })
 
 const doctypeFields = createResource({
-	url: "frappe.studio.api.get_doctype_fields",
+	url: "frappe.ui.api.get_doctype_fields",
 	makeParams() {
 		return { doctype: formMeta.value.doctype }
 	},

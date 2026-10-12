@@ -1,5 +1,5 @@
-import type { BlockStyleMap } from "@studio/types"
-import { kebabToCamelCase } from "@studio/utils/helpers"
+import type { BlockStyleMap } from "@ui/types"
+import { kebabToCamelCase } from "@ui/utils/helpers"
 
 // rawStyles were dropped in favour of baseStyles; older blocks still carry them
 export function mergeLegacyRawStyles(baseStyles: BlockStyleMap, rawStyles?: BlockStyleMap) {

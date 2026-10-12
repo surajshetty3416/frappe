@@ -7,13 +7,13 @@ from unittest.mock import patch
 import frappe
 from frappe.tests import IntegrationTestCase
 
-from frappe.flow.daemon.client import DaemonClient, DaemonError
-from frappe.flow.doctype.flow_session_attachment.test_flow_session_attachment import png_bytes
-from frappe.flow.lib.session import load_session, new_session
-from frappe.flow.permissions import FLOW_USER_ROLE
-from frappe.flow.tests.test_fake_daemon import FakeDaemon
-from frappe.flow.tests.test_live_server import LiveServerCase
-from frappe.flow.tools.builtins import sync_builtin_tools
+from frappe.ai.daemon.client import DaemonClient, DaemonError
+from frappe.ai.doctype.flow_session_attachment.test_flow_session_attachment import png_bytes
+from frappe.ai.lib.session import load_session, new_session
+from frappe.ai.permissions import FLOW_USER_ROLE
+from frappe.ai.tests.test_fake_daemon import FakeDaemon
+from frappe.ai.tests.test_live_server import LiveServerCase
+from frappe.ai.tools.builtins import sync_builtin_tools
 
 OTHER = "session-other@example.com"
 
@@ -37,7 +37,7 @@ class ServerCase(IntegrationTestCase):
 	def setUp(self):
 		sync_builtin_tools()
 		self.enterContext(patch.dict(frappe.local.conf, {"flow_server_secret": "site-token"}))
-		self.enterContext(patch("frappe.flow.lib.model.resolve_provider_credentials", return_value={}))
+		self.enterContext(patch("frappe.ai.lib.model.resolve_provider_credentials", return_value={}))
 		self.daemon = FakeDaemon()
 		self.enterContext(patch.object(DaemonClient, "for_site", return_value=self.daemon))
 		self.model = frappe.get_doc(
@@ -103,7 +103,7 @@ class TestNewSession(ServerCase):
 		self.assertTrue(self.daemon.configs[session.name]["auto_approve"])
 
 	def test_new_session_defaults_to_the_assistant(self):
-		from frappe.flow.assistant import ASSISTANT_AGENT_TITLE, sync_builtin_assistant
+		from frappe.ai.assistant import ASSISTANT_AGENT_TITLE, sync_builtin_assistant
 
 		sync_builtin_assistant(self.model.name)
 		session = new_session()
@@ -111,7 +111,7 @@ class TestNewSession(ServerCase):
 		self.assertIn(session.name, self.daemon.configs)
 
 	def test_the_assistant_gets_the_same_read_check_as_a_named_agent(self):
-		from frappe.flow.assistant import sync_builtin_assistant
+		from frappe.ai.assistant import sync_builtin_assistant
 
 		sync_builtin_assistant(self.model.name)
 		_ensure_other()
@@ -291,7 +291,7 @@ class TestLiveSession(LiveServerCase):
 		session.set_title("Renamed")
 		self.assertEqual(self.client.get_session(session.name)["title"], "Renamed")
 		self.assertEqual((session.abort(), session.cancel_pending()), ("idle", "idle"))
-		with patch("frappe.flow.knowledge.attachment_store.delete"):
+		with patch("frappe.ai.knowledge.attachment_store.delete"):
 			session.delete()
 		with self.assertRaises(DaemonError) as caught:
 			self.client.get_session(session.name)
@@ -336,5 +336,5 @@ class TestLiveSession(LiveServerCase):
 			[(b["type"], b.get("kind")) for b in message["content"]],
 			[("text", None), ("attachment", "image")],
 		)
-		with patch("frappe.flow.knowledge.attachment_store.delete"):
+		with patch("frappe.ai.knowledge.attachment_store.delete"):
 			session.delete()

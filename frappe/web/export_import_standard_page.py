@@ -5,7 +5,7 @@ import shutil
 import frappe
 from frappe.modules.export_file import strip_default_fields
 
-from frappe.builder.utils import (
+from frappe.web.utils import (
 	copy_asset_file,
 	copy_assets_from_blocks,
 	create_export_directories,

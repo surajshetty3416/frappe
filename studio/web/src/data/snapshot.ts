@@ -2,7 +2,7 @@ import { createResource } from "frappe-ui";
 
 export async function getVersionedDoc(snapshotName: string): Promise<Record<string, any> | null> {
 	try {
-		return await createResource({ url: "frappe.builder.api.get_versioned_doc", method: "POST" }).submit({
+		return await createResource({ url: "frappe.web.api.get_versioned_doc", method: "POST" }).submit({
 			snapshot: snapshotName,
 		});
 	} catch {

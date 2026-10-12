@@ -6,8 +6,8 @@ content (so the canvas renders live) and returns the client op that applies it.
 See agent/artifact.py.
 """
 
-from frappe.builder.ai.agent.artifact import generate_page_yaml
-from frappe.builder.ai.agent.registry import Tool
+from frappe.web.ai.agent.artifact import generate_page_yaml
+from frappe.web.ai.agent.registry import Tool
 
 generate_page = Tool(
 	name="generate_page",

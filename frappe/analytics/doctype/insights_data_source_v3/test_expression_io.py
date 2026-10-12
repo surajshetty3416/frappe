@@ -18,13 +18,13 @@ import frappe
 import ibis
 from frappe.tests import UnitTestCase
 
-from frappe.insights.exceptions import ExpressionSyntaxError
-from frappe.insights.doctype.insights_data_source_v3.ibis.utils import get_functions
-from frappe.insights.doctype.insights_data_source_v3.ibis_utils import exec_with_return
+from frappe.analytics.exceptions import ExpressionSyntaxError
+from frappe.analytics.doctype.insights_data_source_v3.ibis.utils import get_functions
+from frappe.analytics.doctype.insights_data_source_v3.ibis_utils import exec_with_return
 
 
 def refused_ibis_names() -> list[str]:
-    from frappe.insights.doctype.insights_data_source_v3.ibis.utils import (
+    from frappe.analytics.doctype.insights_data_source_v3.ibis.utils import (
         ibis_attribute_names,
         is_refused_in_expression,
     )
@@ -48,7 +48,7 @@ class TestExpressionIsolation(UnitTestCase):
     # @feature query.expression-cannot-reach-files
     def test_the_rule_covers_every_io_name_ibis_exports(self):
         """The rule, not the names: an ibis upgrade must not need an edit here."""
-        from frappe.insights.doctype.insights_data_source_v3.ibis.utils import is_io_attribute
+        from frappe.analytics.doctype.insights_data_source_v3.ibis.utils import is_io_attribute
 
         io_names = [
             name
@@ -67,7 +67,7 @@ class TestExpressionIsolation(UnitTestCase):
         The rule is attribute-only on purpose, so the flat names are not checked:
         `to_inr(amount)` is a call on a plain name and stays legal.
         """
-        from frappe.insights.doctype.insights_data_source_v3.ibis.utils import is_io_attribute
+        from frappe.analytics.doctype.insights_data_source_v3.ibis.utils import is_io_attribute
 
         context = get_functions()
         namespaces = {"ibis": context.ibis, "s": context.s, "selectors": context.selectors}
@@ -82,7 +82,7 @@ class TestExpressionIsolation(UnitTestCase):
         a pandas `to_pickle` or a numpy `tofile` is not an ibis name."""
         import types
 
-        from frappe.insights.doctype.insights_data_source_v3.sandbox import expression_globals
+        from frappe.analytics.doctype.insights_data_source_v3.sandbox import expression_globals
 
         def walk(value, path, depth=0):
             modules = {getattr(value, "__module__", None) or "", type(value).__module__}
@@ -166,7 +166,7 @@ class TestExpressionIsolation(UnitTestCase):
     def test_a_column_named_like_a_table_method_is_a_column(self):
         """A table's method outranks its column on attribute access, so a bare
         column read by attribute would be the bound method."""
-        from frappe.insights.doctype.insights_data_source_v3.ibis_utils import IbisQueryBuilder
+        from frappe.analytics.doctype.insights_data_source_v3.ibis_utils import IbisQueryBuilder
 
         target = os.path.join(tempfile.gettempdir(), "insights_expression_column_test.csv")
         for name in ("to_csv", "sql", "execute"):
@@ -185,7 +185,7 @@ class TestExpressionIsolation(UnitTestCase):
 
     # @feature query.expression-cannot-reach-files
     def test_functions_read_a_column_named_like_a_table_method_as_a_column(self):
-        from frappe.insights.doctype.insights_data_source_v3.ibis.functions import count, get_retention_data
+        from frappe.analytics.doctype.insights_data_source_v3.ibis.functions import count, get_retention_data
 
         previous = frappe.flags.current_ibis_query
         self.addCleanup(setattr, frappe.flags, "current_ibis_query", previous)
@@ -229,7 +229,7 @@ class TestExpressionIsolation(UnitTestCase):
     def test_no_plain_name_runs_sql(self):
         """A plain `sql(...)` would run `Table.sql` with no attribute for the
         source check to see."""
-        from frappe.insights.doctype.insights_data_source_v3.ibis.utils import get_function_list
+        from frappe.analytics.doctype.insights_data_source_v3.ibis.utils import get_function_list
 
         self.assertNotIn("sql", get_function_list())
         for expression in ("sql('select 1')", "query = 'select 1'\nsql(query)"):

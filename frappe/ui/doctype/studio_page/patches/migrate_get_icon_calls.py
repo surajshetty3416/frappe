@@ -4,7 +4,7 @@ import re
 
 import frappe
 
-from frappe.studio.utils import walk_blocks
+from frappe.ui.utils import walk_blocks
 
 GET_ICON_BINDING = re.compile(r"\{\{\s*getIcon\s*\(\s*(['\"])([a-z0-9-]+)\1\s*\)\s*\}\}")
 # These are candidates for review, including method calls, strings and comments.

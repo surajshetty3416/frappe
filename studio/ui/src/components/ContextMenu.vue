@@ -105,7 +105,7 @@ import {
 } from "reka-ui"
 import { TextInput } from "frappe-ui"
 import { ref, nextTick } from "vue"
-import type { ContextMenuOption, ContextMenuGroup } from "@studio/types"
+import type { ContextMenuOption, ContextMenuGroup } from "@ui/types"
 import LucideChevronRight from "~icons/lucide/chevron-right"
 
 defineProps<{

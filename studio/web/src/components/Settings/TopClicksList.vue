@@ -19,11 +19,11 @@
 </template>
 
 <script setup lang="ts">
-import { __ } from "@builder/translation";
-import { findBlockInTree } from "@builder/utils/block/tree";
-import type { CTRElement } from "@builder/composables/useAnalytics";
-import useBuilderStore from "@builder/stores/builderStore";
-import useCanvasStore from "@builder/stores/canvasStore";
+import { __ } from "@web/translation";
+import { findBlockInTree } from "@web/utils/block/tree";
+import type { CTRElement } from "@web/composables/useAnalytics";
+import useBuilderStore from "@web/stores/builderStore";
+import useCanvasStore from "@web/stores/canvasStore";
 import { ListView } from "frappe-ui/experimental";
 import { computed } from "vue";
 

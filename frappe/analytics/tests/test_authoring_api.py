@@ -3,22 +3,22 @@ from unittest.mock import patch
 
 import frappe
 
-from frappe.insights.api import run_doc_method
-from frappe.insights.api.authoring import download_chart_rows as download_authoring_rows
-from frappe.insights.api.authoring import download_drill_rows as download_authoring_drill_rows
-from frappe.insights.api.authoring import get_chart_count as get_authoring_count
-from frappe.insights.api.authoring import get_chart_data as get_authoring_data
-from frappe.insights.api.authoring import get_drill_data as get_authoring_drill
-from frappe.insights.api.authoring import get_drill_dimensions
-from frappe.insights.api.authoring import get_drill_rows_values as get_authoring_drill_rows_values
-from frappe.insights.api.view import get_chart
-from frappe.insights.api.view import get_chart_data as get_view_data
-from frappe.insights.api.workbooks import update_share_permissions
-from frappe.insights.doctype.insights_data_source_v3.insights_data_source_v3 import db_connections
-from frappe.insights.not_permitted import NotPermitted
-from frappe.insights.tests.base import InsightsIntegrationTestCase
-from frappe.insights.tests.factories import DT, as_user, create_user, delete_users, delete_workbooks
-from frappe.insights.tests.test_run_as_owner import as_http_request
+from frappe.analytics.api import run_doc_method
+from frappe.analytics.api.authoring import download_chart_rows as download_authoring_rows
+from frappe.analytics.api.authoring import download_drill_rows as download_authoring_drill_rows
+from frappe.analytics.api.authoring import get_chart_count as get_authoring_count
+from frappe.analytics.api.authoring import get_chart_data as get_authoring_data
+from frappe.analytics.api.authoring import get_drill_data as get_authoring_drill
+from frappe.analytics.api.authoring import get_drill_dimensions
+from frappe.analytics.api.authoring import get_drill_rows_values as get_authoring_drill_rows_values
+from frappe.analytics.api.view import get_chart
+from frappe.analytics.api.view import get_chart_data as get_view_data
+from frappe.analytics.api.workbooks import update_share_permissions
+from frappe.analytics.doctype.insights_data_source_v3.insights_data_source_v3 import db_connections
+from frappe.analytics.not_permitted import NotPermitted
+from frappe.analytics.tests.base import InsightsIntegrationTestCase
+from frappe.analytics.tests.factories import DT, as_user, create_user, delete_users, delete_workbooks
+from frappe.analytics.tests.test_run_as_owner import as_http_request
 
 OWNER = "authoring_api_owner@test.com"
 # holds an Insights role, but none of the owner's content
@@ -408,7 +408,7 @@ class TestAuthoringAPI(InsightsIntegrationTestCase):
         # a link that names a card this preview is not rendering routes nowhere
         self.assertEqual(self.descriptions(result), sorted(OWNER_TODOS))
 
-    # The walk itself is `frappe.insights.api.view`'s walk and is tested there. What is
+    # The walk itself is `frappe.analytics.api.view`'s walk and is tested there. What is
     # tested here is only what differs: naming the shape instead of a chart, and
     # the pipeline that comes back with the rows.
 
@@ -482,7 +482,7 @@ class TestAuthoringAPI(InsightsIntegrationTestCase):
             drill_stack=[breakdown_level("priority", measure="Todos")],
         )
 
-        # the two fields `frappe.insights.api.view` reports, on the endpoint the builder uses:
+        # the two fields `frappe.analytics.api.view` reports, on the endpoint the builder uses:
         # one dialog renders both, so it must not have to know which endpoint sent it
         self.assertEqual((ordered["ordered"], ordered["granularity"]), (True, "minute"))
         self.assertEqual((ranked["ordered"], ranked["granularity"]), (False, None))
@@ -626,7 +626,7 @@ class TestAuthoringAPI(InsightsIntegrationTestCase):
     def test_a_reader_without_an_insights_role_cannot_drill(self):
         query, _ = self.make_content()
 
-        # the reader may drill the saved chart through `frappe.insights.api.view`. These
+        # the reader may drill the saved chart through `frappe.analytics.api.view`. These
         # endpoints also return the pipeline, which needs an Insights role
         with self.assertRaises(frappe.PermissionError):
             self.drill(
@@ -978,7 +978,7 @@ class TestAuthoringAPI(InsightsIntegrationTestCase):
     # @feature permissions.request-body-not-trusted
     def test_a_query_named_after_a_chart_gets_none_of_the_charts_references(self):
         """`resource.ts` and `query.ts` send `docs.name` from the client to
-        `frappe.insights.api.run_doc_method`. A name no query holds passes as an unsaved
+        `frappe.analytics.api.run_doc_method`. A name no query holds passes as an unsaved
         query, so a chart's docname there must not authorise the chart's query."""
         query, chart = self.make_content()
         chart.db_set("visibility", "Private", update_modified=False)

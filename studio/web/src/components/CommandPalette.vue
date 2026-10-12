@@ -104,7 +104,7 @@
 </template>
 
 <script setup lang="ts">
-import { __ } from "@builder/translation";
+import { __ } from "@web/translation";
 import { DialogContent, DialogOverlay, DialogPortal, DialogRoot, DialogTitle } from "reka-ui";
 import { computed, nextTick, ref, watch } from "vue";
 

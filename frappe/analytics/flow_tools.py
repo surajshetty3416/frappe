@@ -7,9 +7,9 @@ from pydantic import BaseModel, Field
 
 import frappe
 from frappe import _
-from frappe.flow import tool
-from frappe.flow.lib.tool import ToolContext
-from frappe.insights.hooks import insights_path
+from frappe.ai import tool
+from frappe.ai.lib.tool import ToolContext
+from frappe.analytics.hooks import insights_path
 
 DATA_TYPES = {
     "Date": "Date",
@@ -157,7 +157,7 @@ def create_dashboard(
 ) -> dict:
     """Build an Insights dashboard over the site's own data: one query and one chart per entry,
     laid out on a new dashboard in a new workbook. Check field names with describe first."""
-    from frappe.insights.doctype.insights_workbook.insights_workbook import import_workbook
+    from frappe.analytics.doctype.insights_workbook.insights_workbook import import_workbook
 
     result = import_workbook(workbook_file(title, charts))
     dashboard = result["names"]["d-0"]

@@ -21,10 +21,10 @@
 		:unitOptions="DIMENSION_UNIT_OPTIONS"></StylePropertyControl>
 </template>
 <script setup lang="ts">
-import { __ } from "@builder/translation";
-import Autocomplete from "@builder/components/Controls/Autocomplete.vue";
-import StylePropertyControl from "@builder/components/Controls/StylePropertyControl.vue";
-import { DIMENSION_UNIT_OPTIONS } from "@builder/utils/unitOptions";
+import { __ } from "@web/translation";
+import Autocomplete from "@web/components/Controls/Autocomplete.vue";
+import StylePropertyControl from "@web/components/Controls/StylePropertyControl.vue";
+import { DIMENSION_UNIT_OPTIONS } from "@web/utils/unitOptions";
 
 defineProps<{
 	property: styleProperty;

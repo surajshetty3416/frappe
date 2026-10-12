@@ -1,5 +1,5 @@
-import HTMLBlock from "@studio/components/AppLayout/HTML.vue"
-import { sanitizeHTML } from "@studio/utils/helpers"
+import HTMLBlock from "@ui/components/AppLayout/HTML.vue"
+import { sanitizeHTML } from "@ui/utils/helpers"
 
 describe("sanitizeHTML", () => {
 	it("removes executable markup before rendering an HTML block", () => {

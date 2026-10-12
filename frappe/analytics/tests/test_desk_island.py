@@ -10,7 +10,7 @@ import frappe.client
 from frappe.desk.form.load import getdoc
 from frappe.utils.island import get_ui_islands
 
-from frappe.insights.desk import (
+from frappe.analytics.desk import (
     DESK_ISLANDS,
     boot_app_path,
     fill_shipped_claims,
@@ -19,8 +19,8 @@ from frappe.insights.desk import (
     report_dangling_claims,
     shipped_files,
 )
-from frappe.insights.tests.base import InsightsIntegrationTestCase
-from frappe.insights.tests.factories import (
+from frappe.analytics.tests.base import InsightsIntegrationTestCase
+from frappe.analytics.tests.factories import (
     DT,
     create_test_chart,
     create_test_dashboard,
@@ -152,7 +152,7 @@ class TestDeskIsland(InsightsIntegrationTestCase):
         """An island builds its links from this path. A desk page is not the
         app's page, so a site that mounts Insights elsewhere would get links to
         a path the app cannot route."""
-        from frappe.insights.hooks import insights_path
+        from frappe.analytics.hooks import insights_path
 
         bootinfo = frappe._dict()
         boot_app_path(bootinfo)
@@ -326,7 +326,7 @@ class TestDeskIsland(InsightsIntegrationTestCase):
         file = Path(frappe.get_site_path("shipped_desk_dashboard.json"))
         file.write_text(json.dumps({"name": desk_dashboard.name, "insights_dashboard": self.dashboard.name}))
         self.addCleanup(file.unlink)
-        with patch("frappe.insights.desk.shipped_files", return_value=[str(file)]):
+        with patch("frappe.analytics.desk.shipped_files", return_value=[str(file)]):
             fill_shipped_claims("Dashboard")
 
         desk_dashboard.reload()
@@ -335,7 +335,7 @@ class TestDeskIsland(InsightsIntegrationTestCase):
 
     # @feature desk.shipped-claim
     def test_finds_the_files_sync_dashboards_imports(self):
-        folder = Path(frappe.get_module_path("insights", "insights_dashboard"))
+        folder = Path(frappe.get_module_path("analytics", "insights_dashboard"))
         self.assertFalse(folder.exists())
         self.addCleanup(shutil.rmtree, folder)
         (folder / "selling").mkdir(parents=True)
@@ -349,6 +349,6 @@ class TestDeskIsland(InsightsIntegrationTestCase):
 
     # @feature desk.shipped-claim
     def test_an_existing_field_keeps_its_values(self):
-        with patch("frappe.insights.desk.fill_shipped_claims") as fill:
+        with patch("frappe.analytics.desk.fill_shipped_claims") as fill:
             install_custom_fields()
         fill.assert_not_called()

@@ -52,11 +52,11 @@
 	</div>
 </template>
 <script setup lang="ts">
-import Input from "@builder/components/Controls/Input.vue";
-import EyeDropperIcon from "@builder/components/Icons/EyeDropper.vue";
-import useCanvasStore from "@builder/stores/canvasStore";
-import { HSVToHex, HexToHSV, getRGB } from "@builder/utils/helpers";
-import { useBuilderToken } from "@builder/utils/useBuilderToken";
+import Input from "@web/components/Controls/Input.vue";
+import EyeDropperIcon from "@web/components/Icons/EyeDropper.vue";
+import useCanvasStore from "@web/stores/canvasStore";
+import { HSVToHex, HexToHSV, getRGB } from "@web/utils/helpers";
+import { useBuilderToken } from "@web/utils/useBuilderToken";
 import { clamp, useElementBounding, useEyeDropper, useStorage } from "@vueuse/core";
 import { Ref, StyleValue, computed, nextTick, onBeforeUnmount, ref, watch } from "vue";
 

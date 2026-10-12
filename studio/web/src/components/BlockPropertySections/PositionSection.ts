@@ -1,7 +1,7 @@
-import BlockPositionHandler from "@builder/components/BlockPositionHandler.vue";
-import blockController from "@builder/utils/blockController";
+import BlockPositionHandler from "@web/components/BlockPositionHandler.vue";
+import blockController from "@web/utils/blockController";
 import { computed } from "vue";
-import { __ } from "@builder/translation";
+import { __ } from "@web/translation";
 
 const positionSectionProperties = [
 	{

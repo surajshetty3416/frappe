@@ -1,6 +1,6 @@
 import frappe
 
-from frappe.insights.doctype.insights_user_invitation.insights_user_invitation import hash_key
+from frappe.analytics.doctype.insights_user_invitation.insights_user_invitation import hash_key
 
 
 def execute():

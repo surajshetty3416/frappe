@@ -618,8 +618,8 @@ async function run_build_command_for_apps(apps) {
 	BUILD_CHILDREN.clear();
 	const build_apps = [];
 	for (let app of apps) {
-		// frappe's esbuild bundles are this script; its Vite app is the frontend/ folder
-		let root_app_path = path.resolve(apps_path, app, app === "frappe" ? "frontend" : "");
+		// frappe's esbuild bundles are this script; its Vite app is the studio/ folder
+		let root_app_path = path.resolve(apps_path, app, app === "frappe" ? "studio" : "");
 		let package_json = path.resolve(root_app_path, "package.json");
 
 		if (!fs.existsSync(package_json)) {

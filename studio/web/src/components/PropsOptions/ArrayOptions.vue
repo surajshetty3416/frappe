@@ -22,10 +22,10 @@
 </template>
 
 <script setup lang="ts">
-import { __ } from "@builder/translation";
-import InputLabel from "@builder/components/Controls/InputLabel.vue";
-import Input from "@builder/components/Controls/Input.vue";
-import ArrayEditor from "@builder/components/ArrayEditor.vue";
+import { __ } from "@web/translation";
+import InputLabel from "@web/components/Controls/InputLabel.vue";
+import Input from "@web/components/Controls/Input.vue";
+import ArrayEditor from "@web/components/ArrayEditor.vue";
 import { nextTick, ref, watch } from "vue";
 import { Ref } from "vue";
 import { toast } from "frappe-ui";

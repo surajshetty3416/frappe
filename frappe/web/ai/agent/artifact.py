@@ -20,14 +20,14 @@ import re
 import frappe
 import requests
 
-from frappe.builder.ai import llm
-from frappe.builder.ai.block_codec import BlockCodec
-from frappe.builder.ai.models import ModelRegistry
-from frappe.builder.ai.prompts import Prompts
-from frappe.builder.ai.session import AISession
-from frappe.builder.api import assert_not_private_url
+from frappe.web.ai import llm
+from frappe.web.ai.block_codec import BlockCodec
+from frappe.web.ai.models import ModelRegistry
+from frappe.web.ai.prompts import Prompts
+from frappe.web.ai.session import AISession
+from frappe.web.api import assert_not_private_url
 
-logger = frappe.logger("frappe.builder.ai.agent.artifact")
+logger = frappe.logger("frappe.web.ai.agent.artifact")
 logger.setLevel(logging.INFO)
 
 # Brief marker lines the design flow emits for images the generator should SEE
@@ -172,7 +172,7 @@ def log_generation_quality(model: str, finish_reason: str | None, yaml_text: str
 	chars = len(yaml_text)
 	sections = -1  # -1 = did not parse
 	try:
-		from frappe.builder.ai.page_writer import parse_generation_yaml, unwrap_root
+		from frappe.web.ai.page_writer import parse_generation_yaml, unwrap_root
 
 		# The same salvaging parser persist_page uses — telemetry must agree with
 		# what actually lands on the page (a salvaged parse is not a failed one).
@@ -323,7 +323,7 @@ def generate_page_yaml(ctx, args: dict) -> list[dict]:
 		logger.warning("generate_page_yaml: nothing to persist (model=%s, page=%s)", ctx.model, ctx.page_id)
 		return []
 
-	from frappe.builder.ai import page_writer
+	from frappe.web.ai import page_writer
 
 	root, data_script = page_writer.persist_page(ctx.page_id, yaml_text)
 	if root is None:

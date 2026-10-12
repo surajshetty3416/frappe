@@ -49,13 +49,13 @@
 	</Popover>
 </template>
 <script setup lang="ts">
-import { __ } from "@builder/translation";
-import PageOptions from "@builder/components/PageOptions.vue";
-import PageStatusPill from "@builder/components/PageStatusPill.vue";
-import useBuilderStore from "@builder/stores/builderStore";
-import usePageStore from "@builder/stores/pageStore";
-import { BuilderPage } from "@builder/types/doctypes";
-import { escapeHtml, getTextContent } from "@builder/utils/helpers";
+import { __ } from "@web/translation";
+import PageOptions from "@web/components/PageOptions.vue";
+import PageStatusPill from "@web/components/PageStatusPill.vue";
+import useBuilderStore from "@web/stores/builderStore";
+import usePageStore from "@web/stores/pageStore";
+import { BuilderPage } from "@web/types/doctypes";
+import { escapeHtml, getTextContent } from "@web/utils/helpers";
 import { Popover, Tooltip } from "frappe-ui";
 import { computed, ref, watch } from "vue";
 

@@ -1,6 +1,6 @@
-import type Block from "@builder/block";
-import { resetBlock } from "@builder/utils/block/tree";
-import { deepEqual, diffArray, getBlockCopy } from "@builder/utils/helpers";
+import type Block from "@web/block";
+import { resetBlock } from "@web/utils/block/tree";
+import { deepEqual, diffArray, getBlockCopy } from "@web/utils/helpers";
 import { toRaw } from "vue";
 
 export function extendWithComponent(

@@ -61,9 +61,9 @@ def why_rows_differ(chart: str, publisher: str, owner: str) -> str | None:
     can read anything the running user can. A chart that uses none of these, on
     tables both users may read, shows both the same rows.
     """
-    from frappe.insights.doctype.insights_table_v3.insights_table_v3 import is_site_db
-    from frappe.insights.doctype.insights_team.insights_team import check_table_permission, team_grant
-    from frappe.insights.query_utils import source_tables, transitive_closure
+    from frappe.analytics.doctype.insights_table_v3.insights_table_v3 import is_site_db
+    from frappe.analytics.doctype.insights_team.insights_team import check_table_permission, team_grant
+    from frappe.analytics.query_utils import source_tables, transitive_closure
 
     query, config = frappe.db.get_value(CHART, chart, ["query", "config"])
     if not query:

@@ -7,10 +7,10 @@
 </template>
 
 <script lang="ts" setup>
-import SplitModeInput from "@builder/components/Controls/SplitModeInput.vue";
-import StylePropertyControl from "@builder/components/Controls/StylePropertyControl.vue";
-import { collapseBoxShorthand, expandBoxShorthand, normalizeValueWithUnits } from "@builder/utils/cssUtils";
-import { BOX_UNIT_OPTIONS } from "@builder/utils/unitOptions";
+import SplitModeInput from "@web/components/Controls/SplitModeInput.vue";
+import StylePropertyControl from "@web/components/Controls/StylePropertyControl.vue";
+import { collapseBoxShorthand, expandBoxShorthand, normalizeValueWithUnits } from "@web/utils/cssUtils";
+import { BOX_UNIT_OPTIONS } from "@web/utils/unitOptions";
 import { computed } from "vue";
 
 defineOptions({ inheritAttrs: false });

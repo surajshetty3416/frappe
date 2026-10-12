@@ -102,17 +102,17 @@
 	</Dialog>
 </template>
 <script lang="ts" setup>
-import { __ } from "@builder/translation";
+import { __ } from "@web/translation";
 import builderLogo from "/builder_logo.png";
-import EditableSpan from "@builder/components/EditableSpan.vue";
-import FilesIcon from "@builder/components/Icons/Files.vue";
-import SettingsIcon from "@builder/components/Icons/SettingsGear.vue";
-import { useDashboardState } from "@builder/composables/useDashboardState";
-import builderProjectFolder from "@builder/data/builderProjectFolder";
-import useBuilderStore from "@builder/stores/builderStore";
-import { BuilderProjectFolder } from "@builder/types/doctypes";
-import { promptCreateFolder } from "@builder/utils/dialogs";
-import { confirm } from "@builder/utils/helpers";
+import EditableSpan from "@web/components/EditableSpan.vue";
+import FilesIcon from "@web/components/Icons/Files.vue";
+import SettingsIcon from "@web/components/Icons/SettingsGear.vue";
+import { useDashboardState } from "@web/composables/useDashboardState";
+import builderProjectFolder from "@web/data/builderProjectFolder";
+import useBuilderStore from "@web/stores/builderStore";
+import { BuilderProjectFolder } from "@web/types/doctypes";
+import { promptCreateFolder } from "@web/utils/dialogs";
+import { confirm } from "@web/utils/helpers";
 import {
 	createResource,
 	Dialog,
@@ -128,7 +128,7 @@ import { TrialBanner } from "@framework/ui/components/TrialBanner";
 import { DialogDescription, DialogTitle } from "reka-ui";
 import { computed, defineAsyncComponent, ref } from "vue";
 
-const BuilderSettings = defineAsyncComponent(() => import("@builder/components/BuilderSettings.vue"));
+const BuilderSettings = defineAsyncComponent(() => import("@web/components/BuilderSettings.vue"));
 const builderStore = useBuilderStore();
 const { showTemplatesDialog } = useDashboardState();
 const renamingFolder = ref("");
@@ -205,7 +205,7 @@ const deleteFolder = async (folderName: string) => {
 	);
 	if (!confirmed) return;
 	await createResource({
-		url: "frappe.builder.api.delete_folder",
+		url: "frappe.web.api.delete_folder",
 		method: "POST",
 		params: {
 			folder_name: folderName,

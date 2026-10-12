@@ -1,6 +1,6 @@
 import frappe
 
-from frappe.insights.doctype.insights_data_source_v3.insights_data_source_v3 import after_request
+from frappe.analytics.doctype.insights_data_source_v3.insights_data_source_v3 import after_request
 
 
 def execute():

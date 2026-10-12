@@ -7,7 +7,7 @@ data context — variables, resources (`<data_source>.data`), page-script
 bindings, route/router, and globalUtils.
 """
 
-from frappe.studio.ai.agent.registry import Tool
+from frappe.ui.ai.agent.registry import Tool
 
 bind_prop = Tool(
 	name="bind_prop",

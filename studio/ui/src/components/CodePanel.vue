@@ -8,9 +8,9 @@
 </template>
 
 <script setup lang="ts">
-import useStudioStore from "@studio/stores/studioStore"
-import PageScript from "@studio/components/PageScript.vue"
-import FileExplorer from "@studio/components/FileExplorer.vue"
+import useStudioStore from "@ui/stores/studioStore"
+import PageScript from "@ui/components/PageScript.vue"
+import FileExplorer from "@ui/components/FileExplorer.vue"
 
 const store = useStudioStore()
 </script>

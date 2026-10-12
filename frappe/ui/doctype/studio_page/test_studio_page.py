@@ -7,20 +7,20 @@ from unittest.mock import patch
 import frappe
 from frappe.tests import IntegrationTestCase
 
-from frappe.studio.export import remove_empty_values
-from frappe.studio.doctype.studio_app.studio_app import StudioAppRenderer
-from frappe.studio.doctype.studio_app.test_studio_app import (
+from frappe.ui.export import remove_empty_values
+from frappe.ui.doctype.studio_app.studio_app import StudioAppRenderer
+from frappe.ui.doctype.studio_app.test_studio_app import (
 	exports_in_tempdir,
 	make_studio_app,
 	make_studio_page,
 )
-from frappe.studio.doctype.studio_page.copy_paste_handler import (
+from frappe.ui.doctype.studio_page.copy_paste_handler import (
 	create_missing_dependencies,
 	duplicate_page,
 	paste_data_source,
 	paste_page,
 )
-from frappe.studio.doctype.studio_page.studio_page import get_page
+from frappe.ui.doctype.studio_page.studio_page import get_page
 
 PAGE_SCRIPT = "export function setup() { return { greeting: 'hi' } }"
 TODO_RESOURCE = {
@@ -110,7 +110,7 @@ class TestStudioPage(IntegrationTestCase):
 		)
 
 	def test_icon_bindings_are_rewritten_and_script_calls_are_reported(self):
-		from frappe.studio.doctype.studio_page.patches import migrate_get_icon_calls
+		from frappe.ui.doctype.studio_page.patches import migrate_get_icon_calls
 
 		app = make_studio_app(app_name="get-icon-app", app_title="Get Icon App")
 		page = make_studio_page(

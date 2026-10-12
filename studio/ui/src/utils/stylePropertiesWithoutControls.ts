@@ -1,6 +1,6 @@
-import { isValidCSSPropertyName } from "@studio/utils/cssMetadata"
-import { camelToKebabCase } from "@studio/utils/helpers"
-import type { BlockStyleMap } from "@studio/types"
+import { isValidCSSPropertyName } from "@ui/utils/cssMetadata"
+import { camelToKebabCase } from "@ui/utils/helpers"
+import type { BlockStyleMap } from "@ui/types"
 
 // styles on a block that no dedicated panel control edits, as kebab-case CSS property names.
 // controlledProperties is the union of usedStyleProperties declared in ComponentStyles.vue.

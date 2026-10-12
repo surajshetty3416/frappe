@@ -53,10 +53,10 @@
 	</div>
 </template>
 <script lang="ts" setup>
-import { __ } from "@builder/translation";
-import useBuilderStore from "@builder/stores/builderStore";
-import useCanvasStore from "@builder/stores/canvasStore";
-import usePageStore from "@builder/stores/pageStore";
+import { __ } from "@web/translation";
+import useBuilderStore from "@web/stores/builderStore";
+import useCanvasStore from "@web/stores/canvasStore";
+import usePageStore from "@web/stores/pageStore";
 import { Dropdown } from "frappe-ui";
 import { computed, ref } from "vue";
 import { useRoute } from "vue-router";

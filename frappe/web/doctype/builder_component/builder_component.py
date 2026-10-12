@@ -10,9 +10,9 @@ from frappe.modules.export_file import export_to_files
 from frappe.utils.telemetry import capture
 from frappe.website.utils import clear_website_cache
 
-from frappe.builder.component_versions import ensure_component_version
-from frappe.builder.export_import_standard_page import StandardFileSync
-from frappe.builder.utils import Block, compact_json, execute_script, is_bulk_import
+from frappe.web.component_versions import ensure_component_version
+from frappe.web.export_import_standard_page import StandardFileSync
+from frappe.web.utils import Block, compact_json, execute_script, is_bulk_import
 
 
 class BuilderComponent(StandardFileSync, Document):
@@ -57,7 +57,7 @@ class BuilderComponent(StandardFileSync, Document):
 	def export_standard_files(self) -> None:
 		if not frappe.conf.developer_mode or is_bulk_import():
 			return
-		from frappe.builder.export_import_standard_page import export_components
+		from frappe.web.export_import_standard_page import export_components
 
 		for app in self.referencing_apps:
 			app_path = frappe.get_app_path(app)
@@ -69,7 +69,7 @@ class BuilderComponent(StandardFileSync, Document):
 			)
 
 	def clear_page_cache(self):
-		from frappe.builder.doctype.builder_page.builder_page import SERVED_PAGE_FILTERS
+		from frappe.web.doctype.builder_page.builder_page import SERVED_PAGE_FILTERS
 
 		pages = frappe.get_all("Builder Page", or_filters=SERVED_PAGE_FILTERS, fields=["name"])
 		for page in pages:

@@ -17,9 +17,9 @@ import json
 
 import frappe
 
-from frappe.studio.ai.agent.registry import Tool
-from frappe.studio.ai.agent.tools.page import dangling_binding_warning, load_page, save_page, text_arg
-from frappe.studio.ai.block_codec import BlockCodec
+from frappe.ui.ai.agent.registry import Tool
+from frappe.ui.ai.agent.tools.page import dangling_binding_warning, load_page, save_page, text_arg
+from frappe.ui.ai.block_codec import BlockCodec
 
 VARIABLE_TYPES = ("String", "Number", "Boolean", "Object")
 

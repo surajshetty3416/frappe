@@ -1,25 +1,25 @@
 import { ref, nextTick, computed, toRaw, readonly } from "vue"
 import { useDebounceFn, useStorage } from "@vueuse/core"
-import router from "@studio/router/studio_router"
+import router from "@ui/router/studio_router"
 import { defineStore } from "pinia"
 
-import { fetchApp, fetchPage, confirm, getInitialVariableValue, getRouteVariables } from "@studio/utils/helpers"
-import { getBlockInstance, getRootBlock, getBlockCopyWithoutParent, jsToJson } from "@studio/utils/serializer"
-import { studioPages } from "@studio/data/studioPages"
-import { studioApps } from "@studio/data/studioApps"
-import { studioVariables } from "@studio/data/studioVariables"
+import { fetchApp, fetchPage, confirm, getInitialVariableValue, getRouteVariables } from "@ui/utils/helpers"
+import { getBlockInstance, getRootBlock, getBlockCopyWithoutParent, jsToJson } from "@ui/utils/serializer"
+import { studioPages } from "@ui/data/studioPages"
+import { studioApps } from "@ui/data/studioApps"
+import { studioVariables } from "@ui/data/studioVariables"
 
-import Block from "@studio/utils/block"
-import useCanvasStore from "@studio/stores/canvasStore"
-import useCodeStore, { usePageScope } from "@studio/stores/codeStore"
-import { reloadCustomVueComponents } from "@studio/globals"
-import { registerStudioPageScripts, unregisterStudioPageScripts } from "@studio/data/studioPageScripts"
-import { registerCustomComponentPaths } from "@studio/utils/components"
-import type { CustomVueComponentMeta } from "@studio/types/vue"
+import Block from "@ui/utils/block"
+import useCanvasStore from "@ui/stores/canvasStore"
+import useCodeStore, { usePageScope } from "@ui/stores/codeStore"
+import { reloadCustomVueComponents } from "@ui/globals"
+import { registerStudioPageScripts, unregisterStudioPageScripts } from "@ui/data/studioPageScripts"
+import { registerCustomComponentPaths } from "@ui/utils/components"
+import type { CustomVueComponentMeta } from "@ui/types/vue"
 
-import type { StudioApp } from "@studio/types/Studio/StudioApp"
-import type { StudioPage } from "@studio/types/Studio/StudioPage"
-import type { PageCopy } from "@studio/utils/blockCopyPaste"
+import type { StudioApp } from "@ui/types/Studio/StudioApp"
+import type { StudioPage } from "@ui/types/Studio/StudioPage"
+import type { PageCopy } from "@ui/utils/blockCopyPaste"
 import type {
 	BlockOptions,
 	LeftPanelOptions,
@@ -27,10 +27,10 @@ import type {
 	leftPanelComponentTabOptions,
 	SettingsTab,
 	StudioMode,
-} from "@studio/types"
-import ComponentContextMenu from "@studio/components/ComponentContextMenu.vue"
-import type ComponentLayers from "@studio/components/ComponentLayers.vue"
-import type { Variable, VariableOption } from "@studio/types/Studio/StudioPageVariable"
+} from "@ui/types"
+import ComponentContextMenu from "@ui/components/ComponentContextMenu.vue"
+import type ComponentLayers from "@ui/components/ComponentLayers.vue"
+import type { Variable, VariableOption } from "@ui/types/Studio/StudioPageVariable"
 import { toast, dialog } from "frappe-ui"
 import { createResource, call } from "frappe-ui"
 
@@ -112,7 +112,7 @@ const useStudioStore = defineStore("studioStore", () => {
 	// the canvas is not a rendered app page, so it asks for the app's studio_app_boot dict
 	async function setAppBoot(appName: string) {
 		try {
-			window.boot = await call("frappe.studio.api.get_app_boot", { app_name: appName })
+			window.boot = await call("frappe.ui.api.get_app_boot", { app_name: appName })
 		} catch (error) {
 			console.error("Failed to load app boot", error)
 			window.boot = {}
@@ -178,7 +178,7 @@ const useStudioStore = defineStore("studioStore", () => {
 	async function duplicateAppPage(appName: string, page: StudioPage) {
 		toast.promise(
 			createResource({
-				url: "frappe.studio.doctype.studio_page.copy_paste_handler.duplicate_page",
+				url: "frappe.ui.doctype.studio_page.copy_paste_handler.duplicate_page",
 				method: "POST",
 				params: {
 					page_name: page.name,
@@ -204,7 +204,7 @@ const useStudioStore = defineStore("studioStore", () => {
 		targetPage?: string,
 	) {
 		const appName = activeApp.value!.name
-		const page: StudioPage = await call("frappe.studio.doctype.studio_page.copy_paste_handler.paste_page", {
+		const page: StudioPage = await call("frappe.ui.doctype.studio_page.copy_paste_handler.paste_page", {
 			app_name: appName,
 			page: copy,
 			target_page: targetPage,

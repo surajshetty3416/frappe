@@ -1,12 +1,12 @@
-import Autocomplete from "@builder/components/Controls/Autocomplete.vue";
-import BasePropertyControl from "@builder/components/Controls/BasePropertyControl.vue";
-import FontInput from "@builder/components/Controls/FontInput.vue";
-import OptionToggle from "@builder/components/Controls/OptionToggle.vue";
-import StylePropertyControl from "@builder/components/Controls/StylePropertyControl.vue";
-import blockController from "@builder/utils/blockController";
-import { setFont as _setFont, getFontWeightOptions, loadFontList } from "@builder/utils/fontManager";
-import { BOX_UNIT_OPTIONS } from "@builder/utils/unitOptions";
-import { __ } from "@builder/translation";
+import Autocomplete from "@web/components/Controls/Autocomplete.vue";
+import BasePropertyControl from "@web/components/Controls/BasePropertyControl.vue";
+import FontInput from "@web/components/Controls/FontInput.vue";
+import OptionToggle from "@web/components/Controls/OptionToggle.vue";
+import StylePropertyControl from "@web/components/Controls/StylePropertyControl.vue";
+import blockController from "@web/utils/blockController";
+import { setFont as _setFont, getFontWeightOptions, loadFontList } from "@web/utils/fontManager";
+import { BOX_UNIT_OPTIONS } from "@web/utils/unitOptions";
+import { __ } from "@web/translation";
 
 const setFont = (font: string) => {
 	_setFont(font, null).then(() => {

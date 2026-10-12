@@ -1,25 +1,25 @@
 import frappe
 
-from frappe.insights import user_permissions
-from frappe.insights.decorators import insights_whitelist
-from frappe.insights.doctype.insights_data_source_v3.ibis_utils import (
+from frappe.analytics import user_permissions
+from frappe.analytics.decorators import insights_whitelist
+from frappe.analytics.doctype.insights_data_source_v3.ibis_utils import (
     execute_ibis_query,
     get_columns_from_schema,
     to_insights_type,
 )
-from frappe.insights.doctype.insights_table_link_v3.insights_table_link_v3 import (
+from frappe.analytics.doctype.insights_table_link_v3.insights_table_link_v3 import (
     InsightsTableLinkv3,
 )
-from frappe.insights.doctype.insights_table_v3.insights_table_v3 import (
+from frappe.analytics.doctype.insights_table_v3.insights_table_v3 import (
     InsightsTablev3,
     get_stored_columns,
 )
-from frappe.insights.doctype.insights_team.insights_team import (
+from frappe.analytics.doctype.insights_team.insights_team import (
     check_data_source_permission,
     check_table_permission,
 )
-from frappe.insights.not_permitted import answers_refusal
-from frappe.insights.permission_user import permission_user
+from frappe.analytics.not_permitted import answers_refusal
+from frappe.analytics.permission_user import permission_user
 
 
 @insights_whitelist()

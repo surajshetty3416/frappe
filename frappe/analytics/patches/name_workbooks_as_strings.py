@@ -1,7 +1,7 @@
 import frappe
 from frappe.utils import cint
 
-from frappe.insights.doctype.insights_workbook.insights_workbook import WORKBOOK_SERIES_KEY
+from frappe.analytics.doctype.insights_workbook.insights_workbook import WORKBOOK_SERIES_KEY
 
 SEQUENCE_NAME = frappe.scrub(f"{WORKBOOK_SERIES_KEY}_id_seq")
 

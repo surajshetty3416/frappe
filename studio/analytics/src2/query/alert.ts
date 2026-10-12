@@ -37,7 +37,7 @@ const alerts = ref<InsightsAlert[]>([])
 const loading = ref(false)
 async function loadAlerts(query: string) {
 	loading.value = true
-	alerts.value = await call('frappe.insights.api.alerts.get_alerts', { query })
+	alerts.value = await call('frappe.analytics.api.alerts.get_alerts', { query })
 	alerts.value = alerts.value.map((alert: any) => ({
 		...alert,
 		created_from_now: useTimeAgo(alert.creation),

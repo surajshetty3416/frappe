@@ -10,8 +10,8 @@ from frappe.modules.export_file import delete_folder, export_to_files
 from frappe.utils.caching import redis_cache
 from frappe.website.utils import delete_page_cache
 
-from frappe.builder.export_import_standard_page import StandardFileSync
-from frappe.builder.utils import is_bulk_import
+from frappe.web.export_import_standard_page import StandardFileSync
+from frappe.web.utils import is_bulk_import
 
 
 class BuilderToken(StandardFileSync, Document):
@@ -60,7 +60,7 @@ class BuilderToken(StandardFileSync, Document):
 	def export_standard_files(self) -> None:
 		if not frappe.conf.developer_mode or is_bulk_import():
 			return
-		from frappe.builder.export_import_standard_page import export_variables
+		from frappe.web.export_import_standard_page import export_variables
 
 		for app in self.referencing_apps:
 			export_variables([self.name], os.path.join(frappe.get_app_path(app), "builder_files"))

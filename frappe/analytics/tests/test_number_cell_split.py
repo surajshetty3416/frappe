@@ -7,10 +7,10 @@ several becomes one cell per reading. The chart keeps all of them. See
 
 import frappe
 
-from frappe.insights.patches.split_number_cells import execute as run_patch
-from frappe.insights.patches.split_number_cells import expand_items
-from frappe.insights.tests.base import InsightsIntegrationTestCase
-from frappe.insights.tests.factories import DT, create_test_workbook
+from frappe.analytics.patches.split_number_cells import execute as run_patch
+from frappe.analytics.patches.split_number_cells import expand_items
+from frappe.analytics.tests.base import InsightsIntegrationTestCase
+from frappe.analytics.tests.factories import DT, create_test_workbook
 
 OWNER = "Administrator"
 WORKBOOK_TITLE = "Number Cell Split Test Workbook"

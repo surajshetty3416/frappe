@@ -1,4 +1,4 @@
-import { kebabToCamelCase } from "@builder/utils/helpers";
+import { kebabToCamelCase } from "@web/utils/helpers";
 
 /**
  * Deterministically fix the mechanical CSS mistakes the model keeps making, so we

@@ -1,12 +1,12 @@
-import { blockContextMenuOptions } from "@builder/components/BlockContextMenuOptions";
-import { commands } from "@builder/components/Commands";
-import { editorDemoStage } from "@builder/components/EditorDemo/editorDemoStage";
-import EditorDemoActions from "@builder/components/EditorDemo/EditorDemoActions.vue";
-import EditorDemoLogo from "@builder/components/EditorDemo/EditorDemoLogo.vue";
-import { leftPanelTabs } from "@builder/components/LeftPanelTabs";
-import { toolbarItems } from "@builder/components/ToolbarItems";
-import { __ } from "@builder/translation";
-import { onLauncherMessage, postToLauncher } from "@builder/utils/editorDemo";
+import { blockContextMenuOptions } from "@web/components/BlockContextMenuOptions";
+import { commands } from "@web/components/Commands";
+import { editorDemoStage } from "@web/components/EditorDemo/editorDemoStage";
+import EditorDemoActions from "@web/components/EditorDemo/EditorDemoActions.vue";
+import EditorDemoLogo from "@web/components/EditorDemo/EditorDemoLogo.vue";
+import { leftPanelTabs } from "@web/components/LeftPanelTabs";
+import { toolbarItems } from "@web/components/ToolbarItems";
+import { __ } from "@web/translation";
+import { onLauncherMessage, postToLauncher } from "@web/utils/editorDemo";
 import { toast } from "frappe-ui";
 import { onMounted } from "vue";
 

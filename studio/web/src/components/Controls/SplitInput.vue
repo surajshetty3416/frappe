@@ -34,9 +34,9 @@
 </template>
 
 <script lang="ts" setup>
-import Input from "@builder/components/Controls/Input.vue";
-import { startDrag } from "@builder/utils/cursor";
-import { extractNumberAndUnit } from "@builder/utils/helpers";
+import Input from "@web/components/Controls/Input.vue";
+import { startDrag } from "@web/utils/cursor";
+import { extractNumberAndUnit } from "@web/utils/helpers";
 import { computed } from "vue";
 
 type InputValue = string | number | boolean | null;

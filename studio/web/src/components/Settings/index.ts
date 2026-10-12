@@ -1,6 +1,6 @@
-import { createRegistry, type RegistryItem } from "@builder/utils/createRegistry";
+import { createRegistry, type RegistryItem } from "@web/utils/createRegistry";
 import { defineAsyncComponent, type Component } from "vue";
-import { __ } from "@builder/translation";
+import { __ } from "@web/translation";
 
 export type SettingsGroup = "Current Page" | "Global";
 
@@ -45,7 +45,7 @@ const panes: SettingsPane[] = [
 		title: __("General"),
 		icon: "lucide-settings",
 		group: "Current Page",
-		load: () => import("@builder/components/Settings/PageGeneral.vue"),
+		load: () => import("@web/components/Settings/PageGeneral.vue"),
 	},
 	{
 		name: "page_code",
@@ -53,7 +53,7 @@ const panes: SettingsPane[] = [
 		title: __("Page Code"),
 		icon: "lucide-code",
 		group: "Current Page",
-		load: () => import("@builder/components/Settings/PageCode.vue"),
+		load: () => import("@web/components/Settings/PageCode.vue"),
 	},
 	{
 		name: "page_meta",
@@ -61,7 +61,7 @@ const panes: SettingsPane[] = [
 		title: __("Meta"),
 		icon: "lucide-square-dashed-bottom-code",
 		group: "Current Page",
-		load: () => import("@builder/components/Settings/PageMeta.vue"),
+		load: () => import("@web/components/Settings/PageMeta.vue"),
 	},
 	{
 		name: "page_analytics",
@@ -69,7 +69,7 @@ const panes: SettingsPane[] = [
 		title: __("Page Analytics"),
 		icon: "lucide-chart-bar",
 		group: "Current Page",
-		load: () => import("@builder/components/Settings/PageAnalytics.vue"),
+		load: () => import("@web/components/Settings/PageAnalytics.vue"),
 		// the charting library behind both analytics panes is the largest chunk we ship
 		preload: false,
 	},
@@ -79,7 +79,7 @@ const panes: SettingsPane[] = [
 		title: __("General"),
 		icon: "lucide-settings",
 		group: "Global",
-		load: () => import("@builder/components/Settings/GlobalGeneral.vue"),
+		load: () => import("@web/components/Settings/GlobalGeneral.vue"),
 	},
 	{
 		name: "global_users",
@@ -87,7 +87,7 @@ const panes: SettingsPane[] = [
 		title: __("Users"),
 		icon: "lucide-users",
 		group: "Global",
-		load: () => import("@builder/components/Settings/GlobalUsers.vue"),
+		load: () => import("@web/components/Settings/GlobalUsers.vue"),
 	},
 	{
 		name: "global_code",
@@ -95,7 +95,7 @@ const panes: SettingsPane[] = [
 		title: __("Global Code"),
 		icon: "lucide-code",
 		group: "Global",
-		load: () => import("@builder/components/Settings/GlobalCode.vue"),
+		load: () => import("@web/components/Settings/GlobalCode.vue"),
 	},
 	{
 		name: "global_redirects",
@@ -103,7 +103,7 @@ const panes: SettingsPane[] = [
 		title: __("Redirects"),
 		icon: "lucide-shuffle",
 		group: "Global",
-		load: () => import("@builder/components/Settings/GlobalRedirects.vue"),
+		load: () => import("@web/components/Settings/GlobalRedirects.vue"),
 	},
 	{
 		name: "global_robots",
@@ -111,7 +111,7 @@ const panes: SettingsPane[] = [
 		title: __("Robots.txt"),
 		icon: "lucide-bot",
 		group: "Global",
-		load: () => import("@builder/components/Settings/PageRobots.vue"),
+		load: () => import("@web/components/Settings/PageRobots.vue"),
 	},
 	{
 		name: "global_domains",
@@ -119,7 +119,7 @@ const panes: SettingsPane[] = [
 		title: __("Custom Domains"),
 		icon: "lucide-globe",
 		group: "Global",
-		load: () => import("@builder/components/Settings/GlobalDomains.vue"),
+		load: () => import("@web/components/Settings/GlobalDomains.vue"),
 		condition: () => Boolean(window.is_fc_site),
 	},
 	{
@@ -128,7 +128,7 @@ const panes: SettingsPane[] = [
 		title: __("Site Analytics"),
 		icon: "lucide-chart-bar",
 		group: "Global",
-		load: () => import("@builder/components/Settings/GlobalAnalytics.vue"),
+		load: () => import("@web/components/Settings/GlobalAnalytics.vue"),
 		preload: false,
 	},
 	{
@@ -137,7 +137,7 @@ const panes: SettingsPane[] = [
 		title: __("Developer Settings"),
 		icon: "lucide-terminal",
 		group: "Global",
-		load: () => import("@builder/components/Settings/GlobalDeveloper.vue"),
+		load: () => import("@web/components/Settings/GlobalDeveloper.vue"),
 	},
 	{
 		name: "global_agents",
@@ -145,7 +145,7 @@ const panes: SettingsPane[] = [
 		title: __("Connect Your Agent"),
 		icon: "lucide-plug",
 		group: "Global",
-		load: () => import("@builder/components/Settings/GlobalAgents.vue"),
+		load: () => import("@web/components/Settings/GlobalAgents.vue"),
 	},
 	{
 		name: "global_ai",
@@ -153,7 +153,7 @@ const panes: SettingsPane[] = [
 		title: __("AI Settings"),
 		icon: "lucide-sparkles",
 		group: "Global",
-		load: () => import("@builder/components/Settings/GlobalAI.vue"),
+		load: () => import("@web/components/Settings/GlobalAI.vue"),
 	},
 ];
 

@@ -20,8 +20,8 @@
 
 <script setup lang="ts">
 import { toast } from "frappe-ui"
-import Input from "@studio/components/Input.vue"
-import { studioSettings } from "@studio/data/studioSettings"
+import Input from "@ui/components/Input.vue"
+import { studioSettings } from "@ui/data/studioSettings"
 
 function save(apiKey: string) {
 	studioSettings.setValue

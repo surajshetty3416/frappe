@@ -17,10 +17,10 @@ import re
 import frappe
 from frappe.utils import add_days, now_datetime
 
-from frappe.insights.api.ai.lineage import charts_reading, dashboards_showing
-from frappe.insights.api.dashboards import dashboard_view_counts
-from frappe.insights.decorators import insights_whitelist
-from frappe.insights.doctype.insights_table_v3.insights_table_v3 import get_stored_columns
+from frappe.analytics.api.ai.lineage import charts_reading, dashboards_showing
+from frappe.analytics.api.dashboards import dashboard_view_counts
+from frappe.analytics.decorators import insights_whitelist
+from frappe.analytics.doctype.insights_table_v3.insights_table_v3 import get_stored_columns
 
 WORKBOOK = "Insights Workbook"
 QUERY = "Insights Query v3"

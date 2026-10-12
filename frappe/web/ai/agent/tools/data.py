@@ -16,10 +16,10 @@ import re
 
 import frappe
 
-from frappe.builder.ai.agent import pending
-from frappe.builder.ai.agent.registry import Tool
+from frappe.web.ai.agent import pending
+from frappe.web.ai.agent.registry import Tool
 
-logger = frappe.logger("frappe.builder.ai.agent.data")
+logger = frappe.logger("frappe.web.ai.agent.data")
 logger.setLevel(logging.INFO)
 
 STRUCTURAL_FIELDTYPES = {"Section Break", "Column Break", "Tab Break", "HTML"}
@@ -153,8 +153,8 @@ COMPONENT_YAML_LIMIT = 8000
 
 
 def component_block_yaml(raw: str) -> str:
-	from frappe.builder.ai.block_codec import BlockCodec
-	from frappe.builder.utils import to_compact_yaml
+	from frappe.web.ai.block_codec import BlockCodec
+	from frappe.web.utils import to_compact_yaml
 
 	try:
 		block = json.loads(raw)
@@ -278,7 +278,7 @@ def write_page_data_script(ctx, args: dict) -> str:
 			f"{PORTABLE_HINT}."
 		)
 	frappe.db.set_value("Builder Page", ctx.page_id, "page_data_script", script)
-	from frappe.builder.ai.agent.tools.settings import emit_refetch
+	from frappe.web.ai.agent.tools.settings import emit_refetch
 
 	emit_refetch(ctx, "page_data")
 	return "Saved the page data script (runs server-side to populate `data`)."

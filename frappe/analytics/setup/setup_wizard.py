@@ -3,13 +3,13 @@
 
 import frappe
 
-from frappe.insights.decorators import insights_whitelist
-from frappe.insights.setup.demo import DemoDataFactory
+from frappe.analytics.decorators import insights_whitelist
+from frappe.analytics.setup.demo import DemoDataFactory
 
 
 @insights_whitelist(role="Insights Admin")
 def check_demo_data_exists() -> bool:
-    from frappe.insights.doctype.insights_data_source_v3.insights_data_source_v3 import (
+    from frappe.analytics.doctype.insights_data_source_v3.insights_data_source_v3 import (
         db_connections,
     )
 

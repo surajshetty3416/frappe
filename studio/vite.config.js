@@ -7,7 +7,7 @@ import frappeui from "frappe-ui/vite"
 import { defineConfig } from "vite"
 
 import hostDependencies from "./build/hostDependencies.js"
-import studio from "./studio/vite/index.js"
+import ui from "./ui/vite/index.js"
 
 const here = (...parts) => path.resolve(import.meta.dirname, ...parts)
 const flowCore = here("../harness/ui/core")
@@ -27,24 +27,24 @@ export default defineConfig({
 			// the layers bring their own @codemirror/lang-* packages
 			codeLanguages: false,
 			buildConfig: {
-				outDir: here("../frappe/public/frontend"),
-				indexHtmlPath: here("../frappe/www/_frontend.html"),
-				baseUrl: "/assets/frappe/frontend/",
+				outDir: here("../frappe/public/studio"),
+				indexHtmlPath: here("../frappe/www/_studio.html"),
+				baseUrl: "/assets/frappe/studio/",
 			},
 		}),
 		vue(),
 		vueJsx(),
 		frameworkUI({ dedupe: ["pinia", "@vueuse/core", "echarts", "zrender"] }),
 		hostDependencies([flowCore]),
-		studio({ frontendDir: here("."), appsDir: here("../..") }),
+		ui({ frontendDir: here("."), appsDir: here("../..") }),
 	],
 	resolve: {
 		alias: [
 			{ find: /^@shell\//, replacement: here("src") + "/" },
-			{ find: /^@builder\//, replacement: here("builder/src") + "/" },
-			{ find: /^@insights\//, replacement: here("insights/src2") + "/" },
-			{ find: /^@studio\//, replacement: here("studio/src") + "/" },
-			{ find: /^@flow\/(?!ui-core)/, replacement: here("flow/src") + "/" },
+			{ find: /^@web\//, replacement: here("web/src") + "/" },
+			{ find: /^@analytics\//, replacement: here("analytics/src2") + "/" },
+			{ find: /^@ui\//, replacement: here("ui/src") + "/" },
+			{ find: /^@ai\//, replacement: here("ai/src") + "/" },
 			// @flow/ui-core imports single components from frappe-ui's source, which the
 			// package's exports map does not list
 			{ find: /^frappe-ui\/src\//, replacement: here("node_modules/frappe-ui/src") + "/" },
@@ -75,7 +75,7 @@ export default defineConfig({
 		// studio app pages render outside the SPA; their template finds this renderer in the manifest
 		manifest: true,
 		rolldownOptions: {
-			input: { index: here("index.html"), "studio-renderer": here("studio/src/renderer.ts") },
+			input: { index: here("index.html"), "ui-renderer": here("ui/src/renderer.ts") },
 		},
 	},
 	optimizeDeps: {

@@ -1,6 +1,6 @@
 import frappe
 
-from frappe.insights.doctype.insights_chart_v3.chart_query import normalize_chart_config
+from frappe.analytics.doctype.insights_chart_v3.chart_query import normalize_chart_config
 
 CHART = "Insights Chart v3"
 

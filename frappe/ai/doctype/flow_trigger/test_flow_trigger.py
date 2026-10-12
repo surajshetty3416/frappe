@@ -7,11 +7,11 @@ from unittest.mock import patch
 import frappe
 from frappe.tests import IntegrationTestCase
 
-from frappe.flow import triggers
-from frappe.flow.daemon.client import DaemonClient
-from frappe.flow.permissions import FLOW_USER_ROLE
-from frappe.flow.tests.test_fake_daemon import FakeDaemon
-from frappe.flow.tools.builtins import sync_builtin_tools
+from frappe.ai import triggers
+from frappe.ai.daemon.client import DaemonClient
+from frappe.ai.permissions import FLOW_USER_ROLE
+from frappe.ai.tests.test_fake_daemon import FakeDaemon
+from frappe.ai.tools.builtins import sync_builtin_tools
 
 
 def _model(**overrides: Any) -> dict:
@@ -165,7 +165,7 @@ class TestFlowTriggerFiring(IntegrationTestCase):
 
 	def setUp(self):
 		self.enterContext(patch.dict(frappe.local.conf, {"flow_server_secret": "site-token"}))
-		self.enterContext(patch("frappe.flow.lib.model.resolve_provider_credentials", return_value={}))
+		self.enterContext(patch("frappe.ai.lib.model.resolve_provider_credentials", return_value={}))
 		self.daemon = FakeDaemon()
 		self.enterContext(patch.object(DaemonClient, "for_site", return_value=self.daemon))
 		self.model = frappe.get_doc(_model()).insert()

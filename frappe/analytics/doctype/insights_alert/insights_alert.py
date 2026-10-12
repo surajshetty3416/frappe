@@ -14,14 +14,14 @@ from frappe.model.document import Document
 from frappe.utils import escape_html, get_url, validate_email_address
 from frappe.utils.data import get_datetime, get_datetime_str, now_datetime
 
-from frappe.insights.http import post_to_public_url, validate_public_url
-from frappe.insights.doctype.insights_data_source_v3.ibis_utils import FRAPPE_ERRORS
-from frappe.insights.doctype.insights_data_source_v3.insights_data_source_v3 import (
+from frappe.analytics.http import post_to_public_url, validate_public_url
+from frappe.analytics.doctype.insights_data_source_v3.ibis_utils import FRAPPE_ERRORS
+from frappe.analytics.doctype.insights_data_source_v3.insights_data_source_v3 import (
     db_connections,
 )
-from frappe.insights.permission_user import get_permission_user, may_run_as, permission_user
-from frappe.insights.permissions import workbook_of
-from frappe.insights.utils import deep_convert_dict_to_dict
+from frappe.analytics.permission_user import get_permission_user, may_run_as, permission_user
+from frappe.analytics.permissions import workbook_of
+from frappe.analytics.utils import deep_convert_dict_to_dict
 
 # The payload is a contract with somebody else's code. Version it, so it can
 # change without breaking every receiver that already parses it.
@@ -123,7 +123,7 @@ class InsightsAlert(Document):
         Checked on save for whoever saves, and on every send for whoever enabled
         it. A share revoked or access lowered since the save must stop the next mail.
         """
-        from frappe.insights.permissions import can_read_referenced_query
+        from frappe.analytics.permissions import can_read_referenced_query
 
         if not can_read_referenced_query(self.query):
             frappe.throw(_("You do not have permission to access this query"), frappe.PermissionError)
@@ -236,7 +236,7 @@ class InsightsAlert(Document):
     def check_trusted_code(self):
         """Compare the condition with the stored alert's, not with the one the last
         save saw. A send runs the condition from the request body, saved or not."""
-        from frappe.insights.permissions import check_trusted_code_author
+        from frappe.analytics.permissions import check_trusted_code_author
 
         stored = frappe.db.get_value(self.doctype, self.name, "condition") if self.name else None
         check_trusted_code_author([(self.title, {"expression": self.condition}, {"expression": stored})])
@@ -258,7 +258,7 @@ class InsightsAlert(Document):
 
         message_html = frappe.utils.md_to_html(message_md)
         return frappe.render_template(  # nosemgrep - the template is a file in this app
-            "insights/templates/alert.html",
+            "analytics/templates/alert.html",
             context=frappe._dict(
                 message=message_html,
                 # The template renders without autoescaping, so a value

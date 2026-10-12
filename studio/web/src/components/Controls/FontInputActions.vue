@@ -14,10 +14,10 @@
 </template>
 
 <script setup lang="ts">
-import FontUploader from "@builder/components/Controls/FontUploader.vue";
-import NewBuilderToken from "@builder/components/Modals/NewBuilderToken.vue";
-import { BuilderToken } from "@builder/types/doctypes";
-import blockController from "@builder/utils/blockController";
+import FontUploader from "@web/components/Controls/FontUploader.vue";
+import NewBuilderToken from "@web/components/Modals/NewBuilderToken.vue";
+import { BuilderToken } from "@web/types/doctypes";
+import blockController from "@web/utils/blockController";
 import { Button } from "frappe-ui";
 import { computed, ref } from "vue";
 

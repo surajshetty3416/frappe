@@ -82,15 +82,15 @@
 </template>
 
 <script setup lang="ts">
-import { __ } from "@builder/translation";
-import { useDashboardState } from "@builder/composables/useDashboardState";
-import builderProjectFolder from "@builder/data/builderProjectFolder";
-import { notifyPagesChanged } from "@builder/utils/pageActions";
-import { templateGroups } from "@builder/data/webPage";
-import router from "@builder/router";
-import useBuilderStore from "@builder/stores/builderStore";
-import usePageStore from "@builder/stores/pageStore";
-import { TemplateGroup, TemplatePageSummary } from "@builder/types/template";
+import { __ } from "@web/translation";
+import { useDashboardState } from "@web/composables/useDashboardState";
+import builderProjectFolder from "@web/data/builderProjectFolder";
+import { notifyPagesChanged } from "@web/utils/pageActions";
+import { templateGroups } from "@web/data/webPage";
+import router from "@web/router";
+import useBuilderStore from "@web/stores/builderStore";
+import usePageStore from "@web/stores/pageStore";
+import { TemplateGroup, TemplatePageSummary } from "@web/types/template";
 import { Button, createResource, toast } from "frappe-ui";
 import { useTelemetry } from "@framework/ui/telemetry";
 import { computed, onMounted, ref, watch } from "vue";
@@ -196,7 +196,7 @@ const useTemplate = (page: TemplatePageSummary) => {
 	if (creatingPage.value) return;
 	creatingPage.value = true;
 	const promise = createResource({
-		url: "frappe.builder.api.create_page_from_template",
+		url: "frappe.web.api.create_page_from_template",
 	})
 		.submit({
 			template_page: page.name,
@@ -228,7 +228,7 @@ const importAll = () => {
 	if (importingAll.value || !activeGroup.value) return;
 	importingAll.value = true;
 	const promise = createResource({
-		url: "frappe.builder.api.import_template_group",
+		url: "frappe.web.api.import_template_group",
 	})
 		.submit({ template_group: activeGroup.value.name })
 		.then(({ folder, pages }: { folder: string; pages: string[] }) => {

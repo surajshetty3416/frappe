@@ -53,27 +53,27 @@
 </template>
 
 <script setup lang="ts">
-import Block from "@studio/utils/block"
-import OptionToggle from "@studio/components/OptionToggle.vue"
-import useStudioStore from "@studio/stores/studioStore"
-import blockController from "@studio/utils/blockController"
-import { getEspressoTokens } from "@studio/utils/espressoTokens"
-import { getStylePropertiesWithoutControls } from "@studio/utils/stylePropertiesWithoutControls"
-import { kebabToCamelCase, toTitleCase } from "@studio/utils/helpers"
+import Block from "@ui/utils/block"
+import OptionToggle from "@ui/components/OptionToggle.vue"
+import useStudioStore from "@ui/stores/studioStore"
+import blockController from "@ui/utils/blockController"
+import { getEspressoTokens } from "@ui/utils/espressoTokens"
+import { getStylePropertiesWithoutControls } from "@ui/utils/stylePropertiesWithoutControls"
+import { kebabToCamelCase, toTitleCase } from "@ui/utils/helpers"
 import { CSSProperties, computed, toValue } from "vue"
 
-import BlockFlexLayoutHandler from "@studio/components/BlockFlexLayoutHandler.vue"
-import BlockGridLayoutHandler from "@studio/components/BlockGridLayoutHandler.vue"
-import BlockPositionHandler from "@studio/components/BlockPositionHandler.vue"
-import CollapsibleSection from "@studio/components/CollapsibleSection.vue"
-import DimensionInput from "@studio/components/DimensionInput.vue"
-import InlineInput from "@studio/components/InlineInput.vue"
-import EmptyState from "@studio/components/EmptyState.vue"
-import ColorInput from "@studio/components/ColorInput.vue"
-import MoreStylesPanel, { getAddedProperties } from "@studio/components/MoreStylesPanel.vue"
+import BlockFlexLayoutHandler from "@ui/components/BlockFlexLayoutHandler.vue"
+import BlockGridLayoutHandler from "@ui/components/BlockGridLayoutHandler.vue"
+import BlockPositionHandler from "@ui/components/BlockPositionHandler.vue"
+import CollapsibleSection from "@ui/components/CollapsibleSection.vue"
+import DimensionInput from "@ui/components/DimensionInput.vue"
+import InlineInput from "@ui/components/InlineInput.vue"
+import EmptyState from "@ui/components/EmptyState.vue"
+import ColorInput from "@ui/components/ColorInput.vue"
+import MoreStylesPanel, { getAddedProperties } from "@ui/components/MoreStylesPanel.vue"
 
-import type { StyleValue } from "@studio/types"
-import DynamicStyleSelector from "@studio/components/DynamicStyleSetter.vue"
+import type { StyleValue } from "@ui/types"
+import DynamicStyleSelector from "@ui/components/DynamicStyleSetter.vue"
 
 const props = defineProps({
 	block: {

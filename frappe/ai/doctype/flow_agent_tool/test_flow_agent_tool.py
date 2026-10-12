@@ -4,7 +4,7 @@
 import frappe
 from frappe.tests import IntegrationTestCase
 
-from frappe.flow.tools.builtins import sync_builtin_tools
+from frappe.ai.tools.builtins import sync_builtin_tools
 
 
 class TestFlowAgentToolChildTable(IntegrationTestCase):

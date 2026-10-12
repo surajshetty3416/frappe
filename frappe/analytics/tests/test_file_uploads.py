@@ -5,11 +5,11 @@ import frappe
 import pandas as pd
 from frappe.utils.file_manager import save_file
 
-from frappe.insights.api import import_csv_data
-from frappe.insights.doctype.insights_data_source_v3.insights_data_source_v3 import db_connections
-from frappe.insights.doctype.insights_table_v3.insights_table_v3 import get_table_name
-from frappe.insights.tests.base import InsightsIntegrationTestCase
-from frappe.insights.tests.factories import DT
+from frappe.analytics.api import import_csv_data
+from frappe.analytics.doctype.insights_data_source_v3.insights_data_source_v3 import db_connections
+from frappe.analytics.doctype.insights_table_v3.insights_table_v3 import get_table_name
+from frappe.analytics.tests.base import InsightsIntegrationTestCase
+from frappe.analytics.tests.factories import DT
 
 
 class TestUploadedFileImports(InsightsIntegrationTestCase):

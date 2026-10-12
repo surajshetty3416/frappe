@@ -11,7 +11,7 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import InlineInput from "@builder/components/Controls/InlineInput.vue";
+import InlineInput from "@web/components/Controls/InlineInput.vue";
 
 const props = defineProps<{
 	options: Record<string, any>;

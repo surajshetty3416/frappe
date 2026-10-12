@@ -5,7 +5,7 @@
 		fileTypes="image/*"
 		:private="false"
 		folder="Home/Builder Uploads"
-		uploadEndpoint="/api/method/frappe.builder.api.upload_builder_asset">
+		uploadEndpoint="/api/method/frappe.web.api.upload_builder_asset">
 		<template #default="{ openFileSelector }">
 			<Popover
 				side="left"
@@ -30,7 +30,7 @@
 								:modelValue="currentImageURL">
 								<template v-if="labelPosition === 'left'" #prefix>
 									<img
-										:src="currentImageURL || '/assets/frappe/builder/images/fallback.png'"
+										:src="currentImageURL || '/assets/frappe/web/images/fallback.png'"
 										alt=""
 										@click="toggle"
 										class="h-4 w-4 cursor-pointer rounded-4 border border-outline-gray-3 shadow-sm"
@@ -80,7 +80,7 @@
 						</div>
 						<div v-else class="group relative flex items-center justify-center overflow-hidden rounded-4">
 							<img
-								:src="currentImageURL || '/assets/frappe/builder/images/fallback.png'"
+								:src="currentImageURL || '/assets/frappe/web/images/fallback.png'"
 								alt=""
 								class="image-preview relative h-24 w-full cursor-pointer bg-surface-gray-2"
 								:style="{
@@ -129,13 +129,13 @@
 	</FileUploader>
 </template>
 <script lang="ts" setup>
-import { __ } from "@builder/translation";
-import ImageFocusInput from "@builder/components/Controls/ImageFocusInput.vue";
-import ImageUploader from "@builder/components/Controls/ImageUploader.vue";
-import InlineInput from "@builder/components/Controls/InlineInput.vue";
-import InputLabel from "@builder/components/Controls/InputLabel.vue";
-import useBuilderStore from "@builder/stores/builderStore";
-import { useAnchoredPopover } from "@builder/utils/useAnchoredPopover";
+import { __ } from "@web/translation";
+import ImageFocusInput from "@web/components/Controls/ImageFocusInput.vue";
+import ImageUploader from "@web/components/Controls/ImageUploader.vue";
+import InlineInput from "@web/components/Controls/InlineInput.vue";
+import InputLabel from "@web/components/Controls/InputLabel.vue";
+import useBuilderStore from "@web/stores/builderStore";
+import { useAnchoredPopover } from "@web/utils/useAnchoredPopover";
 import { FileUploader, Popover, TabButtons, type TabButtonValue } from "frappe-ui";
 import { computed, ref, watch, type ComponentPublicInstance } from "vue";
 

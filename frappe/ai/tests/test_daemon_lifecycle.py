@@ -13,7 +13,7 @@ import click
 import frappe
 from frappe.tests import UnitTestCase
 
-from frappe.flow.daemon import lifecycle
+from frappe.ai.daemon import lifecycle
 
 
 class TestDaemonLifecycle(UnitTestCase):
@@ -44,7 +44,7 @@ class TestDaemonLifecycle(UnitTestCase):
 		self.site = frappe.local.site
 
 	def test_callbacks_go_to_the_local_web_server_unless_overridden(self):
-		method = "/api/method/frappe.flow.daemon.callback.callback"
+		method = "/api/method/frappe.ai.daemon.callback.callback"
 		with patch.dict(frappe.local.conf, {"flow_server_url": None, "webserver_port": 8001}):
 			self.assertEqual(lifecycle.callback_url(), f"http://127.0.0.1:8001{method}")
 			self.assertEqual(lifecycle.callback_host(), "127.0.0.1:8001")

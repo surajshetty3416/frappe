@@ -13,7 +13,7 @@
 </template>
 <script setup lang="ts">
 import type { PropType } from "vue"
-import InputLabel from "@studio/components/InputLabel.vue"
+import InputLabel from "@ui/components/InputLabel.vue"
 import { TabButtons, type TabButton } from "frappe-ui"
 
 defineProps({

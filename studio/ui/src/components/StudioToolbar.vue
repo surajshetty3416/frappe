@@ -164,18 +164,18 @@
 <script setup lang="ts">
 import { computed, ref } from "vue"
 import { Tooltip, Popover, Dropdown, Button } from "frappe-ui"
-import useStudioStore from "@studio/stores/studioStore"
-import useCanvasStore from "@studio/stores/canvasStore"
+import useStudioStore from "@ui/stores/studioStore"
+import useCanvasStore from "@ui/stores/canvasStore"
 
-import PageOptions from "@studio/components/PageOptions.vue"
-import StudioLogo from "@studio/components/Icons/StudioLogo.vue"
-import ExportAppDialog from "@studio/components/ExportAppDialog.vue"
-import PublishButton from "@studio/components/PublishButton.vue"
-import SettingsDialog from "@studio/components/Settings/SettingsDialog.vue"
+import PageOptions from "@ui/components/PageOptions.vue"
+import StudioLogo from "@ui/components/Icons/StudioLogo.vue"
+import ExportAppDialog from "@ui/components/ExportAppDialog.vue"
+import PublishButton from "@ui/components/PublishButton.vue"
+import SettingsDialog from "@ui/components/Settings/SettingsDialog.vue"
 
-import type { StudioMode } from "@studio/types"
+import type { StudioMode } from "@ui/types"
 import LucideArrowUpFromLine from "~icons/lucide/arrow-up-from-line"
-import { isObjectEmpty, openAppInDesk, openPageInDesk } from "@studio/utils/helpers"
+import { isObjectEmpty, openAppInDesk, openPageInDesk } from "@ui/utils/helpers"
 
 const store = useStudioStore()
 const canvasStore = useCanvasStore()

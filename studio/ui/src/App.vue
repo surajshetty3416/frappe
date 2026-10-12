@@ -10,8 +10,8 @@
 
 <script setup lang="ts">
 import { provide } from "vue"
-import { useSocket } from "@studio/socket"
-import { useLiveEditor } from "@studio/utils/useLiveEditor"
+import { useSocket } from "@ui/socket"
+import { useLiveEditor } from "@ui/utils/useLiveEditor"
 
 provide("socket", useSocket())
 useLiveEditor()

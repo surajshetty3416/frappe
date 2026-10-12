@@ -7,7 +7,7 @@
 	</div>
 </template>
 <script setup lang="ts">
-import { editorDemoStage } from "@builder/components/EditorDemo/editorDemoStage";
-import { __ } from "@builder/translation";
+import { editorDemoStage } from "@web/components/EditorDemo/editorDemoStage";
+import { __ } from "@web/translation";
 import { Badge, Tooltip } from "frappe-ui";
 </script>

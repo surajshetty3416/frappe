@@ -1,5 +1,5 @@
 import { defineLayer } from "@shell/layer"
-import session from "@studio/utils/session"
+import session from "@ui/utils/session"
 
 export default defineLayer({
 	name: "studio",

@@ -7,14 +7,14 @@ needs. It never shows an empty result, because "No data" reads as zero. See
 
 import frappe
 
-from frappe.insights.api.view import get_chart_data, get_dashboard
-from frappe.insights.api.workbooks import update_share_permissions
-from frappe.insights.exceptions import UnknownColumn
-from frappe.insights.doctype.insights_data_source_v3.insights_data_source_v3 import db_connections
-from frappe.insights.doctype.insights_table_v3.insights_table_v3 import InsightsTablev3
-from frappe.insights.not_permitted import NotPermitted
-from frappe.insights.tests.base import InsightsIntegrationTestCase
-from frappe.insights.tests.factories import DT, as_user, create_user, delete_users, delete_workbooks
+from frappe.analytics.api.view import get_chart_data, get_dashboard
+from frappe.analytics.api.workbooks import update_share_permissions
+from frappe.analytics.exceptions import UnknownColumn
+from frappe.analytics.doctype.insights_data_source_v3.insights_data_source_v3 import db_connections
+from frappe.analytics.doctype.insights_table_v3.insights_table_v3 import InsightsTablev3
+from frappe.analytics.not_permitted import NotPermitted
+from frappe.analytics.tests.base import InsightsIntegrationTestCase
+from frappe.analytics.tests.factories import DT, as_user, create_user, delete_users, delete_workbooks
 
 SITE_DB = "Site DB"
 PREFIX = "Not Permitted Test"
@@ -161,7 +161,7 @@ class ContentOverATableTheReaderCannotRead(InsightsIntegrationTestCase):
 
     def fetch(self, chart):
         """Calls the engine directly, so a refusal raises `NotPermitted`.
-        `frappe.insights.api.view` turns it into an answer the card renders."""
+        `frappe.analytics.api.view` turns it into an answer the card renders."""
         with as_user(READER), db_connections():
             return frappe.get_doc(DT.CHART, chart).fetch(force=True)
 
@@ -876,7 +876,7 @@ class ANotPermittedChartDoesNotRun(ContentOverATableTheReaderCannotRead):
     def test_the_pickers_behind_a_card_answer_a_refusal_too(self):
         """A partly permitted dashboard opens, so its value and range pickers get
         the same refusal. A card cannot render a raw 403."""
-        from frappe.insights.api.view import get_card_range, get_card_values
+        from frappe.analytics.api.view import get_card_range, get_card_values
 
         with as_user(READER), db_connections():
             self.assertEqual(get_card_values(self.unreadable_chart, "name", self.partly_board), [])
@@ -885,7 +885,7 @@ class ANotPermittedChartDoesNotRun(ContentOverATableTheReaderCannotRead):
     # @feature permissions.not-permitted-chart
     def test_the_builders_own_pickers_answer_what_the_readers_do(self):
         """The builder calls its filter pickers through `run_doc_method`. A reader
-        calls the matching methods in `frappe.insights.api.view`. Both must answer a
+        calls the matching methods in `frappe.analytics.api.view`. Both must answer a
         refusal the same way."""
         board = frappe.get_doc(DT.DASHBOARD, self.partly_board)
 
@@ -897,7 +897,7 @@ class ANotPermittedChartDoesNotRun(ContentOverATableTheReaderCannotRead):
     def test_a_filter_lists_the_values_of_a_card_behind_a_refused_one(self):
         """The stored links are sorted by chart name, so the chart the reader
         cannot read may come first. Here it does."""
-        from frappe.insights.api.view import get_filter_range, get_filter_values
+        from frappe.analytics.api.view import get_filter_range, get_filter_values
 
         refused = frappe.copy_doc(frappe.get_doc(DT.CHART, self.unreadable_chart))
         refused.insert(set_name="0-refused-first")
@@ -928,7 +928,7 @@ class ANotPermittedChartDoesNotRun(ContentOverATableTheReaderCannotRead):
         """A held-back column is refused like a table the reader cannot read, so
         the filter uses the next link. The card's own picker and the query's
         methods in the builder return the same refusal."""
-        from frappe.insights.api.view import get_card_range, get_card_values, get_filter_range, get_filter_values
+        from frappe.analytics.api.view import get_card_range, get_card_values, get_filter_range, get_filter_values
 
         permlevel_query = frappe.db.get_value(DT.CHART, self.permlevel_chart, "query")
         refused = frappe.copy_doc(frappe.get_doc(DT.CHART, self.permlevel_chart))
@@ -969,8 +969,8 @@ class ANotPermittedChartDoesNotRun(ContentOverATableTheReaderCannotRead):
         """The drill dialog renders a refused level, so the refusal comes back as
         an answer, as from every other endpoint of a dashboard the reader may
         open. The reader's endpoint and the builder's both answer it."""
-        from frappe.insights.api.authoring import get_drill_data as authoring_drill
-        from frappe.insights.api.view import get_drill_data as view_drill
+        from frappe.analytics.api.authoring import get_drill_data as authoring_drill
+        from frappe.analytics.api.view import get_drill_data as view_drill
 
         level = [{"segment_filters": [], "action": {"rows": True}}]
         config = frappe.parse_json(frappe.db.get_value(DT.CHART, self.unreadable_chart, "config"))
@@ -1005,7 +1005,7 @@ class ANotPermittedChartDoesNotRun(ContentOverATableTheReaderCannotRead):
     def test_a_row_count_the_reader_may_not_have_is_not_a_zero(self):
         """A count has no empty value other than zero, so it cannot hold a Not
         Permitted marker. "0 rows" would read as an empty table, so it raises."""
-        from frappe.insights.api.data_sources import get_data_source_table_row_count
+        from frappe.analytics.api.data_sources import get_data_source_table_row_count
 
         with as_user(READER), db_connections(), self.assertRaises(NotPermitted):
             get_data_source_table_row_count(SITE_DB, UNREADABLE_TABLE)
@@ -1016,7 +1016,7 @@ class ANotPermittedChartDoesNotRun(ContentOverATableTheReaderCannotRead):
         `get_data_source_table_row_count`. The refusal ends the request as a
         403, so the message must be in frappe's message log. Frappe sends the
         exception's own text only where tracebacks are allowed."""
-        from frappe.insights.api.data_sources import get_data_source_table_row_count
+        from frappe.analytics.api.data_sources import get_data_source_table_row_count
 
         frappe.clear_messages()
         with as_user(READER), db_connections(), self.assertRaises(NotPermitted):
@@ -1029,7 +1029,7 @@ class ANotPermittedChartDoesNotRun(ContentOverATableTheReaderCannotRead):
     def test_a_refusal_the_card_shows_leaves_no_message_beside_it(self):
         """`get_data_source_table` returns the refusal for the explorer's
         preview to render. A toast would repeat it."""
-        from frappe.insights.api.data_sources import get_data_source_table
+        from frappe.analytics.api.data_sources import get_data_source_table
 
         frappe.clear_messages()
         with as_user(READER), db_connections():
@@ -1041,7 +1041,7 @@ class ANotPermittedChartDoesNotRun(ContentOverATableTheReaderCannotRead):
     def test_a_data_source_table_preview_answers_a_refusal(self):
         """The explorer lists a table by team grant, not by frappe read
         permission, so a reader can open a table they cannot read."""
-        from frappe.insights.api.data_sources import get_data_source_table
+        from frappe.analytics.api.data_sources import get_data_source_table
 
         with as_user(READER), db_connections():
             answer = get_data_source_table(SITE_DB, UNREADABLE_TABLE)
@@ -1103,8 +1103,8 @@ class ADashboardWithNothingPermittedReadsAsNotFound(ContentOverATableTheReaderCa
         """On site data, a team grant lets a reader read a table as desk
         permission does. The card renders for them, so the dashboard is not
         Not Found."""
-        from frappe.insights.doctype.insights_table_v3.insights_table_v3 import get_table_name
-        from frappe.insights.doctype.insights_team.insights_team import clear_cache
+        from frappe.analytics.doctype.insights_table_v3.insights_table_v3 import get_table_name
+        from frappe.analytics.doctype.insights_team.insights_team import clear_cache
 
         self.set_team_permissions(1)
         table = get_table_name(SITE_DB, UNREADABLE_TABLE)

@@ -15,7 +15,7 @@
 </template>
 
 <script setup lang="ts">
-import useCanvasStore from "@studio/stores/canvasStore"
+import useCanvasStore from "@ui/stores/canvasStore"
 
 const canvasStore = useCanvasStore()
 </script>

@@ -4,11 +4,11 @@ from unittest.mock import patch
 import frappe
 from frappe.utils import add_days, nowdate
 
-from frappe.insights.exceptions import ExpressionSyntaxError, UnknownColumn
-from frappe.insights.doctype.insights_data_source_v3.ibis_utils import CircularQueryReferenceError
-from frappe.insights.doctype.insights_data_source_v3.insights_data_source_v3 import db_connections
-from frappe.insights.tests.base import InsightsIntegrationTestCase
-from frappe.insights.tests.factories import (
+from frappe.analytics.exceptions import ExpressionSyntaxError, UnknownColumn
+from frappe.analytics.doctype.insights_data_source_v3.ibis_utils import CircularQueryReferenceError
+from frappe.analytics.doctype.insights_data_source_v3.insights_data_source_v3 import db_connections
+from frappe.analytics.tests.base import InsightsIntegrationTestCase
+from frappe.analytics.tests.factories import (
     DT,
     USER_1,
     as_user,
@@ -18,7 +18,7 @@ from frappe.insights.tests.factories import (
     create_test_workbook,
     execute_test_query,
 )
-from frappe.insights.tests.test_ibis_utils import (
+from frappe.analytics.tests.test_ibis_utils import (
     DATE_DIFF_CASES,
     DATE_DIFF_UNITS,
     FIRST_ROW_CASES,
@@ -1277,7 +1277,7 @@ class TestQuerying(InsightsIntegrationTestCase):
         connection, which skips the source's table, row and column permissions.
         It writes a literal relation to the connection as a temporary table.
         `validate_expression` uses the same namespace."""
-        from frappe.insights.doctype.insights_data_source_v3.ibis.utils import validate_expression
+        from frappe.analytics.doctype.insights_data_source_v3.ibis.utils import validate_expression
 
         self.seed_todos()
         workbook = create_test_workbook(USER_1)
@@ -1306,7 +1306,7 @@ class TestQuerying(InsightsIntegrationTestCase):
 
     def site_db_todo_table(self):
         """The `Insights Table v3` row a refresh looks the source table up by."""
-        from frappe.insights.doctype.insights_table_v3.insights_table_v3 import get_table_name
+        from frappe.analytics.doctype.insights_table_v3.insights_table_v3 import get_table_name
 
         name = get_table_name("Site DB", "tabToDo")
         if not frappe.db.exists(DT.TABLE, name):
@@ -1345,7 +1345,7 @@ class TestQuerying(InsightsIntegrationTestCase):
         # the queue is the boundary: the import itself is a background job, and
         # whether one is already sitting on the queue is the queue's state, not
         # this rule's
-        warehouse = "frappe.insights.doctype.insights_data_source_v3.data_warehouse"
+        warehouse = "frappe.analytics.doctype.insights_data_source_v3.data_warehouse"
         with (
             patch(f"{warehouse}.is_job_enqueued", return_value=False),
             patch(f"{warehouse}.enqueue_warehouse_table_import") as enqueue,

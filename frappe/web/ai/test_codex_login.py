@@ -7,8 +7,8 @@ the account-id extraction. The listener and exchange need a browser and OpenAI.
 import unittest
 from urllib.parse import parse_qs, urlparse
 
-from frappe.builder.ai import codex, codex_login
-from frappe.builder.ai.test_codex import fake_jwt
+from frappe.web.ai import codex, codex_login
+from frappe.web.ai.test_codex import fake_jwt
 
 
 class TestPkce(unittest.TestCase):

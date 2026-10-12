@@ -4,12 +4,12 @@ import { setActivePinia } from "pinia"
 // @ts-ignore
 import { resourcesPlugin } from "frappe-ui"
 
-import "@studio/setupFrappeUIResource"
-import DataPanel from "@studio/components/DataPanel.vue"
-import ResourceDialog from "@studio/components/ResourceDialog.vue"
-import useStudioStore from "@studio/stores/studioStore"
-import { usePageScope } from "@studio/stores/codeStore"
-import type { StudioPage } from "@studio/types/Studio/StudioPage"
+import "@ui/setupFrappeUIResource"
+import DataPanel from "@ui/components/DataPanel.vue"
+import ResourceDialog from "@ui/components/ResourceDialog.vue"
+import useStudioStore from "@ui/stores/studioStore"
+import { usePageScope } from "@ui/stores/codeStore"
+import type { StudioPage } from "@ui/types/Studio/StudioPage"
 
 const APP_NAME = "cypress-data-sources"
 
@@ -37,9 +37,9 @@ describe("data source editor", () => {
 	beforeEach(() => {
 		setActivePinia(pinia)
 		cy.login()
-		cy.intercept("/api/method/frappe.studio.api.get_doctype_fields*").as("getDocTypeFields")
-		cy.intercept("/api/method/frappe.studio.api.get_sort_fields*").as("getSortFields")
-		cy.intercept("/api/method/frappe.studio.api.get_whitelisted_methods*").as("getWhitelistedMethods")
+		cy.intercept("/api/method/frappe.ui.api.get_doctype_fields*").as("getDocTypeFields")
+		cy.intercept("/api/method/frappe.ui.api.get_sort_fields*").as("getSortFields")
+		cy.intercept("/api/method/frappe.ui.api.get_whitelisted_methods*").as("getWhitelistedMethods")
 		// pages stay until after(): a data source from an earlier test may still refetch its page
 		cy.insert_doc("Studio App", { app_name: APP_NAME, app_title: "Cypress Data Sources" }, true)
 		cy.insert_doc("Studio Page", { studio_app: APP_NAME }).then((createdPage) => {

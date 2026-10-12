@@ -1,8 +1,8 @@
 import frappe
 import sqlglot as sg
 
-from frappe.insights.doctype.insights_data_source_v3.ibis_utils import IbisQueryBuilder
-from frappe.insights.tests.base import InsightsIntegrationTestCase
+from frappe.analytics.doctype.insights_data_source_v3.ibis_utils import IbisQueryBuilder
+from frappe.analytics.tests.base import InsightsIntegrationTestCase
 
 SOURCE_CODE = """
 results = [

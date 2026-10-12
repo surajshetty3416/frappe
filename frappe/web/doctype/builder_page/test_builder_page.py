@@ -8,8 +8,8 @@ from frappe.tests.utils import FrappeTestCase
 from frappe.utils import set_request
 from frappe.website.serve import get_response, get_response_content
 
-from frappe.builder.component_versions import ensure_component_version
-from frappe.builder.utils import Block
+from frappe.web.component_versions import ensure_component_version
+from frappe.web.utils import Block
 
 repeater_page_data_script = """
 data.update({
@@ -318,7 +318,7 @@ class TestBuilderPage(FrappeTestCase):
 		from frappe.utils import add_to_date, now_datetime
 		from frappe.website.utils import clear_cache as clear_page_cache
 
-		from frappe.builder.doctype.builder_page.builder_page import find_page_with_path
+		from frappe.web.doctype.builder_page.builder_page import find_page_with_path
 
 		route = "test-shared-route"
 		live = insert_page(route, "Live Content")
@@ -348,7 +348,7 @@ class TestBuilderPage(FrappeTestCase):
 			staging.delete()
 
 	def test_number_props_keep_whole_numbers_whole(self):
-		from frappe.builder.doctype.builder_page.builder_page import parse_static_value
+		from frappe.web.doctype.builder_page.builder_page import parse_static_value
 
 		self.assertEqual(parse_static_value("29", "number"), 29)
 		self.assertIsInstance(parse_static_value(29.0, "number"), int)
@@ -841,7 +841,7 @@ class TestBuilderPage(FrappeTestCase):
 		"""set_dynamic_content_placeholders should apply a (property, type) binding once
 		even when it appears in both dataKey and dynamicValues, producing a single
 		placeholder rather than one nested inside its own fallback."""
-		from frappe.builder.doctype.builder_page.builder_page import set_dynamic_content_placeholders
+		from frappe.web.doctype.builder_page.builder_page import set_dynamic_content_placeholders
 
 		block = {
 			"innerHTML": "FALLBACK",
@@ -859,7 +859,7 @@ class TestBuilderPage(FrappeTestCase):
 		"""dataKey is the legacy home for a binding. When both record the same (property, type)
 		with different keys, the dynamicValues key resolves first and dataKey stays behind it as a
 		fallback, the order the canvas resolves them in."""
-		from frappe.builder.doctype.builder_page.builder_page import set_dynamic_content_placeholders
+		from frappe.web.doctype.builder_page.builder_page import set_dynamic_content_placeholders
 
 		block = {
 			"innerHTML": "FALLBACK",
@@ -1171,7 +1171,7 @@ component.update({
 			self.assertIn("component_data, props", content)
 			self.assertIn('"greeting": "hello from component data"', content)
 			self.assertIn('"title": "Overridden Title"', content)
-			self.assertNotIn("/assets/frappe/builder/js/reactivity.js", content)
+			self.assertNotIn("/assets/frappe/web/js/reactivity.js", content)
 			self.assertRegex(
 				content,
 				r"client_script_[a-z0-9_]+\)\.call\("
@@ -1288,7 +1288,7 @@ component.update({
 			page.delete()
 
 	def test_component_data_uses_root_prop_defaults(self):
-		from frappe.builder.doctype.builder_component.builder_component import get_component_data
+		from frappe.web.doctype.builder_component.builder_component import get_component_data
 
 		component_root = Block(
 			element="div",
@@ -1876,7 +1876,7 @@ component.update({
 			page.delete()
 
 	def test_set_fonts(self):
-		from frappe.builder.doctype.builder_page.builder_page import set_fonts
+		from frappe.web.doctype.builder_page.builder_page import set_fonts
 
 		font_map = {}
 		styles = [
@@ -1898,7 +1898,7 @@ component.update({
 		self.assertEqual(font_map["Open Sans"]["weights"], [600])
 
 	def test_set_fonts_uses_primary_family_from_fallback_list(self):
-		from frappe.builder.doctype.builder_page.builder_page import set_fonts
+		from frappe.web.doctype.builder_page.builder_page import set_fonts
 
 		font_map = {}
 		set_fonts([{"fontFamily": "Inter, sans-serif", "fontWeight": "500"}], font_map)
@@ -1908,7 +1908,7 @@ component.update({
 		self.assertNotIn("Inter, sans-serif", font_map)
 
 	def test_get_google_font_urls(self):
-		from frappe.builder.doctype.builder_page.builder_page import get_google_font_urls
+		from frappe.web.doctype.builder_page.builder_page import get_google_font_urls
 
 		font_map = {
 			"Newsreader": {"weights": [500]},
@@ -1931,7 +1931,7 @@ component.update({
 	def test_get_google_font_urls_with_italics(self):
 		"""Fonts used in italic get the ital axis in the same single request, at
 		every weight the family is used at, since <em>/<i> inherit their weight."""
-		from frappe.builder.doctype.builder_page.builder_page import get_google_font_urls
+		from frappe.web.doctype.builder_page.builder_page import get_google_font_urls
 
 		font_map = {
 			"Roboto": {"weights": [400, 700], "italics": [400]},
@@ -1952,7 +1952,7 @@ component.update({
 	def test_italics_cascade_like_font_family(self):
 		"""Italic usage is resolved on the rendered block tree with CSS cascade
 		semantics, not per style dict."""
-		from frappe.builder.doctype.builder_page.builder_page import get_block_html
+		from frappe.web.doctype.builder_page.builder_page import get_block_html
 
 		def block(styles, children=None, element="div"):
 			return {"element": element, "baseStyles": styles, "children": children or []}
@@ -1987,7 +1987,7 @@ component.update({
 		for the block's resolved font."""
 		import bs4 as bs
 
-		from frappe.builder.doctype.builder_page.builder_page import set_italics_from_html
+		from frappe.web.doctype.builder_page.builder_page import set_italics_from_html
 
 		font_map = {"Fraunces": {"weights": [400]}, "Lora": {"weights": [400]}}
 		soup = bs.BeautifulSoup(
@@ -2006,7 +2006,7 @@ component.update({
 
 	def test_set_fonts_inherits_font_family_from_ancestor(self):
 		"""set_fonts should use inherited_font when a style has fontWeight but no fontFamily."""
-		from frappe.builder.doctype.builder_page.builder_page import set_fonts
+		from frappe.web.doctype.builder_page.builder_page import set_fonts
 
 		font_map = {}
 		styles = [{"fontWeight": "600"}]
@@ -2022,7 +2022,7 @@ component.update({
 
 	def test_font_weight_inherited_from_parent_block(self):
 		"""Child block with only fontWeight should inherit fontFamily from parent in font_map."""
-		from frappe.builder.doctype.builder_page.builder_page import get_block_html
+		from frappe.web.doctype.builder_page.builder_page import get_block_html
 
 		blocks = [
 			{
@@ -2045,7 +2045,7 @@ component.update({
 
 	def test_intervar_font_skipped(self):
 		"""InterVar should not appear in the font_map — it is loaded via reset.css."""
-		from frappe.builder.doctype.builder_page.builder_page import get_block_html
+		from frappe.web.doctype.builder_page.builder_page import get_block_html
 
 		blocks = [
 			{
@@ -2064,7 +2064,7 @@ component.update({
 		empty styles, etc.) stripped out to keep documents small"""
 		import re
 
-		from frappe.builder.doctype.builder_page.builder_page import get_block_html
+		from frappe.web.doctype.builder_page.builder_page import get_block_html
 
 		def empties():
 			return {
@@ -2164,7 +2164,7 @@ component.update({
 		self.assertNotIn("None", css_unset)
 
 	def test_renders_legacy_raw_styles_from_base_styles(self):
-		from frappe.builder.doctype.builder_page.builder_page import get_block_html
+		from frappe.web.doctype.builder_page.builder_page import get_block_html
 
 		blocks = [
 			{
@@ -2184,7 +2184,7 @@ component.update({
 		self.assertNotIn("background: red", css)
 
 	def test_renders_legacy_raw_styles_from_component(self):
-		from frappe.builder.doctype.builder_page.builder_page import get_block_html
+		from frappe.web.doctype.builder_page.builder_page import get_block_html
 
 		component_root = {
 			"blockId": "comp-root",
@@ -2212,7 +2212,7 @@ component.update({
 			component.delete()
 
 	def test_renders_blocks_with_only_responsive_styles(self):
-		from frappe.builder.doctype.builder_page.builder_page import get_block_html
+		from frappe.web.doctype.builder_page.builder_page import get_block_html
 
 		blocks = [{"blockId": "mobile-only", "element": "div", "mobileStyles": {"textOverflow": "ellipsis"}}]
 
@@ -2227,7 +2227,7 @@ component.update({
 		from frappe.utils import add_to_date, now_datetime
 		from frappe.website.utils import clear_cache as clear_page_cache
 
-		from frappe.builder.doctype.builder_page.builder_page import find_page_with_path
+		from frappe.web.doctype.builder_page.builder_page import find_page_with_path
 
 		# Frappe strips leading slashes from routes during validation; use without slash
 		route = "conflicting-route-test"
@@ -2288,7 +2288,7 @@ component.update({
 		from frappe.utils import add_to_date, now_datetime
 		from frappe.website.utils import clear_cache as clear_page_cache
 
-		from frappe.builder.doctype.builder_page.builder_page import find_page_with_path
+		from frappe.web.doctype.builder_page.builder_page import find_page_with_path
 
 		# Frappe strips leading slashes from routes during validation; use without slash
 		route = "conflicting-route-no-published-at-test"

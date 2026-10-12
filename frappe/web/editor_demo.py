@@ -9,7 +9,7 @@ from glob import glob
 
 import frappe
 
-from frappe.builder.component_versions import resolve_component, walk_blocks
+from frappe.web.component_versions import resolve_component, walk_blocks
 
 CACHE_SECONDS = 300
 
@@ -94,7 +94,7 @@ class EditorDemo:
 		used = frappe.as_json([self.page.blocks, components, versions])
 		fonts = frappe.get_all("User Font", fields=["name", "font_name", "font_file"])
 		tokens = frappe.get_all("Builder Token", fields=TOKEN_FIELDS, order_by="creation desc")
-		templates = frappe.get_module_path("builder", "builder_block_template")
+		templates = frappe.get_module_path("web", "builder_block_template")
 		return {
 			"page": {**self.page, "modified": str(self.page.modified), "published": 1},
 			"components": components,

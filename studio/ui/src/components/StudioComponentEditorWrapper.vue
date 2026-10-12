@@ -4,9 +4,9 @@
 
 <script setup lang="ts">
 import { provide, computed } from "vue"
-import StudioComponent from "@studio/components/StudioComponent.vue"
-import Block from "@studio/utils/block"
-import useComponentEditorStore from "@studio/stores/componentEditorStore"
+import StudioComponent from "@ui/components/StudioComponent.vue"
+import Block from "@ui/utils/block"
+import useComponentEditorStore from "@ui/stores/componentEditorStore"
 
 const props = defineProps<{
 	studioComponent: Block

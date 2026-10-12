@@ -1,6 +1,6 @@
 import "./commands"
 // a studio app page's styles: frappe-ui base plus the editor's Tailwind build
-import "@studio/renderer.css"
+import "@ui/renderer.css"
 
 import { createPinia, setActivePinia } from "pinia"
 import { mount } from "cypress/vue"

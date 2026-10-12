@@ -17,23 +17,23 @@ from frappe.utils.password import get_decrypted_password
 from ibis.common.exceptions import OperationNotDefinedError
 from pymysql.err import OperationalError
 
-from frappe.insights.exceptions import (
+from frappe.analytics.exceptions import (
     ExpressionSyntaxError,
     QueryRefused,
     QueryTimeout,
     UnknownColumn,
 )
-from frappe.insights.doctype.insights_data_source_v3.ibis_utils import (
+from frappe.analytics.doctype.insights_data_source_v3.ibis_utils import (
     CircularQueryReferenceError,
     IbisQueryBuilder,
 )
-from frappe.insights.doctype.insights_data_source_v3.insights_data_source_v3 import (
+from frappe.analytics.doctype.insights_data_source_v3.insights_data_source_v3 import (
     DataSourceConnectionError,
     db_connections,
 )
-from frappe.insights.telemetry import error_kind
-from frappe.insights.tests.base import InsightsIntegrationTestCase
-from frappe.insights.tests.factories import (
+from frappe.analytics.telemetry import error_kind
+from frappe.analytics.tests.base import InsightsIntegrationTestCase
+from frappe.analytics.tests.factories import (
     DT,
     create_test_query,
     create_test_workbook,
@@ -164,7 +164,7 @@ class TestQueryFailedEvent(InsightsIntegrationTestCase):
     @contextmanager
     def in_request(headers: dict):
         """Authenticate a request that carries `headers` the way Frappe does."""
-        set_request(path="/api/method/frappe.insights.api.run_doc_method", headers=headers)
+        set_request(path="/api/method/frappe.analytics.api.run_doc_method", headers=headers)
         frappe.local.request_ip = "127.0.0.1"
         frappe.local.cookie_manager = CookieManager()
         frappe.local.login_manager = LoginManager()

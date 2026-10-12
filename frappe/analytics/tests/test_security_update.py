@@ -2,9 +2,9 @@ import json
 
 import frappe
 
-from frappe import insights
-from frappe.insights.api import get_security_update
-from frappe.insights.tests.base import InsightsIntegrationTestCase
+from frappe import analytics as insights
+from frappe.analytics.api import get_security_update
+from frappe.analytics.tests.base import InsightsIntegrationTestCase
 
 
 class TestSecurityUpdate(InsightsIntegrationTestCase):

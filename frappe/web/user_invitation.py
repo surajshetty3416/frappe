@@ -1,7 +1,7 @@
 from frappe.model.document import Document
 from frappe.utils.telemetry import capture
 
-from frappe.builder.hooks import builder_path
+from frappe.web.hooks import builder_path
 
 # builder is a layer of the frappe app, so its invitations belong to that app
 INVITATION_APP = "frappe"

@@ -8,30 +8,21 @@ import frappe
 # `website_route_rules` and `add_to_apps_screen` are plain module-level data, so
 # the path has to be known at import time; a bench process serving several sites
 # takes the value of whichever site imported this module first.
-insights_path = (frappe.conf.insights_path or "insights").strip("/") or "insights"  # nosemgrep
+insights_path = (frappe.conf.insights_path or "studio/analytics").strip("/") or "studio/analytics"  # nosemgrep
 
-add_to_apps_screen = [
-    {
-        "name": "insights",
-        "logo": "/assets/frappe/frontend/insights-logo.png",
-        "title": "Insights",
-        "route": f"/{insights_path}",
-        "has_permission": "frappe.insights.permissions.check_app_permission",
-    }
-]
 
 # Includes in <head>
 # ------------------
 
 # include js, css files in header of desk.html
-# app_include_css = "/assets/frappe/insights/css/insights.css"
+# app_include_css = "/assets/frappe/analytics/css/insights.css"
 
 # a desk page with an island needs the app's mount path to build links
-extend_bootinfo = "frappe.insights.desk.boot_app_path"
+extend_bootinfo = "frappe.analytics.desk.boot_app_path"
 
 # include js, css files in header of web template
-# web_include_css = "/assets/frappe/insights/css/insights.css"
-# web_include_js = "/assets/frappe/insights/js/insights.js"
+# web_include_css = "/assets/frappe/analytics/css/insights.css"
+# web_include_js = "/assets/frappe/analytics/js/insights.js"
 
 # include custom scss in every website theme (without file extension ".scss")
 # website_theme_scss = "insights/public/scss/website"
@@ -71,19 +62,19 @@ extend_bootinfo = "frappe.insights.desk.boot_app_path"
 
 # add methods and filters to jinja environment
 # jinja = {
-# 	"methods": "frappe.insights.utils.jinja_methods",
-# 	"filters": "frappe.insights.utils.jinja_filters"
+# 	"methods": "frappe.analytics.utils.jinja_methods",
+# 	"filters": "frappe.analytics.utils.jinja_filters"
 # }
 
 # Installation
 # ------------
 
 # before_install = "insights.install.before_install"
-after_install = "frappe.insights.migrate.after_migrate"
-after_migrate = "frappe.insights.migrate.after_migrate"
-after_app_install = "frappe.insights.migrate.after_app_install"
+after_install = "frappe.analytics.migrate.after_migrate"
+after_migrate = "frappe.analytics.migrate.after_migrate"
+after_app_install = "frappe.analytics.migrate.after_app_install"
 
-after_request = ["frappe.insights.doctype.insights_data_source_v3.insights_data_source_v3.after_request"]
+after_request = ["frappe.analytics.doctype.insights_data_source_v3.insights_data_source_v3.after_request"]
 
 fixtures = [
     {
@@ -109,27 +100,27 @@ fixtures = [
 # Permissions evaluated in scripted ways
 
 permission_query_conditions = {
-    "Insights Data Source v3": "frappe.insights.permissions.get_permission_query_conditions",
-    "Insights Table v3": "frappe.insights.permissions.get_permission_query_conditions",
-    "Insights Team": "frappe.insights.permissions.get_permission_query_conditions",
-    "Insights Workbook": "frappe.insights.permissions.get_permission_query_conditions",
-    "Insights Query v3": "frappe.insights.permissions.get_permission_query_conditions",
-    "Insights Chart v3": "frappe.insights.permissions.get_permission_query_conditions",
-    "Insights Dashboard v3": "frappe.insights.permissions.get_permission_query_conditions",
-    "Insights Alert": "frappe.insights.permissions.get_permission_query_conditions",
-    "Insights Folder": "frappe.insights.permissions.get_permission_query_conditions",
+    "Insights Data Source v3": "frappe.analytics.permissions.get_permission_query_conditions",
+    "Insights Table v3": "frappe.analytics.permissions.get_permission_query_conditions",
+    "Insights Team": "frappe.analytics.permissions.get_permission_query_conditions",
+    "Insights Workbook": "frappe.analytics.permissions.get_permission_query_conditions",
+    "Insights Query v3": "frappe.analytics.permissions.get_permission_query_conditions",
+    "Insights Chart v3": "frappe.analytics.permissions.get_permission_query_conditions",
+    "Insights Dashboard v3": "frappe.analytics.permissions.get_permission_query_conditions",
+    "Insights Alert": "frappe.analytics.permissions.get_permission_query_conditions",
+    "Insights Folder": "frappe.analytics.permissions.get_permission_query_conditions",
 }
 
 has_permission = {
-    "Insights Data Source v3": "frappe.insights.permissions.has_doc_permission",
-    "Insights Table v3": "frappe.insights.permissions.has_doc_permission",
-    "Insights Team": "frappe.insights.permissions.has_doc_permission",
-    "Insights Workbook": "frappe.insights.permissions.has_doc_permission",
-    "Insights Query v3": "frappe.insights.permissions.has_doc_permission",
-    "Insights Chart v3": "frappe.insights.permissions.has_doc_permission",
-    "Insights Dashboard v3": "frappe.insights.permissions.has_doc_permission",
-    "Insights Alert": "frappe.insights.permissions.has_doc_permission",
-    "Insights Folder": "frappe.insights.permissions.has_doc_permission",
+    "Insights Data Source v3": "frappe.analytics.permissions.has_doc_permission",
+    "Insights Table v3": "frappe.analytics.permissions.has_doc_permission",
+    "Insights Team": "frappe.analytics.permissions.has_doc_permission",
+    "Insights Workbook": "frappe.analytics.permissions.has_doc_permission",
+    "Insights Query v3": "frappe.analytics.permissions.has_doc_permission",
+    "Insights Chart v3": "frappe.analytics.permissions.has_doc_permission",
+    "Insights Dashboard v3": "frappe.analytics.permissions.has_doc_permission",
+    "Insights Alert": "frappe.analytics.permissions.has_doc_permission",
+    "Insights Folder": "frappe.analytics.permissions.has_doc_permission",
 }
 
 # DocType Class
@@ -146,23 +137,23 @@ has_permission = {
 
 doc_events = {
     "User": {
-        "on_change": "frappe.insights.doctype.insights_team.insights_team.update_admin_team",
+        "on_change": "frappe.analytics.doctype.insights_team.insights_team.update_admin_team",
     },
     # a desk document that links to Insights content renders through an
     # Insights island — see insights/desk.py
     "Dashboard": {
-        "onload": "frappe.insights.desk.claim",
+        "onload": "frappe.analytics.desk.claim",
     },
     "Dashboard Chart": {
-        "onload": "frappe.insights.desk.claim",
+        "onload": "frappe.analytics.desk.claim",
     },
     "DocShare": {
-        "validate": "frappe.insights.permissions.validate_member_share",
+        "validate": "frappe.analytics.permissions.validate_member_share",
     },
     # child tables of workbook members
     ("Insights Dashboard Chart v3", "Has Role", "Insights Query Variable"): {
-        "validate": "frappe.insights.permissions.refuse_member_row_alone",
-        "on_trash": "frappe.insights.permissions.refuse_member_row_alone",
+        "validate": "frappe.analytics.permissions.refuse_member_row_alone",
+        "on_trash": "frappe.analytics.permissions.refuse_member_row_alone",
     },
 }
 
@@ -171,18 +162,18 @@ doc_events = {
 
 scheduler_events = {
     "all": [
-        "frappe.insights.doctype.insights_alert.insights_alert.send_alerts",
-        "frappe.insights.api.data_store.sync_tables",
+        "frappe.analytics.doctype.insights_alert.insights_alert.send_alerts",
+        "frappe.analytics.api.data_store.sync_tables",
     ],
     "daily": [
-        "frappe.insights.telemetry_scan.run_site_scan",
+        "frappe.analytics.telemetry_scan.run_site_scan",
     ],
     "weekly": [
-        "frappe.insights.doctype.insights_data_source_v3.data_warehouse.cleanup_data_store",
+        "frappe.analytics.doctype.insights_data_source_v3.data_warehouse.cleanup_data_store",
     ],
     "hourly": [
-        "frappe.insights.api.data_store.update_failed_sync_status",
-        "frappe.insights.doctype.insights_table_import_job.insights_table_import_job.run_scheduled_imports",
+        "frappe.analytics.api.data_store.update_failed_sync_status",
+        "frappe.analytics.doctype.insights_table_import_job.insights_table_import_job.run_scheduled_imports",
     ],
 }
 
@@ -193,7 +184,7 @@ default_log_clearing_doctypes = {
 # Testing
 # -------
 
-before_tests = "frappe.insights.tests.utils.before_tests"
+before_tests = "frappe.analytics.tests.utils.before_tests"
 
 # Overriding Methods
 # ------------------------------
@@ -245,21 +236,27 @@ before_tests = "frappe.insights.tests.utils.before_tests"
 # 	"insights.auth.validate"
 # ]
 
-page_renderer = "frappe.insights.utils.InsightsPageRenderer"
+page_renderer = "frappe.analytics.utils.InsightsPageRenderer"
 
-website_route_rules = [
-    {"from_route": f"/{insights_path}/<path:app_path>", "to_route": "_frontend"},
-    {"from_route": f"/{insights_path}", "to_route": "_frontend"},
-]
 
 standard_queries = {
-    "Insights Query v3": "frappe.insights.api.search.search_workbook_items",
-    "Insights Chart v3": "frappe.insights.api.search.search_workbook_items",
-    "Insights Dashboard v3": "frappe.insights.api.search.search_workbook_items",
+    "Insights Query v3": "frappe.analytics.api.search.search_workbook_items",
+    "Insights Chart v3": "frappe.analytics.api.search.search_workbook_items",
+    "Insights Dashboard v3": "frappe.analytics.api.search.search_workbook_items",
 }
 
 # what the AI layer (flow) can do with Insights
 flow_tools = [
-    "frappe.insights.flow_tools.list_dashboards",
-    "frappe.insights.flow_tools.create_dashboard",
+    "frappe.analytics.flow_tools.list_dashboards",
+    "frappe.analytics.flow_tools.create_dashboard",
 ]
+
+# what Studio opens beside the chat for an artifact of this layer
+studio_artifacts = {
+    "Insights Workbook": {"label": "Workbook", "route": "/studio/analytics/workbook/{name}", "title_field": "title"},
+    "Insights Dashboard v3": {
+        "label": "Dashboard",
+        "route": "/studio/analytics/dashboards/{name}",
+        "title_field": "title",
+    },
+}

@@ -48,10 +48,10 @@
 	</div>
 </template>
 <script setup lang="ts">
-import { __ } from "@builder/translation";
-import Dialog from "@builder/components/Controls/Dialog.vue";
-import { toolbarItems, type ToolbarRegion } from "@builder/components/ToolbarItems";
-import useBuilderStore from "@builder/stores/builderStore";
+import { __ } from "@web/translation";
+import Dialog from "@web/components/Controls/Dialog.vue";
+import { toolbarItems, type ToolbarRegion } from "@web/components/ToolbarItems";
+import useBuilderStore from "@web/stores/builderStore";
 import { DialogDescription, DialogTitle } from "reka-ui";
 import { defineAsyncComponent, ref } from "vue";
 

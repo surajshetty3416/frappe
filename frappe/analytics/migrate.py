@@ -12,7 +12,7 @@ def after_migrate():
         frappe.log_error(title="Error creating Admin Team")
 
     try:
-        from frappe.insights.desk import install_custom_fields
+        from frappe.analytics.desk import install_custom_fields
 
         install_custom_fields()
     except Exception:
@@ -22,7 +22,7 @@ def after_migrate():
 
 
 def after_app_install(app: str):
-    from frappe.insights import standard
+    from frappe.analytics import standard
 
     standard.import_shipped([app])
 
@@ -32,9 +32,9 @@ def sync_standard_workbooks():
     any more and the members kept for a desk document that no longer uses them,
     then name each desk document left linking what went.
     """
-    from frappe.insights import standard
-    from frappe.insights.desk import report_dangling_claims
-    from frappe.insights.doctype.insights_workbook.insights_workbook import (
+    from frappe.analytics import standard
+    from frappe.analytics.desk import report_dangling_claims
+    from frappe.analytics.doctype.insights_workbook.insights_workbook import (
         delete_unclaimed_kept_members,
     )
 

@@ -1,4 +1,4 @@
-import type { BlockOptions, BlockStyleMap } from "@studio/types";
+import type { BlockOptions, BlockStyleMap } from "@ui/types";
 import { familyTemplates } from "./familyTemplates";
 
 

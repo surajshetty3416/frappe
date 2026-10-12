@@ -5,13 +5,13 @@ from unittest.mock import patch
 import frappe
 from frappe.tests.utils import FrappeTestCase
 
-from frappe.builder.ai.agent.tools.query import (
+from frappe.web.ai.agent.tools.query import (
 	MAX_PAGE_READS_PER_TURN,
 	layout_scaffold,
 	resolve_page_reference,
 	run_read_page,
 )
-from frappe.builder.utils import Block
+from frappe.web.utils import Block
 
 
 class TestReadPage(FrappeTestCase):
@@ -143,7 +143,7 @@ class TestResolvePageReference(FrappeTestCase):
 
 class TestOpenPageContext(FrappeTestCase):
 	def test_names_the_open_page_and_nothing_else(self):
-		from frappe.builder.ai.agent.loop import AgentRunner
+		from frappe.web.ai.agent.loop import AgentRunner
 
 		page = frappe.get_doc(
 			{
@@ -164,7 +164,7 @@ class TestOpenPageContext(FrappeTestCase):
 		self.assertNotIn("mode in the editor", out)
 
 	def test_says_which_theme_the_editor_shows(self):
-		from frappe.builder.ai.agent.loop import AgentRunner
+		from frappe.web.ai.agent.loop import AgentRunner
 
 		page = frappe.get_doc(
 			{
@@ -178,7 +178,7 @@ class TestOpenPageContext(FrappeTestCase):
 		self.assertIn("viewing it in dark mode in the editor", runner.build_open_page_context())
 
 	def test_resume_recovers_the_latest_theme(self):
-		from frappe.builder.ai.session import AISession
+		from frappe.web.ai.session import AISession
 
 		session = AISession.create({"page": None})
 		session_id = session._doc.name
@@ -232,7 +232,7 @@ class TestComponentContract(FrappeTestCase):
 		self.assertIn("hr-sidebar", out)
 
 	def test_honours_the_instances_pinned_component_version(self):
-		from frappe.builder.component_versions import ensure_component_version
+		from frappe.web.component_versions import ensure_component_version
 
 		component_id = frappe.generate_hash(length=12)
 		component = frappe.get_doc(
@@ -312,7 +312,7 @@ class TestComponentContract(FrappeTestCase):
 		self.assertNotIn("absolute", out)
 
 	def test_read_page_stashes_geometry_for_the_generation_step(self):
-		from frappe.builder.ai.agent.artifact import reference_geometry
+		from frappe.web.ai.agent.artifact import reference_geometry
 
 		page = frappe.get_doc(
 			{
@@ -365,7 +365,7 @@ class TestComponentContract(FrappeTestCase):
 		ctx = SimpleNamespace(page_id="another-page", page_read_count=0, reference_reads=[])
 
 		with patch(
-			"frappe.builder.ai.agent.tools.query.google_font_exists", side_effect=lambda f: f != "Inter Variable"
+			"frappe.web.ai.agent.tools.query.google_font_exists", side_effect=lambda f: f != "Inter Variable"
 		):
 			out = run_read_page(ctx, {"page_id": page.name})
 
@@ -387,24 +387,24 @@ class TestComponentContract(FrappeTestCase):
 		).insert()
 		ctx = SimpleNamespace(page_id="another-page", page_read_count=0, reference_reads=[])
 
-		with patch("frappe.builder.ai.agent.tools.query.google_font_exists", return_value=True):
+		with patch("frappe.web.ai.agent.tools.query.google_font_exists", return_value=True):
 			out = run_read_page(ctx, {"page_id": page.name})
 
 		self.assertNotIn("FONT AVAILABILITY", out)
 
 	def test_a_user_font_counts_as_available(self):
-		from frappe.builder.ai.agent.tools.query import unavailable_fonts
+		from frappe.web.ai.agent.tools.query import unavailable_fonts
 
 		frappe.get_doc({"doctype": "User Font", "font_name": "House Grotesk"}).insert(
 			ignore_if_duplicate=True
 		)
 		root = {"element": "div", "baseStyles": {"fontFamily": "House Grotesk"}, "children": []}
 
-		with patch("frappe.builder.ai.agent.tools.query.google_font_exists", return_value=False):
+		with patch("frappe.web.ai.agent.tools.query.google_font_exists", return_value=False):
 			self.assertEqual(unavailable_fonts(root), [])
 
 	def test_first_prop_override_borrows_the_declared_config(self):
-		from frappe.builder.ai.agent.tree import merge_props
+		from frappe.web.ai.agent.tree import merge_props
 
 		component_id = frappe.generate_hash(length=12)
 		frappe.get_doc(
@@ -437,8 +437,8 @@ class TestComponentContract(FrappeTestCase):
 		self.assertEqual(instance["props"]["title"]["label"], "Title")
 
 	def test_pinned_empty_schema_cannot_pollute_a_declared_live_schema(self):
-		from frappe.builder.ai.agent.tree import WorkingTree
-		from frappe.builder.component_versions import ensure_component_version
+		from frappe.web.ai.agent.tree import WorkingTree
+		from frappe.web.component_versions import ensure_component_version
 
 		component_id = frappe.generate_hash(length=12)
 		component = frappe.get_doc(
@@ -480,7 +480,7 @@ class TestComponentContract(FrappeTestCase):
 		self.assertEqual(list(live["props"].keys()), ["title"])
 
 	def test_child_targeted_prop_writes_land_on_the_instance_root(self):
-		from frappe.builder.ai.agent.tree import WorkingTree
+		from frappe.web.ai.agent.tree import WorkingTree
 
 		component_id = frappe.generate_hash(length=12)
 		frappe.get_doc(
@@ -524,7 +524,7 @@ class TestComponentContract(FrappeTestCase):
 		self.assertIn("FAILED", tree.apply_update("root", {"props": {"x": "1"}}))
 
 	def test_states_each_pinned_version_when_instances_differ(self):
-		from frappe.builder.component_versions import ensure_component_version
+		from frappe.web.component_versions import ensure_component_version
 
 		component_id = frappe.generate_hash(length=12)
 		component = frappe.get_doc(

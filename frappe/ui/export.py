@@ -6,7 +6,7 @@ import frappe
 from frappe.modules import scrub
 from frappe.modules.export_file import strip_default_fields
 
-from frappe.studio.sync_json import cache_synced_file_hash
+from frappe.ui.sync_json import cache_synced_file_hash
 
 PRESERVED_EMPTY_PROPERTIES = frozenset({"componentProps", "componentSlots"})
 

@@ -78,12 +78,12 @@
 </template>
 
 <script setup lang="ts">
-import { __ } from "@builder/translation";
-import TemplateGallery from "@builder/components/Templates/TemplateGallery.vue";
-import { useDashboardState } from "@builder/composables/useDashboardState";
-import { builderSettings } from "@builder/data/builderSettings";
-import { sessionUser } from "@builder/router";
-import { getUserInfo } from "@builder/usersInfo";
+import { __ } from "@web/translation";
+import TemplateGallery from "@web/components/Templates/TemplateGallery.vue";
+import { useDashboardState } from "@web/composables/useDashboardState";
+import { builderSettings } from "@web/data/builderSettings";
+import { sessionUser } from "@web/router";
+import { getUserInfo } from "@web/usersInfo";
 import { Button, Textarea, call } from "frappe-ui";
 import { useTelemetry } from "@framework/ui/telemetry";
 import { computed, nextTick, reactive, ref } from "vue";
@@ -251,7 +251,7 @@ function finishQuestions(skipped = false) {
 	} catch (e) {
 		console.error("[persona-survey] failed to capture", e);
 	}
-	call("frappe.builder.api.identify_persona", {
+	call("frappe.web.api.identify_persona", {
 		role: props.role,
 		use_case: props.use_case,
 		source: props.source,

@@ -8,12 +8,12 @@ def get_boot() -> dict:
 	if frappe.session.user == "Guest":
 		return {}
 
-	from frappe.flow.api import boot
+	from frappe.ai.api import boot
 
 	return {"flow_boot": boot()}
 
 
 def make_chat_the_home():
-	"""A new site opens on the chat, where people ask for websites, dashboards and apps."""
+	"""A new site opens on Studio, where people ask for websites, dashboards and apps."""
 	if not frappe.db.get_single_value("System Settings", "default_app"):
-		frappe.db.set_single_value("System Settings", "default_app", "flow")
+		frappe.db.set_single_value("System Settings", "default_app", "studio")

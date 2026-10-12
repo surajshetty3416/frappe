@@ -1,4 +1,4 @@
-import { useCanvasHistory } from "@builder/utils/useCanvasHistory";
+import { useCanvasHistory } from "@web/utils/useCanvasHistory";
 import { Ref } from "vue";
 
 export interface BreakpointConfig {

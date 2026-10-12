@@ -5,7 +5,7 @@
 </template>
 
 <script setup lang="ts">
-import type { TextBlockProps } from "@studio/types/studio_components/TextBlock"
+import type { TextBlockProps } from "@ui/types/studio_components/TextBlock"
 
 withDefaults(defineProps<TextBlockProps>(), {
 	tag: "span",

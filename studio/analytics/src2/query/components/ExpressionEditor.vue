@@ -32,7 +32,7 @@ const emit = defineEmits<{
 }>()
 
 const functionList = ref<string[]>([])
-cachedCall('frappe.insights.doctype.insights_data_source_v3.ibis.utils.get_function_list').then(
+cachedCall('frappe.analytics.doctype.insights_data_source_v3.ibis.utils.get_function_list').then(
 	(res: any) => {
 		functionList.value = res
 	},
@@ -117,7 +117,7 @@ const fetchCompletions = debounce(() => {
 	code = codeBeforeCursor + '|' + codeAfterCursor
 
 	cachedCall(
-		'frappe.insights.doctype.insights_data_source_v3.ibis.utils.get_code_completions',
+		'frappe.analytics.doctype.insights_data_source_v3.ibis.utils.get_code_completions',
 		{
 			code,
 			column_options: JSON.stringify(props.columnOptions),
@@ -179,7 +179,7 @@ const validateExpression = debounce(() => {
 	validationState.value = 'validating'
 	lastValidatedExpression.value = currentExpression
 
-	cachedCall('frappe.insights.doctype.insights_data_source_v3.ibis.utils.validate_expression', {
+	cachedCall('frappe.analytics.doctype.insights_data_source_v3.ibis.utils.validate_expression', {
 		expression: currentExpression,
 		column_options: JSON.stringify(props.columnOptions),
 	})

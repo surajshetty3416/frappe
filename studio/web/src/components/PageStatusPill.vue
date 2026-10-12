@@ -7,9 +7,9 @@
 	</Badge>
 </template>
 <script setup lang="ts">
-import PageStatusDot from "@builder/components/PageStatusDot.vue";
-import { BuilderPage } from "@builder/types/doctypes";
-import { getPageStatus } from "@builder/utils/pageStatus";
+import PageStatusDot from "@web/components/PageStatusDot.vue";
+import { BuilderPage } from "@web/types/doctypes";
+import { getPageStatus } from "@web/utils/pageStatus";
 import { Badge } from "frappe-ui";
 import { computed } from "vue";
 

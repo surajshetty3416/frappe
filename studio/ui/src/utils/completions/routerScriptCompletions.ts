@@ -1,7 +1,7 @@
 import type { CompletionContext, CompletionResult } from "@codemirror/autocomplete"
 import { createMemoryHistory, createRouter, type RouteRecordRaw } from "vue-router"
-import type { CompletionSource } from "@studio/types"
-import type { StudioPage } from "@studio/types/Studio/StudioPage"
+import type { CompletionSource } from "@ui/types"
+import type { StudioPage } from "@ui/types/Studio/StudioPage"
 import { getCompletions } from "./autocompletions"
 
 const CONFIG_KEYS = [

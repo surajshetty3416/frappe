@@ -12,13 +12,13 @@
 </template>
 
 <script setup lang="ts">
-import { __ } from "@builder/translation";
-import { commandGroupLabels, commands, resolveText } from "@builder/components/Commands";
-import { settingsItems } from "@builder/components/Settings";
-import { searchablePages } from "@builder/data/webPage";
-import useBuilderStore from "@builder/stores/builderStore";
-import usePageStore from "@builder/stores/pageStore";
-import { BuilderPage } from "@builder/types/doctypes";
+import { __ } from "@web/translation";
+import { commandGroupLabels, commands, resolveText } from "@web/components/Commands";
+import { settingsItems } from "@web/components/Settings";
+import { searchablePages } from "@web/data/webPage";
+import useBuilderStore from "@web/stores/builderStore";
+import usePageStore from "@web/stores/pageStore";
+import { BuilderPage } from "@web/types/doctypes";
 import { watchDebounced } from "@vueuse/core";
 import { useKeyboardShortcut } from "frappe-ui";
 import { computed, ref, watch } from "vue";

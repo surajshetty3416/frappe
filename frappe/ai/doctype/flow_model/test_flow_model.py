@@ -7,7 +7,7 @@ from unittest.mock import patch
 import frappe
 from frappe.tests import IntegrationTestCase
 
-from frappe.flow.doctype.flow_model.flow_model import _detect_context_window
+from frappe.ai.doctype.flow_model.flow_model import _detect_context_window
 
 
 def _model(**overrides: Any) -> dict:

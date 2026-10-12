@@ -111,36 +111,36 @@
 </template>
 
 <script setup lang="ts">
-import { __ } from "@builder/translation";
-import BlockContextMenu from "@builder/components/BlockContextMenu.vue";
-import BuilderCanvas from "@builder/components/BuilderCanvas.vue";
-import BuilderCommandPalette from "@builder/components/BuilderCommandPalette.vue";
-import BuilderLeftPanel from "@builder/components/BuilderLeftPanel.vue";
-import BuilderRightPanel from "@builder/components/BuilderRightPanel.vue";
-import BuilderToolbar from "@builder/components/BuilderToolbar.vue";
-import { installEditorDemo } from "@builder/components/EditorDemo";
-import Dialog from "@builder/components/Controls/Dialog.vue";
-import PageListModal from "@builder/components/Modals/PageListModal.vue";
-import TemplatesDialog from "@builder/components/Templates/TemplatesDialog.vue";
-import { webPages } from "@builder/data/webPage";
-import { sessionUser } from "@builder/router";
-import useBuilderStore from "@builder/stores/builderStore";
-import useCanvasStore from "@builder/stores/canvasStore";
-import usePageStore from "@builder/stores/pageStore";
-import { BuilderPage } from "@builder/types/doctypes";
-import { getUsersInfo } from "@builder/usersInfo";
-import { editorDemo } from "@builder/utils/editorDemo";
-import blockController from "@builder/utils/blockController";
-import { offerPendingAssetImport } from "@builder/utils/builderBlockCopyPaste";
-import componentController from "@builder/utils/componentController.js";
-import { getPageUsageMessage, getRootBlockTemplate } from "@builder/utils/helpers";
-import { useBuilderEvents } from "@builder/utils/useBuilderEvents";
+import { __ } from "@web/translation";
+import BlockContextMenu from "@web/components/BlockContextMenu.vue";
+import BuilderCanvas from "@web/components/BuilderCanvas.vue";
+import BuilderCommandPalette from "@web/components/BuilderCommandPalette.vue";
+import BuilderLeftPanel from "@web/components/BuilderLeftPanel.vue";
+import BuilderRightPanel from "@web/components/BuilderRightPanel.vue";
+import BuilderToolbar from "@web/components/BuilderToolbar.vue";
+import { installEditorDemo } from "@web/components/EditorDemo";
+import Dialog from "@web/components/Controls/Dialog.vue";
+import PageListModal from "@web/components/Modals/PageListModal.vue";
+import TemplatesDialog from "@web/components/Templates/TemplatesDialog.vue";
+import { webPages } from "@web/data/webPage";
+import { sessionUser } from "@web/router";
+import useBuilderStore from "@web/stores/builderStore";
+import useCanvasStore from "@web/stores/canvasStore";
+import usePageStore from "@web/stores/pageStore";
+import { BuilderPage } from "@web/types/doctypes";
+import { getUsersInfo } from "@web/usersInfo";
+import { editorDemo } from "@web/utils/editorDemo";
+import blockController from "@web/utils/blockController";
+import { offerPendingAssetImport } from "@web/utils/builderBlockCopyPaste";
+import componentController from "@web/utils/componentController.js";
+import { getPageUsageMessage, getRootBlockTemplate } from "@web/utils/helpers";
+import { useBuilderEvents } from "@web/utils/useBuilderEvents";
 import { useDebounceFn } from "@vueuse/core";
 import { createResource, KeyboardShortcutsDialog, useKeyboardShortcut } from "frappe-ui";
 import { computed, onActivated, onDeactivated, onMounted, provide, ref, watch, watchEffect } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import CodeEditor from "../components/Controls/CodeEditor.vue";
-import { prefetchBuilderSettings, prefetchTemplateGallery } from "@builder/utils/prefetch";
+import { prefetchBuilderSettings, prefetchTemplateGallery } from "@web/utils/prefetch";
 
 const expandedEditor = ref<null | InstanceType<typeof CodeEditor>>(null);
 
@@ -379,7 +379,7 @@ watch(
 		if (value && canvasStore.fragmentData.fragmentId && canvasStore.fragmentData.showUsageCount) {
 			const usageCountResource = createResource({
 				method: "POST",
-				url: "frappe.builder.doctype.builder_settings.builder_settings.get_component_usage_count",
+				url: "frappe.web.doctype.builder_settings.builder_settings.get_component_usage_count",
 				params: {
 					component_id: canvasStore.fragmentData.fragmentId,
 				},

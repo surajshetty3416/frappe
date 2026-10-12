@@ -203,5 +203,5 @@ playwright-report/
 ui/datatable/
 
 # built by frontend/ (vite)
-frappe/public/frontend
-frappe/www/_frontend.html
+frappe/public/studio
+frappe/www/_studio.html

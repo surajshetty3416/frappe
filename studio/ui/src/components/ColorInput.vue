@@ -41,11 +41,11 @@
 </template>
 <script setup lang="ts">
 import { computed } from "vue"
-import ColorPicker from "@studio/components/ColorPicker.vue"
-import Input from "@studio/components/Input.vue"
-import InputLabel from "@studio/components/InputLabel.vue"
-import { getColorFromToken, getRGB, isColorToken } from "@studio/utils/helpers"
-import type { HashString } from "@studio/types"
+import ColorPicker from "@ui/components/ColorPicker.vue"
+import Input from "@ui/components/Input.vue"
+import InputLabel from "@ui/components/InputLabel.vue"
+import { getColorFromToken, getRGB, isColorToken } from "@ui/utils/helpers"
+import type { HashString } from "@ui/types"
 
 // a public file, so app builds that bundle this editor component don't have to resolve it
 const colorCircle = `${import.meta.env.BASE_URL}studio-color-circle.png`

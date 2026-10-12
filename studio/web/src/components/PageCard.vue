@@ -9,7 +9,7 @@
 				width="250"
 				height="140"
 				:src="page.meta_image || page.preview"
-				onerror="this.src='/assets/frappe/builder/images/fallback.png'"
+				onerror="this.src='/assets/frappe/web/images/fallback.png'"
 				alt=""
 				class="block aspect-video w-full overflow-hidden rounded-5 object-cover shadow dark:border dark:border-outline-gray-1" />
 			<div class="flex items-center gap-1">
@@ -46,11 +46,11 @@
 	</router-link>
 </template>
 <script setup lang="ts">
-import { __ } from "@builder/translation";
-import PageActionsDropdown from "@builder/components/PageActionsDropdown.vue";
-import { useDashboardState } from "@builder/composables/useDashboardState";
-import PageStatusLine from "@builder/components/PageStatusLine.vue";
-import { BuilderPage } from "@builder/types/doctypes";
+import { __ } from "@web/translation";
+import PageActionsDropdown from "@web/components/PageActionsDropdown.vue";
+import { useDashboardState } from "@web/composables/useDashboardState";
+import PageStatusLine from "@web/components/PageStatusLine.vue";
+import { BuilderPage } from "@web/types/doctypes";
 import { UseTimeAgo } from "@vueuse/components";
 import { Tooltip } from "frappe-ui";
 import { computed } from "vue";

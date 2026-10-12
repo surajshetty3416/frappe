@@ -3,7 +3,7 @@ import math
 
 import frappe
 
-PATCH = "frappe.insights.patches.resize_dashboard_cells"
+PATCH = "frappe.analytics.patches.resize_dashboard_cells"
 
 OLD_ROW_HEIGHT = 52
 NEW_ROW_HEIGHT = 22

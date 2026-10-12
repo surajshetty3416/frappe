@@ -7,7 +7,7 @@ can't silently drift.
 
 import unittest
 
-from frappe.builder.ai import page_writer as pw
+from frappe.web.ai import page_writer as pw
 
 
 class TestNormalizeStyles(unittest.TestCase):

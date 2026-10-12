@@ -80,9 +80,9 @@
 	/>
 </template>
 <script lang="ts" setup>
-import InlineInput from "@studio/components/InlineInput.vue"
-import OptionToggle from "@studio/components/OptionToggle.vue"
-import blockController from "@studio/utils/blockController"
+import InlineInput from "@ui/components/InlineInput.vue"
+import OptionToggle from "@ui/components/OptionToggle.vue"
+import blockController from "@ui/utils/blockController"
 import { computed } from "vue"
 
 const columns = computed(() => {

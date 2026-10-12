@@ -7,8 +7,8 @@
 		v-html="html"></div>
 </template>
 <script setup lang="ts">
-import type Block from "@builder/block";
-import { BlockValueResolver } from "@builder/utils/blockValueResolver";
+import type Block from "@web/block";
+import { BlockValueResolver } from "@web/utils/blockValueResolver";
 import { computed, ref } from "vue";
 
 const component = ref<HTMLElement | null>(null);

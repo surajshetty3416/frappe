@@ -3,7 +3,7 @@
 	"compilerOptions": {
 		"baseUrl": ".",
 		"types": ["cypress", "node", "vite/client"],
-		"paths": { "@studio/*": ["../src/*"] }
+		"paths": { "@ui/*": ["../src/*"] }
 	},
 	"include": ["**/*.ts"]
 }

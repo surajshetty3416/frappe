@@ -86,10 +86,10 @@
 <script setup lang="ts">
 import { computed, ref } from "vue"
 import { Button } from "frappe-ui"
-import Input from "@studio/components/Input.vue"
-import InputLabel from "@studio/components/InputLabel.vue"
-import InlineInput from "@studio/components/InlineInput.vue"
-import EmptyState from "@studio/components/EmptyState.vue"
+import Input from "@ui/components/Input.vue"
+import InputLabel from "@ui/components/InputLabel.vue"
+import InlineInput from "@ui/components/InlineInput.vue"
+import EmptyState from "@ui/components/EmptyState.vue"
 import LucideGripVertical from "~icons/lucide/grip-vertical"
 
 const props = defineProps<{

@@ -16,10 +16,10 @@
 </template>
 
 <script setup lang="ts">
-import InputLabel from "@builder/components/Controls/InputLabel.vue";
-import ArrayEditor from "@builder/components/ArrayEditor.vue";
+import InputLabel from "@web/components/Controls/InputLabel.vue";
+import ArrayEditor from "@web/components/ArrayEditor.vue";
 import { computed, nextTick, Ref, ref, watch } from "vue";
-import InlineInput from "@builder/components/Controls/InlineInput.vue";
+import InlineInput from "@web/components/Controls/InlineInput.vue";
 
 const props = defineProps<{
 	options: Record<string, any>;

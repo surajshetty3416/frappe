@@ -79,15 +79,15 @@
 	</div>
 </template>
 <script lang="ts" setup>
-import { __ } from "@builder/translation";
-import PanelResizer from "@builder/components/PanelResizer.vue";
-import PreviewFloatingToolbar from "@builder/components/PreviewFloatingToolbar.vue";
-import PublishButton from "@builder/components/PublishButton.vue";
-import { webPages } from "@builder/data/webPage";
-import router from "@builder/router";
-import useBuilderStore from "@builder/stores/builderStore";
-import usePageStore, { DETACHED_PREVIEW_CHANNEL } from "@builder/stores/pageStore";
-import { BuilderPage } from "@builder/types/doctypes";
+import { __ } from "@web/translation";
+import PanelResizer from "@web/components/PanelResizer.vue";
+import PreviewFloatingToolbar from "@web/components/PreviewFloatingToolbar.vue";
+import PublishButton from "@web/components/PublishButton.vue";
+import { webPages } from "@web/data/webPage";
+import router from "@web/router";
+import useBuilderStore from "@web/stores/builderStore";
+import usePageStore, { DETACHED_PREVIEW_CHANNEL } from "@web/stores/pageStore";
+import { BuilderPage } from "@web/types/doctypes";
 import { Button, useKeyboardShortcut } from "frappe-ui";
 import { useTelemetry } from "@framework/ui/telemetry";
 import { useDebounceFn, useEventListener, useStorage } from "@vueuse/core";
@@ -310,7 +310,7 @@ const setPreviewURL = () => {
 		prefers_color_scheme: isDark.value ? "dark" : "light",
 		reloaded_at: Date.now(),
 	};
-	previewRoute.value = `/api/method/frappe.builder.api.get_page_preview_html?${Object.entries(queryParams)
+	previewRoute.value = `/api/method/frappe.web.api.get_page_preview_html?${Object.entries(queryParams)
 		.map(([key, value]) => `${key}=${value}`)
 		.join("&")}`;
 };

@@ -1,7 +1,7 @@
 import { parse, parseExpressionAt } from "acorn"
 import type { Node } from "acorn"
-import { LRUCache } from "@studio/utils/cache"
-import { DYNAMIC_EXPRESSION_CONTENT_REGEX } from "@studio/utils/constants"
+import { LRUCache } from "@ui/utils/cache"
+import { DYNAMIC_EXPRESSION_CONTENT_REGEX } from "@ui/utils/constants"
 import { isRef, unref } from "vue"
 
 const fnCache = new LRUCache<boolean>(20)

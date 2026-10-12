@@ -53,11 +53,11 @@
 </template>
 
 <script setup lang="ts">
-import { __ } from "@builder/translation";
-import ColorInput from "@builder/components/Controls/ColorInput.vue";
-import InputLabel from "@builder/components/Controls/InputLabel.vue";
-import { BuilderToken } from "@builder/types/doctypes";
-import { defaultBuilderToken, useBuilderToken } from "@builder/utils/useBuilderToken";
+import { __ } from "@web/translation";
+import ColorInput from "@web/components/Controls/ColorInput.vue";
+import InputLabel from "@web/components/Controls/InputLabel.vue";
+import { BuilderToken } from "@web/types/doctypes";
+import { defaultBuilderToken, useBuilderToken } from "@web/utils/useBuilderToken";
 import { Dialog } from "frappe-ui";
 import { computed, ref, watch } from "vue";
 import { toast } from "frappe-ui";

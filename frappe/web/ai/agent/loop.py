@@ -48,17 +48,17 @@ import time
 
 import frappe
 
-from frappe.builder.ai import llm, locks
-from frappe.builder.ai.agent.registry import ToolRegistry, build_default_registry
-from frappe.builder.ai.agent.tree import WorkingTree
-from frappe.builder.ai.block_codec import BlockCodec
-from frappe.builder.ai.models import ModelRegistry
-from frappe.builder.ai.prompts import Prompts
-from frappe.builder.ai.session import AISession
-from frappe.builder.ai.snapshots import capture_page_state, save_revert_snapshot
-from frappe.builder.utils import to_compact_yaml
+from frappe.web.ai import llm, locks
+from frappe.web.ai.agent.registry import ToolRegistry, build_default_registry
+from frappe.web.ai.agent.tree import WorkingTree
+from frappe.web.ai.block_codec import BlockCodec
+from frappe.web.ai.models import ModelRegistry
+from frappe.web.ai.prompts import Prompts
+from frappe.web.ai.session import AISession
+from frappe.web.ai.snapshots import capture_page_state, save_revert_snapshot
+from frappe.web.utils import to_compact_yaml
 
-logger = frappe.logger("frappe.builder.ai.agent.loop")
+logger = frappe.logger("frappe.web.ai.agent.loop")
 logger.setLevel(logging.INFO)
 
 # One turn may span several rounds: server-tool reads, plus a model that applies a
@@ -185,7 +185,7 @@ def render_page_context(root: dict | None, selected_block_ids: tuple | list = ()
 		context = render_skeleton_context(root, selected_block_ids)
 	# THIS page's component contracts — without them an instance advertises nothing
 	# (declared props were unreachable from the open page).
-	from frappe.builder.ai.agent.tools.query import render_components
+	from frappe.web.ai.agent.tools.query import render_components
 
 	if contract := render_components(root, on_open_page=True):
 		return f"{context}\n\n{contract}"
@@ -204,7 +204,7 @@ OUTLINE_PREAMBLE = (
 def render_skeleton_context(root: dict, selected_block_ids: tuple | list = ()) -> str:
 	"""Outline + full detail for any blocks the user has selected (so the common
 	targeted-edit case needs no read_block round-trip)."""
-	from frappe.builder.ai.agent.selectors import find_block, render_skeleton
+	from frappe.web.ai.agent.selectors import find_block, render_skeleton
 
 	outline = render_skeleton(root)
 	parts = [OUTLINE_PREAMBLE, outline]
@@ -575,7 +575,7 @@ class AgentRunner:
 	def build_memory_context(self) -> str:
 		"""Facts the agent saved in past conversations (see tools/memory.py) — part of
 		the cached context block, so remembering costs nothing per-round."""
-		from frappe.builder.ai.agent.tools.memory import memory_context
+		from frappe.web.ai.agent.tools.memory import memory_context
 
 		return memory_context()
 
@@ -830,7 +830,7 @@ class AgentRunner:
 		"""Snapshot, sync the working tree, persist, and emit ops a server tool queued
 		mid-handler (extract_component queues the rewritten page as set_page_blocks),
 		so the canvas updates live and later tools see the tree they already changed."""
-		from frappe.builder.ai import page_writer
+		from frappe.web.ai import page_writer
 
 		ops, self.pending_client_ops = self.pending_client_ops, []
 		if not ops:
@@ -860,7 +860,7 @@ class AgentRunner:
 		edits all read/write it), take the page lock for the rest of the turn so two
 		AI turns can't fight over one page, and capture the pre-edit state so the turn
 		stays revertable. Returns "" on success, or a FAILED reason."""
-		from frappe.builder.ai import page_writer
+		from frappe.web.ai import page_writer
 
 		key = locks.page_key(page_id)
 		token = locks.acquire(key, locks.PAGE_LOCK_TTL)
@@ -910,7 +910,7 @@ class AgentRunner:
 	def attached_blocks_note(self) -> str:
 		"""Attaching is a scoping act, not a hint — and labels ride along because a
 		bare ref gives the model nothing to anchor the request's nouns to."""
-		from frappe.builder.ai.agent.selectors import find_block
+		from frappe.web.ai.agent.selectors import find_block
 
 		root = self.page_root()
 		labelled = []
@@ -1035,7 +1035,7 @@ class AgentRunner:
 			# commit lands and caches a Missing placeholder.
 			self.emit("tool_batch", operations=applied, after_commit=True)
 			if self.page_id and self.tree.root:
-				from frappe.builder.ai import page_writer
+				from frappe.web.ai import page_writer
 
 				# Persist after every applied round so a cancel/crash keeps the work
 				# done so far (the same live-apply semantics the canvas shows).

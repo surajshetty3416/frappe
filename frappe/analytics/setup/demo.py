@@ -5,19 +5,19 @@ import os
 
 import frappe
 
-from frappe.insights.api.data_sources import get_data_source_tables
-from frappe.insights.doctype.insights_data_source_v3.insights_data_source_v3 import (
+from frappe.analytics.api.data_sources import get_data_source_tables
+from frappe.analytics.doctype.insights_data_source_v3.insights_data_source_v3 import (
     db_connections,
 )
-from frappe.insights.doctype.insights_table_link_v3.insights_table_link_v3 import (
+from frappe.analytics.doctype.insights_table_link_v3.insights_table_link_v3 import (
     InsightsTableLinkv3,
 )
-from frappe.insights.doctype.insights_workbook.insights_workbook import import_workbook
-from frappe.insights.setup.demo_data import generate as generate_demo_data
+from frappe.analytics.doctype.insights_workbook.insights_workbook import import_workbook
+from frappe.analytics.setup.demo_data import generate as generate_demo_data
 
 
 def use_generated_data():
-    """Tests and CI build the demo dataset from `frappe.insights.setup.demo_data`.
+    """Tests and CI build the demo dataset from `frappe.analytics.setup.demo_data`.
 
     An install downloads the production dataset instead.
     """
@@ -180,7 +180,7 @@ class DemoDataFactory:
         if frappe.db.exists("Insights Workbook", {"title": "Order Analysis"}):
             return
 
-        fixture_path = frappe.get_app_path("frappe", "insights", "setup")
+        fixture_path = frappe.get_app_path("frappe", "analytics", "setup")
         with open(fixture_path + "/sample_workbook.json") as f:
             sample_workbook = f.read()
 

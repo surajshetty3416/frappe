@@ -1,19 +1,19 @@
-import { __ } from "@builder/translation";
-import type { EditorDemoPayload } from "@builder/utils/editorDemo";
+import { __ } from "@web/translation";
+import type { EditorDemoPayload } from "@web/utils/editorDemo";
 
 type Doc = Record<string, any>;
 
 // lookups the editor makes that the demo answers the same way every time
 const STUBS: Record<string, unknown> = {
 	"frappe.client.has_permission": { has_permission: true },
-	"frappe.builder.api.get_component_data": {},
-	"frappe.builder.api.get_template_groups": [],
-	"frappe.builder.api.get_codemirror_completions": [],
-	"frappe.builder.api.is_site_read_only": false,
-	"frappe.builder.ai.api.ai_setup_state": { configured: false },
-	"frappe.builder.ai.api.get_ai_models": [],
-	"frappe.builder.ai.api.get_ai_session": null,
-	"frappe.builder.ai.api.list_page_ai_sessions": [],
+	"frappe.web.api.get_component_data": {},
+	"frappe.web.api.get_template_groups": [],
+	"frappe.web.api.get_codemirror_completions": [],
+	"frappe.web.api.is_site_read_only": false,
+	"frappe.web.ai.api.ai_setup_state": { configured: false },
+	"frappe.web.ai.api.get_ai_models": [],
+	"frappe.web.ai.api.get_ai_session": null,
+	"frappe.web.ai.api.list_page_ai_sessions": [],
 };
 
 // the page methods the editor only reads through; every other one would save or publish
@@ -63,7 +63,7 @@ export function createEditorDemoBackend(payload: EditorDemoPayload) {
 		},
 		run_doc_method: ({ method }) =>
 			method in PAGE_READS ? { message: PAGE_READS[method], docs: [] } : refuse(),
-		"frappe.builder.api.get_versioned_doc": ({ snapshot }) =>
+		"frappe.web.api.get_versioned_doc": ({ snapshot }) =>
 			payload.componentVersions[snapshot] ?? refuse(__("Version not found")),
 	};
 

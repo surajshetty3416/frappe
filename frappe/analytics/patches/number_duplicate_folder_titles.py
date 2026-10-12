@@ -1,6 +1,6 @@
 import frappe
 
-from frappe.insights.doctype.insights_folder.insights_folder import next_free_title
+from frappe.analytics.doctype.insights_folder.insights_folder import next_free_title
 
 FOLDER = "Insights Folder"
 

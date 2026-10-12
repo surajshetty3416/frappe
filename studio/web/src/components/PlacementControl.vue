@@ -93,7 +93,7 @@
 	</div>
 </template>
 <script setup lang="ts">
-import blockController from "@builder/utils/blockController";
+import blockController from "@web/utils/blockController";
 import { type CSSProperties, computed, ref } from "vue";
 
 const placementOptions = [

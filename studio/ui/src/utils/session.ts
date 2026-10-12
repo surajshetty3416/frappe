@@ -43,7 +43,7 @@ function getSessionFromCookie() {
 
 async function fetchPermissions() {
 	if (!session.isLoggedIn) return
-	const has_permission = await call("frappe.studio.api.check_app_permission")
+	const has_permission = await call("frappe.ui.api.check_app_permission")
 	session.hasPermission = Boolean(has_permission)
 }
 

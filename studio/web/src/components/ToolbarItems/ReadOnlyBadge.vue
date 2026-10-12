@@ -13,9 +13,9 @@
 	</div>
 </template>
 <script setup lang="ts">
-import { __ } from "@builder/translation";
-import router from "@builder/router";
-import usePageStore from "@builder/stores/pageStore";
+import { __ } from "@web/translation";
+import router from "@web/router";
+import usePageStore from "@web/stores/pageStore";
 import { Badge, createResource, toast } from "frappe-ui";
 
 const pageStore = usePageStore();
@@ -23,7 +23,7 @@ const pageStore = usePageStore();
 const duplicateToEdit = async () => {
 	toast.promise(
 		createResource({
-			url: "frappe.builder.api.create_page_from_template",
+			url: "frappe.web.api.create_page_from_template",
 		})
 			.submit({ template_page: pageStore.activePage?.name })
 			.then((newPageName: string) => {

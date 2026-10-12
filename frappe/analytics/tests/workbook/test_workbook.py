@@ -1,6 +1,6 @@
 import frappe
 
-from frappe.insights.api.workbooks import (
+from frappe.analytics.api.workbooks import (
     create_folder,
     delete_folder,
     get_share_permissions,
@@ -10,9 +10,9 @@ from frappe.insights.api.workbooks import (
     update_share_permissions,
     update_sort_orders,
 )
-from frappe.insights.tests.base import InsightsIntegrationTestCase
-from frappe.insights.tests.factories import DT, USER_1, create_test_user, delete_users
-from frappe.insights.tests.workbook_utils import (
+from frappe.analytics.tests.base import InsightsIntegrationTestCase
+from frappe.analytics.tests.factories import DT, USER_1, create_test_user, delete_users
+from frappe.analytics.tests.workbook_utils import (
     cleanup_test_workbooks,
     create_workbook_bundle,
     get_doc,
@@ -174,7 +174,7 @@ class TestWorkbook(InsightsIntegrationTestCase):
     # @feature upgrade.duplicate-folder-titles
     def test_folders_that_shared_a_title_before_the_rule_are_numbered_apart(self):
         """Before `validate_title`, two clicks on New folder created two `Untitled` folders."""
-        from frappe.insights.patches.number_duplicate_folder_titles import execute
+        from frappe.analytics.patches.number_duplicate_folder_titles import execute
 
         bundle = create_workbook_bundle(USER_1, "Workbook Flow Test Duplicate Folder Titles")
         workbook = bundle["workbook"].name

@@ -104,12 +104,12 @@ import { Combobox, FormControl, Button } from "frappe-ui"
 import { computed, h, ref, watch } from "vue"
 import Link from "@framework/ui/components/Link/Link.vue"
 
-import FormInputLabel from "@studio/components/FormInputLabel.vue"
-import MultiLinkInput from "@studio/components/MultiLinkInput.vue"
-import MultiSelectInput from "@studio/components/MultiSelectInput.vue"
-import type { DocTypeField, Fieldtype, Filter, Operators } from "@studio/types"
-import { isObjectEmpty } from "@studio/utils/helpers"
-import type { Filters } from "@studio/types/Studio/StudioResource"
+import FormInputLabel from "@ui/components/FormInputLabel.vue"
+import MultiLinkInput from "@ui/components/MultiLinkInput.vue"
+import MultiSelectInput from "@ui/components/MultiSelectInput.vue"
+import type { DocTypeField, Fieldtype, Filter, Operators } from "@ui/types"
+import { isObjectEmpty } from "@ui/utils/helpers"
+import type { Filters } from "@ui/types/Studio/StudioResource"
 
 const typeCheck = ["Check"]
 const typeLink = ["Link"]

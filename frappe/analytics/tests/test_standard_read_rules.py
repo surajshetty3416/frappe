@@ -7,11 +7,11 @@ standard chart.
 
 import frappe
 
-from frappe.insights.doctype.insights_data_source_v3.insights_data_source_v3 import db_connections
-from frappe.insights.doctype.insights_table_v3.insights_table_v3 import get_table_name
-from frappe.insights.doctype.insights_team.insights_team import clear_cache as clear_team_cache
-from frappe.insights.tests.base import InsightsIntegrationTestCase
-from frappe.insights.tests.factories import DT, as_user, create_user, delete_users, delete_workbooks
+from frappe.analytics.doctype.insights_data_source_v3.insights_data_source_v3 import db_connections
+from frappe.analytics.doctype.insights_table_v3.insights_table_v3 import get_table_name
+from frappe.analytics.doctype.insights_team.insights_team import clear_cache as clear_team_cache
+from frappe.analytics.tests.base import InsightsIntegrationTestCase
+from frappe.analytics.tests.factories import DT, as_user, create_user, delete_users, delete_workbooks
 
 SITE_DB = "Site DB"
 TABLE = "tabToDo"

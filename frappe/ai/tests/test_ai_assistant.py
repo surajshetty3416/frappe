@@ -7,13 +7,13 @@ import frappe
 from frappe.tests import IntegrationTestCase
 from frappe.utils import get_weekday, today
 
-from frappe.flow.assistant import (
+from frappe.ai.assistant import (
 	ASSISTANT_AGENT_TITLE,
 	ASSISTANT_INSTRUCTIONS,
 	sync_builtin_assistant,
 )
-from frappe.flow.assistant.assistant import ASSISTANT_MAX_ITERATIONS
-from frappe.flow.tools.builtins import BUILTIN_TOOLS
+from frappe.ai.assistant.assistant import ASSISTANT_MAX_ITERATIONS
+from frappe.ai.tools.builtins import BUILTIN_TOOLS
 
 # The tools builder, insights and studio list under the `flow_tools` hook, which the
 # Assistant's instructions name.
@@ -66,7 +66,7 @@ class TestSyncBuiltinAssistant(IntegrationTestCase):
 
 	def test_install_adds_builtin_tools_before_any_model(self):
 		self.assertIn(
-			"frappe.flow.assistant.sync_builtin_assistant", frappe.get_hooks("after_install", app_name="frappe")
+			"frappe.ai.assistant.sync_builtin_assistant", frappe.get_hooks("after_install", app_name="frappe")
 		)
 		frappe.db.set_value("Flow Agent", ASSISTANT_AGENT_TITLE, "is_system_generated", 0)
 		frappe.delete_doc("Flow Agent", ASSISTANT_AGENT_TITLE, ignore_permissions=True)
@@ -143,7 +143,7 @@ class TestSyncBuiltinAssistant(IntegrationTestCase):
 			frappe.delete_doc("Flow Agent", ASSISTANT_AGENT_TITLE, ignore_permissions=True)
 
 	def test_a_later_model_leaves_the_assistant_alone(self):
-		with patch("frappe.flow.assistant.assistant.sync_builtin_assistant") as sync:
+		with patch("frappe.ai.assistant.assistant.sync_builtin_assistant") as sync:
 			self.insert_model("Second Model")
 		sync.assert_not_called()
 

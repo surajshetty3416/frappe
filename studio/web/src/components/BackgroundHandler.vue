@@ -62,7 +62,7 @@
 					:private="false"
 					folder="Home/Builder Uploads"
 					:optimize="true"
-					uploadEndpoint="/api/method/frappe.builder.api.upload_builder_asset">
+					uploadEndpoint="/api/method/frappe.web.api.upload_builder_asset">
 					<template v-slot="{ openFileSelector }">
 						<div class="space-y-3">
 							<TabButtons
@@ -136,19 +136,19 @@
 </template>
 
 <script lang="ts" setup>
-import { __ } from "@builder/translation";
-import Autocomplete from "@builder/components/Controls/Autocomplete.vue";
-import ColorPicker from "@builder/components/Controls/ColorPicker.vue";
-import GradientEditor from "@builder/components/Controls/GradientEditor.vue";
-import ImageFocusInput from "@builder/components/Controls/ImageFocusInput.vue";
-import InputLabel from "@builder/components/Controls/InputLabel.vue";
-import StylePropertyControl from "@builder/components/Controls/StylePropertyControl.vue";
-import useBuilderStore from "@builder/stores/builderStore";
-import blockController from "@builder/utils/blockController";
-import { getColorVariableOptions } from "@builder/utils/colorOptions";
-import { cssUrl } from "@builder/utils/helpers";
-import { useBuilderToken } from "@builder/utils/useBuilderToken";
-import { useAnchoredPopover } from "@builder/utils/useAnchoredPopover";
+import { __ } from "@web/translation";
+import Autocomplete from "@web/components/Controls/Autocomplete.vue";
+import ColorPicker from "@web/components/Controls/ColorPicker.vue";
+import GradientEditor from "@web/components/Controls/GradientEditor.vue";
+import ImageFocusInput from "@web/components/Controls/ImageFocusInput.vue";
+import InputLabel from "@web/components/Controls/InputLabel.vue";
+import StylePropertyControl from "@web/components/Controls/StylePropertyControl.vue";
+import useBuilderStore from "@web/stores/builderStore";
+import blockController from "@web/utils/blockController";
+import { getColorVariableOptions } from "@web/utils/colorOptions";
+import { cssUrl } from "@web/utils/helpers";
+import { useBuilderToken } from "@web/utils/useBuilderToken";
+import { useAnchoredPopover } from "@web/utils/useAnchoredPopover";
 import { FileUploader, Popover, Switch, TabButtons, type TabButtonValue } from "frappe-ui";
 import { computed, ref, watch } from "vue";
 

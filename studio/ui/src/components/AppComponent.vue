@@ -51,26 +51,26 @@
 </template>
 
 <script setup lang="ts">
-import Block from "@studio/utils/block"
+import Block from "@ui/utils/block"
 import { computed, onMounted, ref, useAttrs, inject, type ComputedRef, h, getCurrentInstance } from "vue"
 import type { ComponentPublicInstance } from "vue"
 import { createResource } from "frappe-ui"
-import { getComponentRoot, isObjectEmpty } from "@studio/utils/helpers"
-import { useScreenSize } from "@studio/utils/useScreenSize"
-import { isDynamicValue } from "@studio/utils/code"
-import { resolveEventListener } from "@studio/utils/eventModifiers"
-import useComponentInstance from "@studio/utils/useComponentInstance"
+import { getComponentRoot, isObjectEmpty } from "@ui/utils/helpers"
+import { useScreenSize } from "@ui/utils/useScreenSize"
+import { isDynamicValue } from "@ui/utils/code"
+import { resolveEventListener } from "@ui/utils/eventModifiers"
+import useComponentInstance from "@ui/utils/useComponentInstance"
 
-import { usePageScope } from "@studio/stores/codeStore"
+import { usePageScope } from "@ui/stores/codeStore"
 import { toast } from "frappe-ui"
-import type { SlotScope } from "@studio/types"
-import type { Field } from "@studio/types/ComponentEvent"
-import type { DataResult } from "@studio/types/Studio/StudioResource"
+import type { SlotScope } from "@ui/types"
+import type { Field } from "@ui/types/ComponentEvent"
+import type { DataResult } from "@ui/types/Studio/StudioResource"
 
-import StudioComponentRenderer from "@studio/components/StudioComponentRenderer.vue"
-import SlotScopeProvider from "@studio/components/SlotScopeProvider.vue"
-import { customVueComponentsRegistry } from "@studio/globals"
-import MissingComponent from "@studio/components/MissingComponent.vue"
+import StudioComponentRenderer from "@ui/components/StudioComponentRenderer.vue"
+import SlotScopeProvider from "@ui/components/SlotScopeProvider.vue"
+import { customVueComponentsRegistry } from "@ui/globals"
+import MissingComponent from "@ui/components/MissingComponent.vue"
 
 const props = defineProps<{
 	block: Block

@@ -1,11 +1,11 @@
 import "./index.css"
 
 import type { App } from "vue"
-import { COMPONENTS } from "@studio/data/components"
-import Block from "@studio/utils/block"
-import { registerGlobalComponents } from "@studio/globals"
-import { setupStudioRouter } from "@studio/router/studio_router"
-import { initSocket } from "@studio/socket"
+import { COMPONENTS } from "@ui/data/components"
+import Block from "@ui/utils/block"
+import { registerGlobalComponents } from "@ui/globals"
+import { setupStudioRouter } from "@ui/router/studio_router"
+import { initSocket } from "@ui/socket"
 
 // Runs once, the first time someone opens the studio layer
 export default function setupStudio(app: App) {

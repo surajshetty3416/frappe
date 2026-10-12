@@ -5,7 +5,7 @@
 // knows an endpoint's name, its argument names, or the shape of its answer
 // beyond `DrillLevelData`.
 //
-// Two sources: `frappe.insights.api.view` and `frappe.insights.api.authoring`. A reader sends
+// Two sources: `frappe.analytics.api.view` and `frappe.analytics.api.authoring`. A reader sends
 // the saved chart and its dashboard, and gets rows back. The server sorts,
 // searches and pages them, because the pipeline that would let the client do it
 // never leaves the server.
@@ -42,7 +42,7 @@ export function fetchViewDrillData(
 	// uses none of it
 	state?: DrillRowsState,
 ): Promise<DrillLevelData> {
-	return call('frappe.insights.api.view.get_drill_data', { ...subject, drill_stack, ...state })
+	return call('frappe.analytics.api.view.get_drill_data', { ...subject, drill_stack, ...state })
 }
 
 /** A file needs no page, so the state is sent without it. */
@@ -52,7 +52,7 @@ export function downloadViewDrillRows(
 	state: DrillRowsState,
 	format: string,
 ): Promise<string> {
-	return call('frappe.insights.api.view.download_drill_rows', {
+	return call('frappe.analytics.api.view.download_drill_rows', {
 		...subject,
 		drill_stack,
 		row_filters: state.row_filters,
@@ -69,7 +69,7 @@ export function fetchViewDrillRowsValues(
 	search_term: string,
 	row_filters: DrillRowFilter[],
 ): Promise<string[]> {
-	return call('frappe.insights.api.view.get_drill_rows_values', {
+	return call('frappe.analytics.api.view.get_drill_rows_values', {
 		...subject,
 		drill_stack,
 		column,
@@ -84,7 +84,7 @@ export function fetchViewDrillRowsRange(
 	column: string,
 	row_filters: DrillRowFilter[],
 ): Promise<[number, number] | undefined> {
-	return call('frappe.insights.api.view.get_drill_rows_range', {
+	return call('frappe.analytics.api.view.get_drill_rows_range', {
 		...subject,
 		drill_stack,
 		column,
@@ -113,7 +113,7 @@ export function fetchAuthoringDrillData(
 	declaringChart?: string,
 	state?: DrillRowsState,
 ): Promise<DrillLevelData> {
-	return call('frappe.insights.api.authoring.get_drill_data', {
+	return call('frappe.analytics.api.authoring.get_drill_data', {
 		...authoringArgs(subject, filterContext, declaringChart),
 		drill_stack,
 		...state,
@@ -131,7 +131,7 @@ export function authoringDrillRows(
 		read: (state) =>
 			fetchAuthoringDrillData(subject, drill_stack, filterContext, declaringChart, state),
 		download: (state, format) =>
-			call('frappe.insights.api.authoring.download_drill_rows', {
+			call('frappe.analytics.api.authoring.download_drill_rows', {
 				...args(),
 				row_filters: state.row_filters,
 				sort: state.sort,
@@ -139,14 +139,14 @@ export function authoringDrillRows(
 				format,
 			}),
 		values: (column, search_term, row_filters) =>
-			call('frappe.insights.api.authoring.get_drill_rows_values', {
+			call('frappe.analytics.api.authoring.get_drill_rows_values', {
 				...args(),
 				column,
 				search_term,
 				row_filters,
 			}),
 		range: (column, row_filters) =>
-			call('frappe.insights.api.authoring.get_drill_rows_range', { ...args(), column, row_filters }),
+			call('frappe.analytics.api.authoring.get_drill_rows_range', { ...args(), column, row_filters }),
 	}
 }
 
@@ -172,7 +172,7 @@ function authoringArgs(
 export function fetchAuthoringDrillDimensions(
 	subject: AuthoringDrillSubject,
 ): Promise<DrillDimension[]> {
-	return call('frappe.insights.api.authoring.get_drill_dimensions', subject).then(
+	return call('frappe.analytics.api.authoring.get_drill_dimensions', subject).then(
 		(response) => (response as { dimensions?: DrillDimension[] })?.dimensions || [],
 	)
 }

@@ -196,7 +196,7 @@ function getRendererContent(componentSources, pageScripts = [], routerFile = nul
 		frappeUICharts.length > 0 ? `import { ${frappeUICharts.join(",\n ")} } from "frappe-ui/charts";` : ""
 	const frameworkUIImports = getFrameworkUIImports(frameworkUIComponents)
 	const studioImports = studioComponents
-		.map((comp) => `import ${comp} from "@studio/components/AppLayout/${comp}.vue"`)
+		.map((comp) => `import ${comp} from "@ui/components/AppLayout/${comp}.vue"`)
 		.join("\n")
 	const customComponentNames = Object.keys(customComponents)
 	const customImports = customComponentNames
@@ -217,7 +217,7 @@ function getRendererContent(componentSources, pageScripts = [], routerFile = nul
 	// Rollup chunk each page script (and the modules it imports); codeStore loads them on
 	// navigation.
 	const pageScriptImport = pageScripts.length
-		? `import { setPageScriptImporters } from "@studio/data/studioPageScripts"`
+		? `import { setPageScriptImporters } from "@ui/data/studioPageScripts"`
 		: ""
 	const pageScriptSetup = pageScripts.length
 		? `setPageScriptImporters({
@@ -231,13 +231,13 @@ ${pageScripts
 	const routerImport = routerFile ? `import routerConfig from ${JSON.stringify(routerFile)}` : ""
 	const routerConfig = routerFile ? "routerConfig" : ""
 
-	const rendererContent = `import "@studio/app.css"
+	const rendererContent = `import "@ui/app.css"
 import { createApp } from "vue"
 import { createPinia } from "pinia"
-import "@studio/setupFrappeUIResource"
-import { createAppRouter } from "@studio/router/app_router"
-import ErrorPage from "@studio/pages/ErrorPage.vue"
-import AppRenderer from "@studio/AppRenderer.vue"
+import "@ui/setupFrappeUIResource"
+import { createAppRouter } from "@ui/router/app_router"
+import ErrorPage from "@ui/pages/ErrorPage.vue"
+import AppRenderer from "@ui/AppRenderer.vue"
 import { resourcesPlugin } from "frappe-ui"
 ${routerImport}
 

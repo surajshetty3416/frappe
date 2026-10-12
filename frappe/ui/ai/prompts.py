@@ -1,4 +1,4 @@
-from frappe.studio.ai.prompt_fragments import ON_ERROR_RULE, ON_SUCCESS_RULE, TRANSFORM_RULE
+from frappe.ui.ai.prompt_fragments import ON_ERROR_RULE, ON_SUCCESS_RULE, TRANSFORM_RULE
 
 COMPONENT_CATALOG = """AVAILABLE COMPONENTS:
 LAYOUT:

@@ -135,14 +135,14 @@
 </template>
 
 <script setup lang="ts">
-import { __ } from "@builder/translation";
-import EditableSpan from "@builder/components/EditableSpan.vue";
-import PageListModal from "@builder/components/Modals/PageListModal.vue";
-import useBuilderStore from "@builder/stores/builderStore";
-import usePageStore from "@builder/stores/pageStore";
-import { BuilderClientScript, BuilderPage, BuilderPageClientScript } from "@builder/types/doctypes";
-import { promptDiscardScriptEdits, promptScriptConflict, promptSharedScriptSave } from "@builder/utils/dialogs";
-import { getErrorMessage, getPageUsageMessage } from "@builder/utils/helpers";
+import { __ } from "@web/translation";
+import EditableSpan from "@web/components/EditableSpan.vue";
+import PageListModal from "@web/components/Modals/PageListModal.vue";
+import useBuilderStore from "@web/stores/builderStore";
+import usePageStore from "@web/stores/pageStore";
+import { BuilderClientScript, BuilderPage, BuilderPageClientScript } from "@web/types/doctypes";
+import { promptDiscardScriptEdits, promptScriptConflict, promptSharedScriptSave } from "@web/utils/dialogs";
+import { getErrorMessage, getPageUsageMessage } from "@web/utils/helpers";
 import { Combobox, createListResource, createResource, Dropdown, type ComboboxOptionValue } from "frappe-ui";
 import { useTelemetry } from "@framework/ui/telemetry";
 import { computed, nextTick, ref, watch } from "vue";
@@ -347,7 +347,7 @@ const updateScript = async (value: string) => {
 
 const saveScript = async (target: attachedScript, value: string, overwrite = false): Promise<void> => {
 	try {
-		await createResource({ url: "frappe.builder.api.save_client_script" }).submit({
+		await createResource({ url: "frappe.web.api.save_client_script" }).submit({
 			name: target.script_name,
 			script: value,
 			modified: overwrite ? undefined : target.script_modified,
@@ -380,7 +380,7 @@ const isStaleSave = (error: unknown) =>
 const saveScriptAsCopy = async (source: attachedScript, value: string) => {
 	const pageName = props.page.name;
 	try {
-		const copyName: string = await createResource({ url: "frappe.builder.api.save_client_script_as_copy" }).submit({
+		const copyName: string = await createResource({ url: "frappe.web.api.save_client_script_as_copy" }).submit({
 			page_name: pageName,
 			script_name: source.script_name,
 			script: value,
@@ -475,7 +475,7 @@ const clientScriptOptions = computed(() => {
 const onScriptReorder = () => {
 	syncPageStore(attachedScripts.value);
 	createResource({
-		url: "frappe.builder.api.reorder_client_scripts",
+		url: "frappe.web.api.reorder_client_scripts",
 	})
 		.submit({
 			script_order: attachedScripts.value.map((script) => script.name),

@@ -82,12 +82,12 @@
 </template>
 
 <script setup lang="ts">
-import { __ } from "@builder/translation";
-import OptionToggle from "@builder/components/Controls/OptionToggle.vue";
-import DashboardFilter from "@builder/components/DashboardFilter.vue";
-import { useDashboardState } from "@builder/composables/useDashboardState";
-import useBuilderStore from "@builder/stores/builderStore";
-import { promptSelectFolder } from "@builder/utils/dialogs";
+import { __ } from "@web/translation";
+import OptionToggle from "@web/components/Controls/OptionToggle.vue";
+import DashboardFilter from "@web/components/DashboardFilter.vue";
+import { useDashboardState } from "@web/composables/useDashboardState";
+import useBuilderStore from "@web/stores/builderStore";
+import { promptSelectFolder } from "@web/utils/dialogs";
 import { Button, Dropdown } from "frappe-ui";
 import { computed } from "vue";
 import ListTreeIcon from "~icons/lucide/list-tree";

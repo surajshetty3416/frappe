@@ -15,7 +15,7 @@ def before_tests():
 def delete_all_records():
     frappe.db.delete("Version", {"ref_doctype": ("like", "Insights%")})
     frappe.db.delete("View Log", {"reference_doctype": ("like", "Insights%")})
-    for doctype in frappe.get_all("DocType", filters={"module": "Insights", "issingle": 0}, pluck="name"):
+    for doctype in frappe.get_all("DocType", filters={"module": "Analytics", "issingle": 0}, pluck="name"):
         frappe.db.delete(doctype)
 
 

@@ -50,9 +50,9 @@
 </template>
 
 <script setup lang="ts">
-import { copyToClipboard } from "@studio/utils/helpers"
+import { copyToClipboard } from "@ui/utils/helpers"
 import { ref, computed } from "vue"
-import IconButton from "@studio/components/IconButton.vue"
+import IconButton from "@ui/components/IconButton.vue"
 import LucideCopy from "~icons/lucide/copy"
 
 const props = withDefaults(

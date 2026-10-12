@@ -78,18 +78,18 @@
 <script setup lang="ts">
 import { computed, ref } from "vue"
 import { useKeyboardShortcut } from "frappe-ui"
-import useStudioStore from "@studio/stores/studioStore"
-import useCanvasStore from "@studio/stores/canvasStore"
+import useStudioStore from "@ui/stores/studioStore"
+import useCanvasStore from "@ui/stores/canvasStore"
 
-import Input from "@studio/components/Input.vue"
-import ComponentInterface from "@studio/components/ComponentInterface.vue"
-import ComponentProperties from "@studio/components/ComponentProperties.vue"
-import ComponentEvents from "@studio/components/ComponentEvents.vue"
-import ComponentStyles from "@studio/components/ComponentStyles.vue"
-import PanelResizer from "@studio/components/PanelResizer.vue"
+import Input from "@ui/components/Input.vue"
+import ComponentInterface from "@ui/components/ComponentInterface.vue"
+import ComponentProperties from "@ui/components/ComponentProperties.vue"
+import ComponentEvents from "@ui/components/ComponentEvents.vue"
+import ComponentStyles from "@ui/components/ComponentStyles.vue"
+import PanelResizer from "@ui/components/PanelResizer.vue"
 
-import type { RightPanelOptions } from "@studio/types"
-import blockController from "@studio/utils/blockController"
+import type { RightPanelOptions } from "@ui/types"
+import blockController from "@ui/utils/blockController"
 
 const store = useStudioStore()
 const canvasStore = useCanvasStore()

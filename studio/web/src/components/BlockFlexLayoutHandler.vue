@@ -66,11 +66,11 @@
 	</div>
 </template>
 <script lang="ts" setup>
-import { __ } from "@builder/translation";
-import OptionToggle from "@builder/components/Controls/OptionToggle.vue";
-import SplitPropertyControl from "@builder/components/Controls/SplitPropertyControl.vue";
-import StylePropertyControl from "@builder/components/Controls/StylePropertyControl.vue";
-import blockController from "@builder/utils/blockController";
+import { __ } from "@web/translation";
+import OptionToggle from "@web/components/Controls/OptionToggle.vue";
+import SplitPropertyControl from "@web/components/Controls/SplitPropertyControl.vue";
+import StylePropertyControl from "@web/components/Controls/StylePropertyControl.vue";
+import blockController from "@web/utils/blockController";
 import PlacementControl from "./PlacementControl.vue";
 
 defineProps<{ gapProps: InstanceType<typeof SplitPropertyControl>["$props"] }>();

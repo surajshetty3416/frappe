@@ -1,4 +1,4 @@
-import { SelectOption } from "@studio/types"
+import { SelectOption } from "@ui/types"
 
 export type Variable = {
 	name: string

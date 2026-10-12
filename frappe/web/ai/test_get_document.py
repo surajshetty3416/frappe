@@ -3,7 +3,7 @@ import json
 import frappe
 from frappe.tests.utils import FrappeTestCase
 
-from frappe.builder.ai.agent.tools.data import CODE_FIELD_CAP, FIELD_CAP, get_document, query_records
+from frappe.web.ai.agent.tools.data import CODE_FIELD_CAP, FIELD_CAP, get_document, query_records
 
 
 def read(request: dict):

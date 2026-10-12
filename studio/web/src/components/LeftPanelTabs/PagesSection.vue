@@ -44,11 +44,11 @@
 	</div>
 </template>
 <script setup lang="ts">
-import PageRow from "@builder/components/LeftPanelTabs/PageRow.vue";
-import usePageStore from "@builder/stores/pageStore";
-import { __ } from "@builder/translation";
-import { BuilderPage } from "@builder/types/doctypes";
-import { createPageIn, FOLDER_PAGE_LIMIT, folderPages, pagesVersion } from "@builder/utils/pageActions";
+import PageRow from "@web/components/LeftPanelTabs/PageRow.vue";
+import usePageStore from "@web/stores/pageStore";
+import { __ } from "@web/translation";
+import { BuilderPage } from "@web/types/doctypes";
+import { createPageIn, FOLDER_PAGE_LIMIT, folderPages, pagesVersion } from "@web/utils/pageActions";
 import { Button } from "frappe-ui";
 import { useDebounceFn, useEventListener, useStorage } from "@vueuse/core";
 import { computed, ref, watch } from "vue";

@@ -32,13 +32,13 @@
 	</div>
 </template>
 <script setup lang="ts">
-import type Block from "@builder/block";
-import BlockLayers from "@builder/components/BlockLayers.vue";
-import PagesSection from "@builder/components/LeftPanelTabs/PagesSection.vue";
-import BuilderCanvas from "@builder/components/BuilderCanvas.vue";
-import useBuilderStore from "@builder/stores/builderStore";
-import useCanvasStore from "@builder/stores/canvasStore";
-import usePageStore from "@builder/stores/pageStore";
+import type Block from "@web/block";
+import BlockLayers from "@web/components/BlockLayers.vue";
+import PagesSection from "@web/components/LeftPanelTabs/PagesSection.vue";
+import BuilderCanvas from "@web/components/BuilderCanvas.vue";
+import useBuilderStore from "@web/stores/builderStore";
+import useCanvasStore from "@web/stores/canvasStore";
+import usePageStore from "@web/stores/pageStore";
 import { inject, nextTick, Ref, ref, watch, watchEffect } from "vue";
 
 const builderStore = useBuilderStore();

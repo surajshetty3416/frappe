@@ -45,7 +45,7 @@ const session = {
 test("a new chat is created with the page's agent and reported back", async () => {
 	const reported = [];
 	const transport = fakeTransport({
-		"frappe.flow.api.create_session": { ...session, auto_approve: true },
+		"frappe.ai.api.create_session": { ...session, auto_approve: true },
 	});
 	const client = new FrappeClient({
 		boot,
@@ -54,7 +54,7 @@ test("a new chat is created with the page's agent and reported back", async () =
 	});
 	const created = await client.createSession({ model: "Sonnet", auto_approve: true });
 	assert.deepEqual(transport.calls[0], [
-		"frappe.flow.api.create_session",
+		"frappe.ai.api.create_session",
 		{ agent: "Support", model: "Sonnet", auto_approve: 1 },
 	]);
 	assert.equal(created.session_id, "S1");
@@ -65,9 +65,9 @@ test("a new chat is created with the page's agent and reported back", async () =
 
 test("session details carry the model's context window and a config the store can patch", async () => {
 	const transport = fakeTransport({
-		"frappe.flow.api.session": session,
-		"frappe.flow.api.set_title": { title: "Renamed" },
-		"frappe.flow.api.set_auto_approve": { auto_approve: true },
+		"frappe.ai.api.session": session,
+		"frappe.ai.api.set_title": { title: "Renamed" },
+		"frappe.ai.api.set_auto_approve": { auto_approve: true },
 	});
 	const client = new FrappeClient({ boot, transport });
 	const info = await client.session("S1");
@@ -84,7 +84,7 @@ test("session details carry the model's context window and a config the store ca
 		cwd: null,
 	});
 	assert.deepEqual(transport.calls.at(-1), [
-		"frappe.flow.api.set_auto_approve",
+		"frappe.ai.api.set_auto_approve",
 		{ session: "S1", auto_approve: 1 },
 	]);
 });
@@ -92,7 +92,7 @@ test("session details carry the model's context window and a config the store ca
 test("the log is presented and mirrored to the page, replaced by a snapshot and appended by a catch-up", async () => {
 	const mirrored = [];
 	const transport = fakeTransport({
-		"frappe.flow.api.entries": ({ since, path }) => ({
+		"frappe.ai.api.entries": ({ since, path }) => ({
 			entries: [
 				{ type: "run_started", seq: since + 1, run_id: "r" },
 				{ type: "model_changed", seq: since + 2, model: "anthropic/claude-sonnet-4-6" },
@@ -115,14 +115,14 @@ test("the log is presented and mirrored to the page, replaced by a snapshot and 
 		["S1", 2, false],
 	]);
 	assert.deepEqual(transport.calls[1], [
-		"frappe.flow.api.entries",
+		"frappe.ai.api.entries",
 		{ session: "S1", since: 2, path: "all" },
 	]);
 });
 
 test("attachments are uploaded as private Files and staged, and cleaned up by File name", async () => {
 	const transport = fakeTransport({
-		"frappe.flow.api.attach_file": ({ file }) => ({
+		"frappe.ai.api.attach_file": ({ file }) => ({
 			file,
 			file_name: file.replace("FILE-", ""),
 			file_size: 1,
@@ -145,40 +145,40 @@ test("attachments are uploaded as private Files and staged, and cleaned up by Fi
 	assert.equal(presented.content[1].id, "FILE-notes.txt");
 	await client.cleanupAttachments("S1", ["FILE-shot.png"]);
 	assert.deepEqual(transport.calls.at(-1), [
-		"frappe.flow.api.cleanup_attachments",
+		"frappe.ai.api.cleanup_attachments",
 		{ session: "S1", attachments: ["FILE-shot.png"] },
 	]);
 });
 
 test("staging tells the server which model the picker holds", async () => {
 	const transport = fakeTransport({
-		"frappe.flow.api.attach_file": ({ file }) => ({ file, file_name: "shot.png", file_size: 1 }),
+		"frappe.ai.api.attach_file": ({ file }) => ({ file, file_name: "shot.png", file_size: 1 }),
 	});
 	const client = new FrappeClient({ boot, transport });
 	await client.prepareAttachment({ name: "shot.png" }, "GPT");
 	assert.deepEqual(transport.calls.at(-1), [
-		"frappe.flow.api.attach_file",
+		"frappe.ai.api.attach_file",
 		{ file: "FILE-shot.png", model: "GPT" },
 	]);
 });
 
 test("preparation failures discard the upload without creating a session", async () => {
 	const transport = fakeTransport({
-		"frappe.flow.api.attach_file": () => {
+		"frappe.ai.api.attach_file": () => {
 			throw new Error("Cannot extract");
 		},
 	});
 	const client = new FrappeClient({ boot, transport });
 	await assert.rejects(client.prepareAttachment({ name: "broken.pdf" }), /Cannot extract/);
 	assert.deepEqual(transport.calls.at(-1), [
-		"frappe.flow.api.cleanup_attachments",
+		"frappe.ai.api.cleanup_attachments",
 		{ attachments: ["FILE-broken.pdf"] },
 	]);
 });
 
 test("the model list comes from the page's boot first, then refreshes from the server", async () => {
 	const transport = fakeTransport({
-		"frappe.flow.api.boot": {
+		"frappe.ai.api.boot": {
 			models: [
 				{
 					name: "GPT",
@@ -188,7 +188,7 @@ test("the model list comes from the page's boot first, then refreshes from the s
 				},
 			],
 		},
-		"frappe.flow.api.set_model": ({ model }) => ({
+		"frappe.ai.api.set_model": ({ model }) => ({
 			model,
 			reasoning_effort: "high",
 		}),
@@ -211,7 +211,7 @@ test("the model list comes from the page's boot first, then refreshes from the s
 	const switched = await client.setModel("S1", { model: "GPT", reasoning_effort: "high" });
 	assert.deepEqual(switched, { model: "GPT", context_window: null });
 	assert.deepEqual(transport.calls.at(-1), [
-		"frappe.flow.api.set_model",
+		"frappe.ai.api.set_model",
 		{ session: "S1", model: "GPT", reasoning_effort: "high" },
 	]);
 });
@@ -222,15 +222,15 @@ test("shared provider IDs preserve the session's model when its thinking level c
 	globalThis.localStorage = { getItem: () => null, setItem() {} };
 	const models = [boot.models[0], { ...boot.models[0], name: "Other account" }];
 	const transport = fakeTransport({
-		"frappe.flow.api.session": session,
-		"frappe.flow.api.entries": ({ path }) => ({
+		"frappe.ai.api.session": session,
+		"frappe.ai.api.entries": ({ path }) => ({
 			entries:
 				path === "active"
 					? [{ type: "model_changed", seq: 1, model: models[0].model_id }]
 					: [],
 			latest_seq: 1,
 		}),
-		"frappe.flow.api.set_model": ({ model }) => ({ model }),
+		"frappe.ai.api.set_model": ({ model }) => ({ model }),
 	});
 	const client = new FrappeClient({ socket: fakeSocket(), boot: { models }, transport });
 	const store = createFlowStore(client, { requireCwd: false, skillsEnabled: false });
@@ -239,7 +239,7 @@ test("shared provider IDs preserve the session's model when its thinking level c
 	assert.equal(store.state.conversation.model, "Sonnet");
 	await store.selectEffort("high");
 	assert.equal(
-		transport.calls.find(([method]) => method === "frappe.flow.api.set_model")[1].model,
+		transport.calls.find(([method]) => method === "frappe.ai.api.set_model")[1].model,
 		"Sonnet"
 	);
 	await client.setModel("S1", { model: "Other account" });
@@ -255,10 +255,10 @@ test("a steered image's bubble goes when its daemon attachment arrives", async (
 	globalThis.localStorage = { getItem: () => null, setItem() {} };
 	const socket = fakeSocket();
 	const transport = fakeTransport({
-		"frappe.flow.api.session": session,
-		"frappe.flow.api.entries": { entries: [], latest_seq: 0 },
-		"frappe.flow.api.attach_file": ({ file }) => ({ file, file_name: "shot.png" }),
-		"frappe.flow.api.run": { status: "steered" },
+		"frappe.ai.api.session": session,
+		"frappe.ai.api.entries": { entries: [], latest_seq: 0 },
+		"frappe.ai.api.attach_file": ({ file }) => ({ file, file_name: "shot.png" }),
+		"frappe.ai.api.run": { status: "steered" },
 	});
 	const client = new FrappeClient({ socket, boot, transport });
 	const store = createFlowStore(client, { requireCwd: false, skillsEnabled: false });
@@ -281,21 +281,21 @@ test("a steered image's bubble goes when its daemon attachment arrives", async (
 
 test("skills come from the session's agent, or the page's agent before a chat starts", async () => {
 	const catalog = { skills: [{ name: "expense-approval", description: "Claims" }] };
-	const transport = fakeTransport({ "frappe.flow.api.skills": catalog });
+	const transport = fakeTransport({ "frappe.ai.api.skills": catalog });
 	const client = new FrappeClient({ boot, transport, hooks: { agent: () => "Support" } });
 	assert.deepEqual(await client.skills("S1"), catalog);
 	assert.deepEqual(await client.previewSkills({}), catalog);
 	assert.deepEqual(transport.calls, [
-		["frappe.flow.api.skills", { session: "S1" }],
-		["frappe.flow.api.skills", { agent: "Support" }],
+		["frappe.ai.api.skills", { session: "S1" }],
+		["frappe.ai.api.skills", { agent: "Support" }],
 	]);
 });
 
 test("a resume names the batch it answers, so a sub-agent's can be told apart", async () => {
-	const transport = fakeTransport({ "frappe.flow.api.resume": { run: "R1", status: "started" } });
+	const transport = fakeTransport({ "frappe.ai.api.resume": { run: "R1", status: "started" } });
 	const client = new FrappeClient({ boot, transport });
 	await client.resume("S1", 8, { c9: "Approve" });
 	assert.deepEqual(transport.calls, [
-		["frappe.flow.api.resume", { session: "S1", answers: { c9: "Approve" }, approval_seq: 8 }],
+		["frappe.ai.api.resume", { session: "S1", answers: { c9: "Approve" }, approval_seq: 8 }],
 	]);
 });

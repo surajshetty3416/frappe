@@ -353,23 +353,23 @@ def safer_exec(
 
 def sync_page_templates():
 	print("Syncing Builder Components")
-	builder_component_path = frappe.get_module_path("builder", "builder_component")
+	builder_component_path = frappe.get_module_path("web", "builder_component")
 	make_records(builder_component_path)
 
 	print("Syncing Builder Scripts")
-	builder_script_path = frappe.get_module_path("builder", "builder_script")
+	builder_script_path = frappe.get_module_path("web", "builder_script")
 	make_records(builder_script_path)
 
 
 def sync_block_templates():
 	print("Syncing Builder Block Templates")
-	builder_block_template_path = frappe.get_module_path("builder", "builder_block_template")
+	builder_block_template_path = frappe.get_module_path("web", "builder_block_template")
 	make_records(builder_block_template_path)
 
 
 def sync_builder_tokens():
 	print("Syncing Builder Tokens")
-	builder_token_path = frappe.get_module_path("builder", "builder_token")
+	builder_token_path = frappe.get_module_path("web", "builder_token")
 	make_records(builder_token_path)
 
 

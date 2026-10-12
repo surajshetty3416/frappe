@@ -1,7 +1,7 @@
-import InlineInput from "@builder/components/Controls/InlineInput.vue";
-import VisibilityInput from "@builder/components/VisibilityInput.vue";
-import blockController from "@builder/utils/blockController";
-import { __ } from "@builder/translation";
+import InlineInput from "@web/components/Controls/InlineInput.vue";
+import VisibilityInput from "@web/components/VisibilityInput.vue";
+import blockController from "@web/utils/blockController";
+import { __ } from "@web/translation";
 
 const setClasses = (val: string) => {
 	const classes = val.split(",").map((c) => c.trim());

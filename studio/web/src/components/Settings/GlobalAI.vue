@@ -7,10 +7,10 @@
 	</div>
 </template>
 <script setup lang="ts">
-import type { AISetupState } from "@builder/components/ai/types";
-import AIModelList from "@builder/components/Settings/AIModelList.vue";
-import AISetupFlow from "@builder/components/Settings/AISetupFlow.vue";
-import useBuilderStore from "@builder/stores/builderStore";
+import type { AISetupState } from "@web/components/ai/types";
+import AIModelList from "@web/components/Settings/AIModelList.vue";
+import AISetupFlow from "@web/components/Settings/AISetupFlow.vue";
+import useBuilderStore from "@web/stores/builderStore";
 import { onMounted, ref } from "vue";
 
 const builderStore = useBuilderStore();

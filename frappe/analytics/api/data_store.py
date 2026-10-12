@@ -5,8 +5,8 @@ from croniter import croniter
 from frappe.query_builder.functions import Max
 from frappe.utils import now_datetime
 
-from frappe.insights.decorators import insights_whitelist
-from frappe.insights.doctype.insights_table_v3.insights_table_v3 import get_table_name
+from frappe.analytics.decorators import insights_whitelist
+from frappe.analytics.doctype.insights_table_v3.insights_table_v3 import get_table_name
 
 
 @insights_whitelist()

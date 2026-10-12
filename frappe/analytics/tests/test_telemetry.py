@@ -6,9 +6,9 @@ every row. No answer is worth failing the action that reported it.
 
 from unittest.mock import patch
 
-from frappe import insights
-from frappe.insights.telemetry import capture, get_entry, is_standard_app
-from frappe.insights.tests.base import InsightsIntegrationTestCase
+from frappe import analytics as insights
+from frappe.analytics.telemetry import capture, get_entry, is_standard_app
+from frappe.analytics.tests.base import InsightsIntegrationTestCase
 
 
 class TestTelemetryDefaults(InsightsIntegrationTestCase):

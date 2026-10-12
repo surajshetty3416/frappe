@@ -1,8 +1,8 @@
 import frappe
 
-from frappe.insights.doctype.insights_dashboard_v3.insights_dashboard_v3 import LINK_COLUMN
-from frappe.insights.query_utils import referenced_queries, sync_query_references
-from frappe.insights.utils import deep_convert_dict_to_dict
+from frappe.analytics.doctype.insights_dashboard_v3.insights_dashboard_v3 import LINK_COLUMN
+from frappe.analytics.query_utils import referenced_queries, sync_query_references
+from frappe.analytics.utils import deep_convert_dict_to_dict
 
 QUERY = "Insights Query v3"
 DASHBOARD = "Insights Dashboard v3"

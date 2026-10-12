@@ -14,7 +14,7 @@ def execute():
     from duckdb import CatalogException
     from ibis.common.exceptions import TableNotFound
 
-    from frappe.insights.doctype.insights_data_source_v3.data_warehouse import (
+    from frappe.analytics.doctype.insights_data_source_v3.data_warehouse import (
         Warehouse,
         get_warehouse_schema_name,
     )

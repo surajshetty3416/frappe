@@ -7,9 +7,9 @@ from unittest.mock import patch
 import frappe
 from frappe.tests import IntegrationTestCase
 
-from frappe.flow import ToolContext
-from frappe.flow.patches.rename_read_tools import execute as rename_read_tools
-from frappe.flow.tools.builtins import (
+from frappe.ai import ToolContext
+from frappe.ai.patches.rename_read_tools import execute as rename_read_tools
+from frappe.ai.tools.builtins import (
 	BUILTIN_TOOLS,
 	create,
 	delete,
@@ -546,7 +546,7 @@ class TestRenameReadTools(IntegrationTestCase):
 				"slug": "read_file",
 				"title": "Read File",
 				"type": "Imported",
-				"import_path": "frappe.flow.tools.builtins.read_file",
+				"import_path": "frappe.ai.tools.builtins.read_file",
 				"is_system_generated": 1,
 			}
 		).db_insert()

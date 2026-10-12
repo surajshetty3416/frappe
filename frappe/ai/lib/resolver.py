@@ -10,10 +10,10 @@ import frappe
 from frappe import _
 from frappe.utils.safe_exec import safe_exec
 
-from frappe.flow.lib.tool import Tool, ToolContext, build_schema
+from frappe.ai.lib.tool import Tool, ToolContext, build_schema
 
 if TYPE_CHECKING:
-	from frappe.flow.doctype.flow_tool.flow_tool import FlowTool
+	from frappe.ai.doctype.flow_tool.flow_tool import FlowTool
 
 MAIN_FUNCTION_NAME = "main"
 RESULT_VAR = "ai_tool_result"

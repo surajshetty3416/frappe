@@ -15,7 +15,7 @@ import frappe
 from filelock import FileLock, Timeout
 from frappe.utils.synchronization import LOCKS_DIR
 
-from frappe.studio.sync_json import get_studio_folders, sync_file
+from frappe.ui.sync_json import get_studio_folders, sync_file
 
 try:
 	from watchdog.events import FileSystemEventHandler

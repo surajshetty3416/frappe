@@ -14,7 +14,7 @@ app_home = "/app/build"
 app_email = "developers@frappe.io"
 
 # Each layer is a package in this app with its own hooks.py, merged into these hooks.
-layers = ["builder", "insights", "flow", "studio"]
+layers = ["web", "analytics", "ai", "ui"]
 
 before_install = "frappe.utils.install.before_install"
 after_install = "frappe.utils.install.after_install"
@@ -62,12 +62,22 @@ website_route_rules = [
 	{"from_route": "/kb/<category>", "to_route": "Help Article"},
 	{"from_route": "/profile", "to_route": "me"},
 	{"from_route": "/desk/<path:app_path>", "to_route": "desk"},
+	# Studio, the one page for every layer: chat, websites, dashboards, apps
+	{"from_route": "/studio/<path:app_path>", "to_route": "_studio"},
+	{"from_route": "/studio", "to_route": "_studio"},
 ]
 
 website_redirects = [
 	{"source": r"/app/(.*)", "target": r"/desk/\1", "forward_query_parameters": True},
 	{"source": "/apps", "target": "/desk"},
 	{"source": "/app", "target": "/desk"},
+	# the layers' own apps before they moved into Studio
+	{"source": "/builder", "target": "/studio/web"},
+	{"source": r"/builder/(.*)", "target": r"/studio/web/\1", "forward_query_parameters": True},
+	{"source": "/insights", "target": "/studio/analytics"},
+	{"source": r"/insights/(.*)", "target": r"/studio/analytics/\1", "forward_query_parameters": True},
+	{"source": "/flow", "target": "/studio"},
+	{"source": r"/flow/s/(.*)", "target": r"/studio/chat/\1"},
 ]
 
 base_template = "templates/base.html"
@@ -623,6 +633,12 @@ after_app_build = "frappe.bundler.build_page_islands"
 
 
 add_to_apps_screen = [
+	{
+		"name": "studio",
+		"logo": "/assets/frappe/studio/studio-logo.svg",
+		"title": "Studio",
+		"route": "/studio",
+	},
 	{
 		"name": app_name,
 		"logo": app_logo_url,

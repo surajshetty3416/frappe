@@ -13,14 +13,14 @@ A reference that arrives with the request was never written, and is checked then
 import frappe
 from frappe.utils import set_request
 
-from frappe.insights.api import run_doc_method
-from frappe.insights.api.workbooks import update_share_permissions
-from frappe.insights.doctype.insights_data_source_v3.insights_data_source_v3 import (
+from frappe.analytics.api import run_doc_method
+from frappe.analytics.api.workbooks import update_share_permissions
+from frappe.analytics.doctype.insights_data_source_v3.insights_data_source_v3 import (
     db_connections,
 )
-from frappe.insights.query_utils import sync_query_references
-from frappe.insights.tests.base import InsightsIntegrationTestCase
-from frappe.insights.tests.factories import (
+from frappe.analytics.query_utils import sync_query_references
+from frappe.analytics.tests.base import InsightsIntegrationTestCase
+from frappe.analytics.tests.factories import (
     DT,
     as_user,
     create_test_chart,
@@ -28,7 +28,7 @@ from frappe.insights.tests.factories import (
     create_test_workbook,
     delete_users,
 )
-from frappe.insights.tests.permissions_utils import (
+from frappe.analytics.tests.permissions_utils import (
     TEST_DS,
     USER_1,
     USER_2,
@@ -477,7 +477,7 @@ class ChartExportReadsTheQuery:
 
     def before_test(self):
         self.set_team_permissions(self.ENABLE_PERMISSIONS)
-        set_request(method="POST", path="/api/method/frappe.insights.api.run_doc_method")
+        set_request(method="POST", path="/api/method/frappe.analytics.api.run_doc_method")
 
     def export_chart(self, name, **claims):
         """The client sends the chart it holds, so the body includes its fields."""
@@ -652,7 +652,7 @@ class TestCrossWorkbookSourcesAreCopied(InsightsIntegrationTestCase):
 
     # @feature query.source-query
     def test_a_workbook_gets_its_own_copy_of_a_chain_it_sources_from_another(self):
-        from frappe.insights.patches.copy_cross_workbook_query_sources import execute
+        from frappe.analytics.patches.copy_cross_workbook_query_sources import execute
 
         far = self.make_workbook("Copy Far Workbook")
         base = create_source_query(OWNER, far, "Copy Base").name
@@ -692,8 +692,8 @@ class TestCrossWorkbookSourcesAreCopied(InsightsIntegrationTestCase):
     def test_a_filter_linked_to_the_source_is_linked_to_the_copy(self):
         """`route_filters` follows a link only to a query the card reads. After
         the patch the card reads the copy, so the link must point at the copy."""
-        from frappe.insights.doctype.insights_dashboard_v3.insights_dashboard_v3 import chart_reads
-        from frappe.insights.patches.copy_cross_workbook_query_sources import execute
+        from frappe.analytics.doctype.insights_dashboard_v3.insights_dashboard_v3 import chart_reads
+        from frappe.analytics.patches.copy_cross_workbook_query_sources import execute
 
         far = self.make_workbook("Copy Link Far Workbook")
         source = create_source_query(OWNER, far, "Copy Link Source").name
@@ -726,8 +726,8 @@ class TestCrossWorkbookSourcesAreCopied(InsightsIntegrationTestCase):
         own copy when the first workbook copies it."""
         from unittest.mock import patch
 
-        from frappe.insights.doctype.insights_dashboard_v3.insights_dashboard_v3 import chart_reads
-        from frappe.insights.patches import copy_cross_workbook_query_sources as module
+        from frappe.analytics.doctype.insights_dashboard_v3.insights_dashboard_v3 import chart_reads
+        from frappe.analytics.patches import copy_cross_workbook_query_sources as module
 
         third = self.make_workbook("Copy Hop Third Workbook")
         far_source = create_source_query(OWNER, third, "Copy Hop Source").name
@@ -775,7 +775,7 @@ class TestCrossWorkbookSourcesAreCopied(InsightsIntegrationTestCase):
         import contextlib
         import io
 
-        from frappe.insights.patches.copy_cross_workbook_query_sources import execute
+        from frappe.analytics.patches.copy_cross_workbook_query_sources import execute
 
         far = self.make_workbook("Copy Secret Far Workbook")
         source = frappe.get_doc(DT.QUERY, create_source_query(OWNER, far, "Copy Secret Source").name)

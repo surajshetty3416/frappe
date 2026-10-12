@@ -6,10 +6,10 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import add_to_date, get_datetime, getdate
 
-from frappe.insights import standard, user_permissions
-from frappe.insights.desk import claims_on, refuse_delete_while_claimed
-from frappe.insights.doctype.insights_chart_v3.chart_drill import check_rows
-from frappe.insights.doctype.insights_chart_v3.chart_query import (
+from frappe.analytics import standard, user_permissions
+from frappe.analytics.desk import claims_on, refuse_delete_while_claimed
+from frappe.analytics.doctype.insights_chart_v3.chart_drill import check_rows
+from frappe.analytics.doctype.insights_chart_v3.chart_query import (
     column_granularity,
     comparison_sources,
     comparison_timespans,
@@ -23,13 +23,13 @@ from frappe.insights.doctype.insights_chart_v3.chart_query import (
     reads_newest_first,
     sparkline_operations,
 )
-from frappe.insights.doctype.insights_chart_v3.record_link import record_links
-from frappe.insights.doctype.insights_dashboard_v3.insights_dashboard_v3 import route_card_filters
-from frappe.insights.doctype.insights_query_v3.insights_query_v3 import import_query
-from frappe.insights.query_builders.sql_functions import reading_day, resolve_timespan
-from frappe.insights.permission_user import runs_as
-from frappe.insights.permissions import can_export, can_read_rows
-from frappe.insights.utils import deep_convert_dict_to_dict, refuse_delete_while_linked
+from frappe.analytics.doctype.insights_chart_v3.record_link import record_links
+from frappe.analytics.doctype.insights_dashboard_v3.insights_dashboard_v3 import route_card_filters
+from frappe.analytics.doctype.insights_query_v3.insights_query_v3 import import_query
+from frappe.analytics.query_builders.sql_functions import reading_day, resolve_timespan
+from frappe.analytics.permission_user import runs_as
+from frappe.analytics.permissions import can_export, can_read_rows
+from frappe.analytics.utils import deep_convert_dict_to_dict, refuse_delete_while_linked
 
 QUERY = "Insights Query v3"
 
@@ -72,7 +72,7 @@ class InsightsChartv3(Document):
         return super().get_valid_dict(*args, **kwargs)
 
     def as_dict(self, *args, **kwargs):
-        from frappe.insights.permissions import can_share, can_write, may_move_run_as_owner
+        from frappe.analytics.permissions import can_share, can_write, may_move_run_as_owner
 
         d = super().as_dict(*args, **kwargs)
         d.read_only = not can_write(self)
@@ -81,7 +81,7 @@ class InsightsChartv3(Document):
         return d
 
     def validate(self):
-        from frappe.insights.permissions import (
+        from frappe.analytics.permissions import (
             check_chart_query_access,
             check_trusted_code_author,
             validate_run_as_owner,
@@ -112,7 +112,7 @@ class InsightsChartv3(Document):
             self.config = normalize_chart_config(config, self.chart_type)
 
     def on_update(self):
-        from frappe.insights.permissions import capture_visibility_widened
+        from frappe.analytics.permissions import capture_visibility_widened
 
         standard.export_member(self)
         capture_visibility_widened(self)
@@ -231,7 +231,7 @@ class InsightsChartv3(Document):
             scope = user_permissions.scope(frappe.session.user)
             sparkline = self.get_sparkline_data(force=force, adhoc_filters=adhoc_filters)
         # The SQL names tables, joins and columns the reader may not see, and
-        # `frappe.insights.api.view` serves this to a Guest.
+        # `frappe.analytics.api.view` serves this to a Guest.
         result.pop("sql", None)
 
         result["rows"] = self.periods_oldest_last(result["rows"])
@@ -394,7 +394,7 @@ class InsightsChartv3(Document):
         if not stored:
             return None
 
-        from frappe.insights.query_utils import transitive_closure
+        from frappe.analytics.query_utils import transitive_closure
 
         queries = {stored.query, *transitive_closure(stored.query)} if stored.query else set()
         modified = frappe.get_all(QUERY, filters={"name": ["in", list(queries)]}, pluck="modified")
@@ -461,14 +461,14 @@ class InsightsChartv3(Document):
 
     @frappe.whitelist()
     def published_reach(self):
-        """See `frappe.insights.permissions.published_reach`."""
-        from frappe.insights.permissions import published_reach
+        """See `frappe.analytics.permissions.published_reach`."""
+        from frappe.analytics.permissions import published_reach
 
         return published_reach(self)
 
     @frappe.whitelist()
     def export(self):
-        from frappe.insights.permissions import check_referenced_query_access
+        from frappe.analytics.permissions import check_referenced_query_access
 
         chart = {
             "version": "1.0",
@@ -505,7 +505,7 @@ class InsightsChartv3(Document):
         and `validate_visibility` treats a new document at any level as a
         widening. So the copy starts at Private, like a new chart.
         """
-        from frappe.insights.permissions import PRIVATE
+        from frappe.analytics.permissions import PRIVATE
 
         new_chart = frappe.copy_doc(self)
         new_chart.title = f"{self.title} (Copy)"
@@ -522,7 +522,7 @@ def import_chart(chart, workbook):
     copy. `validate` reads the link, and a link to the exporting site's query is
     a state it would read as the real one.
     """
-    from frappe.insights.doctype.insights_query_v3.insights_query_v3 import already_in_workbook
+    from frappe.analytics.doctype.insights_query_v3.insights_query_v3 import already_in_workbook
 
     chart = frappe.parse_json(chart)
     chart = deep_convert_dict_to_dict(chart)

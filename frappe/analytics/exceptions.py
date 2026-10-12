@@ -1,7 +1,7 @@
 """The exceptions a run raises, and the only thing `error_kind` reads.
 
 A refusal includes a message for the user and a class for the code. The message
-is translated and reworded. The class is what `frappe.insights.telemetry.error_kind`
+is translated and reworded. The class is what `frappe.analytics.telemetry.error_kind`
 maps to the closed list in `docs/telemetry.md`.
 """
 
