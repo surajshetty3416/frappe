@@ -3,6 +3,7 @@ import { createRouter, createWebHistory, type RouteRecordRaw } from "vue-router"
 
 import type { Layer } from "./layer"
 import { layers } from "./layers"
+import { keepLayerLinksInApp } from "./links"
 import { isLoggedIn } from "./session"
 
 export function createAppRouter(app: App) {
@@ -45,5 +46,6 @@ export function createAppRouter(app: App) {
 		const layer = to.matched[0]?.meta.layer
 		if (typeof layer === "string") document.documentElement.dataset.layer = layer
 	})
+	keepLayerLinksInApp(router)
 	return router
 }

@@ -1,29 +1,32 @@
 <template>
 	<SidebarRail>
-		<SidebarRailItem
-			v-for="layer in layers"
-			:key="layer.name"
-			:label="layer.title"
-			:icon="layer.icon"
-			:route="layer.path"
-			:active="activeLayer === layer.name"
-			variant="ghost"
-		/>
-		<div class="flex-1" />
-		<SidebarRailItem label="Desk" icon="lucide-layout-grid" href="/desk" variant="ghost" />
-		<SidebarRailItem
-			:label="isDark ? 'Light theme' : 'Dark theme'"
-			:icon="isDark ? 'lucide-sun' : 'lucide-moon'"
-			variant="ghost"
-			@click="toggleColorScheme"
-		/>
-		<Dropdown :options="userMenu" side="right" align="end">
-			<template #trigger>
-				<SidebarRailItem :label="user" variant="ghost">
-					<Avatar :label="user" size="md" />
-				</SidebarRailItem>
-			</template>
-		</Dropdown>
+		<nav class="flex w-full flex-1 flex-col items-center gap-2">
+			<SidebarRailItem
+				v-for="layer in layers"
+				:key="layer.name"
+				:label="layer.title"
+				:icon="layer.icon"
+				:route="layer.path"
+				:active="activeLayer === layer.name"
+				variant="ghost"
+			/>
+		</nav>
+		<div class="flex flex-col items-center gap-2">
+			<SidebarRailItem label="Desk" icon="lucide-layout-grid" href="/desk" variant="ghost" />
+			<SidebarRailItem
+				:label="isDark ? 'Light theme' : 'Dark theme'"
+				:icon="isDark ? 'lucide-sun' : 'lucide-moon'"
+				variant="ghost"
+				@click="toggleColorScheme"
+			/>
+			<Dropdown :options="userMenu" side="right" align="end">
+				<template #trigger>
+					<SidebarRailItem :label="user" variant="ghost">
+						<Avatar :label="user" size="md" />
+					</SidebarRailItem>
+				</template>
+			</Dropdown>
+		</div>
 	</SidebarRail>
 </template>
 
