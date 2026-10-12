@@ -198,7 +198,7 @@ def extract_variables_from_blocks(blocks):
 	return variables
 
 
-def export_fonts(fonts, builder_files_path, assets_path, target_app="builder"):
+def export_fonts(fonts, builder_files_path, assets_path, target_app="frappe"):
 	"""Export User Font records and their font files"""
 	if not fonts:
 		return
@@ -241,7 +241,7 @@ def export_fonts(fonts, builder_files_path, assets_path, target_app="builder"):
 			frappe.log_error(f"Failed to export font {font_name}: {e!s}")
 
 
-def copy_font_file(file_url, assets_path, target_app="builder"):
+def copy_font_file(file_url, assets_path, target_app="frappe"):
 	"""Copy a font file to assets directory"""
 	if not file_url or not isinstance(file_url, str):
 		return None

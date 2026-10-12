@@ -15,6 +15,19 @@ from frappe.flow.assistant import (
 from frappe.flow.assistant.assistant import ASSISTANT_MAX_ITERATIONS
 from frappe.flow.tools.builtins import BUILTIN_TOOLS
 
+# The tools builder, insights and studio list under the `flow_tools` hook, which the
+# Assistant's instructions name.
+LAYER_TOOLS = [
+	"list_web_pages",
+	"create_web_page",
+	"publish_web_page",
+	"list_dashboards",
+	"create_dashboard",
+	"list_studio_apps",
+	"create_studio_app",
+]
+ASSISTANT_TOOLS = [tool.name for tool in BUILTIN_TOOLS] + LAYER_TOOLS
+
 
 class TestSyncBuiltinAssistant(IntegrationTestCase):
 	def setUp(self):
@@ -42,8 +55,7 @@ class TestSyncBuiltinAssistant(IntegrationTestCase):
 		self.assertEqual(doc.instructions, ASSISTANT_INSTRUCTIONS)
 		self.assertTrue(doc.is_system_generated)
 		self.assertTrue(doc.enabled)
-		expected_slugs = sorted(t.name for t in BUILTIN_TOOLS)
-		self.assertEqual(sorted(row.tool for row in doc.tools), expected_slugs)
+		self.assertEqual(sorted(row.tool for row in doc.tools), sorted(ASSISTANT_TOOLS))
 
 	def test_the_prompt_names_the_session_user_and_today(self):
 		prompt = frappe.get_doc("Flow Agent", ASSISTANT_AGENT_TITLE).render_instructions()
@@ -54,7 +66,7 @@ class TestSyncBuiltinAssistant(IntegrationTestCase):
 
 	def test_install_adds_builtin_tools_before_any_model(self):
 		self.assertIn(
-			"frappe.flow.assistant.sync_builtin_assistant", frappe.get_hooks("after_install", app_name="flow")
+			"frappe.flow.assistant.sync_builtin_assistant", frappe.get_hooks("after_install", app_name="frappe")
 		)
 		frappe.db.set_value("Flow Agent", ASSISTANT_AGENT_TITLE, "is_system_generated", 0)
 		frappe.delete_doc("Flow Agent", ASSISTANT_AGENT_TITLE, ignore_permissions=True)
@@ -112,7 +124,7 @@ class TestSyncBuiltinAssistant(IntegrationTestCase):
 		doc.reload()
 		self.assertEqual(doc.instructions, ASSISTANT_INSTRUCTIONS)
 		self.assertEqual(doc.max_iterations, ASSISTANT_MAX_ITERATIONS)
-		self.assertEqual([row.tool for row in doc.tools], [tool.name for tool in BUILTIN_TOOLS])
+		self.assertEqual([row.tool for row in doc.tools], ASSISTANT_TOOLS)
 		self.assertEqual([row.knowledge_base for row in doc.knowledge_bases], [])
 		self.assertEqual((doc.model, doc.enabled), (other_model.name, 0))
 

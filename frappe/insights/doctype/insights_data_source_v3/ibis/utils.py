@@ -247,7 +247,7 @@ def get_function_list():
 
 @frappe.whitelist()
 def get_code_completions(code: str, column_options: str | None = None):
-    import_statement = """from insights.insights.doctype.insights_data_source_v3.ibis.functions import *\nfrom ibis import selectors as s"""
+    import_statement = """from frappe.insights.doctype.insights_data_source_v3.ibis.functions import *\nfrom ibis import selectors as s"""
     code = f"{import_statement}\n\n{code}"
 
     cursor_pos = code.find("|")

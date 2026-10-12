@@ -6,6 +6,8 @@
 	"scripts": {
 		"dev": "vite",
 		"build": "vite build",
+		"postbuild": "yarn build:islands",
+		"build:islands": "node insights/build-islands.mjs --production",
 		"build-studio-app": "node studio/src/scripts/build.js"
 	},
 	"dependencies": {

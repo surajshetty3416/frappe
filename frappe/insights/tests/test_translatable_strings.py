@@ -1,6 +1,6 @@
-"""Frappe's message extractor map has rows for `.py`, `.js`, `.html` and `.vue`,
-but none for `.ts` or `.tsx`. The app must add its own rows, or labels in those
-files are never extracted for translation.
+"""Insights is a layer of frappe, so frappe's message extractor map is the one its
+frontend is extracted with. Without rows for `.ts` and `.tsx` there, labels in
+those files are never extracted for translation.
 """
 
 import re
@@ -22,7 +22,7 @@ LITERAL_CALL = re.compile(r"__\(\s*(['\"])((?:\\.|(?!\1).)*)\1")
 class TestTranslatableStrings(InsightsIntegrationTestCase):
     # @feature settings.translations
     def test_a_label_reaches_the_translator_whatever_file_it_lives_in(self):
-        method_map = get_method_map("insights") + get_method_map("frappe")
+        method_map = get_method_map("frappe")
 
         extracted = set()
         for filename, _lineno, message, _comments, _context in extract_from_dir(

@@ -6,16 +6,17 @@ name, a title somebody else wrote.
 What is left here is the desk form, which is plain JavaScript no test runner
 reaches. A source check is a poorer test than a rendered one, and it is what
 keeps that one rule from being undone by a later edit. The app's own client is
-under `frontend/`, where vitest runs.
+under `frontend/insights/`, where vitest runs.
 """
 
 import re
 from pathlib import Path
 
+import frappe
 from frappe.tests import UnitTestCase
 
-from frappe import insights
-APP = Path(insights.__file__).parent.parent
+LAYER = Path(frappe.get_app_path("frappe", "insights"))
+FRONTEND = Path(frappe.get_app_path("frappe")).parent / "frontend" / "insights"
 
 
 class TestErrorToastRendersText(UnitTestCase):
@@ -27,7 +28,7 @@ class TestErrorToastRendersText(UnitTestCase):
 
     # @feature permissions.error-is-text
     def test_the_toast_renders_no_html(self):
-        helpers = (APP / "frontend/src2/helpers/index.ts").read_text()
+        helpers = (FRONTEND / "src2/helpers/index.ts").read_text()
         # Collapsed, so a reformat that rewraps the call cannot fail the rule.
         collapsed = re.sub(r"\s+", " ", helpers)
         self.assertIn("toast.error(getErrorMessage(err))", collapsed)
@@ -44,7 +45,7 @@ class TestDeskFormEscapesTheTableLabel(UnitTestCase):
 
     # @feature data-source.table-label-is-text
     def test_every_read_of_the_label_is_escaped(self):
-        form = (APP / "insights/insights/doctype/insights_table_v3/insights_table_v3.js").read_text()
+        form = (LAYER / "doctype/insights_table_v3/insights_table_v3.js").read_text()
         # Collapsed, so a reformat that rewraps the call cannot fail the rule.
         form = re.sub(r"\s+", " ", form)
         reads = re.findall(r"(\S{0,14} )?frm\.doc\.label", form)

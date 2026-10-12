@@ -125,7 +125,7 @@ ENDPOINTS_ACCEPTING_GET = [
 
 
 def get_endpoints_accepting_get():
-    for module in pkgutil.walk_packages(insights.__path__, "insights."):
+    for module in pkgutil.walk_packages(insights.__path__, "frappe.insights."):
         name = module.name
         if not name.startswith("frappe.insights.tests.") and ".test_" not in name and not name.endswith("__main__"):
             importlib.import_module(name)
@@ -134,7 +134,7 @@ def get_endpoints_accepting_get():
         {
             f"{fn.__module__}.{fn.__qualname__}"
             for fn, methods in frappe.allowed_http_methods_for_whitelisted_func.items()
-            if fn.__module__.startswith("insights.")
+            if fn.__module__.startswith("frappe.insights.")
             and not fn.__module__.startswith("frappe.insights.tests.")
             and "GET" in methods
         }

@@ -747,9 +747,7 @@ class TestIbisRemoveColumns(IbisQueryBuilderTestCase):
     def test_insights_opens_duckdb_only_through_connect_duckdb(self):
         """`connect_duckdb` sets the compiler that keeps a removed column off."""
         package = os.path.dirname(insights.__file__)
-        opener = os.path.join(
-            package, "insights", "doctype", "insights_data_source_v3", "connectors", "duckdb.py"
-        )
+        opener = os.path.join(package, "doctype", "insights_data_source_v3", "connectors", "duckdb.py")
         direct = re.compile(r"ibis\.duckdb\.connect\(|ibis\.connect\(\s*[\"']duckdb")
         bypasses = []
         for root, _, files in os.walk(package):

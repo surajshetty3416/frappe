@@ -41,7 +41,7 @@ def watch_get_writes(writes: list[str]) -> ExitStack:
         fn = get_whitelisted_caller()
         if (
             fn
-            and fn.__module__.startswith("insights.")
+            and fn.__module__.startswith("frappe.insights.")
             and "GET" in frappe.allowed_http_methods_for_whitelisted_func[fn]
         ):
             writes.append(f"{fn.__module__}.{fn.__qualname__} {write} but accepts GET")

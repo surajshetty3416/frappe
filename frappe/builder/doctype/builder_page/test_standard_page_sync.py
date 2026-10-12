@@ -8,6 +8,7 @@ import tempfile
 import unittest.mock as mock
 
 import frappe
+from frappe.modules.export_file import delete_folder
 from frappe.tests.utils import FrappeTestCase
 
 from frappe.builder.utils import Block
@@ -20,8 +21,8 @@ class TestStandardPageSync(FrappeTestCase):
 	write or delete, not the shutil behaviour underneath.
 	"""
 
-	# builder is always installed, so frappe.get_app_path succeeds
-	FIXTURE_APP = "builder"
+	# frappe is always installed, so frappe.get_app_path succeeds
+	FIXTURE_APP = "frappe"
 	EXPORT_MODULE = "frappe.builder.export_import_standard_page"
 	# export_page_as_standard is imported into builder_page, so patch it there
 	PAGE_MODULE = "frappe.builder.doctype.builder_page.builder_page"
@@ -340,7 +341,7 @@ class TestStandardPageSync(FrappeTestCase):
 				mock.patch(f"{self.EXPORT_MODULE}.delete_standard_page_files") as mock_delete,
 			):
 				with self.with_developer_mode():
-					page.app = "frappe"
+					page.app = "another_app"
 					page.save(ignore_permissions=True)
 				self.assert_sync_delete_called_once(mock_delete, page.page_name)
 		finally:
@@ -513,6 +514,8 @@ class TestStandardPageSync(FrappeTestCase):
 					variable.save(ignore_permissions=True)
 				mock_delete_folder.assert_called_once_with("builder", "builder_token", variable.name)
 		finally:
+			# the mock kept the export the first save wrote into the source tree
+			delete_folder("builder", "builder_token", variable.name)
 			self.delete_if_exists("Builder Token", variable.name, force=1)
 
 	def test_on_trash_standard_page_removes_orphaned_variable(self):

@@ -494,9 +494,9 @@ def get_template_assets_public_path(page_doc):
 
 def template_target_app():
 	"""App whose www/builder_assets directory holds exported template assets.
-	Defaults to builder; the hub site sets template_target_app=builder_hub so
+	Defaults to frappe; the hub site sets template_target_app=builder_hub so
 	template authoring on the hub writes assets into the hub app."""
-	return frappe.conf.get("template_target_app") or "builder"
+	return frappe.conf.get("template_target_app") or "frappe"
 
 
 def get_template_assets_folder_path(page_doc, app=None):
@@ -658,7 +658,7 @@ def split_styles(styles):
 	}
 
 
-def copy_assets_from_blocks(blocks, assets_path, target_app="builder"):
+def copy_assets_from_blocks(blocks, assets_path, target_app="frappe"):
 	if not isinstance(blocks, list):
 		blocks = [blocks]
 
@@ -670,7 +670,7 @@ def copy_assets_from_blocks(blocks, assets_path, target_app="builder"):
 				copy_assets_from_blocks(children, assets_path, target_app)
 
 
-def process_block_assets(block, assets_path, target_app="builder"):
+def process_block_assets(block, assets_path, target_app="frappe"):
 	"""Process assets for a single block"""
 	if block.get("element") in ("img", "video"):
 		src = block.get("attributes", {}).get("src")
@@ -680,7 +680,7 @@ def process_block_assets(block, assets_path, target_app="builder"):
 				block["attributes"]["src"] = new_location
 
 
-def copy_asset_file(file_url, assets_path, target_app="builder"):
+def copy_asset_file(file_url, assets_path, target_app="frappe"):
 	"""Copy a file from the source to assets directory and return new public path"""
 	if not file_url or not isinstance(file_url, str):
 		return None
@@ -697,7 +697,7 @@ def copy_asset_file(file_url, assets_path, target_app="builder"):
 	return None
 
 
-def copy_from_site_files(file_url, assets_path, target_app="builder"):
+def copy_from_site_files(file_url, assets_path, target_app="frappe"):
 	"""Copy file from site files directory"""
 	source_path = os.path.join(frappe.local.site_path, "public", file_url.lstrip("/"))
 	if os.path.exists(source_path):
@@ -705,7 +705,7 @@ def copy_from_site_files(file_url, assets_path, target_app="builder"):
 	return None
 
 
-def copy_from_builder_assets(file_url, assets_path, target_app="builder"):
+def copy_from_builder_assets(file_url, assets_path, target_app="frappe"):
 	"""Copy file from builder assets directory"""
 	if file_url.startswith("/assets/") and "/builder_assets/" in file_url:
 		parts = file_url.split("/")
@@ -719,7 +719,7 @@ def copy_from_builder_assets(file_url, assets_path, target_app="builder"):
 	return None
 
 
-def copy_file_to_assets(source_path, file_url, assets_path, target_app="builder"):
+def copy_file_to_assets(source_path, file_url, assets_path, target_app="frappe"):
 	"""Copy file to assets directory and return public path"""
 	filename = os.path.basename(file_url)
 	dest_path = os.path.join(assets_path, filename)
@@ -772,7 +772,7 @@ def export_client_scripts(client_scripts, client_scripts_path):
 			f.write(script_content)
 
 
-def export_components(components, components_path, assets_path, target_app="builder"):
+def export_components(components, components_path, assets_path, target_app="frappe"):
 	"""Export components to files"""
 	for component_id in components:
 		try:

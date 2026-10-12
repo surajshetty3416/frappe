@@ -166,18 +166,18 @@ class TestSiteScan(InsightsIntegrationTestCase):
 
     # @feature telemetry.standard-names-only
     def test_an_app_is_named_only_when_frappe_publishes_it(self):
-        self.assertTrue(is_standard_app("insights"))
+        # insights is a layer of frappe now, so the app that ships it is frappe
         self.assertTrue(is_standard_app("frappe"))
         self.assertFalse(is_standard_app("an_app_nobody_installed"))
 
         props = site_profile()
-        self.assertIn("insights", props["apps"])
+        self.assertIn("frappe", props["apps"])
         self.assertEqual(props["custom_apps"], len(frappe.get_installed_apps()) - len(props["apps"]))
 
     # @feature telemetry.site-scan
     def test_the_install_date_survives_a_migrate(self):
         first_patch = frappe.get_all(
-            "Patch Log", filters={"patch": ["like", "insights.%"]}, order_by="creation asc", pluck="name"
+            "Patch Log", filters={"patch": ["like", "frappe.insights.%"]}, order_by="creation asc", pluck="name"
         )[0]
         frappe.db.set_value("Patch Log", first_patch, "creation", add_days(now_datetime(), -400))
         frappe.get_single("Installed Applications").update_versions()

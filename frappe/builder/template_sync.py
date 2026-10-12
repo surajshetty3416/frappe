@@ -46,18 +46,18 @@ from frappe.builder.utils import (
 )
 
 
-def get_templates_root(app="builder"):
+def get_templates_root(app="frappe"):
 	return os.path.join(frappe.get_app_path(app), "builder_templates")
 
 
-def get_group_assets_root(group_folder, app="builder"):
+def get_group_assets_root(group_folder, app="frappe"):
 	return os.path.join(frappe.get_app_path(app), "www", "builder_assets", group_folder)
 
 
 # ---------------------------------------------------------------------------
 # import
 # ---------------------------------------------------------------------------
-def sync_builder_templates(app="builder", publish=False):
+def sync_builder_templates(app="frappe", publish=False):
 	"""Import all template group fixtures from disk. Called on install/migrate.
 
 	`app` selects which app's builder_templates/ dir to import from (the hub app
@@ -151,7 +151,7 @@ def reconcile_deleted_templates(groups_pages):
 # ---------------------------------------------------------------------------
 # export (developer mode)
 # ---------------------------------------------------------------------------
-def export_template_group(group, target_app="builder"):
+def export_template_group(group, target_app="frappe"):
 	"""Export every page of a template group — with the shared components,
 	variables, client scripts, fonts and assets — to its fixture folder.
 
@@ -194,7 +194,7 @@ def export_template_group(group, target_app="builder"):
 	update_template_manifest(group_path, pages, title=group)
 
 
-def export_template_page(page_doc, pages_path, group_folder, target_app="builder"):
+def export_template_page(page_doc, pages_path, group_folder, target_app="frappe"):
 	"""Write one page fixture; returns the exported blocks."""
 	preview_url = ensure_template_preview(page_doc, app=target_app)
 
@@ -231,7 +231,7 @@ def export_template_page(page_doc, pages_path, group_folder, target_app="builder
 	return blocks
 
 
-def export_template_component(component_id, components_path, group_folder, target_app="builder"):
+def export_template_component(component_id, components_path, group_folder, target_app="frappe"):
 	"""Write one component fixture; returns the component's blocks."""
 	component_doc = frappe.get_doc("Builder Component", component_id)
 	component_blocks = frappe.parse_json(component_doc.block or "{}")
@@ -275,7 +275,7 @@ def export_template_variables(group, variables_path):
 			f.write(frappe.as_json(var_config, ensure_ascii=False))
 
 
-def export_template_fonts(fonts, fonts_path, group_folder, target_app="builder"):
+def export_template_fonts(fonts, fonts_path, group_folder, target_app="frappe"):
 	"""Write User Font fixtures (and their font files) for custom fonts used by
 	the group. Fonts without a User Font record (e.g. bundled fonts) are skipped."""
 	for font_name in fonts:
@@ -304,7 +304,7 @@ def export_template_fonts(fonts, fonts_path, group_folder, target_app="builder")
 			f.write(frappe.as_json(font_config, ensure_ascii=False))
 
 
-def ensure_template_preview(page_doc, app="builder"):
+def ensure_template_preview(page_doc, app="frappe"):
 	"""Generate the page preview image if it isn't on disk yet, and return the
 	public preview url whenever the .webp exists (so the fixture's preview field
 	is correct even when generation is skipped). Preview generation needs an
@@ -350,7 +350,7 @@ def update_template_manifest(group_path, page_names, title=None):
 		f.write(frappe.as_json(manifest, ensure_ascii=False))
 
 
-def delete_template_page_fixture(page_doc, app="builder"):
+def delete_template_page_fixture(page_doc, app="frappe"):
 	"""Remove a template page's fixture and assets (dev-mode on_trash). Shared
 	components/variables of the group are intentionally left in place."""
 	group_folder = safe_segment(frappe.scrub(str(page_doc.template_group)))
@@ -380,7 +380,7 @@ def delete_template_page_fixture(page_doc, app="builder"):
 # ---------------------------------------------------------------------------
 # manifest / assets helpers
 # ---------------------------------------------------------------------------
-def get_group_manifest(group_folder, app="builder"):
+def get_group_manifest(group_folder, app="frappe"):
 	manifest_path = os.path.join(get_templates_root(app), safe_segment(group_folder), "template.json")
 	if not os.path.exists(manifest_path):
 		return {}
@@ -391,7 +391,7 @@ def get_group_manifest(group_folder, app="builder"):
 			return {}
 
 
-def get_all_group_manifests(app="builder"):
+def get_all_group_manifests(app="frappe"):
 	"""{group_folder: manifest} for all template groups on disk."""
 	templates_root = get_templates_root(app)
 	if not os.path.isdir(templates_root):
@@ -403,7 +403,7 @@ def get_all_group_manifests(app="builder"):
 	}
 
 
-def copy_block_assets(blocks, group_folder, subpath, app="builder"):
+def copy_block_assets(blocks, group_folder, subpath, app="frappe"):
 	"""Copy /files/* assets referenced by a block tree into the group's
 	committed assets and rewrite srcs to /builder_assets/<group>/<subpath>/."""
 	if not isinstance(blocks, list):
@@ -419,7 +419,7 @@ def copy_block_assets(blocks, group_folder, subpath, app="builder"):
 		copy_block_assets(block.get("children") or [], group_folder, subpath, app=app)
 
 
-def copy_file_url_to_group_assets(file_url, group_folder, subpath, app="builder"):
+def copy_file_url_to_group_assets(file_url, group_folder, subpath, app="frappe"):
 	"""Copy a site /files/* url into the group assets folder; returns the new
 	public url, or None if the url doesn't point to a copyable site file."""
 	if not file_url or not isinstance(file_url, str):
@@ -440,7 +440,7 @@ def copy_file_url_to_group_assets(file_url, group_folder, subpath, app="builder"
 	return copy_file_to_group_assets(source_path, group_folder, subpath, os.path.basename(file_url), app=app)
 
 
-def copy_file_to_group_assets(source_path, group_folder, subpath, filename=None, app="builder"):
+def copy_file_to_group_assets(source_path, group_folder, subpath, filename=None, app="frappe"):
 	filename = filename or os.path.basename(source_path)
 	dest_dir = os.path.join(get_group_assets_root(group_folder, app), subpath)
 	os.makedirs(dest_dir, exist_ok=True)
@@ -448,7 +448,7 @@ def copy_file_to_group_assets(source_path, group_folder, subpath, filename=None,
 	return f"/builder_assets/{group_folder}/{subpath}/{filename}"
 
 
-def resolve_asset_source_path(file_url, app="builder"):
+def resolve_asset_source_path(file_url, app="frappe"):
 	"""Resolve a /files/* or /builder_assets/* url to a local filesystem path."""
 	if not file_url or not isinstance(file_url, str):
 		return None

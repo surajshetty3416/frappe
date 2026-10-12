@@ -22,15 +22,15 @@ class BlockTemplate(Document):
 		files = frappe.get_all("File", filters={"file_url": self.preview}, fields=["name"])
 		if files:
 			_file = frappe.get_doc("File", files[0].name)
-			# block-template thumbnails always live in builder, never the template hub app
-			assets_folder_path = get_template_assets_folder_path(self, app="builder")
+			# block-template thumbnails always live in frappe, never the template hub app
+			assets_folder_path = get_template_assets_folder_path(self, app="frappe")
 			shutil.copy(_file.get_full_path(), assets_folder_path)
 			self.preview = f"/builder_assets/{self.name}/{self.preview.split('/')[-1]}"
 			self.db_set("preview", self.preview)
 
 		block = frappe.parse_json(self.block)
 		if block:
-			copy_img_to_asset_folder(block, self, app="builder")
+			copy_img_to_asset_folder(block, self, app="frappe")
 		self.db_set("block", json.dumps(block, separators=(",", ":")))
 
 		export_to_files(
@@ -49,5 +49,5 @@ class BlockTemplate(Document):
 			frappe.get_app_path("frappe"), "builder", "builder_block_template", scrub(self.name)
 		)
 		shutil.rmtree(block_template_folder, ignore_errors=True)
-		assets_folder_path = get_template_assets_folder_path(self, app="builder")
+		assets_folder_path = get_template_assets_folder_path(self, app="frappe")
 		shutil.rmtree(assets_folder_path, ignore_errors=True)

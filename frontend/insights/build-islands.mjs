@@ -5,7 +5,8 @@
 import { buildIslands } from '@framework/ui/vite/island'
 
 await buildIslands({
-	app: 'insights',
+	// Insights is a layer of the frappe app, so its islands are served from frappe's assets.
+	app: 'frappe',
 	root: import.meta.dirname,
 	entries: {
 		'insights.chart': 'src2/islands/chart.ts',

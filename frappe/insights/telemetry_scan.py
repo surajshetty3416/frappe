@@ -151,7 +151,7 @@ def timeline() -> dict:
 def installed_on():
     """Installing an app logs every patch it ships as run. A migrate rewrites
     the `Installed Application` rows, so their creation is the last migrate."""
-    return oldest("Patch Log", {"patch": ["like", "insights.%"]})
+    return oldest("Patch Log", {"patch": ["like", "frappe.insights.%"]})
 
 
 def oldest(doctype, filters=None):

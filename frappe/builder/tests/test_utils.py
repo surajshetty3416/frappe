@@ -1,4 +1,5 @@
 import os
+import shutil
 from unittest.mock import patch
 
 import frappe
@@ -110,6 +111,7 @@ class TestBuilderUtils(FrappeTestCase):
 		).insert(ignore_if_duplicate=True)
 
 		folder_path = get_template_assets_folder_path(test_page)
+		self.addCleanup(shutil.rmtree, folder_path, True)
 		self.assertTrue(folder_path.endswith(f"builder_assets/{test_page.name}"))
 		self.assertTrue(os.path.exists(folder_path))
 
@@ -126,6 +128,7 @@ class TestBuilderUtils(FrappeTestCase):
 		).insert(ignore_if_duplicate=True)
 
 		public_path, local_path = get_builder_page_preview_file_paths(test_page)
+		self.addCleanup(shutil.rmtree, os.path.dirname(local_path), True)
 
 		self.assertTrue(public_path.startswith("/builder_assets/"))
 		self.assertTrue(public_path.endswith("preview.webp"))

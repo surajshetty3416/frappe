@@ -122,6 +122,11 @@ def is_imported() -> bool:
     return bool(frappe.db.get_value(DT.WORKBOOK, WORKBOOK, "is_standard"))
 
 
+def insights_hooks(hook: str) -> list[str]:
+    """Insights' own methods for `hook`, out of the frappe app's hooks its layers merge into."""
+    return [fn for fn in frappe.get_hooks(hook, app_name="frappe") if fn.startswith("frappe.insights.")]
+
+
 class AShippedFileRestoresItsMembersUnderTheirOwnNames(InsightsIntegrationTestCase):
     """How `after_insert` creates the members from the imported file.
 
@@ -311,6 +316,7 @@ class AStandardWorkbookIsReadOnlyOnTheSiteThatHoldsIt(InsightsIntegrationTestCas
         delete_standard_workbooks()
         self.addCleanup(delete_standard_workbooks)
         import_doc(frappe.parse_json(frappe.as_json(standard_file())))
+        self.enterContext(developer_mode(on=False))
 
     def assertRefused(self, act):
         with self.assertRaises(frappe.ValidationError):
@@ -666,7 +672,7 @@ class MarkingAWorkbookStandardSettlesItsNames(InsightsIntegrationTestCase):
 
     # @feature standard.mark
     def test_a_workbook_is_marked_standard_in_developer_mode_only(self):
-        with self.assertRaises(frappe.ValidationError):
+        with developer_mode(on=False), self.assertRaises(frappe.ValidationError):
             frappe.get_doc(DT.WORKBOOK, self.built.workbook).mark_as_standard(name="selling", module=MODULE)
 
     # @feature standard.mark
@@ -751,7 +757,7 @@ class TheWalkTakesEveryFileAnAppShips(InsightsIntegrationTestCase):
     def test_installing_insights_takes_the_files_installed_apps_ship(self):
         self.ship()
 
-        for fn in frappe.get_hooks("after_install", app_name="insights"):
+        for fn in insights_hooks("after_install"):
             frappe.get_attr(fn)()
 
         self.assertTrue(is_imported())
@@ -760,11 +766,11 @@ class TheWalkTakesEveryFileAnAppShips(InsightsIntegrationTestCase):
     def test_installing_an_app_takes_the_files_it_ships(self):
         self.ship()
 
-        after_app_install("frappe")
+        after_app_install("another_app")
         self.assertFalse(is_imported())
 
-        for fn in frappe.get_hooks("after_app_install", app_name="insights"):
-            frappe.get_attr(fn)("insights")
+        for fn in insights_hooks("after_app_install"):
+            frappe.get_attr(fn)("frappe")
         self.assertTrue(is_imported())
 
     # @feature standard.resync
@@ -921,7 +927,7 @@ class WhatTheExportToAppDialogReads(InsightsIntegrationTestCase):
             modules = standard.export_modules()
 
         insights = next(module for module in modules if module["module"] == MODULE)
-        self.assertEqual(insights["app"], "insights")
+        self.assertEqual(insights["app"], "frappe")
         self.assertEqual(insights["folder"], module_folder())
 
         installed = set(frappe.get_installed_apps())

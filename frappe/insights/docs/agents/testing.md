@@ -44,8 +44,8 @@ Run them with `bench --site <site> run-tests --app insights --module <module>`, 
 - Every test has a directive on the line directly above it: `# @feature <slug>` in Python, `// @feature <slug>` in TypeScript. Separate several slugs with spaces.
 - A slug is `<area>.<feature>` and is a row in `docs/features.md`, which holds only the slug and the sentence. Which tests pin a row is read off the tests, never written into the list.
 - A feature row precedes its first test. To test a new feature, add the row first, then the test.
-- `python insights/tests/features.py check` runs in the lint workflow. It fails on a test without a directive, a slug not in the feature list, or a coverage table that does not match the tests.
-- `python insights/tests/features.py generate` rewrites `docs/coverage.md`. Run it after you add, rename or move a test, and commit the result.
+- `python frappe/insights/tests/features.py check` runs in the lint workflow. It fails on a test without a directive, a slug not in the feature list, or a coverage table that does not match the tests.
+- `python frappe/insights/tests/features.py generate` rewrites `docs/coverage.md`. Run it after you add, rename or move a test, and commit the result.
 
 ## Agent rules
 

@@ -8,21 +8,22 @@ from frappe.gettext.translate import get_method_map
 from frappe.tests.utils import FrappeTestCase
 
 from frappe.builder.shell import get_boot
+from frappe.www import _frontend as frontend_page
 
-FRONTEND_SRC = os.path.join("frontend", "src")
+FRONTEND_SRC = os.path.join("frontend", "builder", "src")
 
 
 class TestI18n(FrappeTestCase):
 	def test_frontend_strings_are_extractable(self):
 		expected_locations = {
-			"You do not have permission to access this page": {"frontend/src/router.ts"},
+			"You do not have permission to access this page": {"frontend/builder/src/router.ts"},
 			"All Pages": {
-				"frontend/src/components/DashboardHead.vue",
-				"frontend/src/components/DashboardSidebar.vue",
+				"frontend/builder/src/components/DashboardHead.vue",
+				"frontend/builder/src/components/DashboardSidebar.vue",
 			},
-			"Select (v)": {"frontend/src/components/ToolbarItems/ModeSwitcher.vue"},
+			"Select (v)": {"frontend/builder/src/components/ToolbarItems/ModeSwitcher.vue"},
 			'Are you sure you want to unpublish "{0}"? It will no longer be accessible on the website.': {
-				"frontend/src/stores/pageStore.ts"
+				"frontend/builder/src/stores/pageStore.ts"
 			},
 		}
 
@@ -33,8 +34,8 @@ class TestI18n(FrappeTestCase):
 		self.assertFalse(expected_locations, f"Not extracted: {sorted(expected_locations)}")
 
 	def extract_frontend_messages(self) -> dict[str, set[str]]:
-		"""Run the POT extractors over frontend/src only, the way generate_pot does."""
-		app_path = frappe.get_pymodule_path("builder", "..")
+		"""Run the POT extractors over builder's frontend only, the way generate_pot does."""
+		app_path = frappe.get_app_path("frappe", "..")
 		keywords = DEFAULT_KEYWORDS.copy()
 		keywords["_lt"] = None
 
@@ -45,7 +46,7 @@ class TestI18n(FrappeTestCase):
 		messages = {}
 		for filename, _, message, _, _ in extract_from_dir(
 			app_path,
-			get_method_map("builder") + get_method_map("frappe"),
+			get_method_map("frappe"),
 			directory_filter=is_frontend_src,
 			keywords=keywords,
 		):
@@ -64,8 +65,11 @@ class TestI18n(FrappeTestCase):
 
 		self.assertEqual(polluted, [], f"Crowdin in-context placeholders found in: {polluted}")
 
-	def test_boot_carries_only_builder_translations(self):
-		with patch("frappe.builder.shell.get_translations_from_apps", return_value={}) as from_apps:
-			get_boot()
+	def test_translations_come_once_with_the_frontend_boot(self):
+		"""Every layer boots inside one frontend shell, which loads the translations for all of them."""
+		with patch.object(frontend_page, "get_all_translations", return_value={}) as translations:
+			boot = frontend_page.get_boot()
 
-		from_apps.assert_called_once_with(frappe.local.lang, ["builder"])
+		translations.assert_called_once_with(frappe.local.lang)
+		self.assertIn("translated_messages", boot)
+		self.assertNotIn("translated_messages", get_boot())

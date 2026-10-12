@@ -54,6 +54,7 @@ from frappe.builder.utils import (
 	normalize_legacy_raw_styles,
 	sanitize_style_value,
 	split_styles,
+	template_target_app,
 )
 
 MOBILE_BREAKPOINT = 576
@@ -289,11 +290,7 @@ class BuilderPage(WebsiteGenerator):
 			and self.template_group
 			and not is_system_activity()
 		):
-			# target app is the hub on the hub site (template_target_app=builder_hub),
-			# builder by default — keeps builder from importing the hub (circular)
-			export_template_group(
-				self.template_group, target_app=frappe.conf.get("template_target_app") or "builder"
-			)
+			export_template_group(self.template_group, target_app=template_target_app())
 
 		self.export_standard_files()
 
@@ -361,7 +358,7 @@ class BuilderPage(WebsiteGenerator):
 
 		if self.is_template and self.template_group:
 			if frappe.conf.developer_mode:
-				delete_template_page_fixture(self, app=frappe.conf.get("template_target_app") or "builder")
+				delete_template_page_fixture(self, app=template_target_app())
 			elif not is_system_activity():
 				frappe.throw(
 					frappe._("Template pages can only be deleted in developer mode."),

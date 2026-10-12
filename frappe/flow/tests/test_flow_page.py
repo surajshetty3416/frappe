@@ -8,7 +8,13 @@ from frappe.tests import IntegrationTestCase
 
 from frappe.flow.permissions import has_app_permission
 from frappe.flow.tests.test_ai_api import OTHER, _ensure_user
-from frappe.flow import shell as index
+from frappe.www import _frontend as page
+
+
+def render_page() -> frappe._dict:
+	context = frappe._dict()
+	page.get_context(context)
+	return context
 
 
 class TestFlowPage(IntegrationTestCase):
@@ -16,15 +22,14 @@ class TestFlowPage(IntegrationTestCase):
 		frappe.set_user("Administrator")
 		frappe.db.rollback()
 
-	def test_a_guest_is_sent_to_login_and_back(self):
+	def test_a_guest_gets_no_flow_boot(self):
+		"""/flow renders the frontend shell, which other layers' public routes share, so the
+		page lets a guest in and the shell's router sends them to log in."""
 		frappe.set_user("Guest")
-		with self.assertRaises(frappe.Redirect):
-			index.get_context(frappe._dict())
-		self.assertEqual(frappe.local.flags.redirect_location, "/login?redirect-to=/flow")
+		self.assertNotIn("flow_boot", render_page().boot)
 
 	def test_the_page_carries_what_the_app_boots_from(self):
-		context = index.get_context(frappe._dict())
-		boot = context.boot
+		boot = render_page().boot
 		self.assertTrue(boot["csrf_token"])
 		self.assertEqual(boot["site_name"], frappe.local.site)
 		self.assertIn("socketio_port", boot)
@@ -34,9 +39,9 @@ class TestFlowPage(IntegrationTestCase):
 	def test_the_dev_boot_needs_developer_mode(self):
 		with patch.dict(frappe.local.conf, {"developer_mode": 0}):
 			with self.assertRaises(frappe.PermissionError):
-				index.get_context_for_dev()
+				page.get_context_for_dev()
 		with patch.dict(frappe.local.conf, {"developer_mode": 1}):
-			self.assertIn("flow_boot", index.get_context_for_dev())
+			self.assertIn("flow_boot", page.get_context_for_dev())
 
 	def test_the_apps_screen_lists_flow_for_flow_users_only(self):
 		self.assertTrue(has_app_permission())

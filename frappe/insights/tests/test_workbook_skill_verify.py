@@ -12,7 +12,7 @@ from contextlib import redirect_stdout
 from pathlib import Path
 
 TEMPLATE = (
-    Path(__file__).resolve().parents[2]
+    Path(__file__).resolve().parents[1]
     / "skills"
     / "insights-workbook-cli"
     / "examples"
