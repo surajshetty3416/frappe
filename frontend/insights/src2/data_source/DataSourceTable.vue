@@ -2,6 +2,7 @@
 import { Breadcrumbs, Button, LoadingIndicator } from 'frappe-ui'
 import { Lock } from 'lucide-vue-next'
 import { computed, ref, watchEffect } from 'vue'
+import { appPath } from '../app_path'
 import ScopeMark from '../charts/components/ScopeMark.vue'
 import DataTable from '../components/DataTable.vue'
 import ResultPane from '../components/result_pane/ResultPane.vue'
@@ -59,11 +60,11 @@ watchEffect(() => {
 	<header class="flex h-12 items-center justify-between border-b py-2.5 pl-5 pr-2">
 		<Breadcrumbs
 			:items="[
-				{ label: __('Data Sources'), route: '/data-source' },
-				{ label: props.data_source, route: `/data-source/${props.data_source}` },
+				{ label: __('Data Sources'), route: appPath('/data-source') },
+				{ label: props.data_source, route: appPath(`/data-source/${props.data_source}`) },
 				{
 					label: props.table_name,
-					route: `/data-source/${props.data_source}/${props.table_name}`,
+					route: appPath(`/data-source/${props.data_source}/${props.table_name}`),
 				},
 			]"
 		/>

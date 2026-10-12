@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { LayoutPanelTop, Table2, XIcon } from 'lucide-vue-next'
+import { appPath } from '../app_path'
 import { __ } from '../translation'
 import { inject } from 'vue'
 import { useRouter } from 'vue-router'
@@ -21,7 +22,7 @@ const workbook = inject(workbookKey)
 				:key="idx"
 				class="flex h-10 items-center border-y-2 border-r border-transparent border-r-gray-200 px-3 text-base transition-all"
 				:class="workbook.isActiveTab('query', idx) ? 'border-b-gray-800' : ''"
-				@click="router.push(`/workbook/${workbook.name}/query/${idx}`)"
+				@click="router.push(appPath(`/workbook/${workbook.name}/query/${idx}`))"
 			>
 				<Table2 class="h-3.5 w-3.5 text-ink-gray-5" stroke-width="1.5" />
 				<span class="ml-2">{{ query.title }}</span>
@@ -35,7 +36,7 @@ const workbook = inject(workbookKey)
 				:key="idx"
 				class="flex h-10 items-center border-y-2 border-r border-transparent border-r-gray-200 px-3 text-base transition-all"
 				:class="workbook.isActiveTab('chart', idx) ? 'border-b-gray-800' : ''"
-				@click="router.push(`/workbook/${workbook.name}/chart/${idx}`)"
+				@click="router.push(appPath(`/workbook/${workbook.name}/chart/${idx}`))"
 			>
 				<ChartIcon :chart-type="chart.chart_type" />
 				<span class="ml-2">{{ chart.title }}</span>
@@ -49,7 +50,7 @@ const workbook = inject(workbookKey)
 				:key="idx"
 				class="flex h-10 items-center border-y-2 border-r border-transparent border-r-gray-200 px-3 text-base transition-all"
 				:class="workbook.isActiveTab('dashboard', idx) ? 'border-b-gray-800' : ''"
-				@click="router.push(`/workbook/${workbook.name}/dashboard/${idx}`)"
+				@click="router.push(appPath(`/workbook/${workbook.name}/dashboard/${idx}`))"
 			>
 				<LayoutPanelTop class="h-3.5 w-3.5 text-ink-gray-5" stroke-width="1.5" />
 				<span class="ml-2">{{ dashboard.title }}</span>

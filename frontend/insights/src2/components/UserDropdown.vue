@@ -111,7 +111,7 @@ const userDropdownOptions = computed(() => {
 		options.push({
 			label: __('Switch to Desk'),
 			icon: h(ToggleRight),
-			onClick: () => window.open('/app', '_blank'),
+			onClick: () => window.open('/desk', '_blank'),
 		})
 	}
 	if (window.is_fc_site) {

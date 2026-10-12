@@ -8,6 +8,7 @@ import { ColumnOption, MeasureOption } from '../../types/query.types'
 import CollapsibleSection from './CollapsibleSection.vue'
 import MeasurePicker from './MeasurePicker.vue'
 import NumberFormatFields from './NumberFormatFields.vue'
+import { __ } from '../../translation'
 
 const props = defineProps<{ columnOptions: ColumnOption[] }>()
 

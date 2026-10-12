@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { inject, ref } from 'vue'
+import { appPath } from '../app_path'
 import ChartBuilder from '../charts/ChartBuilder.vue'
 import useChart from '../charts/chart'
 import { workbookKey } from './workbook_key'
@@ -19,7 +20,7 @@ if (
 	!workbook.doc.charts.find((q) => q.name === props.chart_name)
 ) {
 	chart_name.value = workbook.doc.charts[index].name
-	router.replace(`/workbook/${workbook.doc.name}/chart/${chart_name.value}`)
+	router.replace(appPath(`/workbook/${workbook.doc.name}/chart/${chart_name.value}`))
 }
 
 mirrorTitleToWorkbook(useChart(chart_name.value), 'chart')

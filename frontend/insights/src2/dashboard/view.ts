@@ -17,6 +17,7 @@ import {
 	watch,
 	type MaybeRefOrGetter,
 } from 'vue'
+import { appPath } from '../app_path'
 import { numberCardRows } from '../charts/adapter/number'
 import {
 	useChartView,
@@ -540,7 +541,7 @@ function makeDashboardPage(
 				state.filters = readFilters(doc.name, defaultFilterStates(doc.items))
 				const editable = doc.can_write && doc.workbook
 				state.builderRoute = editable
-					? `/workbook/${doc.workbook}/dashboard/${doc.name}`
+					? appPath(`/workbook/${doc.workbook}/dashboard/${doc.name}`)
 					: undefined
 				state.workbook = editable ? doc.workbook! : undefined
 				state.copyable = doc.can_copy && doc.workbook ? doc.workbook : undefined
@@ -598,7 +599,7 @@ function makeDashboardPage(
 		refresh,
 		builderRoute: computed(() => state.builderRoute),
 		chartRoute: (chart: string) =>
-			state.workbook ? `/workbook/${state.workbook}/chart/${chart}` : undefined,
+			state.workbook ? appPath(`/workbook/${state.workbook}/chart/${chart}`) : undefined,
 		duplicate: computed(() => {
 			const workbook = state.copyable
 			if (!workbook) return undefined
@@ -649,6 +650,6 @@ function fetchFilterValues(
 
 function duplicateWorkbook(workbook: string) {
 	return call('run_doc_method', { dt: 'Insights Workbook', dn: workbook, method: 'duplicate' })
-		.then((copy) => navigate(`/workbook/${copy}`))
+		.then((copy) => navigate(appPath(`/workbook/${copy}`)))
 		.catch((err) => showErrorToast(err, false))
 }

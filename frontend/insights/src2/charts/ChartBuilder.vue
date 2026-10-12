@@ -155,7 +155,7 @@ const showShareDialog = ref(false)
 
 				<CollapsibleSection title="Filters" collapsed>
 					<template #title-suffix v-if="chart.doc.config.filters?.filters.length">
-						<Badge size="sm" theme="orange" type="info" class="mt-0.5">
+						<Badge size="sm" theme="amber" type="info" class="mt-0.5">
 							<span class="tnum"> {{ chart.doc.config.filters.filters.length }}</span>
 						</Badge>
 					</template>
@@ -164,7 +164,7 @@ const showShareDialog = ref(false)
 
 				<CollapsibleSection title="Sort" collapsed>
 					<template #title-suffix v-if="chart.doc.config.order_by?.length">
-						<Badge size="sm" theme="orange" type="info" class="mt-0.5">
+						<Badge size="sm" theme="amber" type="info" class="mt-0.5">
 							<span class="tnum"> {{ chart.doc.config.order_by?.length }}</span>
 						</Badge>
 					</template>

@@ -15,21 +15,28 @@ import {
 } from 'frappe-ui'
 import Toggle from './components/Toggle.vue'
 
-import { App } from 'vue'
+import { App, Component } from 'vue'
+
+const components: Record<string, Component> = {
+	Badge,
+	Button,
+	Dialog,
+	Avatar,
+	TabButtons,
+	Popover,
+	Tooltip,
+	Toggle,
+	Dropdown,
+	FormControl,
+	LoadingIndicator,
+	Combobox,
+	MultiSelect,
+	ErrorMessage,
+}
 
 export function registerGlobalComponents(app: App) {
-	app.component('Badge', Badge)
-	app.component('Button', Button)
-	app.component('Dialog', Dialog)
-	app.component('Avatar', Avatar)
-	app.component('TabButtons', TabButtons)
-	app.component('Popover', Popover)
-	app.component('Tooltip', Tooltip)
-	app.component('Toggle', Toggle)
-	app.component('Dropdown', Dropdown)
-	app.component('FormControl', FormControl)
-	app.component('LoadingIndicator', LoadingIndicator)
-	app.component('Combobox', Combobox)
-	app.component('MultiSelect', MultiSelect)
-	app.component('ErrorMessage', ErrorMessage)
+	for (const [name, component] of Object.entries(components)) {
+		// other layers register the same frappe-ui components under these names
+		if (!app.component(name)) app.component(name, component)
+	}
 }

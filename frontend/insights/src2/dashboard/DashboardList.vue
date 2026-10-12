@@ -4,6 +4,7 @@ import { QuickFilter } from '@framework/ui/QuickFilter'
 import { Breadcrumbs, MultiSelect } from 'frappe-ui'
 import { computed, ref, toRef, watchEffect } from 'vue'
 import { useRouter } from 'vue-router'
+import { appPath } from '../app_path'
 import { AccessSource, useAccessSources } from '../components/access'
 import { showErrorToast, wheneverChanges } from '../helpers'
 import { __ } from '../translation'
@@ -90,7 +91,7 @@ const dropdownOptions = (dashboard: DashboardListItem) => [
 	{
 		label: __('Open Workbook'),
 		icon: 'lucide-external-link',
-		onClick: () => router.push(`/workbook/${dashboard.workbook}`),
+		onClick: () => router.push(appPath(`/workbook/${dashboard.workbook}`)),
 	},
 	...(dashboard.can_write
 		? [
@@ -124,7 +125,7 @@ watchEffect(() => {
 
 <template>
 	<header class="flex h-12 items-center justify-between border-b py-2.5 pl-5 pr-2">
-		<Breadcrumbs :items="[{ label: __('Dashboards'), route: '/dashboards' }]" />
+		<Breadcrumbs :items="[{ label: __('Dashboards'), route: appPath('/dashboards') }]" />
 	</header>
 
 	<div class="mb-4 flex h-full flex-col gap-3 overflow-auto px-5 py-3">

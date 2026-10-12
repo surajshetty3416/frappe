@@ -1,14 +1,10 @@
-import { createResource } from 'frappe-ui'
 import type { App } from 'vue'
 
 function getTranslatedMessage(message: string): string {
 	// Module-scope option lists call this while they are being defined, so it
 	// runs wherever a module is loaded — including a test runner with no window.
 	if (typeof window === 'undefined') return message
-	const translatedMessages = (('translatedMessages' in window
-		? window['translatedMessages']
-		: null) ?? {}) as Record<string, string>
-	return translatedMessages[message] || message
+	return window.translated_messages?.[message] || message
 }
 
 function translate(message: string): string
@@ -29,16 +25,15 @@ export const __ = translate
  * A table of translated strings, built when it is first read rather than when
  * the module defining it loads.
  *
- * Translations arrive asynchronously, so a `const` whose values are `__()` calls
- * is evaluated before any of them and stays English for the session. This reads
- * them at call time and rebuilds when a new set arrives.
+ * A module can load before the translations are set, so a `const` whose values
+ * are `__()` calls could stay English for the session. This reads them at call
+ * time and rebuilds when a new set arrives.
  */
 export function translatedTable<T>(build: () => T): () => T {
 	let messages: unknown
 	let table: T | undefined
 	return () => {
-		const current =
-			typeof window === 'undefined' ? undefined : (window as any).translatedMessages
+		const current = typeof window === 'undefined' ? undefined : window.translated_messages
 		if (table === undefined || messages !== current) {
 			messages = current
 			table = build()
@@ -47,41 +42,15 @@ export function translatedTable<T>(build: () => T): () => T {
 	}
 }
 
-function fetchTranslations() {
-	createResource({
-		url: 'frappe.insights.api.translations.get_translations',
-		method: 'GET',
-		cache: 'translations',
-		auto: true,
-		transform(data: Record<string, string>) {
-			;(window as any).translatedMessages = data
-		},
-	})
-}
-
 /**
- * Install this app's `__` for templates.
+ * Install this app's `__` for an island's templates.
  *
- * The SPA and every island install it, because a host can bring its own `__`.
- * Desk gives an island `frappe._` through `SetVueGlobals`. That one replaces
- * `{0}` only when it gets an object of replacements. Insights passes arguments
- * positionally, so with desk's `__` the `{0}` would show on the page as is.
+ * A host can bring its own `__`. Desk gives an island `frappe._` through
+ * `SetVueGlobals`. That one replaces `{0}` only when it gets an object of
+ * replacements. Insights passes arguments positionally, so with desk's `__` the
+ * `{0}` would show on the page as is. In the SPA the shell's `__` takes an array
+ * of replacements, so a template that passes arguments imports this module's.
  */
 export function installTranslate(app: App<Element>) {
 	app.config.globalProperties.__ = translate
-}
-
-export function translationPlugin(app: App<Element>) {
-	installTranslate(app)
-	const windowObj = window as any
-	windowObj.__ = translate
-	if (!windowObj.translatedMessages) {
-		fetchTranslations()
-	}
-}
-
-declare module '@vue/runtime-core' {
-	interface ComponentCustomProperties {
-		__: typeof translate
-	}
 }

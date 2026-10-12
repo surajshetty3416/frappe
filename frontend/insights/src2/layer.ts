@@ -1,12 +1,17 @@
-import { defineLayer } from "@shell/layer"
-import { h } from "vue"
+import { defineLayer } from '@shell/layer'
+import { APP_PATH } from './app_path'
+import { routes } from './routes'
 
-// placeholder until the layer is ported onto the shell
 export default defineLayer({
-	name: "insights",
-	title: "Dashboards",
-	icon: "lucide-chart-column",
-	path: "/insights",
-	component: async () => ({ render: () => h("div", { class: "p-8 text-ink-gray-6" }, "Dashboards is being ported") }),
-	routes: [],
+	name: 'insights',
+	title: 'Dashboards',
+	icon: 'lucide-chart-column',
+	path: APP_PATH,
+	component: () => import('./App.vue'),
+	routes,
+	setup: async (app) => (await import('./main')).default(app),
+	beforeEnter: async () => {
+		const { default: session } = await import('./session')
+		await session.initialize()
+	},
 })

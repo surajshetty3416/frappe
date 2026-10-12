@@ -1,4 +1,5 @@
 import { toast } from 'frappe-ui'
+import { appPath } from '../app_path'
 import { waitUntil, wheneverChanges } from '../helpers'
 import router from '../router'
 import { __ } from '../translation'
@@ -55,7 +56,7 @@ export function duplicateWorkbookItem(item: WorkbookItem, type: 'query' | 'chart
 		.call('duplicate')
 		.then((newName: string) => {
 			toast.success(type === 'chart' ? __('Chart duplicated') : __('Query duplicated'))
-			router.push(`/workbook/${item.doc.workbook}/${type}/${newName}`)
+			router.push(appPath(`/workbook/${item.doc.workbook}/${type}/${newName}`))
 		})
 		.then(workbook.load)
 }

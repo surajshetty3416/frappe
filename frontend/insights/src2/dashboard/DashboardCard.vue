@@ -2,6 +2,7 @@
 import { Avatar } from 'frappe-ui'
 import { Eye, MoreVertical, RefreshCw, Star } from 'lucide-vue-next'
 import { ref, watch } from 'vue'
+import { appPath } from '../app_path'
 import { __ } from '../translation'
 import useUserStore from '../users/users'
 import { DashboardListItem } from './dashboards'
@@ -34,7 +35,7 @@ watch(
 		class="group/card relative flex w-full cursor-pointer flex-col gap-2 rounded-4 bg-surface-base"
 	>
 		<router-link
-			:to="`/dashboards/${dashboard.name}`"
+			:to="appPath(`/dashboards/${dashboard.name}`)"
 			class="flex h-[150px] overflow-hidden rounded-4 border border-outline-gray-2 transition-transform duration-200 group-hover/card:scale-[1.01]"
 		>
 			<img

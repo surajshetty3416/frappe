@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { watch } from 'vue'
-import router from '../router'
 import session from '../session'
 import DashboardPage from './DashboardPage.vue'
 import { useDashboardView } from './view'
@@ -24,8 +23,7 @@ watch(
 	() => dashboard.notFound,
 	(notFound) => {
 		if (!notFound || session.isLoggedIn) return
-		session.resetSession()
-		router.push('/login')
+		window.location.href = `/login?redirect-to=${encodeURIComponent(window.location.pathname)}`
 	},
 )
 </script>

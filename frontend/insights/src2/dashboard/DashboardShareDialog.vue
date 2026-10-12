@@ -127,7 +127,7 @@ function addSharedUser() {
 									{{ session.user.email }}
 								</div>
 							</div>
-							<Badge size="lg" theme="orange">Owner</Badge>
+							<Badge size="lg" theme="amber">Owner</Badge>
 						</div>
 						<div
 							v-for="user in peopleWithAccess"

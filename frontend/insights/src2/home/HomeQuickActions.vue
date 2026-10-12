@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ArrowUpRight, Plus } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
+import { appPath } from '../app_path'
 import { getUniqueId } from '../helpers'
 import { __ } from '../translation'
 
@@ -8,7 +9,7 @@ const router = useRouter()
 function openNewWorkbook() {
 	const unique_id = getUniqueId()
 	const name = `new-workbook-${unique_id}`
-	router.push(`/workbook/${name}`)
+	router.push(appPath(`/workbook/${name}`))
 }
 </script>
 

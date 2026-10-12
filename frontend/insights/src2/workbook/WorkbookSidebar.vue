@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Braces, LayoutPanelTop, ScrollText, Table2 } from 'lucide-vue-next'
+import { appPath } from '../app_path'
 import { __ } from '../translation'
 import { computed, inject } from 'vue'
 import { useRoute } from 'vue-router'
@@ -34,7 +35,7 @@ const activeQueryName = computed(() => {
 				add: workbook.addQuery,
 				remove: (query) => workbook.removeQuery(query.name),
 				isActive: (query) => workbook.isActiveTab('query', query.name),
-				route: (query) => `/workbook/${workbook.name}/query/${query.name}`,
+				route: (query) => appPath(`/workbook/${workbook.name}/query/${query.name}`),
 			}"
 		>
 			<template #item-icon="{ item }">
@@ -62,7 +63,7 @@ const activeQueryName = computed(() => {
 				add: () => workbook.addChart(activeQueryName),
 				remove: (chart) => workbook.removeChart(chart.name),
 				isActive: (chart) => workbook.isActiveTab('chart', chart.name),
-				route: (chart) => `/workbook/${workbook.name}/chart/${chart.name}`,
+				route: (chart) => appPath(`/workbook/${workbook.name}/chart/${chart.name}`),
 			}"
 		>
 			<template #item-icon="{ item }">
@@ -79,7 +80,7 @@ const activeQueryName = computed(() => {
 				add: workbook.addDashboard,
 				remove: (dashboard) => workbook.removeDashboard(dashboard.name),
 				isActive: (dashboard) => workbook.isActiveTab('dashboard', dashboard.name),
-				route: (dashboard) => `/workbook/${workbook.name}/dashboard/${dashboard.name}`,
+				route: (dashboard) => appPath(`/workbook/${workbook.name}/dashboard/${dashboard.name}`),
 			}"
 		>
 			<template #item-icon>

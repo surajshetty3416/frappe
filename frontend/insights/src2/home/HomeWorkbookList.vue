@@ -3,6 +3,7 @@ import { Avatar, createListResource } from 'frappe-ui'
 import { ArrowUpRight, Book } from 'lucide-vue-next'
 import { ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import { appPath } from '../app_path'
 import dayjs from '../helpers/dayjs'
 import { __ } from '../translation'
 
@@ -46,7 +47,7 @@ watch(searchQuery, (query) => {
 					v-for="(row, idx) in workbooks.list.data"
 					:key="idx"
 					class="flex h-10 cursor-pointer items-center gap-4 border-b transition-colors hover:bg-surface-gray-1"
-					@click="router.push(`/workbook/${row.name}`)"
+					@click="router.push(appPath(`/workbook/${row.name}`))"
 				>
 					<ArrowUpRight class="h-4 w-4 text-ink-gray-6" stroke-width="1.5" />
 					<div class="w-[50%] truncate">{{ row.title }}</div>

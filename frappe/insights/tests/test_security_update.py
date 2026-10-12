@@ -2,6 +2,7 @@ import json
 
 import frappe
 
+from frappe import insights
 from frappe.insights.api import get_security_update
 from frappe.insights.tests.base import InsightsIntegrationTestCase
 
@@ -9,7 +10,7 @@ from frappe.insights.tests.base import InsightsIntegrationTestCase
 class TestSecurityUpdate(InsightsIntegrationTestCase):
     def before_test(self):
         self.cached = frappe.cache.get_value("changelog-update-info")
-        self.running_version = frappe.get_attr("insights.__version__")
+        self.running_version = insights.__version__
 
     def after_test(self):
         frappe.cache.set_value("changelog-update-info", self.cached)

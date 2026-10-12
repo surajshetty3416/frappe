@@ -6,6 +6,7 @@
 // island must not bundle them, and its reader lacks the rights for them.
 
 import { computed, provide, reactive, watch } from 'vue'
+import { appPath } from '../app_path'
 import { safeJSONParse, waitUntil } from '../helpers'
 import { __ } from '../translation'
 import type { BreakpointKey, Layout, WorkbookChart } from '../types/workbook.types'
@@ -93,7 +94,7 @@ export function useDashboardBuilder(name: string, charts: WorkbookChart[]): Dash
 		chartView: dashboard.chartView,
 		chartRoute: (chart: string) =>
 			dashboard.doc.has_workbook_access
-				? `/workbook/${dashboard.doc.workbook}/chart/${chart}`
+				? appPath(`/workbook/${dashboard.doc.workbook}/chart/${chart}`)
 				: undefined,
 		loadChart,
 		refresh: dashboard.refresh,

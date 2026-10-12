@@ -8,5 +8,5 @@ export type RecordLinks = Record<string, string>
 export function recordUrl(doctype: string, value: unknown): string | undefined {
 	if (value === null || value === undefined || value === '') return
 	const route = doctype.toLowerCase().replace(/ /g, '-')
-	return `/app/${route}/${encodeURIComponent(String(value))}`
+	return `/desk/${route}/${encodeURIComponent(String(value))}`
 }

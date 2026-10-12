@@ -3,6 +3,7 @@ import { computed, useSlots } from 'vue'
 import { Button } from 'frappe-ui'
 import { ChevronLeft, ChevronRight } from 'lucide-vue-next'
 import type { PaginationState } from '../composables/usePagination'
+import { __ } from '../translation'
 
 const props = defineProps<{
 	pagination?: PaginationState

@@ -3,6 +3,7 @@ import { Avatar, Breadcrumbs } from 'frappe-ui'
 import { ListView } from 'frappe-ui/experimental'
 import { PlusIcon, SearchIcon } from 'lucide-vue-next'
 import { computed, ref } from 'vue'
+import { appPath } from '../app_path'
 import { copy } from '../helpers'
 import session from '../session'
 import useUserStore from '../users/users'
@@ -81,7 +82,7 @@ document.title = 'Teams | Insights'
 
 <template>
 	<header class="flex h-12 items-center justify-between border-b py-2.5 pl-5 pr-2">
-		<Breadcrumbs :items="[{ label: __('Teams'), route: '/teams' }]" />
+		<Breadcrumbs :items="[{ label: __('Teams'), route: appPath('/teams') }]" />
 		<div class="flex items-center gap-2">
 			<Button
 				v-if="session.user.is_admin"

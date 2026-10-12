@@ -4,6 +4,7 @@ import { Breadcrumbs } from 'frappe-ui'
 import { ListView } from 'frappe-ui/experimental'
 import { MoreHorizontal, RefreshCcw, SearchIcon } from 'lucide-vue-next'
 import { h, ref, watchEffect } from 'vue'
+import { appPath } from '../app_path'
 import useDataSourceStore from './data_source'
 import useTableStore, { DataSourceTable } from './tables'
 import { __ } from '../translation'
@@ -35,7 +36,7 @@ const listOptions = ref({
 	options: {
 		showTooltip: false,
 		getRowRoute: (table: DataSourceTable) => ({
-			path: `/data-source/${props.name}/${table.table_name}`,
+			path: appPath(`/data-source/${props.name}/${table.table_name}`),
 		}),
 		emptyState: {
 			title: __('No Tables Found'),
@@ -63,8 +64,8 @@ watchEffect(() => {
 	<header class="flex h-12 items-center justify-between border-b py-2.5 pl-5 pr-2">
 		<Breadcrumbs
 			:items="[
-				{ label: __('Data Sources'), route: '/data-source' },
-				{ label: dataSource?.title || props.name, route: `/data-source/${props.name}` },
+				{ label: __('Data Sources'), route: appPath('/data-source') },
+				{ label: dataSource?.title || props.name, route: appPath(`/data-source/${props.name}`) },
 			]"
 		/>
 		<div class="flex items-center gap-2"></div>

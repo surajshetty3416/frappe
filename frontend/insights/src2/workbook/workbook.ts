@@ -1,4 +1,5 @@
 import { call, toast } from 'frappe-ui'
+import { appPath } from '../app_path'
 import { __ } from '../translation'
 import { useTelemetry } from '../telemetry'
 import { computed, reactive, toRefs } from 'vue'
@@ -48,7 +49,7 @@ function makeWorkbook(name: string) {
 	)
 
 	function setActiveTab(type: 'query' | 'chart' | 'dashboard', name: string) {
-		router.replace(`/workbook/${workbook.name}/${type}/${name}`)
+		router.replace(appPath(`/workbook/${workbook.name}/${type}/${name}`))
 	}
 	function isActiveTab(type: 'query' | 'chart' | 'dashboard', name: string) {
 		const url = router.currentRoute.value.path
@@ -187,7 +188,7 @@ function makeWorkbook(name: string) {
 			return
 		}
 
-		router.replace(`/workbook/${workbook.name}`)
+		router.replace(appPath(`/workbook/${workbook.name}`))
 	}
 
 	const isOwner = computed(() => workbook.doc.owner === session.user?.email)
@@ -289,7 +290,7 @@ function makeWorkbook(name: string) {
 			title: __('Delete Workbook'),
 			message: __('Are you sure you want to delete this workbook?'),
 			theme: 'red',
-			onSuccess: () => workbook.delete().then(() => router.replace('/workbook')),
+			onSuccess: () => workbook.delete().then(() => router.replace(appPath('/workbook'))),
 		})
 	}
 
@@ -386,7 +387,7 @@ function makeWorkbook(name: string) {
 		copy: copyJSON,
 
 		openInDesk() {
-			window.open(`/app/insights-workbook/${workbook.name}`, '_blank')
+			window.open(`/desk/insights-workbook/${workbook.name}`, '_blank')
 		},
 
 		delete: deleteWorkbook,
@@ -400,9 +401,9 @@ export type Workbook = ReturnType<typeof makeWorkbook>
 // link.
 function openedVia() {
 	const back = router.options.history.state.back
-	if (back === '/workbook') return 'list'
-	if (back === '/') return 'recent'
-	if (!back && document.referrer.startsWith(`${location.origin}/app`)) return 'desk'
+	if (back === appPath('/workbook')) return 'list'
+	if (back === appPath()) return 'recent'
+	if (!back && document.referrer.startsWith(`${location.origin}/desk`)) return 'desk'
 	return 'link'
 }
 

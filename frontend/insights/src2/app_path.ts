@@ -13,8 +13,13 @@ declare global {
  * Without it, a site that serves the app elsewhere gives the island's links a
  * 404.
  *
- * Inside the SPA only the router base needs it. Build links with
- * router.resolve() so they use it.
+ * The app is one layer of the framework's SPA, whose router has no base, so the
+ * layer is mounted at this path and every route of it starts with it.
  */
 export const APP_PATH =
 	window.insights_path || (window as any).frappe?.boot?.insights_path || '/insights'
+
+/** An Insights route as the full path the router matches: `appPath('/workbook')`. */
+export function appPath(path: string = '') {
+	return `${APP_PATH}${path}`
+}

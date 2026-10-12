@@ -276,7 +276,7 @@ function updateTextWrap(column_name: string, wrap: boolean | undefined) {
 	</CollapsibleSection>
 	<CollapsibleSection :title="__('Formatting Rules')" collapsed>
 		<template #title-suffix v-if="config.conditional_formatting?.formats.length">
-			<Badge theme="orange">
+			<Badge theme="amber">
 				<span class="tnum"> {{ config.conditional_formatting.formats.length }}</span>
 			</Badge>
 		</template>

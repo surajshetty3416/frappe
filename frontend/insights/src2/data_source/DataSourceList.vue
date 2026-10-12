@@ -3,6 +3,7 @@ import { Avatar, Breadcrumbs } from 'frappe-ui'
 import { ListView } from 'frappe-ui/experimental'
 import { PlusIcon, SearchIcon } from 'lucide-vue-next'
 import { computed, ref } from 'vue'
+import { appPath } from '../app_path'
 import CSVIcon from '../components/Icons/CSVIcon.vue'
 import IndicatorIcon from '../components/Icons/IndicatorIcon.vue'
 import SelectTypeDialog from '../components/SelectTypeDialog.vue'
@@ -126,7 +127,7 @@ const listOptions = ref({
 	options: {
 		showTooltip: false,
 		getRowRoute: (data_source: DataSourceListItem) => ({
-			path: `/data-source/${data_source.name}`,
+			path: appPath(`/data-source/${data_source.name}`),
 		}),
 		emptyState: {
 			title: __('No data sources.'),
@@ -145,7 +146,7 @@ document.title = __('Data Sources | Insights')
 
 <template>
 	<header class="flex h-12 items-center justify-between border-b py-2.5 pl-5 pr-2">
-		<Breadcrumbs :items="[{ label: __('Data Sources'), route: '/data-source' }]" />
+		<Breadcrumbs :items="[{ label: __('Data Sources'), route: appPath('/data-source') }]" />
 		<div class="flex items-center gap-2">
 			<Button
 				:label="__('New Data Source')"

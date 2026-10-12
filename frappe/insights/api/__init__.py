@@ -28,7 +28,7 @@ from frappe.insights.utils import get_currency_symbols, get_owned_file
 
 @insights_whitelist()
 def get_app_version():
-    return frappe.get_attr("insights" + ".__version__")
+    return insights.__version__
 
 
 @insights_whitelist(role="Insights Admin")
@@ -39,7 +39,7 @@ def get_security_update():
     if frappe.get_system_settings("disable_system_update_notification"):
         return
 
-    current_version = frappe.get_attr("insights.__version__")
+    current_version = insights.__version__
     updates = json.loads(frappe.cache.get_value("changelog-update-info") or "{}")
     for app in (app for apps in updates.values() for app in apps):
         # the issue count describes the version the weekly check ran on, which the site may have left;

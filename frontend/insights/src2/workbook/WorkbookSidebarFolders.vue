@@ -5,6 +5,7 @@ import Draggable from 'vuedraggable'
 import type { WorkbookChart, WorkbookFolder, WorkbookQuery } from '../types/workbook.types'
 import { setDraggedItem } from './workbook_drag'
 import { workbookKey } from './workbook_key'
+import { __ } from '../translation'
 
 const section = defineProps<{
 	title: string

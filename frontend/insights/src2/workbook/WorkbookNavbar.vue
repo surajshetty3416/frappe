@@ -16,7 +16,7 @@ const workbook = inject(workbookKey)!
 		<div class="relative flex flex-1 items-center">
 			<div class="absolute left-0">
 				<slot name="left">
-					<router-link :to="{ path: '/workbook' }">
+					<router-link :to="{ name: 'WorkbookList' }">
 						<img
 							src="../assets/insights-logo-new.svg"
 							alt="logo"

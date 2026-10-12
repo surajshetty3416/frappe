@@ -197,7 +197,7 @@ describe('the record a row names', () => {
 		const props = adapt(withLink(input)).props
 
 		expect(props.cellLink(input.result.columns[0], input.result.formattedRows[0])).toBe(
-			`/app/sales-order/${encodeURIComponent(input.result.rows[0].category as string)}`,
+			`/desk/sales-order/${encodeURIComponent(input.result.rows[0].category as string)}`,
 		)
 	})
 

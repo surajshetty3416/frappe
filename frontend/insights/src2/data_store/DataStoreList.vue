@@ -3,6 +3,7 @@ import { Breadcrumbs } from 'frappe-ui'
 import { ListView } from 'frappe-ui/experimental'
 import { PlusIcon, SearchIcon } from 'lucide-vue-next'
 import { computed, onMounted, ref } from 'vue'
+import { appPath } from '../app_path'
 import { getDatabaseLogo } from '../data_source/data_source'
 import useDataStore, { DataStoreTable } from './data_store'
 import ImportTableDialog from './ImportTableDialog.vue'
@@ -73,7 +74,7 @@ const listOptions = computed(() => ({
 
 <template>
 	<header class="flex h-12 items-center justify-between border-b py-2.5 pl-5 pr-2">
-		<Breadcrumbs :items="[{ label: __('Data Store'), route: '/data-store' }]" />
+		<Breadcrumbs :items="[{ label: __('Data Store'), route: appPath('/data-store') }]" />
 		<div class="flex items-center gap-2">
 			<Button
 				v-if="session.user.is_admin"

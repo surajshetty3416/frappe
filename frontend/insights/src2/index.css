@@ -1,5 +1,8 @@
-@import 'frappe-ui/style.css';
 @import './styles/codemirror.css';
+
+@config "../tailwind.config.js";
+@tailwind components;
+@tailwind utilities;
 
 body {
 	/* Base ink color so any text without an explicit text-ink-* class still

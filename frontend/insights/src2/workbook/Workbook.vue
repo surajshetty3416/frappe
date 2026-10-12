@@ -3,6 +3,7 @@ import { useMagicKeys, whenever } from '@vueuse/core'
 import { AlertOctagon } from 'lucide-vue-next'
 import { provide, watch, watchEffect } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { appPath } from '../app_path'
 import LoadingOverlay from '../components/LoadingOverlay.vue'
 import { waitUntil } from '../helpers'
 import useWorkbook from './workbook'
@@ -30,7 +31,7 @@ waitUntil(() => !workbook.pending).then(() => {
 	}
 	if (route.name === 'Workbook' && workbook.doc.queries.length) {
 		const query = workbook.doc.queries[0]
-		router.replace(`/workbook/${workbook.doc.name}/query/${query.name}`)
+		router.replace(appPath(`/workbook/${workbook.doc.name}/query/${query.name}`))
 	}
 })
 

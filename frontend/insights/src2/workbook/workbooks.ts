@@ -1,6 +1,7 @@
 import { useTimeAgo } from '@vueuse/core'
 import { call, toast } from 'frappe-ui'
 import { reactive, ref } from 'vue'
+import { appPath } from '../app_path'
 import { confirmDialog } from '../helpers/confirm_dialog'
 import router from '../router'
 import { __ } from '../translation'
@@ -46,7 +47,7 @@ function importWorkbook(workbook: any) {
 					getWorkbooks().then(() => {
 						toast.success(__('Workbook imported successfully'))
 					})
-					router.push(`/workbook/${imported.workbook}`)
+					router.push(appPath(`/workbook/${imported.workbook}`))
 				},
 			)
 		},

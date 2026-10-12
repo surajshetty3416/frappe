@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Plus, X } from 'lucide-vue-next'
 import { setDraggedItem } from './workbook_drag'
+import { __ } from '../translation'
 const section = defineProps<{
 	title: string
 	emptyMessage: string

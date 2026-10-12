@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { appPath } from '../app_path'
 import { __ } from '../translation'
 import DashboardPage from './DashboardPage.vue'
 import { useDashboardView } from './view'
@@ -9,7 +10,7 @@ const props = defineProps<{ name: string }>()
 
 const dashboard = useDashboardView(() => props.name, 'dashboards')
 
-const crumbs = [{ label: __('Dashboards'), route: '/dashboards' }]
+const crumbs = [{ label: __('Dashboards'), route: appPath('/dashboards') }]
 </script>
 
 <template>

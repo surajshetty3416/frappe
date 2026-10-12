@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { inject, ref } from 'vue'
+import { appPath } from '../app_path'
 import DashboardBuilder from '../dashboard/DashboardBuilder.vue'
 import useDashboard from '../dashboard/dashboard'
 import { workbookKey } from './workbook_key'
@@ -19,7 +20,7 @@ if (
 	!workbook.doc.dashboards.find((q) => q.name === props.dashboard_name)
 ) {
 	dashboard_name.value = workbook.doc.dashboards[index].name
-	router.replace(`/workbook/${workbook.doc.name}/dashboard/${dashboard_name.value}`)
+	router.replace(appPath(`/workbook/${workbook.doc.name}/dashboard/${dashboard_name.value}`))
 }
 
 mirrorTitleToWorkbook(useDashboard(dashboard_name.value), 'dashboard')

@@ -5,6 +5,7 @@ import { useMagicKeys, whenever } from '@vueuse/core'
 import { Avatar, Breadcrumbs, MultiSelect } from 'frappe-ui'
 import { List, ListCell, ListHeader, ListHeaderCell, ListRow } from 'frappe-ui/list'
 import { PlusIcon } from 'lucide-vue-next'
+import { appPath } from '../app_path'
 import { accessIcon, accessLabel, AccessSource, useAccessSources } from '../components/access'
 import { computed, ref, toRef, watchEffect } from 'vue'
 import { useRouter } from 'vue-router'
@@ -88,7 +89,7 @@ function openNewWorkbook() {
 	creatingWorkbook.value = true
 	useWorkbook(newWorkbookName())
 		.insert()
-		.then((doc) => router.push(`/workbook/${doc.name}`))
+		.then((doc) => router.push(appPath(`/workbook/${doc.name}`)))
 		.finally(() => (creatingWorkbook.value = false))
 }
 
@@ -111,7 +112,7 @@ watchEffect(() => {
 
 <template>
 	<header class="flex h-12 items-center justify-between border-b py-2.5 pl-5 pr-2">
-		<Breadcrumbs :items="[{ label: __('Workbooks'), route: '/workbook' }]" />
+		<Breadcrumbs :items="[{ label: __('Workbooks'), route: appPath('/workbook') }]" />
 		<div class="flex items-center gap-2">
 			<Button
 				:label="__('New Workbook')"
@@ -172,7 +173,7 @@ watchEffect(() => {
 			>
 				<ListCell>
 					<RouterLink
-						:to="`/workbook/${workbook.name}`"
+						:to="appPath(`/workbook/${workbook.name}`)"
 						class="absolute inset-0 sm:rounded-[10px]"
 						:aria-label="workbook.title"
 					/>

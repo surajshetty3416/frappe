@@ -4,6 +4,7 @@ import { Avatar, Breadcrumbs } from 'frappe-ui'
 import { ListView } from 'frappe-ui/experimental'
 import { PlusIcon, SearchIcon, XIcon } from 'lucide-vue-next'
 import { computed, ref, watch } from 'vue'
+import { appPath } from '../app_path'
 import IndicatorIcon from '../components/Icons/IndicatorIcon.vue'
 import session from '../session'
 import useUserStore, { User } from './users'
@@ -146,7 +147,7 @@ document.title = 'Users | Insights'
 
 <template>
 	<header class="flex h-12 items-center justify-between border-b py-2.5 pl-5 pr-2">
-		<Breadcrumbs :items="[{ label: __('Users'), route: '/users' }]" />
+		<Breadcrumbs :items="[{ label: __('Users'), route: appPath('/users') }]" />
 		<div class="flex items-center gap-2">
 			<Button
 				v-if="session.user.is_admin"
