@@ -218,3 +218,10 @@ add_to_apps_screen = [
 		"has_permission": "frappe.builder.api.check_app_permission",
 	}
 ]
+
+# what the AI layer (flow) can do with Builder
+flow_tools = [
+	"frappe.builder.flow_tools.list_web_pages",
+	"frappe.builder.flow_tools.create_web_page",
+	"frappe.builder.flow_tools.publish_web_page",
+]

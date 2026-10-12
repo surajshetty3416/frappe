@@ -154,7 +154,7 @@ class BuilderPage(WebsiteGenerator):
 		self.set_onload("builder_path", builder_path)
 
 	website = frappe._dict(
-		template="templates/generators/webpage.html",
+		template="builder/templates/generators/webpage.html",
 		condition_field="published",
 		page_title_field="page_title",
 	)
@@ -943,7 +943,7 @@ def build_tag(
 	# Add body scripts for body element
 	effective_element = block.get("originalElement") or block.get("element")
 	if effective_element == "body":
-		tag.append("{% include 'templates/generators/webpage_scripts.html' %}")
+		tag.append("{% include 'builder/templates/generators/webpage_scripts.html' %}")
 
 	return tag
 

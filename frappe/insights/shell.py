@@ -1,9 +1,8 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # GNU GPLv3 License. See license.txt
 
-from frappe.integrations.frappe_providers.frappecloud_billing import is_fc_site
-
 from frappe.insights.hooks import insights_path
+from frappe.integrations.frappe_providers.frappecloud_billing import is_fc_site
 
 
 def get_boot() -> dict:

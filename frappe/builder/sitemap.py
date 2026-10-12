@@ -49,7 +49,19 @@ class RedirectSources:
 
 def get_static_routes() -> dict:
 	"""www pages have no reliable change date, so they go without a lastmod"""
-	return {route: None for route, page in get_pages().items() if page.sitemap}
+	disabled_controllers = {
+		controller
+		for controller, settings in {
+			"frappe.www.about": "About Us Settings",
+			"frappe.www.contact": "Contact Us Settings",
+		}.items()
+		if frappe.get_single_value(settings, "is_disabled")
+	}
+	return {
+		route: None
+		for route, page in get_pages().items()
+		if page.sitemap and page.controller not in disabled_controllers
+	}
 
 
 def get_document_routes() -> dict:

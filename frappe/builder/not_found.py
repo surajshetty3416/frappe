@@ -3,7 +3,7 @@ import frappe
 from frappe.builder.doctype.builder_page.builder_page import find_page_with_path
 
 
-def get_context(context):
+def use_builder_page(context):
 	"""Render a published Builder Page with route `404` as the site's not-found page.
 
 	Frappe's NotFoundPage always renders the `404` template, bypassing custom page
@@ -18,4 +18,4 @@ def get_context(context):
 	# BuilderPage.get_context does `del context.favicon`, which assumes the key exists.
 	context.setdefault("favicon", None)
 	doc.get_context(context)
-	context.template = "templates/generators/webpage.html"
+	context.template = "builder/templates/generators/webpage.html"

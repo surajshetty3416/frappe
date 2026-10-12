@@ -245,3 +245,9 @@ page_renderer = "frappe.studio.doctype.studio_app.studio_app.StudioAppRenderer"
 # served as `window.boot` before the first navigation, so scripts and bindings read `boot.<key>`.
 #
 # studio_app_boot = {"helpdesk": "helpdesk.studio.boot.get_boot"}
+
+# what the AI layer (flow) can do with Studio
+flow_tools = [
+	"frappe.studio.flow_tools.list_studio_apps",
+	"frappe.studio.flow_tools.create_studio_app",
+]

@@ -257,3 +257,9 @@ standard_queries = {
     "Insights Chart v3": "frappe.insights.api.search.search_workbook_items",
     "Insights Dashboard v3": "frappe.insights.api.search.search_workbook_items",
 }
+
+# what the AI layer (flow) can do with Insights
+flow_tools = [
+    "frappe.insights.flow_tools.list_dashboards",
+    "frappe.insights.flow_tools.create_dashboard",
+]

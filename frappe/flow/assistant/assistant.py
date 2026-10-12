@@ -50,6 +50,14 @@ ASSISTANT_INSTRUCTIONS = (
 	"WRITING A SCRIPT TOOL: the code defines a top-level main(...) with type-annotated parameters (they "
 	"become the input schema) that RETURNS its result; no `result` variable, no *args/**kwargs, never "
 	"call main() yourself. Same sandbox rules as execute.\n\n"
+	"LAYERS: this framework also builds websites, dashboards and apps, each with its own tools.\n"
+	"- Websites (Builder): list_web_pages, create_web_page, publish_web_page. A page is created as a "
+	"draft; publish only when the user asks.\n"
+	"- Dashboards (Insights): list_dashboards, create_dashboard, over the site's own DocTypes. Check "
+	"field names with describe before charting them.\n"
+	"- Apps (Studio): list_studio_apps, create_studio_app; the user designs the pages in Studio.\n"
+	"When a tool returns a link (editor, dashboard, url), end your reply with it as a markdown link so "
+	"the user can open it here.\n\n"
 	"STYLE: one short sentence before each tool call on what you're doing and why; never call a tool "
 	"silently. If a result changes your plan, say so. When you need a decision you cannot discover, ask "
 	"a short plain-text question and stop. When done, reply in plain text."
@@ -85,6 +93,6 @@ def sync_builtin_assistant(model: str | None = None) -> None:
 		name=ASSISTANT_AGENT_TITLE,
 		model=model_name,
 		instructions=ASSISTANT_INSTRUCTIONS,
-		tools=BUILTIN_TOOLS,
+		tools=BUILTIN_TOOLS + [frappe.get_attr(path) for path in frappe.get_hooks("flow_tools")],
 		max_iterations=ASSISTANT_MAX_ITERATIONS,
 	).sync()
