@@ -25,7 +25,8 @@ export function createAppRouter(app: App) {
 	const aiLayer = layers.find((layer) => layer.name === "ai")
 	const withChat = { meta: { layer: "ai" }, beforeEnter: async () => void (aiLayer && (await setUp(aiLayer))) }
 	const studioRoutes: RouteRecordRaw[] = [
-		{ path: "/studio", name: "studio-home", component: () => import("./pages/Home.vue"), ...withChat },
+		// a new chat; the chat itself is the shell's
+		{ path: "/studio", name: "studio-home", component: () => import("./pages/ChatPane.vue"), ...withChat },
 		{
 			path: "/studio/chat/:session",
 			name: "studio-chat",

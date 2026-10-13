@@ -1,17 +1,30 @@
 <template>
 	<div class="relative flex h-full min-h-0 flex-col bg-surface-base text-base text-ink-gray-8">
-		<ChatMenu class="absolute right-3 top-2 z-10" />
-		<MessageList />
-		<Composer v-if="!readOnly" />
+		<!-- the shell's top bar carries the open chat's menu -->
+		<Teleport to="#studio-chat-menu" defer>
+			<!-- this layer's styles stop at the shell's top bar, so the menu carries its own mark -->
+			<div data-layer="ai" class="contents">
+				<ChatMenu />
+			</div>
+		</Teleport>
+		<!-- a new chat: the host's intro over the composer, its starters under it -->
+		<div v-if="blank" class="flex min-h-0 flex-1 flex-col justify-end overflow-hidden px-4 pb-6">
+			<slot name="intro" />
+		</div>
+		<MessageList v-else />
+		<Composer v-if="!readOnly" ref="composer" />
 		<p v-else class="flex-none px-4 pb-4 text-center text-sm text-ink-gray-5">
 			Only the owner of this chat can send messages.
 		</p>
+		<div v-if="blank" class="min-h-0 flex-1 overflow-y-auto px-4 pb-6">
+			<slot name="starters" :prefill="(text) => composer?.prefill(text)" />
+		</div>
 		<TranscriptDialog />
 	</div>
 </template>
 
 <script setup>
-import { onBeforeUnmount, onMounted, provide, ref, watch } from "vue";
+import { computed, onBeforeUnmount, onMounted, provide, ref, watch } from "vue";
 import { toast } from "frappe-ui";
 import ChatMenu from "@flow/ui-core/components/ChatMenu.vue";
 import Composer from "@flow/ui-core/components/Composer.vue";
@@ -27,13 +40,13 @@ import { presentTool } from "./toolMeta.js";
 
 const props = defineProps({
 	boot: { type: Object, required: true },
-	// what the user has open beside the chat ({ title, path }), sent with each message
-	opened: { type: Function, default: null },
+	// what the editor beside the chat tells the agent with each message (the store's `context` option)
+	context: { type: Object, default: null },
 	// the chat to open (none starts a new one) and a first message to send
 	session: { type: String, default: null },
 	initialMessage: { type: String, default: "" },
 });
-// "session" when the open chat changes, "artifact" when a tool hands one back live or a card is clicked
+// "session" when the open chat changes (null when it is deleted), "artifact" when a tool hands one back live or a card is clicked
 const emit = defineEmits(["session", "artifact"]);
 
 // someone else's chat is view-only: its tools would run as its owner
@@ -45,13 +58,13 @@ const client = new FrappeClient({
 	transport,
 	hooks: {
 		onSession: (payload) => (readOnly.value = Boolean(payload.read_only)),
-		opened: () => props.opened?.(),
 	},
 });
 const store = createFlowStore(client, {
 	storageKey: `studio.chat.${props.boot.user?.name ?? "user"}`,
 	presentTool,
 	openArtifact: (artifact) => emit("artifact", artifact),
+	context: props.context,
 });
 provide("flow", store);
 
@@ -64,11 +77,17 @@ watch(
 	}
 );
 
+const composer = ref(null);
+const blank = computed(
+	() => !props.session && !props.initialMessage && !store.state.sessionId && !store.state.conversation.sending.length
+);
+
+// null once the open chat is deleted
 watch(
 	() => store.state.sessionId,
 	(id) => {
 		if (!id) readOnly.value = false;
-		else emit("session", id);
+		emit("session", id);
 	}
 );
 

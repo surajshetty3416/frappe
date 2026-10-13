@@ -25,7 +25,7 @@
 				<SidebarLabel>Build</SidebarLabel>
 				<div class="flex flex-col gap-0.5">
 					<SidebarItem
-						v-for="layer in layers"
+						v-for="layer in buildLayers"
 						:key="layer.name"
 						:label="layer.title"
 						:icon="layer.icon"
@@ -47,26 +47,25 @@
 						:active="chat.name === currentChat"
 						:label="chat.title || 'Untitled chat'"
 					>
-						<template #suffix>
-							<span class="ml-2 mr-2 flex items-center gap-1.5">
-								<LoadingIndicator v-if="chatStatus(chat, currentChat) === 'running'" class="size-3 text-ink-gray-5" />
+						<!-- the status takes the icon column, so titles line up with the layers -->
+						<template #prefix>
+							<span class="grid size-4 place-items-center">
+								<LoadingIndicator v-if="chatStatus(chat, currentChat) === 'running'" class="size-3.5 text-ink-gray-5" />
 								<Tooltip v-else-if="chatStatus(chat, currentChat) === 'waiting'" text="Waiting for approval">
-									<span class="size-1.5 rounded-full bg-surface-amber-3" />
+									<span class="size-2 rounded-full bg-surface-amber-3" />
 								</Tooltip>
-								<span v-else-if="chatStatus(chat, currentChat) === 'unread'" class="size-1.5 rounded-full bg-surface-blue-6" />
-								<span v-else class="text-xs text-ink-gray-4">{{ ago(chat.modified) }}</span>
+								<span v-else-if="chatStatus(chat, currentChat) === 'unread'" class="size-2 rounded-full bg-surface-blue-6" />
 							</span>
+						</template>
+						<template #suffix>
+							<span class="mr-2 hidden pl-2 text-xs text-ink-gray-4 group-hover/sidebar-item:inline">{{ ago(chat.modified) }}</span>
 						</template>
 					</SidebarItem>
 				</div>
 			</div>
 
 			<div class="flex flex-col gap-0.5 border-t border-outline-gray-1 p-2">
-				<Dropdown :options="settingsMenu" side="top" align="start">
-					<template #trigger>
-						<SidebarItem label="Settings" icon="lucide-settings" />
-					</template>
-				</Dropdown>
+				<SidebarItem label="Settings" icon="lucide-settings" route="/studio/settings" :active="activeLayer === 'settings'" />
 				<Dropdown :options="userMenu" side="top" align="start">
 					<template #trigger>
 						<SidebarItem :label="fullName">
@@ -130,20 +129,21 @@ const ago = (modified: string) => {
 const user = sessionUser()
 const fullName = decodeURIComponent(document.cookie.match(/full_name=([^;]*)/)?.[1] ?? user).replace(/\+/g, " ")
 
+// Settings sits at the bottom, not among the layers a person builds with
+const buildLayers = layers.filter((layer) => layer.name !== "settings")
+
 const { resolvedColorScheme, toggleColorScheme } = useColorScheme()
-const settingsMenu = computed(() => [
-	{ label: "AI model", icon: "lucide-cpu", route: "/studio/ai" },
+const userMenu = computed(() => [
+	{ label: "AI model", icon: "lucide-cpu", route: "/studio/settings/model" },
 	{
 		label: resolvedColorScheme.value === "dark" ? "Light theme" : "Dark theme",
 		icon: resolvedColorScheme.value === "dark" ? "lucide-sun" : "lucide-moon",
 		onClick: toggleColorScheme,
 	},
-])
-const userMenu = [
 	{
 		label: "Log out",
 		icon: "lucide-log-out",
 		onClick: () => call("logout").then(() => (window.location.href = "/login")),
 	},
-]
+])
 </script>

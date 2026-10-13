@@ -1,10 +1,7 @@
 <template>
-	<!-- the shell's top bar carries the title; this is the open chat's menu -->
-	<div v-if="flow.state.sessionId" class="rounded-4 bg-surface-base">
-		<Dropdown :options="menu" placement="right">
-			<Button variant="ghost" icon="lucide-ellipsis" tooltip="Chat" />
-		</Dropdown>
-	</div>
+	<Dropdown v-if="flow.state.sessionId" :options="menu" align="end">
+		<Button variant="ghost" icon="lucide-ellipsis" tooltip="Chat" aria-label="Chat" />
+	</Dropdown>
 </template>
 
 <script setup>

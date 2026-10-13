@@ -246,24 +246,21 @@
 	max-width: 100%;
 	margin: 0.6em 0;
 	overflow-x: auto;
-	border: 1px solid var(--outline-gray-2);
-	border-radius: 8px;
 }
+/* rows split by hairlines only, as calm as the rest of the transcript */
 .flow-md table {
 	border-collapse: collapse;
-	/* the wrapper draws the outer edge; `hidden` wins the collapse against cell borders */
-	border: hidden;
 	font-size: 0.9em;
 }
 .flow-md th,
 .flow-md td {
-	border: 1px solid var(--outline-gray-2);
-	padding: 4px 10px;
+	border-bottom: 1px solid var(--outline-gray-1);
+	padding: 6px 16px 6px 0;
 	text-align: left;
 }
 .flow-md th {
-	background: var(--surface-gray-1);
-	font-weight: 600;
+	color: var(--ink-gray-5);
+	font-weight: 500;
 }
 .flow-md hr {
 	border: 0;

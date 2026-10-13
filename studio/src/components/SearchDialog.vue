@@ -15,27 +15,31 @@
 			</div>
 			<div class="max-h-[60vh] overflow-y-auto p-2">
 				<p v-if="!results.length" class="px-2 py-6 text-center text-sm text-ink-gray-5">Nothing matches.</p>
-				<SidebarItem
-					v-for="result in results"
-					:key="result.key"
-					:label="result.title"
-					:icon="result.icon"
-					:route="result.route"
-					@click="searchOpen = false"
-				>
-					<template #suffix><span class="mr-2 text-xs text-ink-gray-4">{{ result.kind }}</span></template>
-				</SidebarItem>
+				<template v-for="group in groups" :key="group.label">
+					<p class="px-2 pb-1 pt-2 text-xs font-medium text-ink-gray-4 first:pt-0">{{ group.label }}</p>
+					<SidebarItem
+						v-for="result in group.results"
+						:key="result.key"
+						:label="result.title"
+						:icon="result.icon"
+						:route="result.route"
+						:active="result === results[0]"
+						@click="searchOpen = false"
+					>
+						<template #suffix><span class="mr-2 whitespace-nowrap text-xs text-ink-gray-4">{{ ago(result.modified) }}</span></template>
+					</SidebarItem>
+				</template>
 			</div>
 		</div>
 	</Dialog>
 </template>
 
 <script setup lang="ts">
-import { Dialog, SidebarItem, TextInput } from "frappe-ui"
+import { Dialog, SidebarItem, TextInput, dayjs } from "frappe-ui"
 import { computed, nextTick, ref, watch } from "vue"
 import { useRouter } from "vue-router"
 
-import { artifactIcon, artifactLabel } from "../artifacts"
+import { artifactIcon } from "../artifacts"
 import { chats } from "../chats"
 import { searchOpen } from "../layout"
 
@@ -50,7 +54,7 @@ watch(searchOpen, (open) => {
 })
 
 const entries = computed(() => {
-	const artifacts = new Map<string, { key: string; title: string; icon: string; route: string; kind: string }>()
+	const artifacts = new Map<string, { key: string; title: string; icon: string; route: string; kind: string; modified: string }>()
 	for (const chat of chats.value) {
 		for (const artifact of chat.artifacts) {
 			const key = `${artifact.doctype}/${artifact.name}`
@@ -60,7 +64,8 @@ const entries = computed(() => {
 					title: artifact.title,
 					icon: artifactIcon(artifact),
 					route: `${artifact.route}?chat=${chat.name}`,
-					kind: artifactLabel(artifact.doctype),
+					kind: "Artifacts",
+					modified: chat.modified,
 				})
 			}
 		}
@@ -70,7 +75,8 @@ const entries = computed(() => {
 		title: chat.title || "Untitled chat",
 		icon: "lucide-message-square",
 		route: `/studio/chat/${chat.name}`,
-		kind: "Chat",
+		kind: "Chats",
+		modified: chat.modified,
 	}))
 	return [...artifacts.values(), ...chatEntries]
 })
@@ -79,6 +85,14 @@ const results = computed(() => {
 	const words = query.value.toLowerCase().split(/\s+/).filter(Boolean)
 	return entries.value.filter((entry) => words.every((word) => entry.title.toLowerCase().includes(word))).slice(0, 30)
 })
+
+// Enter opens the first result, so it shows as the active one
+const groups = computed(() =>
+	["Artifacts", "Chats"]
+		.map((label) => ({ label, results: results.value.filter((result) => result.kind === label) }))
+		.filter((group) => group.results.length)
+)
+const ago = (modified: string) => dayjs(modified).fromNow()
 
 function pick(result?: { route: string }) {
 	if (!result) return

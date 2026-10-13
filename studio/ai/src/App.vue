@@ -1,5 +1,7 @@
 <template>
-	<Chat v-if="boot" :boot="boot" v-bind="$attrs" />
+	<Chat v-if="boot" :boot="boot" v-bind="$attrs">
+		<template v-for="(_, name) in $slots" #[name]="scope"><slot :name="name" v-bind="scope ?? {}" /></template>
+	</Chat>
 	<div v-else class="flex h-full items-center justify-center bg-surface-base px-6 text-center">
 		<p v-if="error" class="max-w-md text-base text-ink-gray-6">{{ error }}</p>
 		<LoadingIndicator v-else class="size-4 text-ink-gray-5" />
@@ -13,7 +15,7 @@ import { LoadingIndicator } from "frappe-ui";
 import { loadBoot } from "./boot.js";
 import Chat from "./chat/Chat.vue";
 
-// session, initialMessage, opened and the session and artifact events reach the chat
+// session, initialMessage, context, the session and artifact events and the slots reach the chat
 defineOptions({ inheritAttrs: false });
 
 const boot = ref(null);

@@ -7,6 +7,8 @@
 			@click="layout.sidebarOpen = !layout.sidebarOpen"
 		/>
 		<h1 class="min-w-0 flex-1 truncate text-base font-medium text-ink-gray-8">{{ title }}</h1>
+		<!-- the open chat's menu, which the chat renders here -->
+		<div id="studio-chat-menu" class="flex items-center" />
 		<Button
 			v-if="canTogglePanel"
 			variant="ghost"

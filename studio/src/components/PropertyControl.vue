@@ -13,7 +13,7 @@
 						<span
 							role="option"
 							:aria-selected="swatch === property.value"
-							class="block size-6 cursor-pointer rounded-md border border-outline-gray-2 hover:scale-110 transition-transform"
+							class="block size-6 cursor-pointer rounded-4 border border-outline-gray-2 hover:scale-110 transition-transform"
 							:class="swatch === property.value ? 'ring-2 ring-outline-gray-4 ring-offset-1' : ''"
 							:style="{ background: swatch }"
 							@click="pick(swatch, close)"

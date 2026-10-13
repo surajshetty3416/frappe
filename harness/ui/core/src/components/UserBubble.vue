@@ -6,7 +6,7 @@
 					v-for="item in imageTiles"
 					:key="item.id"
 					type="button"
-					class="size-16 flex-none cursor-zoom-in overflow-hidden rounded-4 border border-outline-gray-2 bg-surface-white"
+					class="size-16 flex-none cursor-zoom-in overflow-hidden rounded-4 border border-outline-gray-2 bg-surface-base"
 					:title="item.name"
 					@click="viewer = item"
 				>
@@ -17,10 +17,10 @@
 				<span
 					v-for="chip in chips"
 					:key="chip.key"
-					class="flex h-7 max-w-full items-center gap-1.5 rounded-4 border border-outline-gray-2 bg-surface-white px-2"
+					class="flex h-7 max-w-full items-center gap-1.5 rounded-4 border border-outline-gray-2 bg-surface-base px-2"
 					:title="chip.title"
 				>
-					<span :class="chip.icon" class="size-4 flex-none text-ink-gray-5" />
+					<ContextChipIcon :chip="chip" />
 					<span class="truncate text-sm text-ink-gray-8">{{ chip.label }}</span>
 				</span>
 			</div>
@@ -41,7 +41,6 @@
 			</button>
 		</div>
 		<span class="flow-hover-reveal flex items-center gap-1">
-			<span v-if="time" class="text-sm text-ink-gray-5">{{ time }}</span>
 			<CopyButton :text="text" />
 		</span>
 		<ImageViewer v-if="viewer" :src="previews[viewer.id]" :alt="viewer.name" @close="viewer = null" />
@@ -51,13 +50,13 @@
 <script setup>
 import { computed, inject, onBeforeUnmount, onMounted, ref } from "vue"
 
-import { formatTime, invokedSkills, skillSegments, splitQuotes, userAttachments, userText } from "../transcript.js"
+import { invokedSkills, skillSegments, splitQuotes, userAttachments, userContexts, userText } from "../transcript.js"
+import ContextChipIcon from "./ContextChipIcon.vue"
 import CopyButton from "./CopyButton.vue"
 import ImageViewer from "./ImageViewer.vue"
 
 const props = defineProps({ entry: { type: Object, required: true } })
 const flow = inject("flow")
-const time = computed(() => formatTime(props.entry.ts))
 const text = computed(() => userText(props.entry))
 const attachments = computed(() => userAttachments(props.entry))
 const quoted = computed(() => splitQuotes(text.value))
@@ -69,10 +68,10 @@ const parts = computed(() => {
 	const sending = props.entry.seq == null ? (flow.state.skills ?? []).map((skill) => skill.name) : []
 	return skillSegments(body.value, invokedSkills(props.entry) ?? sending)
 })
-// images show as previews; other files as chips
+// images show as previews; other files, and what the host told the agent, as chips
 const imageTiles = computed(() => attachments.value.filter((item) => previews.value[item.id]))
-const chips = computed(() =>
-	attachments.value
+const chips = computed(() => [
+	...attachments.value
 		.filter((item) => !previews.value[item.id])
 		.map((item) => ({
 			key: item.id,
@@ -80,7 +79,8 @@ const chips = computed(() =>
 			label: item.name,
 			title: item.name,
 		})),
-)
+	...userContexts(props.entry).flatMap((context) => flow.options.context?.chips(context) ?? []),
+])
 
 const previews = ref({}) // attachment id → object URL of the stored image
 const viewer = ref(null)

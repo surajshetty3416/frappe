@@ -20,7 +20,7 @@
 			<span v-if="stat" class="flex-none" :class="statClass">{{ stat }}</span>
 		</component>
 
-		<div v-if="open && expandable" ref="payloadEl" class="mb-1 mt-1 overflow-hidden rounded-4 border border-outline-gray-1 bg-surface-white">
+		<div v-if="open && expandable" ref="payloadEl" class="mb-1 mt-1 overflow-hidden rounded-4 border border-outline-gray-1 bg-surface-base">
 			<div v-if="meta.argsComponent && !resultView" class="border-b border-outline-gray-1">
 				<component :is="meta.argsComponent" :arguments="args" />
 			</div>

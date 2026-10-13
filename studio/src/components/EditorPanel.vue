@@ -7,7 +7,7 @@
 				role="tab"
 				:aria-selected="isActive(tab)"
 				:title="tab.title"
-				class="group flex h-7 min-w-0 max-w-[200px] shrink-0 cursor-pointer items-center gap-1.5 rounded-lg pl-2 pr-0.5 text-sm transition-colors"
+				class="group flex h-7 min-w-0 max-w-[200px] shrink-0 cursor-pointer items-center gap-1.5 rounded-4 pl-2 pr-0.5 text-sm transition-colors"
 				:class="isActive(tab) ? 'bg-surface-gray-2 text-ink-gray-8' : 'text-ink-gray-6 hover:bg-surface-gray-1'"
 				@click="router.push(tab.path)"
 				@auxclick.middle="close(tab)"
@@ -40,7 +40,7 @@
 				/>
 				<Tooltip v-else :text="editor ? 'Rename' : undefined" :disabled="!editor">
 					<span
-						class="truncate rounded-md px-1 py-0.5 text-base font-medium text-ink-gray-8"
+						class="truncate rounded-4 px-1 py-0.5 text-base font-medium text-ink-gray-8"
 						:class="editor ? 'cursor-text hover:bg-surface-gray-2' : ''"
 						@click="startRename"
 						>{{ title }}</span
@@ -52,15 +52,24 @@
 				</span>
 			</div>
 			<div class="flex shrink-0 items-center gap-0.5">
-				<Button variant="ghost" icon="lucide-message-square-text" tooltip="Comments" />
+				<Button
+					variant="ghost"
+					icon="lucide-message-square-plus"
+					:tooltip="editor ? (commenting ? 'Stop commenting' : 'Comment') : 'This artifact takes no comments yet'"
+					aria-label="Comment"
+					:disabled="!editor"
+					:class="commenting ? '!bg-surface-gray-3' : ''"
+					@click="commenting = !commenting"
+				/>
 				<Button
 					v-for="drawer in drawers"
 					:key="drawer.name"
 					variant="ghost"
 					:icon="drawer.icon"
-					:tooltip="drawer.label"
+					:tooltip="drawer.disabled ? `${drawer.label} is not available here` : drawer.label"
 					:aria-label="drawer.label"
-					:class="openDrawer === drawer.name ? 'bg-surface-gray-3' : ''"
+					:disabled="drawer.disabled"
+					:class="openDrawer === drawer.name ? '!bg-surface-gray-3' : ''"
 					@click="toggleDrawer(drawer.name)"
 				/>
 				<template v-if="action">
@@ -78,7 +87,7 @@
 		</div>
 
 		<div class="relative min-h-0 flex-1">
-			<SelectionLayer :editor="editor" :artifact="artifactKey" :data-layer="route.matched[0]?.meta.layer">
+			<SelectionLayer :editor="editor" :artifact="artifactKey" :covered="!!openDrawer" :data-layer="route.matched[0]?.meta.layer">
 				<slot />
 			</SelectionLayer>
 			<EditorDrawer
@@ -100,6 +109,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, shallowRef, watch 
 import { useRoute, useRouter } from "vue-router"
 
 import { getArtifactInfo, routeArtifact } from "../artifacts"
+import { commenting } from "../context"
 import type { ArtifactEditor } from "../editor"
 import { layers } from "../layers"
 import { onDocUpdate } from "../realtime"
@@ -157,11 +167,15 @@ const status = computed(() => editor.value?.status() ?? null)
 const action = computed(() => editor.value?.primaryAction() ?? null)
 
 const drawers = computed(() => [
-	{ name: "versions", label: "Versions", icon: "lucide-history" },
-	{ name: "details", label: "Details", icon: "lucide-info" },
-	...(editor.value ? [{ name: "code", label: "Code", icon: "lucide-code-xml" }] : []),
+	{ name: "versions", label: "Versions", icon: "lucide-history", disabled: false },
+	{ name: "details", label: "Details", icon: "lucide-info", disabled: false },
+	{ name: "code", label: "Code", icon: "lucide-code-xml", disabled: !editor.value },
 ])
 const openDrawer = ref<string | null>(null)
+watch(editor, (open) => {
+	if (!open) commenting.value = false
+})
+onBeforeUnmount(() => (commenting.value = false))
 const toggleDrawer = (name: string) => (openDrawer.value = openDrawer.value === name ? null : name)
 
 function close(tab: Tab) {

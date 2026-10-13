@@ -5,7 +5,7 @@
 		ref="panel"
 		tabindex="-1"
 		:aria-label="title"
-		class="flow-palette-panel absolute bottom-[calc(100%+8px)] left-0 z-20 flex max-h-[min(400px,60vh)] w-full flex-col overflow-hidden rounded-6 border border-outline-gray-2 bg-surface-white shadow-xl outline-none"
+		class="flow-palette-panel absolute bottom-[calc(100%+8px)] left-0 z-20 flex max-h-[min(400px,60vh)] w-full flex-col overflow-hidden rounded-6 border border-outline-gray-2 bg-surface-base shadow-xl outline-none"
 		@pointerover="onPointerOver"
 	>
 		<header class="flex h-9 flex-none items-center px-3 text-sm font-medium text-ink-gray-5">{{ title }}</header>

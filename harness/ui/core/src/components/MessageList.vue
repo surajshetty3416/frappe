@@ -2,9 +2,10 @@
 	<div class="relative min-h-0 flex-1">
 		<div ref="scroller" class="h-full overflow-y-auto px-4" @scroll="onScroll" @mousedown="onMouseDown">
 			<LoadingState v-if="loading" class="h-full justify-center text-sm text-ink-gray-5" />
-			<div v-else-if="!blank" ref="thread" class="flow-thread mx-auto flex max-w-[760px] flex-col gap-4 pb-6 pt-12">
+			<div v-else-if="!blank" ref="thread" class="flow-thread mx-auto flex max-w-[760px] flex-col gap-3 pb-6 pt-12">
 				<template v-for="(item, i) in items" :key="item.key">
-					<UserBubble v-if="item.kind === 'user'" :entry="item.entry" />
+					<!-- 12px between the rows of a turn, 24px between turns -->
+					<UserBubble v-if="item.kind === 'user'" :class="i ? 'mt-3' : ''" :entry="item.entry" />
 					<TurnFold
 						v-else-if="item.kind === 'turn-fold'"
 						:data-turn-fold="item.turnKey"
@@ -29,14 +30,9 @@
 					<div v-else-if="item.kind === 'turn-artifacts'" class="flow-turn-artifacts flex flex-col gap-2">
 						<ArtifactCard v-for="artifact in item.artifacts" :key="artifact.route" :artifact="artifact" />
 					</div>
-					<!-- the latest turn's actions stay visible; older ones reveal on hover -->
-					<div
-						v-else-if="item.kind === 'turn-copy'"
-						class="-mt-2 flex items-center gap-1"
-						:class="i === lastTurnCopyIndex ? '' : 'flow-turn-copy'"
-					>
+					<!-- a turn's copy action reveals on hover -->
+					<div v-else-if="item.kind === 'turn-copy'" class="flow-turn-copy -mt-1 flex items-center gap-1">
 						<CopyButton :text="item.text" title="Copy response" />
-						<span v-if="formatTime(item.ts)" class="text-sm text-ink-gray-5">{{ formatTime(item.ts) }}</span>
 					</div>
 					<div v-else-if="item.kind === 'compaction'" class="flex items-center gap-2 text-sm text-ink-gray-5">
 						<span class="lucide-archive size-4 flex-none" />
@@ -85,7 +81,7 @@
 import { computed, inject, nextTick, onBeforeUnmount, onMounted, provide, reactive, ref, watch } from "vue"
 import { Button } from "frappe-ui"
 
-import { approvalToAnswer, buildItems, formatDuration, formatTime, panelIds } from "../transcript.js"
+import { approvalToAnswer, buildItems, formatDuration, panelIds } from "../transcript.js"
 import AddToChat from "./AddToChat.vue"
 import ApprovalCard from "./ApprovalCard.vue"
 import ArtifactCard from "./ArtifactCard.vue"
@@ -107,13 +103,12 @@ const items = computed(() => buildItems(conversation.value, expandedTurnKeys.val
 
 const blank = computed(() => !items.value.length && !conversation.value.running && !conversation.value.liveLabel)
 const loading = computed(() => blank.value && flow.state.loading)
-const lastTurnCopyIndex = computed(() => items.value.findLastIndex((item) => item.kind === "turn-copy"))
 // the running turn ends above the steered bubbles waiting below it
 const turnEnd = computed(() => items.value.length - (conversation.value.steering?.length ?? 0))
 
 // thoughts stack like they do inside a group
 function tightGap(i) {
-	return items.value[i - 1]?.kind === "thinking" && items.value[i]?.kind === "thinking" ? "-mt-4" : ""
+	return items.value[i - 1]?.kind === "thinking" && items.value[i]?.kind === "thinking" ? "-mt-3" : ""
 }
 
 const approval = computed(() => {

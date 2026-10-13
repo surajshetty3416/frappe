@@ -31,6 +31,10 @@ function readJSON(key, fallback, storage = globalThis.localStorage) {
 //                  body, argsComponent, resultComponent }, any subset, describing the host's
 //                  tools in rows, approvals and expanded output
 //   openArtifact   (artifact) => void, called when an artifact card in the transcript is clicked
+//   context        what the host tells the agent with each message: { snapshot() → context or
+//                  null, taken as a message is sent; sent(context), once it is delivered or
+//                  queued; pending() → chips waiting above the composer, which make a message
+//                  worth sending on their own; remove(key); chips(context) → a bubble's chips }
 export function createFlowStore(client, options = {}) {
 	options = { storageKey: "flow.ui", maxAttachments: MAX_ATTACHMENTS, presentTool: null, ...options }
 	const keys = { prefs: `${options.storageKey}.prefs`, queue: `${options.storageKey}.queue` }
@@ -217,7 +221,7 @@ export function createFlowStore(client, options = {}) {
 
 	async function send(text, attachments = []) {
 		const message = text.trim()
-		if (!message && !attachments.length) return false
+		if (!message && !attachments.length && !options.context?.pending().length) return false
 		if (attachments.length > options.maxAttachments) {
 			notify(`A message can carry at most ${options.maxAttachments} attachments.`, "error")
 			return false
@@ -226,27 +230,34 @@ export function createFlowStore(client, options = {}) {
 			notify("Answer the approval before sending another message.", "error")
 			return false
 		}
-		// a running turn holds the next message in the queue until it ends, or until the user steers it in
+		const context = options.context?.snapshot() ?? null
+		const sent = await queueOrSend(message, attachments, context)
+		if (sent) options.context?.sent(context)
+		return sent
+	}
+
+	// a running turn holds the next message in the queue until it ends, or until the user steers it in
+	async function queueOrSend(message, attachments, context) {
 		const busy = () => state.conversation.running || state.conversation.sending.length > 0
-		if (!state.sessionId || !busy()) return sendNow(message, attachments)
+		if (!state.sessionId || !busy()) return sendNow(message, attachments, context)
 		const sid = state.sessionId
 		const afterSeq = state.conversation.latestSeq
 		const staged = await stageAttachments(sid, attachments)
 		if (!staged) return false
 		if (state.sessionId !== sid) {
-			heldBySession.set(sid, [...(heldBySession.get(sid) ?? []), { message, attachments: staged.attachments, afterSeq }])
+			heldBySession.set(sid, [...(heldBySession.get(sid) ?? []), { message, attachments: staged.attachments, afterSeq, context }])
 			return true
 		}
-		if (!busy() && !state.queued.length && ranItsCourse(lastRunEnd)) return sendNow(message, staged.attachments)
-		state.queued.push(queueItem(message, staged.attachments, afterSeq))
+		if (!busy() && !state.queued.length && ranItsCourse(lastRunEnd)) return sendNow(message, staged.attachments, context)
+		state.queued.push(queueItem(message, staged.attachments, afterSeq, context))
 		return true
 	}
 
 	// Opens the next turn with its bubble up before the first round trip.
-	async function sendNow(message, attachments) {
-		const pending = { key: `sending:${++sendCount}`, entry: userEntry(message, attachments) }
+	async function sendNow(message, attachments, context = null) {
+		const pending = { key: `sending:${++sendCount}`, entry: userEntry(message, attachments, context) }
 		state.conversation.sending.push(pending)
-		const sent = await deliver(message, attachments, pending, null)
+		const sent = await deliver(message, attachments, pending, null, context)
 		if (!sent) unsend(pending)
 		return sent
 	}
@@ -262,10 +273,10 @@ export function createFlowStore(client, options = {}) {
 		const sid = state.sessionId
 		const at = state.queued.indexOf(item)
 		unqueue(item)
-		const steered = steeringBubble(item.message, item.attachments)
+		const steered = steeringBubble(item.message, item.attachments, [], item.context)
 		state.conversation.steering.push(steered)
 		const pending = { key: `sending:${++sendCount}`, entry: steered.entry }
-		if (await deliver(item.message, item.attachments, pending, steered)) return
+		if (await deliver(item.message, item.attachments, pending, steered, item.context)) return
 		unsteer(steered)
 		if (state.sessionId === sid) state.queued.splice(at, 0, item)
 	}
@@ -274,7 +285,7 @@ export function createFlowStore(client, options = {}) {
 		const sid = state.sessionId
 		const at = state.queued.indexOf(item)
 		unqueue(item)
-		if (!(await sendNow(item.message, item.attachments)) && state.sessionId === sid) state.queued.splice(at, 0, item)
+		if (!(await sendNow(item.message, item.attachments, item.context)) && state.sessionId === sid) state.queued.splice(at, 0, item)
 	}
 
 	function removeQueued(item) {
@@ -284,32 +295,36 @@ export function createFlowStore(client, options = {}) {
 		if (ids.length) void client.cleanupAttachments(state.sessionId, ids).catch(() => {})
 	}
 
-	function queueItem(message, attachments, afterSeq) {
+	function queueItem(message, attachments, afterSeq, context = null) {
+		const chips = context ? (options.context?.chips(context) ?? []) : []
 		return {
 			key: `queued:${++queueCount}`,
 			message,
 			attachments,
 			afterSeq,
-			label: message || `${attachments.length} attachment(s)`,
+			context,
+			label: message || chips.filter((chip) => chip.badge).map((chip) => chip.label).join(", ") || `${attachments.length} attachment(s)`,
 		}
 	}
 
-	function steeringBubble(message, attachments, attachmentIds = []) {
+	function steeringBubble(message, attachments, attachmentIds = [], context = null) {
 		return {
 			key: `steering:${++sendCount}`,
-			entry: userEntry(message, attachments),
+			entry: userEntry(message, attachments, context),
 			text: normalizeSkillCommand(message) ?? message,
 			attachmentIds,
 		}
 	}
 
-	function waitingRecord({ message, attachments, afterSeq }) {
-		return { message, attachments, afterSeq }
+	function waitingRecord({ message, attachments, afterSeq, context }) {
+		return { message, attachments, afterSeq, context }
 	}
 
 	function swapQueue(sid) {
 		if (state.sessionId && state.queued.length) heldBySession.set(state.sessionId, state.queued.map(waitingRecord))
-		state.queued = (heldBySession.get(sid) ?? []).map((held) => queueItem(held.message, held.attachments, held.afterSeq))
+		state.queued = (heldBySession.get(sid) ?? []).map((held) =>
+			queueItem(held.message, held.attachments, held.afterSeq, held.context ?? null),
+		)
 		heldBySession.delete(sid)
 	}
 
@@ -328,13 +343,14 @@ export function createFlowStore(client, options = {}) {
 		if (at >= 0) state.conversation.sending.splice(at, 1)
 	}
 
-	function userEntry(message, attachments) {
+	function userEntry(message, attachments, context = null) {
 		const blocks = attachments.map((item) => ({ type: "attachment", id: item.id ?? item.key, name: item.name, kind: item.kind }))
+		if (context) blocks.push({ type: "context", context })
 		return { type: "user_message", content: [{ type: "text", text: message }, ...blocks], ts: Date.now() / 1000 }
 	}
 
 	// the round trips the bubble hides: the session, the attachments, the run
-	async function deliver(message, attachments, pending, steered) {
+	async function deliver(message, attachments, pending, steered, context = null) {
 		if (!state.sessionId) {
 			creating ??= newSession({ sending: state.conversation.sending })
 			try {
@@ -351,7 +367,7 @@ export function createFlowStore(client, options = {}) {
 		try {
 			if (steered) steered.attachmentIds = attachmentIds
 			const seen = state.conversation.entries.length
-			const result = await guard(() => client.run(sid, message, attachmentIds))
+			const result = await guard(() => client.run(sid, message, attachmentIds, context))
 			if (!result) return false
 			admitted = true
 			if (state.sessionId !== sid) return true
@@ -360,7 +376,7 @@ export function createFlowStore(client, options = {}) {
 				const unechoed = state.conversation.sending.includes(pending)
 				unsend(pending)
 				if (!steered && unechoed)
-					state.conversation.steering.push(steeringBubble(message, staged.attachments, attachmentIds))
+					state.conversation.steering.push(steeringBubble(message, staged.attachments, attachmentIds, context))
 			} else if (steered) {
 				unsteer(steered)
 				const echoed = state.conversation.entries.slice(seen).some((entry) => entry.type === "user_message")

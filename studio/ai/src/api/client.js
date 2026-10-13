@@ -3,11 +3,12 @@ import { SessionStream } from "./stream.js";
 
 const IMAGE_FILE = /\.(png|jpe?g|gif|webp|bmp)$/i;
 
+const contextBlock = (context) => `\n\n<studio_context>\n${JSON.stringify(context)}\n</studio_context>`;
+
 // The store's client surface over frappe.ai.api. Sessions are Flow Session docs, models are
 // Flow Model docs (the daemon's provider ids are mapped back to them), attachments are
 // private Files staged through attach_file. `transport` is the page's Frappe transport
-// (frappe.js); `hooks` mirror what the server reports about a session and add what the
-// user has open to each message.
+// (frappe.js); `hooks` mirror what the server reports about a session.
 export class FrappeClient {
 	constructor({ socket, boot, transport, hooks = {} }) {
 		this.socket = socket;
@@ -100,9 +101,10 @@ export class FrappeClient {
 		return data;
 	}
 
-	async run(sid, message, attachments = []) {
-		const opened = this.hooks.opened?.();
-		if (opened) message = `${message}\n\nViewing ${opened.title} at ${opened.path}`;
+	// `context` is what the editor beside the chat shows (see the shell's context.ts); the agent
+	// reads it as JSON after the message, and events.js turns it back into chips
+	async run(sid, message, attachments = [], context = null) {
+		if (context) message = `${message}${contextBlock(context)}`;
 		return this.transport.call("frappe.ai.api.run", { session: sid, message, attachments });
 	}
 

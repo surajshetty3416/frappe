@@ -8,7 +8,7 @@
 		<aside
 			v-if="drawer"
 			data-editor-drawer
-			class="absolute inset-y-0 right-0 z-20 flex w-[340px] flex-col overflow-hidden border-l border-outline-gray-1 bg-surface-base"
+			class="absolute inset-y-0 right-0 z-20 flex w-[340px] flex-col overflow-hidden border-l border-outline-gray-1 bg-surface-base shadow-xl"
 		>
 			<header class="flex h-10 shrink-0 items-center justify-between border-b border-outline-gray-1 pl-4 pr-2">
 				<h2 class="text-base font-medium text-ink-gray-8">{{ label }}</h2>
@@ -34,7 +34,7 @@
 					<li
 						v-for="(version, index) in versions.list"
 						:key="version.name"
-						class="group flex items-start gap-3 rounded-lg px-2 py-2.5 hover:bg-surface-gray-1"
+						class="group flex items-start gap-3 rounded-4 px-2 py-2.5 hover:bg-surface-gray-1"
 					>
 						<span
 							class="mt-0.5 grid size-6 shrink-0 place-items-center rounded-full"
@@ -49,7 +49,7 @@
 								{{ dayjs(version.creation).fromNow() }}
 							</p>
 						</div>
-						<span v-if="index === 0" class="mt-0.5 shrink-0 rounded-md bg-surface-gray-2 px-1.5 py-0.5 text-xs text-ink-gray-6">Current</span>
+						<span v-if="index === 0" class="mt-0.5 shrink-0 rounded-3 bg-surface-gray-2 px-1.5 py-0.5 text-xs text-ink-gray-6">Current</span>
 						<Button
 							v-else
 							size="sm"
@@ -73,7 +73,7 @@
 			</dl>
 
 			<div v-else-if="drawer === 'code' && code" class="min-h-0 flex-1 overflow-auto bg-surface-gray-1">
-				<pre class="p-4 font-mono text-xs leading-5 text-ink-gray-8">{{ code.content }}</pre>
+				<pre class="whitespace-pre-wrap break-words p-4 font-mono text-xs leading-5 text-ink-gray-8">{{ code.content }}</pre>
 			</div>
 		</aside>
 	</Transition>

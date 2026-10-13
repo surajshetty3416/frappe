@@ -1,7 +1,8 @@
 <template>
 	<div
 		ref="host"
-		class="relative h-full overflow-hidden"
+		class="relative isolate h-full overflow-hidden"
+		:data-commenting="commenting && editor ? '' : undefined"
 		@mouseover.capture="onPointer"
 		@mousemove.capture="onPointer"
 		@mousedown.capture="onMouseDown"
@@ -11,7 +12,7 @@
 		@mouseleave="hovered = null"
 	>
 		<slot />
-		<div v-if="editor" data-layer="shell" class="pointer-events-none absolute inset-0">
+		<div v-if="editor" data-layer="shell" class="pointer-events-none absolute inset-0 z-[1000]">
 			<div
 				v-if="hoverBox && hovered?.id !== selected?.id"
 				class="absolute rounded-[2px] border border-outline-blue-4"
@@ -23,12 +24,23 @@
 				:style="boxStyle(selectBox, 1)"
 			/>
 		</div>
+		<PreviewComments v-if="editor" :editor="editor" :artifact="artifact" :host="host" />
 		<div
-			v-if="editor && selected && selectBox && !editing"
+			v-if="editor && commenting"
+			data-selection-ui
+			data-layer="shell"
+			class="absolute left-1/2 top-3 z-[1002] flex h-9 -translate-x-1/2 items-center gap-2 rounded-full border border-outline-gray-2 bg-surface-base pl-3 pr-1 shadow-lg"
+		>
+			<span class="lucide-message-square-plus size-4 text-ink-gray-5" />
+			<span class="whitespace-nowrap text-sm text-ink-gray-7">Click an element to comment on it</span>
+			<Button size="sm" variant="subtle" label="Done" class="!rounded-full" @click="commenting = false" />
+		</div>
+		<div
+			v-if="editor && selected && selectBox && !editing && !commenting && !covered"
 			ref="toolbar"
 			data-selection-ui
 			data-layer="shell"
-			class="absolute z-10 flex h-9 items-center gap-0.5 rounded-xl border border-outline-gray-2 bg-surface-base p-1 shadow-lg"
+			class="absolute z-[1002] flex h-9 items-center gap-0.5 rounded-6 border border-outline-gray-2 bg-surface-base p-1 shadow-lg"
 			:style="toolbarStyle"
 		>
 			<span class="flex max-w-[160px] items-center gap-1.5 px-1.5 text-sm text-ink-gray-6">
@@ -36,7 +48,7 @@
 				<span class="truncate">{{ selected.label }}</span>
 			</span>
 			<div class="mx-0.5 h-4 w-px bg-surface-gray-3" />
-			<Button variant="ghost" icon="lucide-message-square-plus" tooltip="Comment" />
+			<Button variant="ghost" icon="lucide-message-square-plus" tooltip="Comment" @click="commentOnSelected" />
 			<Button v-if="selected.hasText" variant="ghost" icon="lucide-type" tooltip="Edit text" @click="startEdit" />
 			<template v-if="properties.length">
 				<div class="mx-0.5 h-4 w-px bg-surface-gray-3" />
@@ -50,10 +62,13 @@
 import { Button } from "frappe-ui"
 import { computed, onBeforeUnmount, onMounted, ref, shallowRef, watch } from "vue"
 
+import { closeDraft, commenting, describeElement, draft, selection } from "../context"
 import type { ArtifactEditor, PreviewElement } from "../editor"
+import PreviewComments from "./PreviewComments.vue"
 import PropertyControl from "./PropertyControl.vue"
 
-const props = defineProps<{ editor: ArtifactEditor | null; artifact: string }>()
+// `covered`: a drawer lies over the preview
+const props = defineProps<{ editor: ArtifactEditor | null; artifact: string; covered?: boolean }>()
 
 type Box = { top: number; left: number; width: number; height: number }
 
@@ -69,9 +84,34 @@ watch(
 	() => [props.editor, props.artifact],
 	() => {
 		finishEdit(false)
+		closeDraft(true)
 		hovered.value = selected.value = null
 	}
 )
+
+// the chat tells the agent what is selected
+watch(selected, describeSelection)
+function describeSelection() {
+	selection.value = selected.value && props.editor ? describeElement(props.editor, selected.value) : null
+}
+onBeforeUnmount(() => (selection.value = null))
+
+watch(commenting, (on) => {
+	if (on) selected.value = null
+	else closeDraft(true)
+})
+
+function commentOn(element: PreviewElement, x: number, y: number) {
+	if (!props.editor) return
+	closeDraft(true)
+	draft.value = { artifact: props.artifact, element: describeElement(props.editor, element), x, y, body: "" }
+}
+function commentOnSelected() {
+	const element = selected.value
+	if (!element) return
+	selected.value = null
+	commentOn(element, 0, 0)
+}
 
 const properties = computed(() => (selected.value && props.editor ? props.editor.properties(selected.value.id).slice(0, 4) : []))
 
@@ -100,12 +140,19 @@ function onClick(event: MouseEvent) {
 	if (!ownsEvent(event)) return
 	event.stopPropagation()
 	event.preventDefault()
-	selected.value = elementAt(event)
+	const found = elementAt(event)
+	if (!commenting.value) {
+		selected.value = found
+		return
+	}
+	const rect = found && props.editor?.elementRect(found.id)
+	if (found && rect) commentOn(found, (event.clientX - rect.left) / rect.width, (event.clientY - rect.top) / rect.height)
 }
 function onDoubleClick(event: MouseEvent) {
 	if (!ownsEvent(event)) return
 	event.stopPropagation()
 	event.preventDefault()
+	if (commenting.value) return
 	const found = elementAt(event)
 	if (!found?.hasText) return
 	selected.value = found
@@ -158,8 +205,10 @@ function finishEdit(save: boolean) {
 	node.style.userSelect = node.style.outline = node.style.cursor = ""
 	if (node.style.display === "block") node.style.display = ""
 	window.getSelection()?.removeAllRanges()
-	if (save && node.innerHTML !== original) props.editor?.setText(id, node.innerHTML)
-	else if (!save) node.innerHTML = original
+	if (save && node.innerHTML !== original) {
+		props.editor?.setText(id, node.innerHTML)
+		describeSelection()
+	} else if (!save) node.innerHTML = original
 }
 
 // boxes follow their elements as the preview scrolls, zooms or reflows
@@ -197,14 +246,22 @@ const toolbarStyle = computed(() => {
 	const width = toolbar.value?.offsetWidth ?? 280
 	const height = 36
 	const gap = 8
+	// the preview insets its sheet; the toolbar stays inside it
+	const inset = 24
 	let top = box.top - height - gap
 	if (top < gap) top = box.top + box.height + gap
 	if (top + height > room.clientHeight - gap) top = Math.max(gap, box.top + gap)
-	const left = Math.min(Math.max(box.left, gap), room.clientWidth - width - gap)
+	const centered = box.left + box.width / 2 - width / 2
+	const left = Math.min(Math.max(centered, inset), room.clientWidth - width - inset)
 	return { top: `${top}px`, left: `${left}px` }
 })
 
 function onKeydown(event: KeyboardEvent) {
+	if (event.key === "Escape" && commenting.value && !event.defaultPrevented) {
+		commenting.value = false
+		event.preventDefault()
+		return
+	}
 	if (event.key !== "Escape" || !selected.value || editing.value || event.defaultPrevented) return
 	// an open drawer closes first
 	if (document.querySelector("[data-editor-drawer]")) return

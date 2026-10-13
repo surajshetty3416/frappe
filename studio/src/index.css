@@ -8,3 +8,14 @@ body,
 #app {
 	height: 100%;
 }
+
+/* comment mode: the preview takes a click anywhere as a place for a pin */
+[data-commenting] :not([data-selection-ui], [data-selection-ui] *) {
+	cursor: crosshair !important;
+}
+
+/* a selected row is a flat fill, as in Claude Code, not frappe-ui's raised card */
+[data-layer="shell"] [data-slot="sidebar-item"][data-state="active"] {
+	background-color: var(--surface-gray-3);
+	box-shadow: none;
+}

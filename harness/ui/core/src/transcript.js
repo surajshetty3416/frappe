@@ -906,6 +906,13 @@ export function userAttachments(entry) {
 		: []
 }
 
+// what the host told the agent with the message, such as the artifact open beside the chat
+export function userContexts(entry) {
+	return Array.isArray(entry?.content)
+		? entry.content.filter((block) => block.type === "context").map((block) => block.context)
+		: []
+}
+
 const QUOTE_LINE = /^> ?(.*)$/
 
 // a thread selection added to chat travels as a blockquote under the message

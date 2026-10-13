@@ -16,7 +16,7 @@ watch(
 	() => route.params.session,
 	async (param) => {
 		const session = String(param)
-		document.title = "Chat · Studio"
+		document.title = param ? "Chat · Studio" : "Studio"
 		if (!param || session === "new") return
 		const latest = (await getSessionArtifacts(session)).at(-1)
 		if (latest && route.params.session === session) router.replace({ path: latest.route, query: { chat: session } })

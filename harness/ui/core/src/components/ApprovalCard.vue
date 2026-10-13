@@ -1,5 +1,5 @@
 <template>
-	<div class="flex max-h-[min(480px,70vh)] flex-col overflow-hidden rounded-6 border border-outline-gray-2 bg-surface-white">
+	<div class="flex max-h-[min(480px,70vh)] flex-col overflow-hidden rounded-6 border border-outline-gray-2 bg-surface-base">
 		<div class="flex items-start gap-2 px-3 py-2.5">
 			<span class="lucide-shield-check mt-0.5 size-4 flex-none text-ink-gray-5" />
 			<div class="min-w-0 flex-1 text-base text-ink-gray-8">{{ title }}</div>

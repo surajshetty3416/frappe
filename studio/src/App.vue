@@ -46,7 +46,6 @@ import { FrappeUIProvider } from "frappe-ui"
 import { computed, onBeforeUnmount, onMounted, ref } from "vue"
 import { useRoute, useRouter } from "vue-router"
 
-import { routeArtifact } from "./artifacts"
 import { chats } from "./chats"
 import EditorPanel from "./components/EditorPanel.vue"
 import SearchDialog from "./components/SearchDialog.vue"
@@ -56,7 +55,7 @@ import TopBar from "./components/TopBar.vue"
 import { layers } from "./layers"
 import { layout, searchOpen } from "./layout"
 import { isLoggedIn } from "./session"
-import { findTab, tabs } from "./tabs"
+import { tabs } from "./tabs"
 
 const route = useRoute()
 const router = useRouter()
@@ -64,7 +63,9 @@ const router = useRouter()
 const showShell = computed(() => isLoggedIn() && !route.matched.some((record) => record.meta.hideRail))
 const onArtifact = computed(() => route.matched.some((record) => record.meta.artifact))
 // a chat, or an artifact's editor with the chat that builds it
-const chatLayout = computed(() => showShell.value && (route.name === "studio-chat" || onArtifact.value))
+const chatLayout = computed(
+	() => showShell.value && (route.name === "studio-home" || route.name === "studio-chat" || onArtifact.value)
+)
 const panelVisible = computed(() => chatLayout.value && onArtifact.value && layout.value.panelOpen)
 const canTogglePanel = computed(() => chatLayout.value && (onArtifact.value || tabs.value.length > 0))
 
@@ -73,14 +74,11 @@ const currentChat = computed(() => {
 	return typeof session === "string" && session !== "new" ? session : null
 })
 const title = computed(() => {
+	// the chat's title; the artifact's is on the artifact bar
 	if (chatLayout.value) {
-		const chat = chats.value.find((chat) => chat.name === currentChat.value)
-		if (chat) return chat.title || "Untitled chat"
-		if (currentChat.value || !onArtifact.value) return "New chat"
-		const open = routeArtifact(route)
-		return (open && findTab(open.doctype, open.name)?.title) || ""
+		if (!currentChat.value) return "New chat"
+		return chats.value.find((chat) => chat.name === currentChat.value)?.title || "Untitled chat"
 	}
-	if (route.name === "studio-home") return "New chat"
 	return layers.find((layer) => layer.name === route.matched[0]?.meta.layer)?.title ?? "Studio"
 })
 

@@ -1,7 +1,7 @@
 <template>
 	<button
 		type="button"
-		class="flex w-full max-w-sm items-center gap-3 rounded-6 border border-outline-gray-2 bg-surface-white px-3 py-2.5 text-left transition-colors hover:bg-surface-gray-1"
+		class="flex w-full max-w-sm items-center gap-3 rounded-6 border border-outline-gray-2 bg-surface-base px-3 py-2.5 text-left transition-colors hover:bg-surface-gray-1"
 		@click="flow.options.openArtifact?.(artifact)"
 	>
 		<span class="grid size-8 flex-none place-items-center rounded-4 bg-surface-gray-2 text-ink-gray-6">

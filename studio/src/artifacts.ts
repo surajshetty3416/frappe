@@ -86,10 +86,12 @@ export const getVersions = (doctype: string, name: string): Promise<Version[]> =
 export const restoreVersion = (version: string) => call("frappe.ai.versions.restore_version", { version })
 
 const LAYER_ICONS: Record<string, string> = {
+	data: "lucide-database",
+	agents: "lucide-bot",
 	web: "lucide-globe",
 	analytics: "lucide-chart-column",
 	ui: "lucide-blocks",
 }
 
-export const artifactIcon = (artifact: Artifact) =>
+export const artifactIcon = (artifact: Pick<Artifact, "route">) =>
 	LAYER_ICONS[artifact.route.split("/")[2]] ?? "lucide-file"

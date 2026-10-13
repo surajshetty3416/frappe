@@ -20,12 +20,12 @@
 				</div>
 			</PalettePanel>
 
-			<!-- messages waiting for the run to end -->
-			<div v-if="flow.state.queued.length" class="mb-2 flex flex-wrap gap-1.5">
+			<!-- messages waiting for the run to end, and what waits to join the next message -->
+			<div v-if="flow.state.queued.length || contextChips.length" class="mb-2 flex flex-wrap gap-1.5">
 				<span
 					v-for="item in flow.state.queued"
 					:key="item.key"
-					class="flex h-7 max-w-full items-center gap-1 rounded-4 border border-outline-gray-2 bg-surface-white pl-2 pr-1"
+					class="flex h-7 max-w-full items-center gap-1 rounded-4 border border-outline-gray-2 bg-surface-base pl-2 pr-1"
 				>
 					<span class="lucide-clock size-3.5 flex-none text-ink-gray-5" />
 					<span class="min-w-0 max-w-[16rem] truncate text-sm text-ink-gray-7">{{ item.label }}</span>
@@ -46,12 +46,20 @@
 						<span class="lucide-x size-3.5" />
 					</button>
 				</span>
+				<span v-for="chip in contextChips" :key="chip.key" data-context-chip :class="[chipClass, '!max-w-[200px]']" :title="chip.title">
+					<ContextChipIcon :chip="chip" />
+					<span class="min-w-0 truncate text-sm text-ink-gray-8">{{ chip.label }}</span>
+					<button type="button" :class="chipRemoveClass" title="Remove" @click="flow.options.context.remove(chip.key)">
+						<span class="lucide-x size-3" />
+					</button>
+				</span>
 			</div>
 
 			<div
-				class="flex flex-col gap-2 rounded-6 border border-outline-gray-2 bg-surface-white p-2 shadow-sm focus-within:border-outline-gray-3"
+				class="grid grid-cols-[auto_minmax(0,1fr)_auto] items-end gap-x-1 gap-y-2 rounded-6 border border-outline-gray-2 bg-surface-base p-2 shadow-sm focus-within:border-outline-gray-3"
 			>
-				<div v-if="imageTiles.length" class="flex flex-wrap gap-1.5 px-1 pt-1">
+				<!-- one row while the message fits a line; the text takes its own row once it grows -->
+				<div v-if="imageTiles.length" class="col-span-3 flex flex-wrap gap-1.5 px-1 pt-1">
 					<figure
 						v-for="{ item, i } in imageTiles"
 						:key="item.key"
@@ -63,19 +71,19 @@
 						</button>
 						<button
 							type="button"
-							class="absolute right-1 top-1 grid size-5 place-items-center rounded-full border border-outline-gray-2 bg-surface-white text-ink-gray-6 opacity-0 hover:text-ink-gray-9 group-hover/attachment:opacity-100"
+							class="absolute right-1 top-1 grid size-5 place-items-center rounded-full border border-outline-gray-2 bg-surface-base text-ink-gray-6 opacity-0 hover:text-ink-gray-9 group-hover/attachment:opacity-100"
 							title="Remove attachment"
 							:disabled="submitting"
 							@click="removeAttachment(i)"
 						>
 							<span class="lucide-x size-3" />
 						</button>
-						<span v-if="item.preparing" class="absolute bottom-1 left-1 grid size-5 place-items-center rounded-3 bg-surface-white" role="status">
+						<span v-if="item.preparing" class="absolute bottom-1 left-1 grid size-5 place-items-center rounded-3 bg-surface-base" role="status">
 							<span class="lucide-loader-circle size-3.5 animate-spin" />
 						</span>
 					</figure>
 				</div>
-				<div v-if="quotes.length || fileChips.length" class="flex flex-wrap items-center gap-1.5 px-1 pt-1">
+				<div v-if="quotes.length || fileChips.length" class="col-span-3 flex flex-wrap items-center gap-1.5 px-1 pt-1">
 					<span v-for="(quote, i) in quotes" :key="`quote:${i}`" :class="chipClass" :title="quote">
 						<span class="lucide-quote size-4 flex-none text-ink-gray-5" />
 						<span class="min-w-0 truncate text-sm text-ink-gray-8">{{ quoteLabel(quote) }}</span>
@@ -94,16 +102,24 @@
 						</button>
 					</span>
 				</div>
-				<p v-for="item in attachments.filter((item) => item.error)" :key="item.key" class="px-1 text-sm text-ink-red-6">
+				<p v-for="item in attachments.filter((item) => item.error)" :key="item.key" class="col-span-3 px-1 text-sm text-ink-red-6">
 					Could not prepare {{ item.name }}: {{ item.error }}
 					<button type="button" class="underline" :disabled="submitting" @click="prepareAttachment(item)">Retry</button>
 				</p>
-				<div class="relative">
+				<Button
+					variant="ghost"
+					icon="lucide-plus"
+					tooltip="Attach files"
+					:class="compact ? '' : 'order-2'"
+					:disabled="submitting"
+					@click="fileInput?.click()"
+				/>
+				<div class="relative self-center" :class="compact ? '' : 'order-1 col-span-3'">
 					<!-- known skill commands show in blue under the transparent text -->
 					<div
 						v-if="skillParts"
 						aria-hidden="true"
-						class="pointer-events-none absolute inset-0 overflow-hidden whitespace-pre-wrap break-words px-1.5 pt-1 text-base leading-relaxed"
+						class="pointer-events-none absolute inset-0 overflow-hidden whitespace-pre-wrap break-words px-1.5 py-1 text-base leading-5"
 					>
 						<div :style="{ transform: `translateY(-${textScrollTop}px)` }">
 							<span v-for="(part, i) in skillParts" :key="i" :class="part.skill ? 'text-ink-blue-6' : 'text-ink-gray-8'">{{ part.text }}</span>
@@ -116,7 +132,7 @@
 						:disabled="submitting"
 						:placeholder="placeholder"
 						style="caret-color: var(--ink-gray-9)"
-						class="relative max-h-44 min-h-[44px] w-full resize-none border-0 bg-transparent px-1.5 pt-1 text-base leading-relaxed outline-none placeholder:text-ink-gray-4 focus:ring-0"
+						class="relative block max-h-44 min-h-7 w-full resize-none border-0 bg-transparent px-1.5 py-1 text-base leading-5 outline-none placeholder:text-ink-gray-4 focus:ring-0"
 						:class="skillParts ? 'text-transparent' : 'text-ink-gray-8'"
 						@keydown="onKey"
 						@paste="onPaste"
@@ -127,10 +143,8 @@
 					/>
 				</div>
 				<input ref="fileInput" type="file" multiple class="hidden" @change="onFilesPicked" />
-				<div class="flex items-center gap-1">
-					<Button variant="ghost" icon="lucide-plus" tooltip="Attach files" :disabled="submitting" @click="fileInput?.click()" />
-					<span class="flex-1" />
-					<Dropdown :options="modeOptions" placement="right">
+				<div class="col-start-3 flex items-center gap-1" :class="compact ? '' : 'order-3'">
+					<Dropdown :options="modeOptions" align="end">
 						<Button variant="ghost" :label="modeLabel" icon-right="lucide-chevron-down" />
 					</Dropdown>
 					<Button
@@ -164,6 +178,7 @@ import { Button, Dropdown } from "frappe-ui"
 import { dialogs as frappeDialogs } from "frappe-ui/src/utils/dialog"
 
 import { quoteBlock, skillSegments } from "../transcript.js"
+import ContextChipIcon from "./ContextChipIcon.vue"
 import ImageViewer from "./ImageViewer.vue"
 import PalettePanel from "./PalettePanel.vue"
 
@@ -184,7 +199,10 @@ let preparationQueue = Promise.resolve()
 const IMAGE_TYPES = new Set(["image/png", "image/jpeg", "image/gif", "image/webp", "image/bmp"])
 
 const running = computed(() => flow.state.conversation.running)
-const placeholder = computed(() => (flow.state.sessionId ? "Reply…" : "Describe what to build or change…"))
+// once the text wraps it keeps its own row until the box empties, or it would flip back and forth
+const wrapped = ref(false)
+const compact = computed(() => !wrapped.value && !text.value.includes("\n"))
+const placeholder = computed(() => (flow.state.sessionId ? "Reply…" : "Describe what to build…"))
 
 const MODES = { auto: "Auto-approve", ask: "Ask first" }
 const currentMode = computed(() => {
@@ -335,9 +353,25 @@ function autosize() {
 	if (!el) return
 	el.style.height = "auto"
 	el.style.height = `${el.scrollHeight}px`
+	if (!text.value) wrapped.value = false
+	// a second line of text: 20px lines and 8px of padding
+	else if (el.scrollHeight > 36) wrapped.value = true
 	textScrollTop.value = el.scrollTop
 }
 watch(text, () => nextTick(autosize))
+
+// the box's width changes as the panel beside the chat opens or is dragged
+let resizes = null
+onMounted(() => {
+	let width = 0
+	resizes = new ResizeObserver(([entry]) => {
+		if (entry.contentRect.width === width) return
+		width = entry.contentRect.width
+		autosize()
+	})
+	if (box.value) resizes.observe(box.value)
+})
+onBeforeUnmount(() => resizes?.disconnect())
 
 onMounted(() => {
 	autosize()
@@ -372,10 +406,13 @@ const staged = (keep) =>
 	attachments.value.map((item, i) => ({ item, i })).filter(({ item }) => keep(item))
 const imageTiles = computed(() => staged(isImageTile))
 const fileChips = computed(() => staged((item) => !isImageTile(item)))
-const chipClass = "flex h-7 max-w-[240px] items-center gap-1.5 rounded-4 border border-outline-gray-2 bg-surface-white pl-2 pr-1"
+const chipClass = "flex h-7 max-w-[240px] items-center gap-1.5 rounded-4 border border-outline-gray-2 bg-surface-base pl-2 pr-1"
 const chipRemoveClass = "grid size-5 flex-none place-items-center rounded-3 text-ink-gray-5 hover:bg-surface-gray-2 hover:text-ink-gray-8"
+const contextChips = computed(() => flow.options.context?.pending() ?? [])
 const canSend = computed(
-	() => !submitting.value && (text.value.trim().length > 0 || attachments.value.length > 0 || quotes.value.length > 0),
+	() =>
+		!submitting.value &&
+		(text.value.trim().length > 0 || attachments.value.length > 0 || quotes.value.length > 0 || contextChips.value.length > 0),
 )
 
 function onKey(e) {
@@ -391,17 +428,20 @@ function onKey(e) {
 	}
 }
 
-// Escape stops the turn even when focus is outside the box; open dialogs own it
+// Escape stops the turn even when focus is outside the box; open dialogs own it, and so
+// does whatever else on the page took it, once every listener has run
 function onWindowKey(e) {
 	if (e.key !== "Escape" || e.repeat || menuOpen.value || frappeDialogs.value.length) return
-	if (running.value) flow.abort()
+	setTimeout(() => {
+		if (!e.defaultPrevented && running.value) flow.abort()
+	})
 }
 
 async function submit() {
 	if (submitting.value) return
 	const draftText = text.value
 	const value = draftText.trim()
-	if (!value && !attachments.value.length && !quotes.value.length) return
+	if (!canSend.value) return
 	// quotes travel as blockquotes under the message
 	const selectedQuotes = [...quotes.value]
 	const outgoing = [value, selectedQuotes.map(quoteBlock).join("\n\n")].filter(Boolean).join("\n\n")

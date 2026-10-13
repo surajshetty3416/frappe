@@ -2,8 +2,8 @@
 // the attachment, excerpt and memory blocks Flow appended. The bubble shows the message,
 // with the files as chips.
 const MEMORY = /\n<memory>\n[\s\S]*?\n<\/memory>$/;
-// what the user had open beside the chat, which FrappeClient.run adds for the agent
-const OPENED = /\n\nViewing [^\n]* at \/studio\/\S*$/;
+// what the editor beside the chat showed, which FrappeClient.run adds for the agent
+const CONTEXT = /\n\n<studio_context>\n(.*)\n<\/studio_context>/;
 const EXCERPTS = /\n[^\n]*\n<excerpts>\n[\s\S]*?\n<\/excerpts>/;
 const FILE_BLOCK = /\n<file name="([^"]*)">\n[\s\S]*?\n<\/file>/g;
 const FILE_NOTE = /\n\[Attached file: ([^\n]+?) \(large; relevant excerpts follow\)\]/g;
@@ -11,9 +11,17 @@ const XML_ENTITIES = { "&quot;": '"', "&lt;": "<", "&gt;": ">", "&amp;": "&" };
 
 export function cleanUserText(text) {
 	const files = [];
+	let context = null;
 	const value = String(text ?? "")
 		.replace(MEMORY, "")
-		.replace(OPENED, "")
+		.replace(CONTEXT, (_, json) => {
+			try {
+				context = JSON.parse(json);
+			} catch {
+				// not ours to show
+			}
+			return "";
+		})
 		.replace(EXCERPTS, "")
 		.replace(FILE_BLOCK, (_, name) => {
 			files.push(name.replace(/&quot;|&lt;|&gt;|&amp;/g, (entity) => XML_ENTITIES[entity]));
@@ -23,7 +31,7 @@ export function cleanUserText(text) {
 			files.push(name);
 			return "";
 		});
-	return { text: value, files };
+	return { text: value, files, context };
 }
 
 // `fileId` names the staged File behind a chip, so a steered message the composer is
@@ -39,13 +47,16 @@ export function presentEvent(
 	return event;
 }
 
+const contextBlocks = (contexts) => contexts.filter(Boolean).map((context) => ({ type: "context", context }));
+
 function presentUserContent(content, fileId) {
 	const files = [];
 	const chip = (name) => ({ type: "attachment", id: fileId(name), name, kind: "file" });
+	const contexts = [];
 	if (typeof content === "string") {
 		const cleaned = cleanUserText(content);
-		if (!cleaned.files.length) return cleaned.text;
-		return [{ type: "text", text: cleaned.text }, ...cleaned.files.map(chip)];
+		if (!cleaned.files.length && !cleaned.context) return cleaned.text;
+		return [{ type: "text", text: cleaned.text }, ...cleaned.files.map(chip), ...contextBlocks([cleaned.context])];
 	}
 	if (!Array.isArray(content)) return content;
 	const blocks = content.map((block) => {
@@ -53,7 +64,8 @@ function presentUserContent(content, fileId) {
 		if (block.type !== "text") return block;
 		const cleaned = cleanUserText(block.text);
 		files.push(...cleaned.files);
+		contexts.push(cleaned.context);
 		return { ...block, text: cleaned.text };
 	});
-	return [...blocks, ...files.map(chip)];
+	return [...blocks, ...files.map(chip), ...contextBlocks(contexts)];
 }
