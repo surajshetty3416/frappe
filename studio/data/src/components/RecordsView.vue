@@ -83,39 +83,36 @@ const listed = computed(() => {
 	const chosen = fields.filter((field) => field.in_list_view)
 	return (chosen.length ? chosen : fields).slice(0, MAX_COLUMNS)
 })
-// columns share the panel's width, the title most; the fields whose minimums do not fit stay in the form
 const NUMERIC = new Set(["Int", "Float", "Currency", "Percent"])
-const NARROW = new Set([...NUMERIC, "Check", "Time", "Color", "Rating"])
-const sizeOf = (field: DocField): [number, number] => {
-	if (field.fieldname === doctype.doc?.title_field) return [8, 1.5]
-	if (NARROW.has(field.fieldtype)) return [5, 0.6]
-	return [6, 1]
-}
-const grid = ([min, share]: [number, number]) => `minmax(${min}rem, ${share}fr)`
 const all = computed(() => [
 	naming.value
-		? { key: "name", label: fieldLabel(naming.value), size: [8, 1.5] as [number, number], field: naming.value as DocField | null }
-		: { key: "name", label: "ID", size: [6, 0.8] as [number, number], field: null },
+		? { key: "name", label: fieldLabel(naming.value), field: naming.value as DocField | null }
+		: { key: "name", label: "ID", field: null },
 	...listed.value.map((field) => ({
 		key: field.fieldname!,
 		label: fieldLabel(field),
-		size: sizeOf(field),
 		align: NUMERIC.has(field.fieldtype) ? "right" : undefined,
 		field,
 	})),
-].map((column) => ({ ...column, width: grid(column.size) })))
+])
+type Column = (typeof all.value)[number]
+
 const cellText = (field: DocField | null, item: unknown) => {
 	if (!field) return String(item ?? "")
 	if (field.fieldtype === "Link") return titles.value[`${field.options}::${item}`] || String(item ?? "")
 	return formatValue(field, item)
 }
 
-// a column shows when its widest value fits whole in the width the grid gives it; the first column always shows
+// each column is as wide as its header and widest value, up to a cap past which a long value truncates;
+// columns join in field order while they fit, and the room left spreads across them
+const MAX_WIDTH = 240
+const HEADER_ICON = 20
+const GAP = 16
+const PADDING = 16
 const frame = ref<HTMLElement | null>(null)
 const probe = ref<HTMLElement | null>(null)
 const { width } = useElementSize(frame)
-type Column = (typeof all.value)[number]
-const widest = computed(() => {
+const needs = computed(() => {
 	const style = probe.value && getComputedStyle(probe.value)
 	const context = style && document.createElement("canvas").getContext("2d")
 	if (!context) return {} as Record<string, number>
@@ -123,42 +120,28 @@ const widest = computed(() => {
 	context.letterSpacing = style.letterSpacing
 	const swatch = 20
 	return Object.fromEntries(
-		all.value.map((column) => [
-			column.key,
-			Math.max(
-				0,
-				...rows.value.map((row) => {
-					const text = cellText(column.field, row[column.key])
-					return context.measureText(text).width + (column.field?.fieldtype === "Color" && text ? swatch : 0)
-				})
-			),
-		])
+		all.value.map((column) => {
+			const values = rows.value.map((row) => {
+				const text = cellText(column.field, row[column.key])
+				return context.measureText(text).width + (column.field?.fieldtype === "Color" && text ? swatch : 0)
+			})
+			const header = context.measureText(column.label).width + HEADER_ICON
+			return [column.key, Math.min(MAX_WIDTH, Math.ceil(Math.max(header, ...values)) + 1)]
+		})
 	)
 })
-// the grid's widths for these columns: minmax(min, share fr) in a row with 1rem gaps and 1rem of padding
-function gridWidths(chosen: Column[]) {
-	const room = width.value - 16 - 16 * (chosen.length - 1)
-	const fixed = new Set<number>()
-	for (;;) {
-		const flexible = chosen.filter((_, index) => !fixed.has(index))
-		const rest = room - chosen.reduce((sum, column, index) => sum + (fixed.has(index) ? column.size[0] * 16 : 0), 0)
-		const fr = rest / flexible.reduce((sum, column) => sum + column.size[1], 0)
-		const below = chosen.findIndex((column, index) => !fixed.has(index) && column.size[1] * fr < column.size[0] * 16)
-		if (below < 0 || !flexible.length) return chosen.map((column, index) => (fixed.has(index) ? column.size[0] * 16 : column.size[1] * fr))
-		fixed.add(below)
+const columns = computed(() => {
+	let used = PADDING - GAP
+	const shown: Column[] = []
+	for (const [index, column] of all.value.entries()) {
+		const need = needs.value[column.key] ?? 0
+		if (index > 0 && used + GAP + need > width.value) continue
+		used += GAP + need
+		shown.push(column)
 	}
-}
-const columns = computed(() =>
-	all.value.reduce<Column[]>((chosen, column, index) => {
-		if (index === 0) return [column]
-		const next = [...chosen, column]
-		const widths = gridWidths(next)
-		const minimums = next.reduce((sum, each) => sum + each.size[0] * 16, 0)
-		const fits = minimums <= width.value - 16 - 16 * (next.length - 1)
-		const whole = next.every((each, at) => at === 0 || widest.value[each.key] <= widths[at] + 0.5)
-		return fits && whole ? next : chosen
-	}, [])
-)
+	const spare = Math.max(0, width.value - used) / shown.length
+	return shown.map((column) => ({ ...column, width: `${(needs.value[column.key] ?? 0) + spare}px` }))
+})
 
 const rows = ref<Row[]>([])
 const titles = ref<Record<string, string>>({})
