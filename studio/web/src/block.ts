@@ -293,7 +293,13 @@ class Block implements BlockOptions {
 		return this.isSVG() && Boolean(this.getInnerHTML());
 	}
 	isText() {
-		return TEXT_ELEMENTS.has(this.getElement() as string);
+		if (TEXT_ELEMENTS.has(this.getElement() as string)) return true;
+		// an option holds only a text node, which BuilderBlock writes itself
+		if (this.getElement() === "option") return false;
+		// the published page renders any element's text, so a div that carries text is a text block too
+		const innerHTML = this.getInnerHTML();
+		if (innerHTML) return !isHTMLString(innerHTML);
+		return !this.isRepeater() && this.getDynamicValues().some((value) => value.property === "innerHTML");
 	}
 	isHeader() {
 		return HEADER_ELEMENTS.has(this.getElement() as string);
