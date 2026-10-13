@@ -1,29 +1,42 @@
 <template>
 	<section data-layer="shell" class="flex h-full min-w-0 flex-col bg-surface-base">
-		<div class="flex h-10 shrink-0 items-center gap-1 overflow-x-auto border-b border-outline-gray-1 px-2" role="tablist">
+		<div class="flex h-10 shrink-0 items-center border-b border-outline-gray-1">
+			<!-- tabs keep a readable width; the strip scrolls, and the ones out of view fold into a menu -->
 			<div
-				v-for="tab in tabs"
-				:key="tabKey(tab)"
-				role="tab"
-				:aria-selected="isActive(tab)"
-				:title="tab.title"
-				class="group flex h-7 min-w-[96px] max-w-[280px] shrink cursor-pointer items-center gap-1.5 rounded-4 pl-2 pr-0.5 text-sm transition-colors"
-				:class="isActive(tab) ? 'bg-surface-gray-2 text-ink-gray-8' : 'text-ink-gray-6 hover:bg-surface-gray-1'"
-				@click="router.push(tab.path)"
-				@auxclick.middle="close(tab)"
+				ref="strip"
+				class="flex h-full min-w-0 flex-1 items-center gap-1 overflow-x-auto px-2 [scrollbar-width:none]"
+				role="tablist"
+				@scroll="measureTabs"
+				@wheel="scrollTabs"
 			>
-				<span :class="tab.icon" class="size-4 shrink-0 text-ink-gray-5" />
-				<span class="truncate">{{ tab.title }}</span>
-				<Button
-					size="xs"
-					variant="ghost"
-					icon="lucide-x"
-					class="shrink-0"
-					:class="isActive(tab) ? '' : 'opacity-0 group-hover:opacity-100'"
-					:tooltip="'Close'"
-					@click.stop="close(tab)"
-				/>
+				<div
+					v-for="tab in tabs"
+					:key="tabKey(tab)"
+					:data-tab="tabKey(tab)"
+					role="tab"
+					:aria-selected="isActive(tab)"
+					:title="tab.title"
+					class="group flex h-7 min-w-32 max-w-60 shrink-0 cursor-pointer items-center gap-1.5 rounded-4 pl-2 pr-0.5 text-sm transition-colors"
+					:class="isActive(tab) ? 'bg-surface-gray-2 text-ink-gray-8' : 'text-ink-gray-6 hover:bg-surface-gray-1'"
+					@click="router.push(tab.path)"
+					@auxclick.middle="close(tab)"
+				>
+					<span :class="tab.icon" class="size-4 shrink-0 text-ink-gray-5" />
+					<span class="min-w-0 flex-1 truncate">{{ ownTitle(tab.title) }}</span>
+					<Button
+						size="xs"
+						variant="ghost"
+						icon="lucide-x"
+						class="shrink-0"
+						:class="isActive(tab) ? '' : 'opacity-0 group-hover:opacity-100'"
+						:tooltip="'Close'"
+						@click.stop="close(tab)"
+					/>
+				</div>
 			</div>
+			<Dropdown v-if="outOfView.length" :options="outOfViewOptions" align="end">
+				<Button variant="ghost" class="mr-2 shrink-0" :label="`+${outOfView.length}`" :tooltip="'More tabs'" />
+			</Dropdown>
 		</div>
 
 		<div v-if="artifact" data-artifact-bar class="flex h-11 shrink-0 items-center gap-2 border-b border-outline-gray-1 pl-3 pr-2">
@@ -43,12 +56,13 @@
 						class="block min-w-0 truncate rounded-4 px-1 py-0.5 text-base font-medium text-ink-gray-8"
 						:class="editor ? 'cursor-text hover:bg-surface-gray-2' : ''"
 						@click="startRename"
-						>{{ title }}</span
+						>{{ ownTitle(title) }}</span
 					>
 				</Tooltip>
-				<span v-if="status" class="flex shrink-0 items-center gap-1.5 whitespace-nowrap text-sm text-ink-gray-5">
+				<!-- the status gives way before the title does -->
+				<span v-if="status" class="flex min-w-0 shrink-[100] items-center gap-1.5 whitespace-nowrap text-sm text-ink-gray-5">
 					<span class="size-1.5 shrink-0 rounded-full" :class="STATUS_DOT[status.theme]" />
-					<span>{{ status.label }}</span>
+					<span class="truncate">{{ status.label }}</span>
 				</span>
 			</div>
 			<div class="flex shrink-0 items-center gap-0.5">
@@ -85,6 +99,7 @@
 				<div class="flex min-w-0 flex-1 items-center gap-2">
 					<TabButtons
 						v-if="views.length"
+						variant="ghost"
 						class="shrink-0"
 						:options="views.map((view) => ({ value: view.name, label: view.label }))"
 						:model-value="views.find((view) => view.active)?.name"
@@ -138,7 +153,7 @@
 </template>
 
 <script setup lang="ts">
-import { Button, LoadingIndicator, TabButtons, TextInput, Tooltip, toast } from "frappe-ui"
+import { Button, Dropdown, LoadingIndicator, TabButtons, TextInput, Tooltip, toast } from "frappe-ui"
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, shallowRef, watch } from "vue"
 import { useRoute, useRouter } from "vue-router"
 
@@ -147,7 +162,7 @@ import { commenting } from "../context"
 import { type ArtifactEditor, type EditorMode, editorMode } from "../editor"
 import { layers } from "../layers"
 import { onDocUpdate } from "../realtime"
-import { type Tab, closeTab, findTab, openTab, tabKey, tabs } from "../tabs"
+import { type Tab, closeTab, findTab, openTab, ownTitle, tabKey, tabs } from "../tabs"
 import EditorDrawer from "./EditorDrawer.vue"
 import LayerComponent from "./LayerComponent.vue"
 import SelectionLayer from "./SelectionLayer.vue"
@@ -243,6 +258,43 @@ watch(openDrawer, (open) => {
 	const focused = document.activeElement
 	if (!open && focused instanceof HTMLElement && focused.closest("[data-artifact-bar]")) focused.blur()
 })
+
+const strip = ref<HTMLElement | null>(null)
+const outOfView = ref<Tab[]>([])
+const outOfViewOptions = computed(() =>
+	outOfView.value.map((tab) => ({ label: ownTitle(tab.title), icon: tab.icon, onClick: () => router.push(tab.path) }))
+)
+function measureTabs() {
+	const el = strip.value
+	if (!el) return
+	const box = el.getBoundingClientRect()
+	outOfView.value = tabs.value.filter((tab) => {
+		const rect = el.querySelector(`[data-tab="${CSS.escape(tabKey(tab))}"]`)?.getBoundingClientRect()
+		return rect && (rect.left < box.left - 1 || rect.right > box.right + 1)
+	})
+}
+// a mouse wheel scrolls the strip sideways
+function scrollTabs(event: WheelEvent) {
+	if (!strip.value || Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return
+	strip.value.scrollLeft += event.deltaY
+	event.preventDefault()
+}
+// the open tab stays in view as tabs come and go, and as the strip narrows for the menu
+function revealActive() {
+	strip.value?.querySelector(`[data-tab="${CSS.escape(artifactKey.value)}"]`)?.scrollIntoView({ block: "nearest", inline: "nearest" })
+	measureTabs()
+}
+watch(
+	() => [tabs.value.map((tab) => tabKey(tab) + tab.title).join(), artifactKey.value],
+	() => nextTick(revealActive),
+	{ immediate: true }
+)
+const stripResize = new ResizeObserver(revealActive)
+watch(strip, (el, old) => {
+	if (old) stripResize.unobserve(old)
+	if (el) stripResize.observe(el)
+})
+onBeforeUnmount(() => stripResize.disconnect())
 
 function close(tab: Tab) {
 	const wasActive = isActive(tab)
