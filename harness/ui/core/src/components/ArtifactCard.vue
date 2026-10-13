@@ -21,13 +21,5 @@ import { computed, inject } from "vue"
 const props = defineProps({ artifact: { type: Object, required: true } })
 const flow = inject("flow")
 
-const LAYER_ICONS = {
-	web: "lucide-globe",
-	analytics: "lucide-chart-column",
-	ui: "lucide-blocks",
-	data: "lucide-database",
-	agents: "lucide-bot",
-	ai: "lucide-bot",
-}
-const icon = computed(() => LAYER_ICONS[props.artifact.route.split("/")[2]] ?? "lucide-file")
+const icon = computed(() => flow.options.artifactIcon?.(props.artifact) ?? "lucide-file")
 </script>

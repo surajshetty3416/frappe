@@ -4,27 +4,27 @@
 		<Teleport to="#studio-chat-menu" defer>
 			<!-- this layer's styles stop at the shell's top bar, so the menu carries its own mark -->
 			<div data-layer="ai" class="contents">
-				<ChatMenu />
+				<ChatMenu :key="viewKey" />
 			</div>
 		</Teleport>
 		<!-- a new chat: the host's intro over the composer, its starters under it -->
 		<div v-if="blank" class="flex min-h-0 flex-1 flex-col justify-end overflow-hidden px-4 pb-6">
 			<slot name="intro" />
 		</div>
-		<MessageList v-else />
-		<Composer v-if="!readOnly" ref="composer" />
+		<MessageList v-else :key="viewKey" />
+		<Composer v-if="!readOnly" ref="composer" :key="viewKey" />
 		<p v-else class="flex-none px-4 pb-4 text-center text-sm text-ink-gray-5">
 			Only the owner of this chat can send messages.
 		</p>
 		<div v-if="blank" class="min-h-0 flex-1 overflow-y-auto px-4 pb-6">
 			<slot name="starters" :prefill="(text) => composer?.prefill(text)" />
 		</div>
-		<TranscriptDialog />
+		<TranscriptDialog :key="viewKey" />
 	</div>
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, onMounted, provide, ref, watch } from "vue";
+import { computed, onBeforeUnmount, provide, reactive, ref, shallowRef, watch } from "vue";
 import { toast } from "frappe-ui";
 import ChatMenu from "@flow/ui-core/components/ChatMenu.vue";
 import Composer from "@flow/ui-core/components/Composer.vue";
@@ -42,64 +42,117 @@ const props = defineProps({
 	boot: { type: Object, required: true },
 	// what the editor beside the chat tells the agent with each message (the store's `context` option)
 	context: { type: Object, default: null },
-	// the chat to open (none starts a new one) and a first message to send
+	// the chat on screen (none is a new one) and a first message to send
 	session: { type: String, default: null },
 	initialMessage: { type: String, default: "" },
+	// (artifact) => icon class, for the artifact cards in the transcript
+	artifactIcon: { type: Function, default: null },
 });
-// "session" when the open chat changes (null when it is deleted), "artifact" when a tool hands one back live or a card is clicked
+// "session" when the chat on screen gets its session or loses it (null when it is deleted),
+// "artifact" when its tool hands one back live or a card is clicked
 const emit = defineEmits(["session", "artifact"]);
 
-// someone else's chat is view-only: its tools would run as its owner
-const readOnly = ref(false);
+// Every chat opened here keeps its own store, so a chat switched away from keeps streaming
+// and its queue keeps sending; the components on screen read the shown chat's store.
+const MAX_CHATS = 8;
 const socket = connectSocket(props.boot);
+// someone else's chat is view-only: its tools would run as its owner
+const readOnlyBySession = reactive({});
 const client = new FrappeClient({
 	socket,
 	boot: props.boot,
 	transport,
 	hooks: {
-		onSession: (payload) => (readOnly.value = Boolean(payload.read_only)),
+		onSession: (payload) => (readOnlyBySession[payload.name] = Boolean(payload.read_only)),
 	},
 });
-const store = createFlowStore(client, {
-	storageKey: `studio.chat.${props.boot.user?.name ?? "user"}`,
-	presentTool,
-	openArtifact: (artifact) => emit("artifact", artifact),
-	context: props.context,
-});
-provide("flow", store);
+const stores = [];
+const shown = shallowRef(null);
+const viewKey = ref(0);
 
-watch(
-	() => store.state.toast,
-	(item) => {
-		if (!item) return;
-		if (item.kind === "error") toast.error(item.message);
-		else toast.success(item.message);
+function createStore() {
+	const store = createFlowStore(client, {
+		storageKey: `studio.chat.${props.boot.user?.name ?? "user"}`,
+		presentTool,
+		openArtifact: (artifact) => store === shown.value && emit("artifact", artifact),
+		artifactIcon: (artifact) => props.artifactIcon?.(artifact),
+		context: props.context,
+	});
+	watch(
+		() => store.state.toast,
+		(item) => {
+			if (!item) return;
+			if (item.kind === "error") toast.error(item.message);
+			else toast.success(item.message);
+		}
+	);
+	stores.push(store);
+	return store;
+}
+
+const isBlank = (store) => !store.state.sessionId && !store.state.conversation.sending.length;
+const busy = (store) =>
+	store.state.conversation.running || store.state.conversation.sending.length || store.state.queued.length;
+
+// the chats beyond the limit that are idle and off screen close, the longest unseen first
+function prune() {
+	for (const store of [...stores]) {
+		if (stores.length <= MAX_CHATS) return;
+		if (store === shown.value || busy(store)) continue;
+		store.detach();
+		stores.splice(stores.indexOf(store), 1);
 	}
+}
+
+function show(session) {
+	let store = stores.find((open) => (session ? open.state.sessionId === session : isBlank(open)));
+	const opening = !store;
+	store ??= createStore();
+	if (store !== shown.value) {
+		stores.splice(stores.indexOf(store), 1);
+		stores.push(store);
+		shown.value = store;
+		viewKey.value++;
+	}
+	if (opening && session) void store.openSession(session);
+	prune();
+	return store;
+}
+
+const flow = new Proxy({}, { get: (_, key) => shown.value?.[key] });
+provide("flow", flow);
+show(props.session);
+watch(
+	() => props.session,
+	(session) => session !== shown.value.state.sessionId && show(session)
+);
+watch(
+	() => [props.session, props.initialMessage],
+	([session, message]) => !session && message && isBlank(shown.value) && void shown.value.send(message),
+	{ immediate: true }
 );
 
+const readOnly = computed(() => Boolean(readOnlyBySession[shown.value?.state.sessionId]));
 const composer = ref(null);
-const blank = computed(
-	() => !props.session && !props.initialMessage && !store.state.sessionId && !store.state.conversation.sending.length
-);
+const blank = computed(() => !props.session && !props.initialMessage && isBlank(shown.value));
 
-// null once the open chat is deleted
+// the shown chat got its session, or lost it
 watch(
-	() => store.state.sessionId,
-	(id) => {
-		if (!id) readOnly.value = false;
-		emit("session", id);
-	}
+	() => [shown.value, shown.value.state.sessionId],
+	([store, id], [before]) => store === before && emit("session", id)
 );
 
-// an artifact a tool makes or changes live opens beside the chat
+// an artifact the shown chat's tool makes or changes live opens beside the chat
 let seen = 0;
 watch(
-	() => store.state.conversation.entries.length,
-	(length) => {
-		const live = store.state.session?.latest_seq ?? 0;
-		for (const entry of store.state.conversation.entries.slice(seen, length)) {
-			const artifact = entry.type === "tool_result" && entry.seq > live && resultArtifact(entry);
-			if (artifact) emit("artifact", artifact);
+	() => [shown.value, shown.value.state.conversation.entries.length],
+	([store, length], [before]) => {
+		if (store === before) {
+			const live = store.state.session?.latest_seq ?? 0;
+			for (const entry of store.state.conversation.entries.slice(seen, length)) {
+				const artifact = entry.type === "tool_result" && entry.seq > live && resultArtifact(entry);
+				if (artifact) emit("artifact", artifact);
+			}
 		}
 		seen = length;
 	}
@@ -109,17 +162,13 @@ watch(
 defineExpose({
 	send(message) {
 		if (readOnly.value) return false;
-		store.send(message);
+		shown.value.send(message);
 		return true;
 	},
 });
 
-onMounted(async () => {
-	if (props.session) await store.openSession(props.session);
-	if (props.initialMessage) await store.send(props.initialMessage);
-});
 onBeforeUnmount(() => {
-	store.detach();
+	for (const store of stores) store.detach();
 	socket.disconnect();
 });
 </script>

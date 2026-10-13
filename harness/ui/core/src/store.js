@@ -31,6 +31,9 @@ function readJSON(key, fallback, storage = globalThis.localStorage) {
 //                  body, argsComponent, resultComponent }, any subset, describing the host's
 //                  tools in rows, approvals and expanded output
 //   openArtifact   (artifact) => void, called when an artifact card in the transcript is clicked
+//   artifactIcon   (artifact) => icon class of an artifact card
+//   placeholder    the composer's placeholder, instead of "Reply…" or "Describe what to build…"
+//   skills         false hides the composer's "/" skills menu
 //   context        what the host tells the agent with each message: { snapshot() → context or
 //                  null, taken as a message is sent; sent(context), once it is delivered or
 //                  queued; pending() → chips waiting above the composer, which make a message
@@ -58,21 +61,22 @@ export function createFlowStore(client, options = {}) {
 	let sendCount = 0
 	let queueCount = 0
 	let lastRunEnd = null
-	// waiting messages of sessions not open right now; sessionStorage, so other tabs don't send them too
-	const heldBySession = reactive(new Map(Object.entries(readJSON(keys.queue, {}, globalThis.sessionStorage))))
+	// Waiting messages by session, in sessionStorage so other tabs don't send them too. Several
+	// stores share it, one per open chat, so each writes only its own session's entry.
+	const savedQueues = () => readJSON(keys.queue, {}, globalThis.sessionStorage)
+	function saveQueue(sid, records) {
+		const all = savedQueues()
+		if (records.length) all[sid] = records
+		else delete all[sid]
+		try {
+			sessionStorage.setItem(keys.queue, JSON.stringify(all))
+		} catch {
+			// storage blocked: the queue still lasts until the page goes
+		}
+	}
 	watch(
-		() => {
-			const all = Object.fromEntries(heldBySession)
-			if (state.sessionId && state.queued.length) all[state.sessionId] = state.queued.map(waitingRecord)
-			return JSON.stringify(all)
-		},
-		(json) => {
-			try {
-				sessionStorage.setItem(keys.queue, json)
-			} catch {
-				// storage blocked: the queue still lasts until the page goes
-			}
-		},
+		() => [state.sessionId, JSON.stringify(state.queued.map(waitingRecord))],
+		([sid, json]) => sid && saveQueue(sid, JSON.parse(json)),
 	)
 	let skillsLoaded = null // session id (or "new") whose skills are in state.skills
 
@@ -245,7 +249,7 @@ export function createFlowStore(client, options = {}) {
 		const staged = await stageAttachments(sid, attachments)
 		if (!staged) return false
 		if (state.sessionId !== sid) {
-			heldBySession.set(sid, [...(heldBySession.get(sid) ?? []), { message, attachments: staged.attachments, afterSeq, context }])
+			saveQueue(sid, [...(savedQueues()[sid] ?? []), { message, attachments: staged.attachments, afterSeq, context }])
 			return true
 		}
 		if (!busy() && !state.queued.length && ranItsCourse(lastRunEnd)) return sendNow(message, staged.attachments, context)
@@ -321,11 +325,10 @@ export function createFlowStore(client, options = {}) {
 	}
 
 	function swapQueue(sid) {
-		if (state.sessionId && state.queued.length) heldBySession.set(state.sessionId, state.queued.map(waitingRecord))
-		state.queued = (heldBySession.get(sid) ?? []).map((held) =>
+		if (state.sessionId) saveQueue(state.sessionId, state.queued.map(waitingRecord))
+		state.queued = ((sid && savedQueues()[sid]) || []).map((held) =>
 			queueItem(held.message, held.attachments, held.afterSeq, held.context ?? null),
 		)
-		heldBySession.delete(sid)
 	}
 
 	function unqueue(item) {
@@ -459,8 +462,11 @@ export function createFlowStore(client, options = {}) {
 	async function deleteSession() {
 		const sid = state.sessionId
 		if ((await guard(() => client.deleteSession(sid))) === null) return
-		heldBySession.delete(sid)
-		if (state.sessionId === sid) startNewChat()
+		saveQueue(sid, [])
+		if (state.sessionId === sid) {
+			state.queued = []
+			startNewChat()
+		}
 	}
 
 	// Object URL for a stored image attachment, null when it is gone; the caller revokes it.

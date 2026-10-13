@@ -202,7 +202,7 @@ const running = computed(() => flow.state.conversation.running)
 // once the text wraps it keeps its own row until the box empties, or it would flip back and forth
 const wrapped = ref(false)
 const compact = computed(() => !wrapped.value && !text.value.includes("\n"))
-const placeholder = computed(() => (flow.state.sessionId ? "Reply…" : "Describe what to build…"))
+const placeholder = computed(() => flow.options.placeholder ?? (flow.state.sessionId ? "Reply…" : "Describe what to build…"))
 
 const MODES = { auto: "Auto-approve", ask: "Ask first" }
 const currentMode = computed(() => {
@@ -303,6 +303,7 @@ function syncCaret() {
 
 // the "/word" being typed at the caret, when it starts a word
 const slash = computed(() => {
+	if (flow.options.skills === false) return null
 	const head = text.value.slice(0, caretPos.value)
 	const at = head.lastIndexOf("/")
 	if (at === -1) return null

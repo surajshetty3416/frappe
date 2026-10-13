@@ -1,7 +1,7 @@
 import type { App, Component } from "vue"
 import type { NavigationGuardWithThis, RouteRecordRaw } from "vue-router"
 
-export type LayerName = "data" | "agents" | "ai" | "web" | "analytics" | "ui" | "settings"
+export type LayerName = "data" | "agents" | "ai" | "web" | "analytics" | "ui" | "print" | "email" | "settings"
 
 // What a layer hands the shell. The shell mounts `component` at `path`, with `routes` as
 // its children, and calls `setup` once, the first time someone opens the layer.

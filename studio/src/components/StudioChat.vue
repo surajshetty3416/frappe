@@ -3,10 +3,10 @@
 		<FlowApp
 			v-if="ready"
 			ref="flowApp"
-			:key="mountKey"
-			:session="mountSession"
+			:session="current"
 			:initial-message="initialMessage"
 			:context="context"
+			:artifact-icon="artifactIcon"
 			@session="onSession"
 			@artifact="onArtifact"
 		>
@@ -84,10 +84,8 @@ const routeSession = computed(() => {
 	return typeof session === "string" && session !== "new" ? session : null
 })
 
-// `current` is the chat on screen; the chat is only remounted when the route asks for another one
+// the chat on screen; the chat keeps every chat it opened running, and shows this one
 const current = ref<string | null>(null)
-const mountSession = ref<string | null>(null)
-const mountKey = ref(0)
 const ready = ref(false)
 const initialMessage = ref("")
 
@@ -98,10 +96,8 @@ async function resolve() {
 	}
 	// the chat that built the artifact is the open chat, for the top bar and the sidebar too
 	if (wanted && !routeSession.value && !onChatRoute.value) router.replace({ query: { ...route.query, chat: wanted } })
-	if (ready.value && wanted === current.value) return
 	initialMessage.value = onChatRoute.value && typeof route.query.prompt === "string" ? route.query.prompt : ""
-	current.value = mountSession.value = wanted
-	mountKey.value++
+	current.value = wanted
 	ready.value = true
 }
 watch(() => [routeSession.value, artifact.value?.doctype, artifact.value?.name], resolve, { immediate: true })
@@ -176,6 +172,8 @@ const IDEAS = [
 	{ icon: "lucide-blocks", text: "An app to " },
 	{ icon: "lucide-globe", text: "A website for " },
 	{ icon: "lucide-chart-column", text: "A dashboard of " },
+	{ icon: "lucide-printer", text: "Make an attendee badge with a QR code" },
+	{ icon: "lucide-mail", text: "Make a confirmation email for new registrations" },
 ]
 
 // what a person usually asks of an artifact open beside the chat, by layer
