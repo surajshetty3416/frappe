@@ -223,14 +223,19 @@ def render_for(doc, doctype: str, record: str) -> dict:
 
 
 def recipient(doctype: str, values: dict) -> str | None:
-	"""The record's email address, with its title, as a sender would address it."""
+	"""The record's email address, labelled with the person it belongs to, as a sender would
+	address it: `speaker_name` labels `speaker_email`, and only a plain `email` takes the title."""
 	meta = frappe.get_meta(doctype)
 	field = next((df.fieldname for df in meta.fields if df.fieldtype == "Data" and df.options == "Email"), None)
-	address = values.get(field or "email") or values.get("email_id")
+	field = field if values.get(field) else ("email" if values.get("email") else "email_id")
+	address = values.get(field)
 	if not address:
 		return None
-	title = values.get(meta.get_title_field())
-	return f"{title} <{address}>" if title and title != address and title != values.get("name") else address
+	if field in ("email", "email_id"):
+		label = values.get(meta.get_title_field())
+	else:
+		label = values.get(field.removesuffix("email") + "name") if field.endswith("_email") else None
+	return f"{label} <{address}>" if label and label != address and label != values.get("name") else address
 
 
 @frappe.whitelist()
