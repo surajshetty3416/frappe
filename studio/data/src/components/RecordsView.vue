@@ -84,7 +84,7 @@ const listed = computed(() => {
 })
 // columns share the panel's width, the title most; the fields whose minimums do not fit stay in the form
 const NUMERIC = new Set(["Int", "Float", "Currency", "Percent"])
-const NARROW = new Set([...NUMERIC, "Check", "Date", "Time", "Color", "Rating"])
+const NARROW = new Set([...NUMERIC, "Check", "Time", "Color", "Rating"])
 const sizeOf = (field: DocField): [number, number] => {
 	if (field.fieldname === doctype.doc?.title_field) return [8, 1.5]
 	if (NARROW.has(field.fieldtype)) return [5, 0.6]

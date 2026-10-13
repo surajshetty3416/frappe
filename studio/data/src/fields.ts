@@ -62,15 +62,17 @@ export const fieldIcon = (fieldtype: string) => ICONS[fieldtype] ?? "lucide-type
 
 export const fieldLabel = (field: DocField) => field.label || field.fieldname || field.fieldtype
 
+// dates read as Studio writes them elsewhere, "15 June 2027"
+export const DATE_FORMATS: Record<string, string> = { Date: "D MMMM YYYY", Datetime: "D MMMM YYYY, h:mm a" }
+
 export function formatValue(field: DocField | undefined, value: unknown): string {
 	if (value === null || value === undefined || value === "") return ""
 	switch (field?.fieldtype) {
 		case "Check":
 			return value ? "Yes" : "No"
 		case "Date":
-			return dayjs(String(value)).format("D MMM YYYY")
 		case "Datetime":
-			return dayjs(String(value)).format("D MMM YYYY, h:mm a")
+			return dayjs(String(value)).format(DATE_FORMATS[field.fieldtype])
 		case "Currency":
 		case "Float":
 			return Number(value).toLocaleString(undefined, { maximumFractionDigits: 2 })

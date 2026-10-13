@@ -26,6 +26,7 @@
 	<FormControl
 		v-else-if="DATE_TYPES[field.fieldtype]"
 		:type="DATE_TYPES[field.fieldtype]"
+		:format="DATE_FORMATS[field.fieldtype]"
 		:model-value="modelValue"
 		:disabled="readonly"
 		@update:model-value="(value: unknown) => emit('update:modelValue', value)"
@@ -66,7 +67,7 @@ import { Checkbox, Combobox, FormControl, Select, TextInput, Textarea, call } fr
 import { computed, ref } from "vue"
 
 import type { DocField } from "../api"
-import { TABLE_TYPES } from "../fields"
+import { DATE_FORMATS, TABLE_TYPES } from "../fields"
 
 const props = defineProps<{ field: DocField; modelValue: unknown; readonly?: boolean }>()
 const emit = defineEmits<{ "update:modelValue": [value: unknown] }>()
