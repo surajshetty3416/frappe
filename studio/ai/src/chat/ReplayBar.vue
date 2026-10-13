@@ -1,0 +1,107 @@
+<template>
+	<div v-if="shown" class="flex-none px-4 pb-2" data-replay-bar>
+		<div class="mx-auto flex h-9 max-w-[760px] items-center gap-1 rounded-6 border border-outline-gray-1 bg-surface-gray-1 px-1 text-sm">
+			<template v-if="replay.status === 'Done'">
+				<span class="lucide-circle-check ml-1.5 size-4 flex-none text-ink-gray-5" />
+				<span class="ml-1 flex-none text-ink-gray-8">Replay finished</span>
+				<span class="min-w-0 flex-1 truncate text-ink-gray-5">{{ replay.title }}</span>
+				<Button v-if="next" variant="solid" icon-right="lucide-arrow-right" :loading="starting" :label="`Next: ${next.title}`" @click="startNext" />
+			</template>
+			<template v-else>
+				<Button
+					v-if="playing"
+					variant="ghost"
+					icon="lucide-pause"
+					tooltip="Pause after this step"
+					aria-label="Pause"
+					@click="pauseReplay(session)"
+				/>
+				<Button
+					v-else
+					variant="ghost"
+					icon="lucide-play"
+					tooltip="Play to the end"
+					aria-label="Play"
+					:disabled="!ready"
+					@click="playReplay(session, flow.state)"
+				/>
+				<Button
+					variant="ghost"
+					icon="lucide-step-forward"
+					tooltip="Play one step"
+					aria-label="Step"
+					:disabled="!ready || playing"
+					@click="stepReplay(session, flow.state)"
+				/>
+				<span class="ml-1 flex-none tabular-nums text-ink-gray-8">{{ progress }}</span>
+				<template v-if="replay.error">
+					<span class="lucide-circle-alert ml-1 size-4 flex-none text-ink-red-4" />
+					<span class="min-w-0 flex-1 truncate text-ink-red-6" :title="replay.error">{{ replay.error }}</span>
+				</template>
+				<span v-else class="ml-1 min-w-0 flex-1 truncate text-ink-gray-5">{{ replay.title }}</span>
+			</template>
+		</div>
+	</div>
+</template>
+
+<script setup>
+import { computed, inject, ref, watch } from "vue";
+import { useRouter } from "vue-router";
+import { Button } from "frappe-ui";
+
+import {
+	isPlaying,
+	isStepping,
+	loadReplay,
+	nextRecording,
+	pauseReplay,
+	playReplay,
+	replays,
+	startReplay,
+	stepReplay,
+} from "@shell/replay";
+
+// The controls of a replayed chat, until its person sends a message of their own.
+const flow = inject("flow");
+const router = useRouter();
+
+const session = computed(() => flow.state.sessionId);
+const replay = computed(() => (session.value && replays.get(session.value)) || null);
+const playing = computed(() => isPlaying(session.value));
+const stepping = computed(() => isStepping(session.value));
+const inFlight = computed(() => stepping.value || replay.value?.status === "Playing");
+const ready = computed(() => replay.value?.status === "Ready" && !inFlight.value);
+const spoke = computed(() => flow.state.queued.length > 0 || flow.state.conversation.sending.length > 0);
+const shown = computed(() => replay.value && !replay.value.live && !(spoke.value && !stepping.value));
+
+const progress = computed(() => {
+	const { step, steps } = replay.value;
+	if (inFlight.value) return `Step ${step + 1} of ${steps}`;
+	return step ? `Step ${step} of ${steps}` : `${steps} steps`;
+});
+
+watch(session, (id) => id && void loadReplay(id), { immediate: true });
+// a run this bar did not start is a live message, or a step another tab played
+watch(
+	() => flow.state.conversation.running,
+	() => session.value && replays.get(session.value) && !stepping.value && void loadReplay(session.value)
+);
+
+const next = ref(null);
+watch(
+	() => replay.value?.status === "Done" && replay.value.recording,
+	async (recording) => (next.value = recording ? await nextRecording(recording) : null),
+	{ immediate: true }
+);
+
+const starting = ref(false);
+async function startNext() {
+	starting.value = true;
+	try {
+		const started = await startReplay(next.value.name);
+		router.push({ name: "studio-chat", params: { session: started.session } });
+	} finally {
+		starting.value = false;
+	}
+}
+</script>

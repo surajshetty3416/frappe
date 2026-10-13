@@ -4,6 +4,7 @@ import { computed, ref } from "vue"
 
 import { type Chat, getHistory } from "./artifacts"
 import { onListUpdate } from "./realtime"
+import { isReplaying } from "./replay"
 
 export type ChatStatus = "running" | "waiting" | "unread" | null
 
@@ -47,7 +48,7 @@ export function markSeen(session: string) {
 
 export function chatStatus(chat: Chat, current: string | null): ChatStatus {
 	const run = runs.value[chat.name]
-	if (run === "Running") return "running"
+	if (run === "Running" || isReplaying(chat.name)) return "running"
 	if (run === "Paused") return "waiting"
 	if (chat.name === current) return null
 	return chat.modified > (seen.value.chats[chat.name] ?? seen.value.since) ? "unread" : null

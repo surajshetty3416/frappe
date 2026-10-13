@@ -6,6 +6,7 @@
  "engine": "InnoDB",
  "field_order": [
   "title",
+  "position",
   "agent",
   "source_site",
   "steps",
@@ -17,6 +18,12 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Title"
+  },
+  {
+   "fieldname": "position",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Position"
   },
   {
    "fieldname": "agent",
@@ -48,7 +55,7 @@
   }
  ],
  "links": [],
- "modified": "2026-10-13 00:00:00",
+ "modified": "2026-10-13 18:00:00",
  "modified_by": "Administrator",
  "module": "AI",
  "name": "Flow Recording",

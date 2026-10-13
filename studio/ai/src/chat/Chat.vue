@@ -37,6 +37,7 @@ import { resultArtifact } from "@flow/ui-core/transcript.js";
 import { FrappeClient } from "../api/client.js";
 import * as transport from "../api/frappe.js";
 import { connectSocket } from "../api/socket.js";
+import { replays } from "@shell/replay";
 import ReplayBar from "./ReplayBar.vue";
 import { presentTool } from "./toolMeta.js";
 
@@ -139,7 +140,10 @@ const composer = ref(null);
 // a chat never sent to starts like a new one
 const unsent = (store) =>
 	!store.state.loading && !store.state.conversation.entries.length && !store.state.conversation.running && !busy(store);
-const blank = computed(() => !props.initialMessage && (props.session ? unsent(shown.value) : isBlank(shown.value)));
+// a replay not yet played is not a new chat: its recording waits
+const blank = computed(
+	() => !props.initialMessage && (props.session ? unsent(shown.value) && !replays.get(props.session) : isBlank(shown.value))
+);
 
 // the shown chat got its session, or lost it
 watch(

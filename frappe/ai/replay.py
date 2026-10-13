@@ -17,6 +17,7 @@ from typing import Any
 
 import frappe
 from frappe import _
+from frappe.utils import cint
 
 from frappe.ai.daemon.client import DaemonClient, DaemonError
 from frappe.ai.lib.session import _default_agent_name, flow_server, new_session
@@ -75,8 +76,9 @@ def export_session(session: str) -> dict[str, Any]:
 
 
 @frappe.whitelist()
-def import_recording(recording: str | dict) -> dict[str, Any]:
-	"""Keep an exported chat on this site as a recording."""
+def import_recording(recording: str | dict, position: int | str | None = None) -> dict[str, Any]:
+	"""Keep an exported chat on this site as a recording, last in the list unless `position`
+	says otherwise."""
 	frappe.has_permission("Flow Recording", "create", throw=True)
 	data = frappe.parse_json(recording) if isinstance(recording, str) else recording
 	if not isinstance(data, dict) or data.get("format") != FORMAT:
@@ -86,21 +88,22 @@ def import_recording(recording: str | dict) -> dict[str, Any]:
 		{
 			"doctype": "Flow Recording",
 			"title": data.get("title"),
+			"position": cint(position) or _last_position() + 1,
 			"agent": agent if agent and frappe.db.exists("Flow Agent", agent) else _default_agent_name(),
 			"source_site": data.get("site"),
 			"steps": len(steps(data["messages"])),
 			"data": json.dumps(data),
 		}
 	).insert()
-	return {"name": doc.name, "title": doc.title, "agent": doc.agent, "steps": doc.steps}
+	return {"name": doc.name, "title": doc.title, "position": doc.position, "agent": doc.agent, "steps": doc.steps}
 
 
 @frappe.whitelist()
 def list_recordings() -> list[dict[str, Any]]:
 	return frappe.get_list(
 		"Flow Recording",
-		fields=["name", "title", "agent", "steps", "source_site", "creation"],
-		order_by="creation desc",
+		fields=["name", "title", "position", "agent", "steps", "source_site", "creation"],
+		order_by="position asc, creation asc",
 	)
 
 
@@ -119,8 +122,12 @@ def start_replay(recording: str) -> dict[str, Any]:
 
 
 @frappe.whitelist()
-def get_replay(session: str) -> dict[str, Any]:
-	replay = _load(session, "read")
+def get_replay(session: str) -> dict[str, Any] | None:
+	"""The chat's replay, or None for a chat that is not one."""
+	frappe.has_permission("Flow Session", "read", session, throw=True)
+	if not frappe.db.exists("Flow Replay", session):
+		return None
+	replay = frappe.get_doc("Flow Replay", session)
 	settle(replay)
 	return state(replay)
 
@@ -139,8 +146,7 @@ def play_step(session: str, delay: float | str | None = None) -> dict[str, Any]:
 		frappe.throw(
 			_("This replay stopped at a failed step: {0}").format(replay.error), title=_("Replay Ended")
 		)
-	latest = frappe.db.get_value("Flow Run", {"session": session}, "name", order_by="creation desc")
-	if latest and latest != replay.run:
+	if went_live(replay):
 		frappe.throw(_("This chat went live, so its replay has ended."), title=_("Replay Ended"))
 
 	step = recording_steps(replay.recording)[replay.step]
@@ -236,7 +242,14 @@ def state(replay) -> dict[str, Any]:
 		"status": replay.status,
 		"error": replay.error,
 		"names": json.loads(replay.names or "{}"),
+		"live": went_live(replay),
 	}
+
+
+def went_live(replay) -> bool:
+	"""A run the replay did not start is a live message, which ends the replay."""
+	latest = frappe.db.get_value("Flow Run", {"session": replay.session}, "name", order_by="creation desc")
+	return bool(latest and latest != replay.run)
 
 
 # --- steps ----------------------------------------------------------------
@@ -330,6 +343,11 @@ def _load(session: str, ptype: str):
 	if not frappe.db.exists("Flow Replay", session):
 		frappe.throw(_("This chat is not a replay."), title=_("Not a Replay"))
 	return frappe.get_doc("Flow Replay", session)
+
+
+def _last_position() -> int:
+	last = frappe.get_all("Flow Recording", fields=["position"], order_by="position desc", limit=1)
+	return cint(last[0].position) if last else 0
 
 
 def _text(content: str | list[dict]) -> str:
