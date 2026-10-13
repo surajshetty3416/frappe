@@ -1,5 +1,5 @@
 <template>
-	<aside data-layer="ai" class="flex h-full w-[420px] shrink-0 flex-col border-r border-outline-gray-1 bg-surface-base">
+	<div data-layer="ai" class="flex h-full w-full flex-col bg-surface-base">
 		<FlowApp
 			v-if="ready"
 			:key="mountKey"
@@ -13,7 +13,7 @@
 		<div v-else class="flex flex-1 items-center justify-center">
 			<LoadingIndicator class="size-4 text-ink-gray-5" />
 		</div>
-	</aside>
+	</div>
 </template>
 
 <script setup lang="ts">
@@ -21,7 +21,7 @@ import { LoadingIndicator } from "frappe-ui"
 import { computed, defineAsyncComponent, ref, watch } from "vue"
 import { useRoute, useRouter } from "vue-router"
 
-import { type Artifact, getArtifactSession, linkArtifact } from "../artifacts"
+import { type Artifact, getArtifactSession, linkArtifact, routeArtifact } from "../artifacts"
 
 const route = useRoute()
 const router = useRouter()
@@ -32,15 +32,8 @@ const FlowApp = defineAsyncComponent(async () => {
 })
 
 const onChatRoute = computed(() => route.name === "studio-chat")
-// the artifact the editor beside the chat has open, named by its route's meta
-const artifact = computed(() => {
-	const record = [...route.matched].reverse().find((match) => match.meta.artifact)
-	if (!record) return null
-	const { doctype, param } = record.meta.artifact as { doctype: string; param: string }
-	const name = String(route.params[param])
-	// an editor still creating its record ("new") has no artifact to talk about yet
-	return name === "new" ? null : { doctype, name }
-})
+// the artifact the editor beside the chat has open
+const artifact = computed(() => routeArtifact(route))
 const routeSession = computed(() => {
 	const session = onChatRoute.value ? route.params.session : route.query.chat
 	return typeof session === "string" && session !== "new" ? session : null

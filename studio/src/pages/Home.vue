@@ -1,5 +1,5 @@
 <template>
-	<div class="h-full overflow-y-auto bg-surface-base">
+	<div data-layer="shell" class="h-full overflow-y-auto bg-surface-base">
 		<div class="mx-auto flex w-full max-w-2xl flex-col px-6 pb-16 pt-[18vh]">
 			<h1 class="text-3xl font-semibold text-ink-gray-9">What do you want to build?</h1>
 			<p class="mt-2 text-p-base text-ink-gray-6">

@@ -18,8 +18,8 @@ export default defineLayer({
 		{
 			path: "page/:pageId",
 			name: "builder-editor",
-			component: () => import("./pages/PageBuilder.vue"),
-			meta: { artifact: { doctype: "Builder Page", param: "pageId" } },
+			component: () => import("./studioEditor").then((editor) => editor.default.preview),
+			meta: { artifact: { doctype: "Builder Page", param: "pageId", editor: () => import("./studioEditor") } },
 		},
 		{
 			path: "page/:pageId/preview",
