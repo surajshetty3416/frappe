@@ -37,12 +37,7 @@ export default defineOutputEditor({
 		return [
 			{ label: "Prints", value: String(doc.doc_type ?? "") },
 			{ label: "Margins", value: page ? `${page.margins.top} mm` : "" },
-			...(urls
-				? [
-						{ label: "Print view", value: "Open", href: urls.view },
-						{ label: "PDF", value: "Download", href: urls.pdf },
-					]
-				: []),
+			...(urls ? [{ label: "Print view", value: "Open", href: urls.view }] : []),
 		]
 	},
 	detailsForm: PrintDetails,
