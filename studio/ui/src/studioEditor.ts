@@ -112,6 +112,12 @@ function prop(block: Block, name: string, label: string, icon: string, list: { l
 	}
 }
 
+// frappe-ui's text sets weights between the named ones, such as 420 for regular
+function nearestWeight(block: Block) {
+	const weight = Number(block.getRenderedStyle("fontWeight" as styleProperty)) || 400
+	return String([400, 500, 600, 700].reduce((best, next) => (Math.abs(next - weight) < Math.abs(best - weight) ? next : best)))
+}
+
 const YES_NO = [
 	{ label: "Yes", value: "true" },
 	{ label: "No", value: "false" },
@@ -128,9 +134,9 @@ function blockProperties(block: Block): ElementProperty[] {
 					{ label: "Medium", value: "500" },
 					{ label: "Semibold", value: "600" },
 					{ label: "Bold", value: "700" },
-				]),
+				], nearestWeight(block)),
 				style(block, "color", "Color", "lucide-palette", "color"),
-				style(block, "textAlign", "Align", "lucide-align-left", "select", options(["left", "center", "right"], capitalize)),
+				style(block, "textAlign", "Align", "lucide-align-left", "select", options(["left", "center", "right"], capitalize), "left"),
 			]
 		case "Button":
 			return [
