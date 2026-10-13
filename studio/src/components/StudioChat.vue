@@ -179,10 +179,10 @@ const context = {
 
 <script lang="ts">
 const IDEAS = [
-	{ icon: "lucide-database", text: "A DocType for " },
-	{ icon: "lucide-blocks", text: "An app to " },
-	{ icon: "lucide-globe", text: "A website for " },
-	{ icon: "lucide-chart-column", text: "A dashboard of " },
+	{ icon: "lucide-database", text: "A DocType for sponsors" },
+	{ icon: "lucide-blocks", text: "An app to check in attendees" },
+	{ icon: "lucide-globe", text: "A website for our conference" },
+	{ icon: "lucide-chart-column", text: "A dashboard of registrations" },
 	{ icon: "lucide-printer", text: "Make an attendee badge with a QR code" },
 	{ icon: "lucide-mail", text: "Make a confirmation email for new registrations" },
 ]
