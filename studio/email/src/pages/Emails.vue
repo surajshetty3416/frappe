@@ -1,24 +1,20 @@
 <template>
 	<div class="h-full overflow-y-auto bg-surface-base">
-		<div class="mx-auto flex max-w-3xl flex-col gap-8 px-6 py-8">
+		<div class="mx-auto flex max-w-3xl flex-col gap-4 px-6 py-8">
 			<h1 class="text-xl font-semibold text-ink-gray-8">Email</h1>
 
-			<section class="flex flex-col gap-2">
-				<h2 class="text-sm font-medium text-ink-gray-5">Templates</h2>
-				<div v-if="templates.loading && !templates.data?.length" class="flex flex-col gap-3 py-2">
-					<Skeleton v-for="i in 3" :key="i" class="h-9 w-full" />
-				</div>
-				<p v-else-if="!templates.data?.length" class="py-8 text-center text-base text-ink-gray-5">
-					No email templates yet. Ask the chat for a confirmation email or an announcement.
-				</p>
-				<List v-else class="-mx-3" :columns="COLUMNS">
-					<ListRows :items="templates.data" v-slot="{ item }">
+			<div v-if="templates.loading && !templates.data?.length" class="flex flex-col gap-3 py-2">
+				<Skeleton v-for="i in 3" :key="i" class="h-9 w-full" />
+			</div>
+			<List v-else class="-mx-3 list-row-px-3" :columns="COLUMNS">
+				<ListGroup label="Templates">
+					<ListRows :items="templates.data ?? []" v-slot="{ item }">
 						<ListRow :route="{ name: 'email-template', params: { template: item.name } }">
 							<ListCell><span class="lucide-mail size-4 text-ink-gray-5" /></ListCell>
 							<ListCell>
 								<div class="flex min-w-0 flex-col gap-0.5 text-left">
 									<span class="truncate text-base text-ink-gray-8">{{ item.name }}</span>
-									<span class="truncate text-sm text-ink-gray-5">{{ senders[item.name]?.join(", ") || readable(item.subject) }}</span>
+									<span class="truncate text-sm text-ink-gray-5">{{ senders[item.name]?.join(", ") || "Not sent automatically" }}</span>
 								</div>
 							</ListCell>
 							<ListCell class="justify-end text-sm text-ink-gray-5"><span class="truncate">{{ item.reference_doctype }}</span></ListCell>
@@ -29,15 +25,11 @@
 							</ListCell>
 						</ListRow>
 					</ListRows>
-				</List>
-			</section>
-
-			<section class="flex flex-col gap-2">
-				<h2 class="text-sm font-medium text-ink-gray-5">Groups</h2>
-				<p v-if="!groups.loading && !groups.data?.length" class="py-8 text-center text-base text-ink-gray-5">
-					No email groups yet. Ask the chat to put your attendees in one.
-				</p>
-				<List v-else class="-mx-3" :columns="COLUMNS">
+					<p v-if="!templates.data?.length" class="py-8 text-center text-base text-ink-gray-5">
+						No email templates yet. Ask the chat for a confirmation email or an announcement.
+					</p>
+				</ListGroup>
+				<ListGroup label="Groups" class="mt-6">
 					<ListRows :items="groups.data ?? []" v-slot="{ item }">
 						<ListRow>
 							<ListCell><span class="lucide-users size-4 text-ink-gray-5" /></ListCell>
@@ -57,26 +49,21 @@
 							</ListCell>
 						</ListRow>
 					</ListRows>
-				</List>
-			</section>
+					<p v-if="!groups.loading && !groups.data?.length" class="py-8 text-center text-base text-ink-gray-5">
+						No email groups yet. Ask the chat to put your attendees in one.
+					</p>
+				</ListGroup>
+			</List>
 		</div>
 	</div>
 </template>
 <script setup lang="ts">
 import { UseTimeAgo } from "@vueuse/components"
 import { Skeleton, call, createListResource } from "frappe-ui"
-import { List, ListCell, ListRow, ListRows } from "frappe-ui/list"
+import { List, ListCell, ListGroup, ListRow, ListRows } from "frappe-ui/list"
 import { onActivated, ref } from "vue"
 
-// both sections share one grid, so their columns line up
 const COLUMNS = ["24px", "minmax(0, 1fr)", "176px", "160px"]
-
-// the fields a subject reads, named instead of shown as Jinja: "You're in, [Full name]"
-const readable = (subject: string) =>
-	(subject || "").replace(/\{\{\s*(?:doc\.)?(\w+)[^}]*\}\}/g, (_, field: string) => {
-		const words = field.replace(/_/g, " ")
-		return `[${words[0].toUpperCase()}${words.slice(1)}]`
-	})
 
 const templates = createListResource({
 	doctype: "Email Template",
