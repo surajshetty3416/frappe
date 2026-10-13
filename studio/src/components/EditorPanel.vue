@@ -177,6 +177,7 @@ import { getArtifactInfo, routeArtifact } from "../artifacts"
 import { commenting } from "../context"
 import { type ArtifactEditor, type EditorMode, editorMode } from "../editor"
 import { layers } from "../layers"
+import { overlayOpen } from "../layout"
 import { onDocUpdate } from "../realtime"
 import { type Tab, closeTab, findTab, openTab, ownTitle, tabKey, tabs } from "../tabs"
 import EditorDrawer from "./EditorDrawer.vue"
@@ -368,7 +369,7 @@ const typing = (target: EventTarget | null) =>
 	target instanceof HTMLElement && Boolean(target.closest('input, textarea, select, [contenteditable="true"], .cm-editor'))
 
 function onKeydown(event: KeyboardEvent) {
-	if (event.defaultPrevented) return
+	if (event.defaultPrevented || (event.key === "Escape" && overlayOpen())) return
 	if (event.key === "Escape" && openDrawer.value) {
 		openDrawer.value = null
 		event.preventDefault()

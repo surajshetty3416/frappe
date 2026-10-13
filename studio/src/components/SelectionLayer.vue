@@ -96,6 +96,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, shallowRef, watch 
 
 import { closeDraft, commenting, describeElement, draft, selection } from "../context"
 import { type ArtifactEditor, type ElementAction, type PreviewElement, editorMode } from "../editor"
+import { overlayOpen } from "../layout"
 import PreviewComments from "./PreviewComments.vue"
 import PropertyControl from "./PropertyControl.vue"
 
@@ -372,7 +373,7 @@ function onKeydown(event: KeyboardEvent) {
 function onEscape(event: KeyboardEvent) {
 	if (event.key !== "Escape" || event.defaultPrevented || editing.value || draft.value) return
 	if (!commenting.value && !selected.value) return
-	if (document.querySelector("[data-editor-drawer], [data-reka-popper-content-wrapper]:not(:has([role=tooltip])), [role=dialog]")) return
+	if (overlayOpen() || document.querySelector("[data-editor-drawer]")) return
 	if (commenting.value) commenting.value = false
 	else selected.value = null
 	event.preventDefault()

@@ -9,3 +9,7 @@ export const layout = useStorage("studio-layout", {
 })
 
 export const searchOpen = ref(false)
+
+// a menu, popover or dialog is open over the page; it takes Esc before the shell does
+export const overlayOpen = () =>
+	Boolean(document.querySelector("[data-reka-popper-content-wrapper]:not(:has([role=tooltip])), [role=dialog]"))
