@@ -15,7 +15,7 @@
 {% endif %}
 {% if not preview %}
 <script>
-{const c=document.cookie,show=window.matchMedia("(min-width:768px)").matches&&c.includes("user_id=")&&!c.includes("user_id=Guest")&&!c.includes("system_user=no;");if(show){const link=document.createElement("a");link.rel="nofollow";link.href="{{ editor_link }}";link.target="editor-{{ page_name }}";link.style.cssText="position:fixed;bottom:40px;right:50px;height:35px;width:35px;opacity:.1";link.innerHTML='<img src="/assets/frappe/studio/builder_logo.png" alt="Edit in Builder" style="box-shadow:#bdbdbd 0 0 5px;border-radius:10px"/>';link.addEventListener("mouseover",()=>link.style.opacity="1");link.addEventListener("mouseout",()=>link.style.opacity=".1");document.body.appendChild(link)}}
+{const c=document.cookie,show=window.matchMedia("(min-width:768px)").matches&&c.includes("user_id=")&&!c.includes("user_id=Guest")&&!c.includes("system_user=no;");if(show){const link=document.createElement("a");link.rel="nofollow";link.href="{{ editor_link }}";link.target="editor-{{ page_name }}";link.title="Edit in Studio";link.setAttribute("aria-label","Edit in Studio");link.style.cssText="position:fixed;bottom:24px;right:24px;z-index:9999;display:grid;place-items:center;width:32px;height:32px;border-radius:8px;background:#171717;color:#fff;box-shadow:0 0 0 1px rgba(255,255,255,.24),0 2px 8px rgba(0,0,0,.24)";link.innerHTML='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/></svg>';document.body.appendChild(link)}}
 </script>
 {% endif %}
 {% if editor_demo_url %}
