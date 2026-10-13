@@ -3,6 +3,7 @@
 from typing import Annotated
 
 import frappe
+from frappe import _
 from frappe.ai import tool
 from frappe.ai.lib.tool import ToolContext
 
@@ -32,5 +33,8 @@ def send_email_template(
 			recipients=[member.email],
 			subject=frappe.render_template(subject, context) if subject else rendered["subject"],
 			message=rendered["message"],
+			reference_doctype="Email Group",
+			reference_name=email_group,
+			unsubscribe_message=_("Unsubscribe"),
 		)
 	return len(members)
