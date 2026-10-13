@@ -157,7 +157,8 @@ def play_step(session: str, delay: float | str | None = None) -> dict[str, Any]:
 			{"doctype": "Flow Run", "session": session, "source": "Manual", "status": "Running"}
 		).insert(ignore_permissions=True)
 	else:
-		run = frappe.get_doc("Flow Run", replay.run)
+		# the chat's sync may still be recording the previous step's end on this run
+		run = frappe.get_doc("Flow Run", replay.run, for_update=True)
 		run.update({"status": "Running", "error": None})
 	run.on_complete = ON_COMPLETE
 	run.save(ignore_permissions=True)
