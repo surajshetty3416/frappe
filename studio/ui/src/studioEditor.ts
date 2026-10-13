@@ -7,6 +7,7 @@ import AppDetails from "@ui/components/AppDetails.vue"
 import BlockDetails from "@ui/components/BlockDetails.vue"
 import ListColumns from "@ui/components/ListColumns.vue"
 import PageCode from "@ui/components/PageCode.vue"
+import StudioToolbar from "@ui/components/StudioToolbar.vue"
 import StudioPage from "@ui/pages/StudioPage.vue"
 import Block, { type styleProperty } from "@ui/utils/block"
 import useCanvasStore from "@ui/stores/canvasStore"
@@ -306,6 +307,7 @@ export default defineArtifactEditor({
 	},
 	// the selected block's props, styles and events, or the app's and the page's settings
 	detailsForm: () => ({ component: canvas()?.selectedBlocks[0] ? BlockDetails : AppDetails }),
+	barControls: () => ({ component: StudioToolbar }),
 	codeTabs: () =>
 		(["Page", "Script", "Data"] as const).map((part) => ({
 			name: part,
