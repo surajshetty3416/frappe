@@ -62,7 +62,7 @@
 				<div v-if="shellEditor" data-layer="shell" class="pointer-events-none absolute inset-0 z-[1000]">
 					<div
 						v-if="hoverBox && hovered?.id !== selected?.id"
-						class="absolute rounded-[2px] border border-outline-blue-4"
+						class="absolute rounded-[2px] border border-outline-gray-3"
 						:style="boxStyle(hoverBox, OUTLINE_OFFSET)"
 					/>
 					<div
