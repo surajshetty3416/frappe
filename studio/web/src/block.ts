@@ -67,6 +67,9 @@ class Block implements BlockOptions {
 	clientScript: BlockClientScript;
 	referenceComponent: Block | null;
 	customAttributes: BlockAttributeMap;
+	// a form or chat block's config; the server renders both
+	form?: Record<string, unknown>;
+	chat?: Record<string, unknown>;
 	constructor(options: BlockOptions) {
 		const componentStore = useComponentStore();
 		this.element = options.element;
@@ -164,6 +167,8 @@ class Block implements BlockOptions {
 		);
 
 		this.blockName = options.blockName;
+		this.form = options.form;
+		this.chat = options.chat;
 		delete this.attributes.style;
 		this.classes = options.classes || [];
 

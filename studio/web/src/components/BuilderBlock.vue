@@ -43,6 +43,7 @@ import {
 } from "vue";
 import BlockHTML from "./BlockHTML.vue";
 import DataLoaderBlock from "./DataLoaderBlock.vue";
+import PageBlockPreview from "./PageBlockPreview.vue";
 import TextBlock from "./TextBlock.vue";
 
 const componentStore = useComponentStore();
@@ -92,6 +93,9 @@ const uidToUse = !!props.repeaterIndex
 	: props.block.blockId;
 
 const getComponentName = (block: Block) => {
+	if (block.form || block.chat) {
+		return PageBlockPreview;
+	}
 	if (block.isRepeater()) {
 		return DataLoaderBlock;
 	}

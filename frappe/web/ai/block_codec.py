@@ -30,6 +30,8 @@ class BlockCodec:
 		("c", "children"),
 		("classes", None),
 		("icon", "a Lucide icon name — see Icons"),
+		("form", "a form that inserts a document — see the Website skill"),
+		("chat", "a chat with a public agent — see the Website skill"),
 	)
 
 	# Defaults the client injects on an icon svg — noise for the model, stripped on re-collapse.
@@ -134,6 +136,9 @@ class BlockCodec:
 			out["bind"] = bind
 		if block.get("classes"):
 			out["classes"] = block["classes"]
+		for key in ("form", "chat"):
+			if block.get(key):
+				out[key] = block[key]
 		if block.get("innerHTML"):
 			out["text"] = block["innerHTML"]
 
@@ -188,6 +193,8 @@ class BlockCodec:
 			("component", "extendedFromComponent"),
 			("child_of", "isChildOfComponent"),
 			("client_script", "clientScript"),
+			("form", "form"),
+			("chat", "chat"),
 		]:
 			if yaml_key in node:
 				block[block_key] = node[yaml_key]

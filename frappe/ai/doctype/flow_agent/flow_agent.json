@@ -9,6 +9,7 @@
   "title",
   "description",
   "enabled",
+  "public",
   "is_system_generated",
   "column_break_meta",
   "model",
@@ -50,6 +51,13 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Enabled"
+  },
+  {
+   "default": "0",
+   "description": "Site visitors can chat with this agent from a chat block on a web page. Its tools run as Guest, and calls that need approval are declined.",
+   "fieldname": "public",
+   "fieldtype": "Check",
+   "label": "Public"
   },
   {
    "description": "Defined in code and owned by it: the Desk can enable or disable the agent and switch its model, nothing else.",

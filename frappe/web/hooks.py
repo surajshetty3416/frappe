@@ -209,7 +209,11 @@ flow_tools = [
 	"frappe.web.flow_tools.list_web_pages",
 	"frappe.web.flow_tools.create_web_page",
 	"frappe.web.flow_tools.publish_web_page",
+	"frappe.web.flow_tools.add_form_block",
+	"frappe.web.flow_tools.add_chat_block",
+	"frappe.web.flow_tools.set_page_data_script",
 ]
+flow_skills = ["web/skills/website/SKILL.md"]
 
 # what Studio opens beside the chat for an artifact of this layer
 studio_artifacts = {

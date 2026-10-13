@@ -16,6 +16,7 @@ import yaml
 
 from frappe.web.ai.block_codec import BlockCodec
 from frappe.web.ai.lucide import lucide_svg
+from frappe.web.page_blocks import clean_config
 from frappe.web.utils import compact_json
 
 logger = frappe.logger("frappe.web.ai.page_writer")
@@ -307,6 +308,7 @@ def convert_yaml_block(node, is_root: bool = False) -> dict | None:
 		block["extendedFromComponent"] = node["component"]
 	if node.get("child_of"):
 		block["isChildOfComponent"] = node["child_of"]
+	block.update(clean_config(node))
 
 	# `bind` maps a template field → loop-item key. innerHTML/text bind by content;
 	# anything else binds an HTML attribute (href, src, …).

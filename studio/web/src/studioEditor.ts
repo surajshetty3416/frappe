@@ -70,6 +70,8 @@ const save = useDebounceFn(() => usePageStore().savePage(), 300);
 
 function kind(block: Block) {
 	if (block.isRoot()) return { label: "Page", icon: "lucide-file" };
+	if (block.form) return { label: "Form", icon: "lucide-text-cursor-input" };
+	if (block.chat) return { label: "Chat", icon: "lucide-message-circle" };
 	if (block.isHeader()) return { label: "Heading", icon: "lucide-heading" };
 	if (block.isButton()) return { label: "Button", icon: "lucide-mouse-pointer-click" };
 	if (block.isLink()) return { label: "Link", icon: "lucide-link" };

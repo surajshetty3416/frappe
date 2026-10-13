@@ -38,6 +38,7 @@ from frappe.web.editor_demo import is_demo_page
 from frappe.web.export_import_standard_page import export_page_as_standard
 from frappe.web.hooks import builder_path
 from frappe.web.html_preview_image import generate_preview
+from frappe.web.page_blocks import block_kind, render_block
 from frappe.web.template_sync import delete_template_page_fixture, export_template_group
 from frappe.web.utils import (
 	ColonRule,
@@ -923,7 +924,9 @@ def build_tag(
 		weight = next((s.get("fontWeight") for s in all_styles if s.get("fontWeight")), 400)
 		register_italic_font(state["font_map"], get_font_family(resolved_font), weight)
 
-	if is_repeater_block(block):
+	if block_kind(block):
+		render_block(tag, block, state)
+	elif is_repeater_block(block):
 		render_repeater_children(
 			tag, block, data_key, state, ancestor_font=resolved_font, ancestor_italic=resolved_italic
 		)

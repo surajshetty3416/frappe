@@ -20,6 +20,7 @@ from frappe.ai.lib.session import (
 	fail_running,
 	flow_server,
 )
+from frappe.ai.permissions import check_agent_access
 from frappe.model.document import Document
 
 if TYPE_CHECKING:
@@ -111,7 +112,6 @@ class FlowSession(Document):
 		"""This session's flow server config. Tools go as schemas; the server calls back to run them."""
 		from frappe.ai.daemon import lifecycle
 		from frappe.ai.doctype.flow_agent.flow_agent import DEFAULT_MAX_ITERATIONS
-		from frappe.ai.lib.model import model_config
 
 		agent = frappe.get_doc("Flow Agent", self.agent)
 		if not agent.enabled:
@@ -125,7 +125,7 @@ class FlowSession(Document):
 		config = {
 			"session_id": self.name,
 			"title": self.title,
-			**model_config(self.model or agent.model),
+			**self._model_config(agent),
 			"reasoning_effort": agent.reasoning_effort or None,
 			**agent.session_tool_config(self.name),
 			"subagents": agent.subagent_configs(self.name, context),
@@ -245,13 +245,19 @@ class FlowSession(Document):
 
 	def _assert_can_run(self) -> None:
 		"""Enforce current agent and model access before the daemon uses its stored config."""
-		from frappe.ai.lib.model import model_config
-
 		agent = frappe.get_doc("Flow Agent", self.agent)
-		frappe.has_permission("Flow Agent", "read", agent.name, throw=True)
+		check_agent_access(agent.name)
 		if not agent.enabled:
 			frappe.throw(_("Flow Agent {0} is disabled.").format(agent.name), title=_("Disabled Agent"))
-		model_config(self.model or agent.model)
+		self._model_config(agent)
+
+	def _model_config(self, agent) -> dict[str, Any]:
+		"""A public agent's own model is open to its visitors; any other needs read permission."""
+		from frappe.ai.lib.model import model_config
+
+		if agent.public and not self.model:
+			return model_config(agent.model, check_permission=False)
+		return model_config(self.model or agent.model)
 
 	def set_model(self, model: str, reasoning_effort: str | None = None) -> None:
 		from frappe.ai.lib.model import model_config

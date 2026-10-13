@@ -14,6 +14,7 @@ import frappe
 from frappe import _
 
 from frappe.ai.daemon.client import DaemonClient, DaemonError
+from frappe.ai.permissions import check_agent_access
 
 if TYPE_CHECKING:
 	from frappe.ai.doctype.flow_agent.flow_agent import FlowAgent
@@ -59,7 +60,7 @@ def new_session(
 		agent_doc = frappe.get_doc("Flow Agent", _default_agent_name())
 	else:
 		agent_doc = frappe.get_doc("Flow Agent", agent) if isinstance(agent, str) else agent
-	frappe.has_permission("Flow Agent", "read", agent_doc.name, throw=True)
+	check_agent_access(agent_doc.name)
 	doc = frappe.get_doc(
 		{
 			"doctype": "Flow Session",

@@ -34,6 +34,12 @@ def has_app_permission() -> bool:
 	return frappe.has_permission("Flow Session", "read")
 
 
+def check_agent_access(agent: str) -> None:
+	"""A public agent is open to anyone, Guest included; any other needs read permission."""
+	if not frappe.db.get_value("Flow Agent", agent, "public"):
+		frappe.has_permission("Flow Agent", "read", agent, throw=True)
+
+
 def has_session_permission(doc, user: str) -> bool:
 	"""Sessions and runs are private to their owner, except Trigger ones."""
 	return user in (doc.owner, "Administrator") or doc.source == "Trigger"

@@ -15,9 +15,10 @@ CLAUDE_CODE = "claude-code"
 CLAUDE_CODE_MODEL = "Claude Code Opus"
 
 
-def model_config(model: str) -> dict[str, Any]:
+def model_config(model: str, *, check_permission: bool = True) -> dict[str, Any]:
 	"""The daemon's model, api_key, api_base and model_params for a Flow Model the user may use."""
-	frappe.has_permission("Flow Model", "read", model, throw=True)
+	if check_permission:
+		frappe.has_permission("Flow Model", "read", model, throw=True)
 	doc = frappe.get_doc("Flow Model", model)
 	if not doc.enabled:
 		frappe.throw(_("Flow Model {0} is disabled.").format(model), title=_("Disabled Model"))

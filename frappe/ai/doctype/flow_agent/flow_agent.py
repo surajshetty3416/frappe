@@ -24,6 +24,8 @@ DEFAULT_MAX_ITERATIONS = 100
 # every session's prompt, so both caps together bound it however the skills are written.
 MAX_SKILLS = 30
 
+PUBLIC_BLOCKED_TOOLS = {"update_memory", "execute"}
+
 SKILL_INDEX_LEAD = (
 	"Specialized instructions for specific tasks. When a task matches a skill's description, "
 	"call load_skill with that name and follow what it returns."
@@ -52,6 +54,7 @@ class FlowAgent(Document):
 		knowledge_bases: DF.TableMultiSelect[FlowAgentKnowledgeBase]
 		max_iterations: DF.Int
 		model: DF.Link
+		public: DF.Check
 		reasoning_effort: DF.Literal["", "off", "minimal", "low", "medium", "high", "xhigh", "max"]
 		skills: DF.TableMultiSelect[FlowAgentSkill]
 		sub_agents: DF.TableMultiSelect[FlowAgentSubAgent]
@@ -83,6 +86,7 @@ class FlowAgent(Document):
 		self._validate_token_budget()
 		self._validate_skills()
 		self._validate_sub_agents()
+		self._validate_public_tools()
 		self.render_instructions()
 		self._ensure_knowledge_search_tool()
 		validate_immutable(
@@ -120,6 +124,17 @@ class FlowAgent(Document):
 	def _validate_sub_agents(self):
 		if any(row.agent == self.name for row in self.sub_agents):
 			frappe.throw(_("An agent cannot be its own sub-agent."), title=_("Invalid Sub-agent"))
+
+	def _validate_public_tools(self):
+		"""Every visitor runs as Guest, so a memory one writes would reach the next, and execute
+		reads past Guest's permissions."""
+		if not self.public:
+			return
+		if blocked := {row.tool for row in self.tools} & PUBLIC_BLOCKED_TOOLS:
+			frappe.throw(
+				_("A public agent cannot have these tools: {0}.").format(", ".join(sorted(blocked))),
+				title=_("Public Agent"),
+			)
 
 	def _ensure_knowledge_search_tool(self):
 		"""A bound knowledge base is inert without the search tool. Keep them consistent
