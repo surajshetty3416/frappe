@@ -5,6 +5,7 @@
 			<div
 				ref="strip"
 				class="flex h-full min-w-0 flex-1 items-center gap-1 overflow-x-auto px-2 [scrollbar-width:none]"
+				:style="{ maskImage: stripMask, WebkitMaskImage: stripMask }"
 				role="tablist"
 				@scroll="measureTabs"
 				@wheel="scrollTabs"
@@ -280,6 +281,13 @@ watch(openDrawer, (open) => {
 
 const strip = ref<HTMLElement | null>(null)
 const outOfView = ref<Tab[]>([])
+// a strip scrolled past a tab fades on that side, so a tab cut mid-word reads as more to scroll
+const clipped = ref({ left: false, right: false })
+const stripMask = computed(() => {
+	const { left, right } = clipped.value
+	if (!left && !right) return undefined
+	return `linear-gradient(to right, ${left ? "transparent, black 32px" : "black"}, ${right ? "black calc(100% - 32px), transparent" : "black"})`
+})
 const outOfViewOptions = computed(() =>
 	outOfView.value.map((tab) => ({ label: tab.title, icon: tab.icon, onClick: () => router.push(tab.path) }))
 )
@@ -287,6 +295,7 @@ function measureTabs() {
 	const el = strip.value
 	if (!el) return
 	const box = el.getBoundingClientRect()
+	clipped.value = { left: el.scrollLeft > 1, right: el.scrollLeft + el.clientWidth < el.scrollWidth - 1 }
 	outOfView.value = tabs.value.filter((tab) => {
 		const rect = el.querySelector(`[data-tab="${CSS.escape(tabKey(tab))}"]`)?.getBoundingClientRect()
 		return rect && (rect.left < box.left - 1 || rect.right > box.right + 1)
