@@ -36,8 +36,8 @@ function readJSON(key, fallback, storage = globalThis.localStorage) {
 //   openTurn       () => true while the latest turn stays open after its run ends, as if it still ran
 //   placeholder    the composer's placeholder, instead of "Reply…" or "Describe what to build…"
 //   skills         false hides the composer's "/" skills menu
-//   agents         [{ agent, label }] a new chat may start with, as a switch in the composer;
-//                  `agent` null is the default one
+//   agents         [{ agent, label, placeholder, skills }] a new chat may start with, as a switch
+//                  in the composer; `agent` null is the default one, `skills` false has none
 //   taskCard       component drawing a task a turn's tool sent to another chat ({ task })
 //   context        what the host tells the agent with each message: { snapshot() → context or
 //                  null, taken as a message is sent; sent(context), once it is delivered or

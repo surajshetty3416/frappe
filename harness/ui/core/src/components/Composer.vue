@@ -219,9 +219,15 @@ const agentOptions = computed(() =>
 )
 const placeholder = computed(
 	() =>
-		(!flow.state.sessionId && flow.options.agents?.find(({ agent }) => agent === flow.state.agent)?.placeholder) ||
+		(!flow.state.sessionId && agentEntry.value?.placeholder) ||
 		(flow.options.placeholder ??
-			(flow.state.sessionId ? (flow.options.skills === false ? "Reply…" : "Reply, / for a skill") : "Describe what to build…")),
+			(flow.state.sessionId ? (skillsOn.value ? "Reply, / for a skill" : "Reply…") : "Describe what to build…")),
+// the agent of the open chat, or the one a new chat starts with
+const agentEntry = computed(() => {
+	const agent = flow.state.sessionId ? flow.state.session?.config?.agent : flow.state.agent
+	return flow.options.agents?.find((entry) => (entry.agent ?? null) === (agent ?? null))
+})
+const skillsOn = computed(() => flow.options.skills !== false && agentEntry.value?.skills !== false)
 )
 
 const MODES = { auto: "Auto-approve", ask: "Ask first" }
@@ -323,7 +329,7 @@ function syncCaret() {
 
 // the "/word" being typed at the caret, when it starts a word
 const slash = computed(() => {
-	if (flow.options.skills === false) return null
+	if (!skillsOn.value) return null
 	const head = text.value.slice(0, caretPos.value)
 	const at = head.lastIndexOf("/")
 	if (at === -1) return null

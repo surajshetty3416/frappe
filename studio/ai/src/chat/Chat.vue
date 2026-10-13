@@ -76,7 +76,7 @@ const stores = [];
 // a new chat builds, or sends each task to the chat that owns its artifacts or to a new one
 const AGENTS = [
 	{ agent: null, label: "Build" },
-	{ agent: "Orchestrator", label: "Orchestrate", placeholder: "Describe the work; each task goes to its own chat…" },
+	{ agent: "Orchestrator", label: "Orchestrate", placeholder: "Describe the work; each task goes to its own chat…", skills: false },
 ];
 const shown = shallowRef(null);
 const viewKey = ref(0);
