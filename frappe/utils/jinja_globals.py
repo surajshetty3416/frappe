@@ -172,3 +172,16 @@ def is_rtl(rtl=None):
 	lang = local.lang or ""
 	parent_lang = get_parent_language(lang) or ""
 	return lang in rtl_languages or parent_lang in rtl_languages
+
+
+def qr_code(data: str, size: int = 160) -> str:
+	"""Return an `<img>` tag with a QR code of `data` as an inline SVG, `size` pixels square."""
+	from base64 import b64encode
+	from io import BytesIO
+
+	from pyqrcode import create
+
+	stream = BytesIO()
+	create(str(data)).svg(stream, scale=4, background="#fff", module_color="#000", xmldecl=False)
+	src = b64encode(stream.getvalue()).decode()
+	return f'<img src="data:image/svg+xml;base64,{src}" width="{size}" height="{size}" alt="QR code">'

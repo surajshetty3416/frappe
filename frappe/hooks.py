@@ -16,6 +16,8 @@ app_email = "developers@frappe.io"
 # Each layer is a package in this app with its own hooks.py, merged into these hooks.
 layers = ["web", "analytics", "ai", "ui"]
 
+flow_tools = ["frappe.email.flow_tools.send_email_template"]
+
 before_install = "frappe.utils.install.before_install"
 after_install = "frappe.utils.install.after_install"
 after_app_install = "frappe.utils.install.create_desktop_icons_for_app"
