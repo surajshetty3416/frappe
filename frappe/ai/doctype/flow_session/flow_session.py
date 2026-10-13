@@ -60,6 +60,7 @@ class FlowSession(Document):
 
 	def on_trash(self):
 		frappe.db.delete("Flow Run", {"session": self.name})
+		frappe.db.delete("Flow Replay", {"session": self.name})
 		unlink_sessions([self.name])
 		_purge_attachment_chunks(self.name)
 
