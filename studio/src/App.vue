@@ -45,9 +45,12 @@
 						:class="resizing ? 'bg-surface-gray-3' : ''"
 						@pointerdown="startResize"
 					/>
-					<EditorPanel>
-						<RouterView />
-					</EditorPanel>
+					<!-- the panel lays out at its final width and the slide only uncovers it, so nothing squashes on the way -->
+					<div class="absolute inset-y-0 right-0" :style="{ width: `${panelPixels}px` }">
+						<EditorPanel>
+							<RouterView />
+						</EditorPanel>
+					</div>
 				</div>
 			</div>
 			<div v-else class="relative min-h-0 flex-1">
@@ -60,6 +63,7 @@
 </template>
 
 <script setup lang="ts">
+import { useElementSize } from "@vueuse/core"
 import { Dialogs } from "frappe-ui"
 import { computed, h, onBeforeUnmount, onMounted, ref, watch, watchEffect } from "vue"
 import { useRoute, useRouter } from "vue-router"
@@ -128,6 +132,9 @@ function togglePanel() {
 }
 
 const body = ref<HTMLElement | null>(null)
+const { width: bodyWidth } = useElementSize(body)
+// the chat keeps 440px beside the panel; the panel's border takes 1px
+const panelPixels = computed(() => Math.min((bodyWidth.value * layout.value.panelWidth) / 100, bodyWidth.value - 440) - 1)
 const resizing = ref(false)
 function startResize(event: PointerEvent) {
 	const area = body.value?.getBoundingClientRect()
