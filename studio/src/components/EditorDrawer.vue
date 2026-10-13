@@ -69,8 +69,8 @@
 			</div>
 
 			<div v-else-if="drawer === 'details'" class="min-h-0 flex-1 overflow-y-auto">
-				<LayerComponent v-if="detailsForm" :mount="detailsForm" :layer="layer" />
-				<dl class="px-4 py-3" :class="detailsForm ? 'border-t border-outline-gray-1' : ''">
+				<!-- what the artifact is comes first; the layer's form, and its destructive actions, last -->
+				<dl class="px-4 py-3" :class="detailsForm ? 'border-b border-outline-gray-1' : ''">
 					<div v-for="row in details" :key="row.label" class="flex items-baseline gap-3 py-1.5">
 						<dt class="w-24 shrink-0 text-sm text-ink-gray-5">{{ row.label }}</dt>
 						<dd class="min-w-0 flex-1 break-words text-sm text-ink-gray-8" :title="row.title">
@@ -79,11 +79,12 @@
 						</dd>
 					</div>
 				</dl>
+				<LayerComponent v-if="detailsForm" :mount="detailsForm" :layer="layer" />
 			</div>
 
 			<div v-else-if="drawer === 'code' && codeTabs.length" class="flex min-h-0 flex-1 flex-col">
 				<div v-if="codeTabs.length > 1" class="flex h-10 shrink-0 items-center border-b border-outline-gray-1 px-3">
-					<TabButtons v-model="codeTab" :options="codeTabs.map((tab) => ({ value: tab.name, label: tab.label }))" />
+					<TabButtons v-model="codeTab" variant="ghost" :options="codeTabs.map((tab) => ({ value: tab.name, label: tab.label }))" />
 				</div>
 				<div class="flex min-h-0 flex-1 flex-col p-3">
 					<LayerComponent v-if="activeCodeTab" :key="activeCodeTab.name" :mount="activeCodeTab.component" :layer="layer" />
