@@ -599,7 +599,9 @@ def run_query(
 ) -> dict:
     """Run a SQL SELECT on the site's database under the user's permissions. Returns the
     columns with their types and the first rows. Try a chart's SQL here before charting
-    it, and check a number by aggregating in SQL."""
+    it, and check a number by aggregating in SQL. A table's columns are its DocType's
+    fieldnames plus name, owner, creation and modified: `describe` the DocType before you
+    name a column, never guess one."""
     result = query_doc(sql).execute(page_size=min(max(limit, 1), 200))
     return {"columns": result["columns"], "rows": json_rows(result["rows"])}
 
