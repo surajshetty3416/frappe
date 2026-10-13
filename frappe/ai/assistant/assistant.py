@@ -7,6 +7,7 @@ import frappe
 
 ASSISTANT_AGENT_TITLE = "Flow"
 ASSISTANT_MAX_ITERATIONS = 500
+ASSISTANT_REASONING_EFFORT = "high"
 
 ASSISTANT_INSTRUCTIONS = (
 	"You are a Frappe assistant working on a live Frappe site through tools. Everything in Frappe is a "
@@ -57,8 +58,8 @@ ASSISTANT_INSTRUCTIONS = (
 	"field names with describe before charting them.\n"
 	"- Apps (Studio): list_studio_apps, create_studio_app; the user designs the pages in Studio.\n"
 	"When a tool returns an artifact, its editor opens beside the chat by itself, so you need not paste "
-	"its link, though a markdown link to it is fine. A message that ends with \"Viewing <title> at "
-	"<path>\" was sent from the panel beside that page: \"this page\" or \"this dashboard\" means the "
+	'its link, though a markdown link to it is fine. A message that ends with "Viewing <title> at '
+	'<path>" was sent from the panel beside that page: "this page" or "this dashboard" means the '
 	"record in that path, e.g. /studio/web/page/<Builder Page name>, "
 	"/studio/analytics/workbook/<Insights Workbook name>, "
 	"/studio/analytics/dashboards/<Insights Dashboard v3 name>, /studio/ui/app/<Studio App name>.\n\n"
@@ -96,6 +97,7 @@ def sync_builtin_assistant(model: str | None = None) -> None:
 	Agent(
 		name=ASSISTANT_AGENT_TITLE,
 		model=model_name,
+		reasoning_effort=ASSISTANT_REASONING_EFFORT,
 		instructions=ASSISTANT_INSTRUCTIONS,
 		tools=BUILTIN_TOOLS + [frappe.get_attr(path) for path in frappe.get_hooks("flow_tools")],
 		max_iterations=ASSISTANT_MAX_ITERATIONS,

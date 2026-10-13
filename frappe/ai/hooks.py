@@ -1,5 +1,3 @@
-
-
 # The /flow page: a Vite app (frontend/) built by `yarn build` into public/studio, its
 # entry copied to www/flow/index.html. Every path under /flow serves that page.
 
@@ -51,11 +49,13 @@ scheduler_events = {
 after_install = [
 	"frappe.ai.shell.make_chat_the_home",
 	"frappe.ai.permissions.ensure_flow_role",
+	"frappe.ai.lib.model.ensure_claude_code_model",
 	"frappe.ai.assistant.sync_builtin_assistant",
 	"frappe.ai.daemon.lifecycle.after_install",
 ]
 after_migrate = [
 	"frappe.ai.permissions.ensure_flow_role",
+	"frappe.ai.lib.model.ensure_claude_code_model",
 	"frappe.ai.assistant.sync_builtin_assistant",
 	"frappe.ai.lib.agent.sync_agents",
 	"frappe.ai.lib.agent.sync_tools",

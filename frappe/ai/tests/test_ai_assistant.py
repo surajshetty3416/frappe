@@ -4,16 +4,16 @@
 from unittest.mock import patch
 
 import frappe
-from frappe.tests import IntegrationTestCase
-from frappe.utils import get_weekday, today
-
 from frappe.ai.assistant import (
 	ASSISTANT_AGENT_TITLE,
 	ASSISTANT_INSTRUCTIONS,
 	sync_builtin_assistant,
 )
 from frappe.ai.assistant.assistant import ASSISTANT_MAX_ITERATIONS
+from frappe.ai.lib.model import CLAUDE_CODE_MODEL, ensure_claude_code_model
 from frappe.ai.tools.builtins import BUILTIN_TOOLS
+from frappe.tests import IntegrationTestCase
+from frappe.utils import get_weekday, today
 
 # The tools builder, insights and studio list under the `flow_tools` hook, which the
 # Assistant's instructions name.
@@ -158,3 +158,37 @@ class TestSyncBuiltinAssistant(IntegrationTestCase):
 		return frappe.get_doc(
 			{"doctype": "Flow Model", "title": title, "model_id": "openai/gpt-4o", "enabled": 1}
 		).insert()
+
+
+class TestClaudeCodeDefault(IntegrationTestCase):
+	def setUp(self):
+		if frappe.db.exists("Flow Agent", ASSISTANT_AGENT_TITLE):
+			frappe.db.set_value("Flow Agent", ASSISTANT_AGENT_TITLE, "is_system_generated", 0)
+			frappe.delete_doc("Flow Agent", ASSISTANT_AGENT_TITLE, ignore_permissions=True)
+		frappe.db.delete("Flow Model", CLAUDE_CODE_MODEL)
+		frappe.db.delete("Flow Provider", "claude-code")
+
+	def tearDown(self):
+		frappe.db.rollback()
+
+	def test_a_new_site_runs_its_assistant_on_claude_code_at_high_effort(self):
+		hooks = frappe.get_hooks("after_install", app_name="frappe")
+		self.assertLess(
+			hooks.index("frappe.ai.lib.model.ensure_claude_code_model"),
+			hooks.index("frappe.ai.assistant.sync_builtin_assistant"),
+		)
+		ensure_claude_code_model()
+		sync_builtin_assistant()
+
+		self.assertTrue(frappe.db.exists("Flow Provider", "claude-code"))
+		self.assertEqual(frappe.db.get_value("Flow Model", CLAUDE_CODE_MODEL, "model_id"), "claude-code/opus")
+		agent = frappe.get_doc("Flow Agent", ASSISTANT_AGENT_TITLE)
+		self.assertEqual((agent.model, agent.reasoning_effort), (CLAUDE_CODE_MODEL, "high"))
+		session = frappe.get_doc({"doctype": "Flow Session", "agent": agent.name, "title": "Hi"}).insert()
+		self.assertEqual(session.server_config()["reasoning_effort"], "high")
+
+	def test_migrate_keeps_the_sites_own_choice(self):
+		ensure_claude_code_model()
+		frappe.db.set_value("Flow Model", CLAUDE_CODE_MODEL, "enabled", 0)
+		ensure_claude_code_model()
+		self.assertFalse(frappe.db.get_value("Flow Model", CLAUDE_CODE_MODEL, "enabled"))

@@ -12,6 +12,7 @@ from frappe import _
 
 # runs on Claude Code in the daemon, not through litellm
 CLAUDE_CODE = "claude-code"
+CLAUDE_CODE_MODEL = "Claude Code Opus"
 
 
 def model_config(model: str) -> dict[str, Any]:
@@ -57,3 +58,14 @@ def model_provider(model_id: str) -> str | None:
 		return litellm.get_llm_provider(model_id)[1]
 	except Exception:
 		return None
+
+
+def ensure_claude_code_model() -> None:
+	"""The Claude Code provider and its Opus model, on its CLI login until a token is set.
+	The first model a site gets becomes the Assistant's."""
+	if not frappe.db.exists("Flow Provider", CLAUDE_CODE):
+		frappe.get_doc({"doctype": "Flow Provider", "provider": CLAUDE_CODE}).insert(ignore_permissions=True)
+	if not frappe.db.exists("Flow Model", CLAUDE_CODE_MODEL):
+		frappe.get_doc(
+			{"doctype": "Flow Model", "title": CLAUDE_CODE_MODEL, "provider": CLAUDE_CODE, "model_id": "opus"}
+		).insert(ignore_permissions=True)
