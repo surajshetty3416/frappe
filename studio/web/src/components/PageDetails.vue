@@ -11,6 +11,7 @@
 		/>
 		<Textarea
 			label="Description"
+			class="[&_textarea]:resize-none"
 			:rows="3"
 			placeholder="What search results and link previews show"
 			:model-value="page.meta_description || ''"
