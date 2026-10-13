@@ -26,7 +26,7 @@ from enum import StrEnum
 from typing import TYPE_CHECKING, Literal
 
 from flow_harness import config as server_config
-from flow_harness.agent import claude_code, loop
+from flow_harness.agent import claude_code, loop, replay
 from flow_harness.agent.client_tools import notify_run_ended
 from flow_harness.agent.loop import AfterHook, BeforeHook
 from flow_harness.events import (
@@ -359,6 +359,24 @@ class Session:
 			inputs = self._loop_inputs(model, before_tool_call, after_tool_call)
 			runner = claude_code if claude_code.is_claude_code(self.model) else loop
 			return self._start_operation(runner.resume(approval, answers, inputs))
+
+	async def replay(
+		self,
+		reply: AssistantMessage,
+		*,
+		message: str | None = None,
+		results: list[ToolResult] | None = None,
+		delay: float = 0.03,
+	) -> RunHandle:
+		"""Run one recorded assistant message without a model, after `message` when it
+		opens a turn. `results` answer the recorded calls that never ran."""
+		async with self._operation_lock:
+			if self.state is not SessionState.IDLE:
+				raise SessionConflict(f"session is {self.state}")
+			user_message = self._user_message(message, [])[0] if message else None
+			inputs = self._loop_inputs(None, None, None)
+			answered = {result.tool_call_id: result for result in results or []}
+			return self._start_operation(replay.step(user_message, reply, answered, inputs, delay))
 
 	def abort(self) -> bool:
 		"""Signal the active run to stop; steering that never became durable dies with it."""

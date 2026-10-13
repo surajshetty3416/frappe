@@ -92,7 +92,7 @@ def flow_tool_name(name: str) -> str:
 async def run(message: UserMessage, inputs: LoopInputs) -> AsyncIterator[AnyEvent]:
 	yield RunStarted(run_id=uuid.uuid4().hex[:12])
 	yield message
-	async for event in _turns(inputs, _prompt(message, inputs), {}):
+	async for event in _turns(inputs, _prompt(message, inputs, _history(message, inputs)), {}):
 		yield event
 
 
@@ -142,9 +142,12 @@ async def _turns(
 				await client.query(_prompt(steering, inputs))
 
 
-def _prompt(message: UserMessage, inputs: LoopInputs) -> str | AsyncIterator[dict[str, Any]]:
+def _prompt(
+	message: UserMessage, inputs: LoopInputs, history: str = ""
+) -> str | AsyncIterator[dict[str, Any]]:
 	"""Text attachments are inlined into the text; images go as image blocks."""
 	text, images = resolve_user_content(message, resolve_attachment=inputs.resolve_attachment)
+	text = history + text
 	if not images:
 		return text
 	content: list[dict[str, Any]] = [{"type": "text", "text": text}] if text else []
@@ -256,6 +259,34 @@ def _anchor(inputs: LoopInputs) -> dict[str, str] | None:
 			if "claude_session" in state:
 				return state
 	return None
+
+
+def _history(current: UserMessage, inputs: LoopInputs) -> str:
+	"""A conversation Claude Code does not hold, such as a replayed chat, reaches it as a
+	transcript before its first message."""
+	messages = [message for message in inputs.messages if message is not current]
+	if not messages or _anchor(inputs) is not None:
+		return ""
+	lines = []
+	for message in messages:
+		if isinstance(message, UserMessage):
+			lines.append(f"User: {message.text}")
+		elif isinstance(message, AssistantMessage):
+			if message.text:
+				lines.append(f"Assistant: {message.text}")
+			lines.extend(
+				f"Tool call {call.id}: {call.name}({json.dumps(call.arguments, default=str)})"
+				for call in message.tool_calls
+			)
+		elif isinstance(message, ToolResult):
+			status = "error" if message.is_error else "result"
+			lines.append(f"Tool {status} {message.tool_call_id}: {_clip(message.content)}")
+	transcript = "\n\n".join(lines)
+	return f"<conversation_so_far>\n{transcript}\n</conversation_so_far>\n\n"
+
+
+def _clip(text: str, limit: int = 4000) -> str:
+	return text if len(text) <= limit else f"{text[:limit]} [cut {len(text) - limit} characters]"
 
 
 def _resume_options(anchor: dict[str, str] | None, cwd: str) -> dict[str, Any]:

@@ -1,0 +1,82 @@
+{
+ "actions": [],
+ "autoname": "hash",
+ "creation": "2026-10-13 00:00:00",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "title",
+  "agent",
+  "source_site",
+  "steps",
+  "data"
+ ],
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Title"
+  },
+  {
+   "fieldname": "agent",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Agent",
+   "options": "Flow Agent",
+   "reqd": 1
+  },
+  {
+   "fieldname": "source_site",
+   "fieldtype": "Data",
+   "label": "Source Site",
+   "read_only": 1
+  },
+  {
+   "fieldname": "steps",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Steps",
+   "read_only": 1
+  },
+  {
+   "fieldname": "data",
+   "fieldtype": "JSON",
+   "label": "Data",
+   "read_only": 1,
+   "reqd": 1
+  }
+ ],
+ "links": [],
+ "modified": "2026-10-13 00:00:00",
+ "modified_by": "Administrator",
+ "module": "AI",
+ "name": "Flow Recording",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "role": "System Manager",
+   "write": 1
+  },
+  {
+   "create": 1,
+   "read": 1,
+   "role": "Flow User"
+  },
+  {
+   "delete": 1,
+   "if_owner": 1,
+   "role": "Flow User",
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "title"
+}

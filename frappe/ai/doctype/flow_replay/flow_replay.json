@@ -1,0 +1,106 @@
+{
+ "actions": [],
+ "autoname": "field:session",
+ "creation": "2026-10-13 00:00:00",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "session",
+  "recording",
+  "status",
+  "step",
+  "error",
+  "run",
+  "from_seq",
+  "names"
+ ],
+ "fields": [
+  {
+   "description": "The Flow Session the replay plays into, and this replay's name.",
+   "fieldname": "session",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Session",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "recording",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Recording",
+   "options": "Flow Recording",
+   "reqd": 1
+  },
+  {
+   "default": "Ready",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "Ready\nPlaying\nDone\nFailed"
+  },
+  {
+   "default": "0",
+   "description": "Steps played so far.",
+   "fieldname": "step",
+   "fieldtype": "Int",
+   "label": "Step"
+  },
+  {
+   "fieldname": "error",
+   "fieldtype": "Small Text",
+   "label": "Error"
+  },
+  {
+   "fieldname": "run",
+   "fieldtype": "Link",
+   "label": "Run",
+   "options": "Flow Run"
+  },
+  {
+   "fieldname": "from_seq",
+   "fieldtype": "Int",
+   "label": "From Seq"
+  },
+  {
+   "description": "Recorded names mapped to the names this site gave them.",
+   "fieldname": "names",
+   "fieldtype": "JSON",
+   "label": "Names"
+  }
+ ],
+ "links": [],
+ "modified": "2026-10-13 00:00:00",
+ "modified_by": "Administrator",
+ "module": "AI",
+ "name": "Flow Replay",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "delete": 1,
+   "read": 1,
+   "role": "System Manager",
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "if_owner": 1,
+   "read": 1,
+   "role": "Flow User",
+   "write": 1
+  },
+  {
+   "create": 1,
+   "if_owner": 1,
+   "role": "System Manager",
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

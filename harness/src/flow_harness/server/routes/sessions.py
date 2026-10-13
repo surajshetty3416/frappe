@@ -23,7 +23,7 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, ConfigDict, Field
 
 from flow_harness.agent.client_tools import deliver_result, is_waiting
-from flow_harness.events import AssistantMessage, ReasoningEffort, parse_event
+from flow_harness.events import AssistantMessage, ReasoningEffort, ToolResult, parse_event
 from flow_harness.model.catalog import model_supports_images
 from flow_harness.model.discovery import context_window_for
 from flow_harness.server.policy import ServerPolicy, gate
@@ -68,6 +68,15 @@ class ResumeRequest(BaseModel):
 
 	approval_seq: int
 	answers: dict[str, str]  # pending tool_call_id -> "Approve" | "Deny" | free text
+
+
+class ReplayRequest(BaseModel):
+	model_config = ConfigDict(extra="forbid")
+
+	message: str | None = None
+	reply: AssistantMessage
+	results: list[ToolResult] = Field(default_factory=list)
+	delay: float = Field(default=0.03, ge=0, le=1)
 
 
 class ToolResultRequest(BaseModel):
@@ -329,6 +338,12 @@ def create_sessions_router(
 	async def resume(request: Request, sid: str, req: ResumeRequest, wait: bool = False):
 		session = _get(resolve_store(request), sid)
 		handle = await session.resume(req.answers, approval_seq=req.approval_seq)
+		return await _finish(session, handle, wait)
+
+	@router.post("/sessions/{sid}/replay")
+	async def replay(request: Request, sid: str, req: ReplayRequest, wait: bool = False):
+		session = _get(resolve_store(request), sid)
+		handle = await session.replay(req.reply, message=req.message, results=req.results, delay=req.delay)
 		return await _finish(session, handle, wait)
 
 	@router.post("/sessions/{sid}/abort")

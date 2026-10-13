@@ -90,6 +90,21 @@ class DaemonClient:
 		body = {"approval_seq": approval_seq, "answers": answers}
 		return self._call("POST", f"/sessions/{sid}/resume", json=body)
 
+	def replay(
+		self,
+		sid: str,
+		reply: dict,
+		*,
+		message: str | None = None,
+		results: list[dict] | None = None,
+		delay: float | None = None,
+	) -> dict:
+		"""Run one recorded assistant message without a model; see the daemon's replay verb."""
+		body = {"reply": reply, "message": message, "results": results or []}
+		if delay is not None:
+			body["delay"] = delay
+		return self._call("POST", f"/sessions/{sid}/replay", json=body)
+
 	def abort(self, sid: str) -> dict:
 		return self._call("POST", f"/sessions/{sid}/abort")
 
