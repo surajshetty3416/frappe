@@ -1,5 +1,6 @@
 import type Block from "@ui/utils/block"
 import type { BlockStyleMap } from "@ui/types"
+import { screens } from "frappe-ui/tailwind/tokens"
 
 // The styles every app gets so its pages work on a phone without spelling it out. A block's own
 // styles win: base styles over the desktop defaults, tablet and mobile styles over the small ones.
@@ -76,4 +77,14 @@ export function smallDefaults(block: Block, breakpoint: string): BlockStyleMap {
 	const cellRow = cell && parentOf(cell, "ListRow")
 	if (block.componentName === "TextBlock" && cellRow && cellRow.children.indexOf(cell) > 0) styles.color = "var(--ink-gray-5)"
 	return styles
+}
+
+// A list's columns per screen, as the List's media rules pick them for a window this wide
+export function columnsAt(columns: unknown, width: number) {
+	if (!columns || typeof columns !== "object" || Array.isArray(columns)) return columns
+	const tiers = columns as Record<string, string[] | undefined>
+	const screen = Object.entries(screens)
+		.filter(([name, min]) => tiers[name]?.length && parseFloat(min) <= width)
+		.at(-1)
+	return screen ? tiers[screen[0]] : tiers.base
 }

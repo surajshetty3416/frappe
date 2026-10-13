@@ -115,6 +115,8 @@ import useCanvasStore from "@ui/stores/canvasStore"
 import { getBlockInfo, getComponentRoot, isObjectEmpty } from "@ui/utils/helpers"
 import { isReorderable, startBlockReorder } from "@ui/utils/useBlockReorder"
 import { isDynamicValue } from "@ui/utils/code"
+import { columnsAt } from "@ui/utils/responsive"
+import { BREAKPOINT_MAX_WIDTH, breakpointAt } from "@ui/utils/useScreenSize"
 
 import type { CanvasProps } from "@ui/types/StudioCanvas"
 import type { SlotScope } from "@ui/types"
@@ -150,8 +152,15 @@ const slotClasses = ["__studio_component_slot__", "outline-none", "select-none"]
 
 const canvasProps = inject("canvasProps") as CanvasProps
 
+// the frame stands in for the window: the page takes the styles and list columns the published app
+// takes at the frame's width, no wider than the breakpoint the canvas shows
+const layoutWidth = computed(() => {
+	const frame = canvasProps?.breakpoints.find((breakpoint) => breakpoint.device === props.breakpoint)?.width ?? Infinity
+	return Math.min(frame, BREAKPOINT_MAX_WIDTH[props.breakpoint] ?? Infinity)
+})
+
 const styles = computed(() => {
-	const _styles = { ...props.block.getRenderStyles(props.breakpoint) }
+	const _styles = { ...props.block.getRenderStyles(breakpointAt(layoutWidth.value)) }
 	Object.entries(_styles).forEach(([key, value]) => {
 		if (value) {
 			if (isDynamicValue(value.toString())) {
@@ -225,10 +234,9 @@ const componentProps = computed(() => {
 	// exclude class/style here so they don't clobber the block's own
 	// class/style props (e.g. an icon's `h-6 w-6` sizing), which would render it invisible.
 	const { class: _class, style: _style, ...restAttrs } = attrs
-	return {
-		...getComponentProps(),
-		...restAttrs,
-	}
+	const values = { ...getComponentProps(), ...restAttrs }
+	if (props.block.componentName === "List") values.columns = columnsAt(values.columns, layoutWidth.value)
+	return values
 })
 
 const componentRef = ref<ComponentPublicInstance | null>(null)
