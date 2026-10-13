@@ -23,9 +23,10 @@ class ClaudeCodeModel(Model):
 	api = "claude-agent-sdk"
 	provider = "claude-code"
 
-	def __init__(self, name: str, **_: object) -> None:
+	def __init__(self, name: str, *, api_key: str | None = None, **_: object) -> None:
 		self.name = name
 		self.model = name.partition("/")[2]
+		self.api_key = api_key
 
 	async def run(self, request: ModelRequest) -> AsyncIterator[AnyEvent]:
 		options = ClaudeAgentOptions(
@@ -36,21 +37,28 @@ class ClaudeCodeModel(Model):
 			strict_mcp_config=True,
 			max_turns=1,
 			verbatim_prompts=True,
+			env={"CLAUDE_CODE_OAUTH_TOKEN": self.api_key} if self.api_key else {},
 		)
 		text: list[str] = []
 		usage = Usage()
+		failed = False
 		async for message in iterate_with_cancellation(
 			query(prompt=_prompt(request), options=options), request.cancellation
 		):
 			if isinstance(message, SDKAssistantMessage):
 				text.extend(block.text for block in message.content if isinstance(block, TextBlock))
-			elif isinstance(message, ResultMessage) and message.usage:
+			elif isinstance(message, ResultMessage):
+				failed = message.is_error
 				usage = Usage(
-					input_tokens=message.usage.get("input_tokens") or 0,
-					output_tokens=message.usage.get("output_tokens") or 0,
+					input_tokens=(message.usage or {}).get("input_tokens") or 0,
+					output_tokens=(message.usage or {}).get("output_tokens") or 0,
 				)
 		yield AssistantMessage(
-			content=[TextContent(text="".join(text))], api=self.api, provider=self.provider, model=self.name
+			content=[TextContent(text="".join(text))],
+			api=self.api,
+			provider=self.provider,
+			model=self.name,
+			stop_reason="error" if failed else "stop",
 		)
 		yield usage
 

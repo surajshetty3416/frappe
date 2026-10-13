@@ -3,7 +3,7 @@
 Claude Code owns the loop and the conversation; Flow owns the tools. Claude Code's own
 tools, settings, skills and MCP servers are all off: it sees only the session's client
 tools, served in process as the `flow` MCP server, and Flow's system prompt. It runs
-under the daemon user's Claude login.
+under the daemon user's Claude login, or the provider's OAuth token when one is set.
 Flow's log mirrors what Claude Code did as ordinary events, under Flow's tool names, and
 each Flow session resumes one Claude Code session.
 """
@@ -180,6 +180,7 @@ def _options(
 		hooks={"PreToolUse": [HookMatcher(hooks=[_approval_hook(inputs, answers, prompts)])]},
 		# a user's "@/path" or "/command" stays text; only Flow's own /compact is a command
 		verbatim_prompts=not command,
+		env={"CLAUDE_CODE_OAUTH_TOKEN": config.api_key} if config.api_key else {},
 		include_partial_messages=True,
 		max_turns=config.max_turns,
 		effort=_EFFORT.get(inputs.reasoning_effort) if inputs.reasoning_effort else None,

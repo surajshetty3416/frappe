@@ -20,7 +20,10 @@ from flow_harness.events import (
 	ToolResult,
 	UserMessage,
 )
+from flow_harness.model import ModelRequest
+from flow_harness.model.auth import resolve_model_auth
 from flow_harness.model.credentials import CredentialStore
+from flow_harness.model.providers import claude_code as providers_claude_code
 from flow_harness.session.config import SessionConfig
 
 CREATE = {
@@ -107,6 +110,12 @@ def test_claude_code_sees_only_flow_tools_and_flows_prompt(tmp_path, mcp_tools):
 
 def test_only_flows_compact_reaches_claude_code_as_a_command(tmp_path, mcp_tools):
 	assert claude_code._options(_inputs(tmp_path), {}, {}, command=True).verbatim_prompts is False
+
+
+def test_a_provider_token_logs_claude_code_in(tmp_path, mcp_tools):
+	assert claude_code._options(_inputs(tmp_path), {}, {}).env == {}
+	options = claude_code._options(_inputs(tmp_path, api_key="oauth-token"), {}, {})
+	assert options.env == {"CLAUDE_CODE_OAUTH_TOKEN": "oauth-token"}
 
 
 # --- the bridge --------------------------------------------------------
@@ -276,3 +285,31 @@ async def test_a_run_mirrors_claude_codes_turns(tmp_path, monkeypatch, mcp_tools
 	assert [e.name for e in events if isinstance(e, ToolResult)] == ["read_records"]
 	assert [e.text for e in events if isinstance(e, AssistantMessage) and e.text] == ["No notes yet."]
 	assert events[-1] == RunEnded(reason="done")
+
+
+# --- titles ------------------------------------------------------------
+
+
+async def test_claude_code_needs_no_stored_credential(tmp_path):
+	store = CredentialStore(str(tmp_path / "credentials.json"))
+	auth = await resolve_model_auth("claude-code/opus", store)
+	assert (auth.api_key, auth.provider_id) == (None, "claude-code")
+
+
+@pytest.mark.parametrize(("is_error", "stop_reason"), [(False, "stop"), (True, "error")])
+async def test_a_title_comes_from_an_isolated_claude_code(monkeypatch, is_error, stop_reason):
+	seen = {}
+
+	async def fake_query(prompt, options):
+		seen["options"] = options
+		yield _assistant(claude_code.SDKTextBlock(text="Smoke Note"))
+		yield _result(is_error=is_error)
+
+	monkeypatch.setattr(providers_claude_code, "query", fake_query)
+	model = providers_claude_code.ClaudeCodeModel("claude-code/haiku", api_key="oauth-token")
+	request = ModelRequest(messages=[UserMessage(content="Title this")], system_prompt="Title it.")
+	events = [event async for event in model.run(request)]
+	options = seen["options"]
+	assert (options.tools, options.setting_sources, options.strict_mcp_config) == ([], [], True)
+	assert options.env == {"CLAUDE_CODE_OAUTH_TOKEN": "oauth-token"}
+	assert events[0].stop_reason == stop_reason

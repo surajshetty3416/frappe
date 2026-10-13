@@ -297,6 +297,8 @@ async def resolve_model_auth(
 				refresh=refresh,
 			)
 
+	if spec and "cli" in spec.auth_methods:
+		return ResolvedModelAuth(source="CLI login", provider_id=spec.id)
 	if spec:
 		for name in spec.api_key_envs:
 			value = os.environ.get(name)
