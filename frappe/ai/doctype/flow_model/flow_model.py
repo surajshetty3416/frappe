@@ -9,7 +9,7 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 
-MODEL_ID_PATTERN = re.compile(r"^[a-z0-9][a-z0-9_\-]*\/[A-Za-z0-9][A-Za-z0-9_\-:.\/]*$")
+MODEL_ID_PATTERN = re.compile(r"^[a-z0-9][a-z0-9_\-]*\/[A-Za-z0-9][A-Za-z0-9_\-:.\/\[\]]*$")
 
 
 class FlowModel(Document):
@@ -68,7 +68,7 @@ class FlowModel(Document):
 		if not MODEL_ID_PATTERN.match(self.model_id or ""):
 			frappe.throw(
 				_(
-					"Model ID must be in <code>provider/model</code> form (e.g. <code>anthropic/claude-sonnet-4-6</code>). Only lowercase provider names and alphanumerics, dashes, dots, colons or slashes in the model part are allowed."
+					"Model ID must be in <code>provider/model</code> form (e.g. <code>anthropic/claude-sonnet-4-6</code>). Only lowercase provider names and alphanumerics, dashes, dots, colons, slashes or brackets in the model part are allowed."
 				),
 				title=_("Invalid Model ID"),
 			)
@@ -102,6 +102,10 @@ class FlowModel(Document):
 		self.context_window = _detect_context_window(self.model_id) or self.context_window or 0
 
 	def _validate_provider_known(self):
+		from frappe.ai.lib.model import CLAUDE_CODE, model_provider
+
+		if model_provider(self.model_id) == CLAUDE_CODE:
+			return
 		try:
 			import litellm
 		except ImportError:

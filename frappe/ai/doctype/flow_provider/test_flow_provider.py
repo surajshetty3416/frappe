@@ -4,9 +4,8 @@
 from typing import Any
 
 import frappe
-from frappe.tests import IntegrationTestCase
-
 from frappe.ai.lib.model import model_config
+from frappe.tests import IntegrationTestCase
 
 
 def _provider(**overrides: Any) -> dict:
@@ -76,3 +75,27 @@ class TestProviderCredentialResolution(IntegrationTestCase):
 		frappe.get_doc(_provider(base_url="http://gateway.local")).insert()
 		m = frappe.get_doc(_model()).insert()
 		self.assertEqual(model_config(m.name)["api_base"], "http://gateway.local")
+
+
+class TestClaudeCodeProvider(IntegrationTestCase):
+	def setUp(self):
+		frappe.db.delete("Flow Model", {"provider": "claude-code"})
+		frappe.db.delete("Flow Provider", "claude-code")
+
+	def tearDown(self):
+		frappe.db.rollback()
+
+	def test_claude_code_models_need_no_litellm_and_carry_the_providers_token(self):
+		frappe.get_doc(_provider(provider="claude-code", api_key="oauth-token")).insert()
+		for model_id in ("opus", "sonnet", "opus[1m]"):
+			m = frappe.get_doc(
+				_model(title=f"Test Claude Code {model_id}", provider="claude-code", model_id=model_id)
+			).insert()
+			config = model_config(m.name)
+			self.assertEqual(config["model"], f"claude-code/{model_id}")
+			self.assertEqual(config["api_key"], "oauth-token")
+
+	def test_without_a_token_claude_code_uses_its_cli_login(self):
+		frappe.get_doc(_provider(provider="claude-code", api_key="")).insert()
+		m = frappe.get_doc(_model(title="Test Claude Code", model_id="claude-code/opus")).insert()
+		self.assertIsNone(model_config(m.name)["api_key"])

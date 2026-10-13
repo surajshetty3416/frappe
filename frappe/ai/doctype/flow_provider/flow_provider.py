@@ -46,11 +46,13 @@ class FlowProvider(Document):
 			import litellm
 		except ImportError:
 			return
-		known = {p.value for p in litellm.provider_list}
+		from frappe.ai.lib.model import CLAUDE_CODE
+
+		known = {p.value for p in litellm.provider_list} | {CLAUDE_CODE}
 		if self.provider not in known:
 			frappe.throw(
 				_(
-					"Unknown provider {0}. It must be a LiteLLM provider name (e.g. openai, anthropic, openrouter, gemini)."
+					"Unknown provider {0}. It must be a LiteLLM provider name (e.g. openai, anthropic, openrouter, gemini) or claude-code."
 				).format(frappe.bold(self.provider)),
 				title=_("Invalid Provider"),
 			)

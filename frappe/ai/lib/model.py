@@ -10,6 +10,9 @@ from typing import Any
 import frappe
 from frappe import _
 
+# runs on Claude Code in the daemon, not through litellm
+CLAUDE_CODE = "claude-code"
+
 
 def model_config(model: str) -> dict[str, Any]:
 	"""The daemon's model, api_key, api_base and model_params for a Flow Model the user may use."""
@@ -30,13 +33,7 @@ def model_config(model: str) -> dict[str, Any]:
 
 def resolve_provider_credentials(model_id: str) -> dict[str, Any]:
 	"""Look up central Flow Provider credentials for a model's provider."""
-	try:
-		import litellm
-
-		provider = litellm.get_llm_provider(model_id)[1]
-	except Exception:
-		return {}
-
+	provider = model_provider(model_id)
 	if not provider or not frappe.db.exists("Flow Provider", provider):
 		return {}
 
@@ -48,3 +45,15 @@ def resolve_provider_credentials(model_id: str) -> dict[str, Any]:
 		"api_key": doc.get_password("api_key", raise_exception=False) or None,
 		"base_url": doc.base_url or None,
 	}
+
+
+def model_provider(model_id: str) -> str | None:
+	"""The Flow Provider name a model id belongs to, if any."""
+	if model_id.partition("/")[0] == CLAUDE_CODE:
+		return CLAUDE_CODE
+	try:
+		import litellm
+
+		return litellm.get_llm_provider(model_id)[1]
+	except Exception:
+		return None
