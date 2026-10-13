@@ -48,7 +48,7 @@ all_clear() {
 }
 
 in_bench() {
-	(cd "$BENCH/sites" && PYTHONPATH="$ROOT" "$BENCH/env/bin/python" "$@")
+	(cd "$BENCH/sites" && FRAPPE_BENCH_ROOT="$BENCH" PYTHONPATH="$ROOT" "$BENCH/env/bin/python" "$@")
 }
 
 layer_tests() {
