@@ -32,6 +32,7 @@ function readJSON(key, fallback, storage = globalThis.localStorage) {
 //                  tools in rows, approvals and expanded output
 //   openArtifact   (artifact) => void, called when an artifact card in the transcript is clicked
 //   artifactIcon   (artifact) => icon class of an artifact card
+//   artifactLayer  (artifact) => the name an artifact card gives its kind, instead of its label
 //   placeholder    the composer's placeholder, instead of "Reply…" or "Describe what to build…"
 //   skills         false hides the composer's "/" skills menu
 //   agents         [{ agent, label }] a new chat may start with, as a switch in the composer;

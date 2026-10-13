@@ -7,6 +7,7 @@
 			:initial-message="initialMessage"
 			:context="context"
 			:artifact-icon="artifactIcon"
+			:artifact-layer="artifactLayer"
 			@session="onSession"
 			@artifact="onArtifact"
 		>
@@ -70,6 +71,7 @@ import { type Artifact, artifactIcon, artifactLabel, getArtifactSession, linkArt
 import { chats } from "../chats"
 import { attachedChips, chatContext, clearSent, contextChips, detach, pendingChips } from "../context"
 import { chatSender } from "../editor"
+import { layers } from "../layers"
 import { findTab } from "../tabs"
 import RecordingList from "./RecordingList.vue"
 
@@ -131,6 +133,7 @@ chatSender.value = (message) => flowApp.value?.send(message) ?? false
 onBeforeUnmount(() => (chatSender.value = null))
 
 const needsSetup = !window.flow_boot?.models?.length
+const artifactLayer = (made: Artifact) => layers.find((layer) => layer.name === made.route.split("/")[2])?.title
 const openTitle = computed(() => (artifact.value && findTab(artifact.value.doctype, artifact.value.name)?.title) || "this artifact")
 const ideas = computed(() => {
 	const layer = route.matched[0]?.meta.layer
