@@ -223,7 +223,10 @@ def settle(replay) -> None:
 	]
 	if not any(row["type"] == "run_ended" for row in rows):
 		return
-	replay.reload()  # a concurrent settle may have won
+	# the poll, the run's on_complete and play_step settle concurrently: one holds the row,
+	# the others then read what it saved
+	replay.flags.for_update = True
+	replay.reload()
 	if replay.status != "Playing":
 		return
 	new = {row["tool_call_id"]: row for row in rows if row["type"] == "tool_result"}

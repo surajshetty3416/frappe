@@ -51,9 +51,14 @@ export async function startReplay(recording: string) {
 }
 
 export async function loadReplay(session: string) {
-	const replay = await call<Replay | null>("frappe.ai.replay.get_replay", { session }).catch(() => null)
-	replays.set(session, replay)
-	return replay
+	try {
+		const replay = await call<Replay | null>("frappe.ai.replay.get_replay", { session })
+		replays.set(session, replay)
+		return replay
+	} catch {
+		// a failed poll keeps what was known, so a playing replay keeps playing
+		return replays.get(session) ?? null
+	}
 }
 
 export async function nextRecording(recording: string) {
