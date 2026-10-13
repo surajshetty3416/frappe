@@ -147,13 +147,18 @@
 				<input ref="fileInput" type="file" multiple class="hidden" @change="onFilesPicked" />
 				<div class="col-start-3 flex items-center gap-1" :class="compact ? '' : 'order-3'">
 					<!-- a new chat picks its agent: build here, or send each task to its own chat -->
-					<TabButtons
-						v-if="agentOptions"
-						class="mr-1"
-						:model-value="flow.state.agent ?? ''"
-						:options="agentOptions"
-						@update:model-value="(value) => flow.setAgent(value || null)"
-					/>
+					<div v-if="agentOptions" role="radiogroup" aria-label="Agent" class="mr-1 flex items-center gap-0.5">
+						<Button
+							v-for="option in agentOptions"
+							:key="option.value"
+							role="radio"
+							variant="ghost"
+							:label="option.label"
+							:aria-checked="(flow.state.agent ?? '') === option.value"
+							:class="(flow.state.agent ?? '') === option.value ? '!bg-surface-gray-2 !text-ink-gray-8' : '!text-ink-gray-5'"
+							@click="flow.setAgent(option.value || null)"
+						/>
+					</div>
 					<Dropdown :options="modeOptions" align="end">
 						<Button variant="ghost" :label="modeLabel" icon-right="lucide-chevron-down" />
 					</Dropdown>
@@ -184,7 +189,7 @@
 
 <script setup>
 import { computed, inject, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue"
-import { Button, Dropdown, TabButtons } from "frappe-ui"
+import { Button, Dropdown } from "frappe-ui"
 import { dialogs as frappeDialogs } from "frappe-ui/src/utils/dialog"
 
 import { quoteBlock, skillSegments } from "../transcript.js"
@@ -217,17 +222,17 @@ const agentOptions = computed(() =>
 		? flow.options.agents.map(({ agent, label }) => ({ value: agent ?? "", label }))
 		: null,
 )
-const placeholder = computed(
-	() =>
-		(!flow.state.sessionId && agentEntry.value?.placeholder) ||
-		(flow.options.placeholder ??
-			(flow.state.sessionId ? (skillsOn.value ? "Reply, / for a skill" : "Reply…") : "Describe what to build…")),
 // the agent of the open chat, or the one a new chat starts with
 const agentEntry = computed(() => {
 	const agent = flow.state.sessionId ? flow.state.session?.config?.agent : flow.state.agent
 	return flow.options.agents?.find((entry) => (entry.agent ?? null) === (agent ?? null))
 })
 const skillsOn = computed(() => flow.options.skills !== false && agentEntry.value?.skills !== false)
+const placeholder = computed(
+	() =>
+		(!flow.state.sessionId && agentEntry.value?.placeholder) ||
+		(flow.options.placeholder ??
+			(flow.state.sessionId ? (skillsOn.value ? "Reply, / for a skill" : "Reply…") : "Describe what to build…")),
 )
 
 const MODES = { auto: "Auto-approve", ask: "Ask first" }
