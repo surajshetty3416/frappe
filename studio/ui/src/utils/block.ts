@@ -328,40 +328,6 @@ class Block implements BlockOptions {
 		return this.blockName || this.componentName || this.originalElement
 	}
 
-	// fragment mode
-	editInFragmentMode() {
-		return Block.components?.[this.componentName]?.editInFragmentMode
-	}
-
-	isOverlayNode(): boolean {
-		if (this.isStudioComponent) {
-			const componentStore = useComponentStore()
-			return Boolean(componentStore.componentMap.get(this.componentName)?.isOverlayNode())
-		}
-		return Boolean(this.editInFragmentMode())
-	}
-
-	hasNonOverlayContent(): boolean {
-		return this.getChildrenAndSlotContent().some((child) => {
-			if (child.isOverlayNode()) return false
-			if (!child.isContainer()) return true
-			return child.hasNonOverlayContent()
-		})
-	}
-
-	findFirstOverlayNode(): Block | null {
-		for (const child of this.getChildrenAndSlotContent()) {
-			if (child.isOverlayNode()) return child
-			const nestedOverlay = child.findFirstOverlayNode()
-			if (nestedOverlay) return nestedOverlay
-		}
-		return null
-	}
-
-	getProxyComponent() {
-		return Block.components?.[this.componentName]?.proxyComponent
-	}
-
 	// styles
 	setBaseStyle(style: styleProperty, value: StyleValue) {
 		style = kebabToCamelCase(style as string) as styleProperty
@@ -900,11 +866,6 @@ class Block implements BlockOptions {
 			})
 		}
 		linkParentComponentId(this, studioComponent.componentId)
-	}
-
-	setComponentContext(componentContext: Record<string, any>) {
-		// temporarily set componentContext on selected block for autocompletions
-		this.componentContext = componentContext
 	}
 }
 

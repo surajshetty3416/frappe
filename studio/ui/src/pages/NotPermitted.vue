@@ -5,7 +5,7 @@
 			<div class="mt-2 text-base text-ink-gray-4">
 				You don't have permission to access this page. Make sure you have the right roles & permissions.
 			</div>
-			<a href="/desk" class="mt-4 text-base text-ink-gray-5 underline">Back to Home</a>
+			<a href="/" class="mt-4 text-base text-ink-gray-5 underline">Back to Home</a>
 		</div>
 	</div>
 </template>
@@ -13,5 +13,5 @@
 <script setup lang="ts">
 import { usePageMeta } from "frappe-ui"
 
-usePageMeta(() => ({ title: "Frappe Studio" }))
+usePageMeta(() => ({ title: "Apps" }))
 </script>

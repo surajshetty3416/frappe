@@ -18,7 +18,7 @@ def list_studio_apps(*, ctx: ToolContext) -> list[dict]:
 
 @tool(
 	requires_confirmation=True,
-	confirm_prompt=lambda args: _("Create the Studio app {0}").format(args.get("title")),
+	confirm_prompt=lambda args: _("Create the app {0}").format(args.get("title")),
 )
 def create_studio_app(
 	title: Annotated[str, "App title shown to its users"],

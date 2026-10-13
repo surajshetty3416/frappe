@@ -6,7 +6,6 @@ import { useCanvasHistory, type PauseId } from "@ui/utils/useCanvasHistory"
 import { useElementBounding } from "@vueuse/core"
 import { toast } from "frappe-ui"
 import useCanvasStore from "@ui/stores/canvasStore"
-import type { StudioMode } from "@ui/types"
 
 const canvasStore = useCanvasStore()
 
@@ -27,8 +26,8 @@ export function useCanvasUtils(
 				window.addEventListener("load", resolve);
 			});
 		}
-		const paddingX = 300;
-		const paddingY = 200;
+		const paddingX = 24;
+		const paddingY = 24;
 
 		await nextTick();
 		canvasBound.update();
@@ -125,16 +124,6 @@ export function useCanvasUtils(
 				nextSibling.selectBlock()
 			}
 		})
-	}
-
-	function toggleMode(mode: StudioMode) {
-		if (!canvasContainer.value) return;
-		const container = canvasContainer.value as HTMLElement;
-		if (mode === "container") {
-			container.style.cursor = "crosshair"
-		} else {
-			container.style.cursor = "default"
-		}
 	}
 
 	async function scrollIntoView(
@@ -241,7 +230,6 @@ export function useCanvasUtils(
 		setRootBlock,
 		findBlock,
 		removeBlock,
-		toggleMode,
 		scrollBlockIntoView,
 	};
 }

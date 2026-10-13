@@ -1,186 +1,27 @@
 <template>
-	<div
-		class="toolbar flex h-14 items-center justify-center border-b border-outline-gray-2 bg-surface-base p-2"
-	>
-		<div class="absolute left-3 flex items-center justify-center gap-5">
-			<Dropdown
-				:options="[
-					{
-						group: 'Studio',
-						hideLabel: true,
-						options: [
-							{
-								label: 'Back to Dashboard',
-								icon: 'lucide-arrow-left',
-								onClick: () => $router.push({ name: 'StudioHome' }),
-							},
-						],
-					},
-					{
-						group: 'Desk',
-						hideLabel: true,
-						options: [
-							{
-								label: 'View App in Desk',
-								icon: 'lucide-arrow-up-right',
-								onClick: () => openAppInDesk(store.activeApp!),
-							},
-							{
-								label: 'View Page in Desk',
-								icon: 'lucide-arrow-up-right',
-								onClick: () => openPageInDesk(store.activePage!),
-								condition: () => Boolean(store.activePage),
-							},
-						],
-					},
-					{
-						group: 'Settings',
-						hideLabel: true,
-						options: [
-							{
-								label: 'Settings',
-								icon: 'lucide-settings',
-								onClick: () => store.openSettings('app'),
-							},
-							{
-								label: 'Keyboard Shortcuts',
-								icon: 'lucide-command',
-								onClick: () => (store.showShortcutsDialog = true),
-							},
-						],
-					},
-					{
-						group: 'Danger',
-						hideLabel: true,
-						options: [
-							{
-								label: 'Delete App',
-								icon: 'lucide-trash-2',
-								theme: 'red',
-								onClick: () => store.deleteApp(store.activeApp?.app_name!, store.activeApp?.app_title!),
-							},
-						],
-					},
-				]"
-			>
-				<template v-slot="{ open }">
-					<div class="flex cursor-pointer items-center gap-1">
-						<StudioLogo class="h-7 w-7"></StudioLogo>
-						<span
-							:class="open ? 'lucide-chevron-up' : 'lucide-chevron-down'"
-							class="h-4 w-4 text-ink-gray-6"
-						/>
-					</div>
-				</template>
-			</Dropdown>
-			<ExportAppDialog v-if="canExportApp" v-model:showDialog="showExportAppDialog" />
-			<div class="flex gap-2">
-				<Tooltip
-					:text="mode.description"
-					:hoverDelay="600"
-					v-for="mode in [
-						{ mode: 'select', icon: 'lucide-mouse-pointer', description: 'Select (v)' },
-						{ mode: 'container', icon: 'lucide-square', description: 'Container (c)' },
-					]"
-				>
-					<Button
-						variant="ghost"
-						:icon="mode.icon"
-						class="text-ink-gray-7 hover:bg-surface-gray-2 focus:!bg-surface-gray-3 [&[active='true']]:bg-surface-gray-3 [&[active='true']]:text-ink-gray-9"
-						@click="() => (store.mode = mode.mode as StudioMode)"
-						:active="store.mode === mode.mode"
-					/>
-				</Tooltip>
-			</div>
-		</div>
-
-		<div>
-			<Popover v-model:open="store.showPageOptions" side="bottom" align="center" :offset="20" bare>
-				<template #trigger>
-					<div class="flex cursor-pointer items-center gap-2 p-2">
-						<div class="flex h-6 items-center text-base text-ink-gray-7" v-if="!store.activePage">
-							Loading...
-						</div>
-						<div v-else class="flex items-center gap-1">
-							<span class="max-w-48 truncate text-base text-ink-gray-7">
-								{{ store?.activePage?.page_title || "My Page" }}
-							</span>
-							-
-							<span class="flex max-w-96 truncate text-base text-ink-gray-5">
-								{{ routeString }}
-							</span>
-							<Tooltip
-								v-if="!store.areRouteVariablesSet"
-								text="Set route variable values here to preview page data"
-							>
-								<span class="lucide-circle-alert h-[14px] w-[14px] text-ink-amber-5" />
-							</Tooltip>
-						</div>
-						<span
-							v-if="store.activePage && store.activePage.published"
-							class="lucide-external-link h-[14px] w-[14px] !text-ink-gray-6 dark:!text-ink-gray-1"
-							@click.stop="store.openPageInBrowser(store.activeApp!, store.activePage)"
-						/>
-					</div>
-				</template>
-				<template #default>
-					<div
-						class="flex w-96 flex-col gap-3 rounded-4 bg-surface-base p-4 shadow-lg"
-						v-if="store.activePage && store.activeApp"
-					>
-						<PageOptions v-if="store.activePage" :page="store.activePage" :app="store.activeApp" />
-					</div>
-				</template>
-			</Popover>
-		</div>
-
-		<div class="absolute right-3 flex items-center gap-2">
-			<Tooltip
-				:text="store.activeApp?.is_standard ? 'App Export is enabled' : 'App Export Settings'"
-				:hoverDelay="600"
-				v-if="canExportApp"
-			>
-				<Button
-					size="sm"
-					variant="subtle"
-					:icon="LucideArrowUpFromLine"
-					label="Export App"
-					@click="() => (showExportAppDialog = true)"
-				/>
-			</Tooltip>
+	<div class="flex h-12 items-center gap-2 border-b border-outline-gray-2 bg-surface-base px-3">
+		<PageSwitcher />
+		<BreakpointToggle />
+		<div class="ml-auto flex items-center gap-2">
 			<Button
-				size="sm"
 				variant="subtle"
-				@click="() => store.openPageInBrowser(store.activeApp!, store.activePage!, true)"
-			>
-				Preview
-			</Button>
-			<PublishButton :disabled="canvasStore.showFragmentCanvas" />
+				icon="lucide-external-link"
+				tooltip="Open"
+				aria-label="Open"
+				:disabled="!store.activePage"
+				@click="store.openPage()"
+			/>
+			<PublishButton />
 		</div>
-		<SettingsDialog />
 	</div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue"
-import { Tooltip, Popover, Dropdown, Button } from "frappe-ui"
+import { Button } from "frappe-ui"
 import useStudioStore from "@ui/stores/studioStore"
-import useCanvasStore from "@ui/stores/canvasStore"
-
-import PageOptions from "@ui/components/PageOptions.vue"
-import StudioLogo from "@ui/components/Icons/StudioLogo.vue"
-import ExportAppDialog from "@ui/components/ExportAppDialog.vue"
+import PageSwitcher from "@ui/components/PageSwitcher.vue"
+import BreakpointToggle from "@ui/components/BreakpointToggle.vue"
 import PublishButton from "@ui/components/PublishButton.vue"
-import SettingsDialog from "@ui/components/Settings/SettingsDialog.vue"
-
-import type { StudioMode } from "@ui/types"
-import LucideArrowUpFromLine from "~icons/lucide/arrow-up-from-line"
-import { isObjectEmpty, openAppInDesk, openPageInDesk } from "@ui/utils/helpers"
 
 const store = useStudioStore()
-const canvasStore = useCanvasStore()
-
-const routeString = computed(() => store.activePage?.route || "/")
-const showExportAppDialog = ref(false)
-const canExportApp = computed(() => window.is_developer_mode && !isObjectEmpty(store.activeApp))
 </script>

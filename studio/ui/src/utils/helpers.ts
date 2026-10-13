@@ -273,15 +273,6 @@ async function fetchApp(appName: string) {
 	return appResource.doc
 }
 
-function openAppInDesk(app: StudioApp) {
-	window.open(`/desk/studio-app/${app.name}`, "_blank")
-}
-
-function openPageInDesk(page: StudioPage) {
-	window.open(`/desk/studio-page/${page.name}`, "_blank")
-}
-
-// page
 async function fetchPage(pageName: string) {
 	if (!pageName) return null
 	const pageResource = createDocumentResource({
@@ -604,8 +595,6 @@ export {
 	isHTML,
 	// app
 	fetchApp,
-	openAppInDesk,
-	openPageInDesk,
 	// page
 	fetchPage,
 	fetchAppPage,

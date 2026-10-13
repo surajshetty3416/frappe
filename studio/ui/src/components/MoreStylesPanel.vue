@@ -1,17 +1,12 @@
 <template>
 	<div class="flex flex-col gap-3" @paste="pasteStyles">
 		<div
-			v-for="row in visibleRows"
+			v-for="row in propertyRows"
 			:key="row.property"
 			class="flex items-center gap-1"
 			:data-style-property="row.styleProperty"
 			@contextmenu="showRemoveContextMenu($event, row.property)"
 		>
-			<DynamicStyleSetter
-				:block="selectedBlock ?? undefined"
-				:property="row.dynamicValueProperty"
-				@update:modelValue="(expression: string) => blockController.setStyle(row.styleProperty, expression)"
-			/>
 			<InlineInput
 				class="min-w-0 flex-1"
 				:label="row.label"
@@ -90,10 +85,8 @@ const addAddedProperty = (componentId: string, property: string) => {
 import { Combobox } from "frappe-ui"
 import { computed, nextTick, ref, type CSSProperties } from "vue"
 import ContextMenu from "@ui/components/ContextMenu.vue"
-import DynamicStyleSetter from "@ui/components/DynamicStyleSetter.vue"
 import InlineInput from "@ui/components/InlineInput.vue"
 import useCanvasStore from "@ui/stores/canvasStore"
-import useStudioStore from "@ui/stores/studioStore"
 import blockController from "@ui/utils/blockController"
 import {
 	getCSSPropertyControl,
@@ -109,7 +102,6 @@ import type { ContextMenuOption, StyleValue } from "@ui/types"
 const props = defineProps<{ controlledProperties: Set<string> }>()
 
 const canvasStore = useCanvasStore()
-const studioStore = useStudioStore()
 const propertySearch = ref("")
 const propertyCombobox = ref<{ clear: () => void } | null>(null)
 
@@ -139,34 +131,12 @@ const propertyRows = computed(() =>
 			styleProperty,
 			label,
 			controlProps: getCSSPropertyControl(property),
-			// BlockProperty-shaped descriptor so DynamicStyleSetter can label itself
-			// and read the current value, like it does for curated rows
-			dynamicValueProperty: {
-				component: InlineInput,
-				searchKeyWords: "",
-				getProps: () => ({ label, property: styleProperty }),
-				getValue: () => (blockController.getStyle(styleProperty) ?? null) as string | null,
-			},
 		}
 	}),
 )
 
 const getRenderedValue = (property: keyof CSSProperties) =>
 	String(selectedBlock.value?.getRenderedStyle(property) ?? "unset")
-
-// narrow rows to the panel-wide property filter; a match on the section itself
-// (e.g. searching "more styles") keeps the full list instead of blanking it
-const visibleRows = computed(() => {
-	const query = studioStore.propertyFilter?.toLowerCase() || ""
-	if (!query) return propertyRows.value
-	const matchingRows = propertyRows.value.filter(
-		(row) =>
-			row.property.includes(query) ||
-			row.styleProperty.toLowerCase().includes(query) ||
-			row.label.toLowerCase().includes(query),
-	)
-	return matchingRows.length ? matchingRows : propertyRows.value
-})
 
 const normalizedPropertySearch = computed(() => normalizeCSSPropertyName(propertySearch.value))
 

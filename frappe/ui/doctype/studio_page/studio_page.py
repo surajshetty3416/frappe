@@ -20,13 +20,29 @@ from frappe.ui.export import (
 )
 from frappe.ui.realtime import publish_doc_change
 from frappe.ui.doctype.studio_component.studio_component import get_components_for_blocks
-from frappe.ui.doctype.studio_page.copy_paste_handler import (
-	PAGE_RESOURCE_FIELDS,
-	PAGE_VARIABLE_FIELDS,
-	parse_list,
-	pick,
-)
 from frappe.ui.utils import camel_case_to_kebab_case
+
+PAGE_RESOURCE_FIELDS = (
+	"resource_type",
+	"resource_name",
+	"auto",
+	"fields",
+	"filters",
+	"limit",
+	"sort_field",
+	"sort_order",
+	"document_type",
+	"document_name",
+	"fetch_document_using_filters",
+	"url",
+	"method",
+	"params",
+	"whitelisted_methods",
+	"transform",
+	"on_success",
+	"on_error",
+)
+PAGE_VARIABLE_FIELDS = ("variable_name", "variable_type", "initial_value")
 
 # A variable is referenced as {{ name }} and spread into the page's JS eval context, so its
 # name must be a bare JS identifier.
@@ -143,54 +159,6 @@ class StudioPage(Document):
 		if self.has_script_file():
 			self.db_set("script", frappe.read_file(self.get_script_file_path()), update_modified=False)
 
-	@frappe.whitelist()
-	def get_copy(self, blocks: list | str | None = None) -> dict:
-		"""Page settings, data sources, variables, script and the components `blocks` use, for copy-paste."""
-		self.check_permission("read")
-		blocks = parse_list(blocks if blocks is not None else self.draft_blocks or self.blocks, "blocks")
-		script = self.get_script_source()
-		return {
-			**self.get_dependencies(blocks, script),
-			"page_title": self.page_title,
-			"allow_guest": self.allow_guest,
-			"resources": [pick(row, PAGE_RESOURCE_FIELDS) for row in self.resources],
-			"variables": [pick(row, PAGE_VARIABLE_FIELDS) for row in self.variables],
-			"script": script,
-		}
-
-	@frappe.whitelist()
-	def get_dependencies(self, blocks: list | str, script: str = "") -> dict:
-		"""What `blocks` (and `script`) need from outside themselves, for copy-paste: Studio components,
-		app files, and this page's data sources and variables they reference."""
-		self.check_permission("read")
-		blocks = parse_list(blocks, "blocks")
-		text = frappe.as_json(blocks)
-
-		def used(name):
-			return bool(name) and re.search(rf"\b{re.escape(name)}\b", text)
-
-		return {
-			"components": get_components_for_blocks(blocks),
-			"files": self.get_app_files(script, blocks),
-			"resources": [pick(r, PAGE_RESOURCE_FIELDS) for r in self.resources if used(r.resource_name)],
-			"variables": [pick(v, PAGE_VARIABLE_FIELDS) for v in self.variables if used(v.variable_name)],
-		}
-
-	def get_app_files(self, script: str, blocks) -> list[dict]:
-		if not (self.is_standard and self.frappe_app):
-			return []
-		app = self.get_app()
-		script_dir = os.path.relpath(self.get_folder_path(), app.get_folder_path())
-		return app.collect_files(script, script_dir, blocks)
-
-	def get_app(self):
-		return frappe.get_cached_doc("Studio App", self.studio_app)
-
-	def get_script_source(self) -> str:
-		if self.has_script_file():
-			return frappe.read_file(self.get_script_file_path())
-		return self.script or ""
-
 	def has_script_file(self) -> bool:
 		return bool(self.is_standard and self.frappe_app and os.path.exists(self.get_script_file_path()))
 
@@ -262,13 +230,8 @@ class StudioPage(Document):
 		return False
 
 	def on_trash(self):
-		self.delete_ai_sessions()
 		if can_export(self):
 			delete_folder(self.get_folder_path())
-
-	def delete_ai_sessions(self):
-		for session in frappe.get_all("Studio AI Session", filters={"page": self.name}, pluck="name"):
-			frappe.delete_doc("Studio AI Session", session, ignore_missing=True)
 
 	def validate_variables(self):
 		# check for duplicate variable names and show the duplicate variable name

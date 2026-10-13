@@ -9,5 +9,5 @@
 </template>
 
 <script setup lang="ts">
-withDefaults(defineProps<{ home?: string }>(), { home: "/desk" })
+withDefaults(defineProps<{ home?: string }>(), { home: "/" })
 </script>

@@ -4,39 +4,10 @@
 			<CollapsibleSection
 				:sectionName="section.name"
 				v-for="section in filteredSections"
-				:sectionCollapsed="toValue(section.collapsed) && !store.propertyFilter"
+				:sectionCollapsed="toValue(section.collapsed)"
 			>
 				<template v-for="property in getFilteredProperties(section)">
-					<div v-if="property.allowDynamicValue" class="flex items-center">
-						<DynamicStyleSelector
-							:block="block"
-							:property="property"
-							@update:modelValue="
-								(event) => {
-									if (typeof property.events?.['update:modelValue'] === 'function') {
-										property.events['update:modelValue'](event)
-									} else if (typeof property.events?.['change'] === 'function') {
-										property.events['change'](event)
-									} else {
-										// for DimensionInput
-										const _property = property.getProps().property as keyof CSSProperties
-										blockController.setStyle(_property, event)
-									}
-								}
-							"
-						/>
-						<component
-							class="flex-1"
-							:is="property.component"
-							v-bind="property.getProps()"
-							v-on="property.events || {}"
-						>
-							{{ property.innerText || "" }}
-						</component>
-					</div>
-
 					<component
-						v-else
 						:is="property.component"
 						v-bind="property.getProps()"
 						v-on="property.events || {}"
@@ -55,7 +26,6 @@
 <script setup lang="ts">
 import Block from "@ui/utils/block"
 import OptionToggle from "@ui/components/OptionToggle.vue"
-import useStudioStore from "@ui/stores/studioStore"
 import blockController from "@ui/utils/blockController"
 import { getEspressoTokens } from "@ui/utils/espressoTokens"
 import { getStylePropertiesWithoutControls } from "@ui/utils/stylePropertiesWithoutControls"
@@ -73,7 +43,6 @@ import ColorInput from "@ui/components/ColorInput.vue"
 import MoreStylesPanel, { getAddedProperties } from "@ui/components/MoreStylesPanel.vue"
 
 import type { StyleValue } from "@ui/types"
-import DynamicStyleSelector from "@ui/components/DynamicStyleSetter.vue"
 
 const props = defineProps({
 	block: {
@@ -82,7 +51,6 @@ const props = defineProps({
 	},
 })
 
-const store = useStudioStore()
 
 export type BlockProperty = {
 	component: any
@@ -110,9 +78,6 @@ const filteredSections = computed(() => {
 		if (section.condition) {
 			showSection = section.condition()
 		}
-		if (showSection && store.propertyFilter) {
-			showSection = getFilteredProperties(section).length > 0
-		}
 		return showSection
 	})
 })
@@ -122,13 +87,6 @@ const getFilteredProperties = (section: PropertySection) => {
 		let showProperty = true
 		if (property.condition) {
 			showProperty = property.condition()
-		}
-		if (showProperty && store.propertyFilter) {
-			const searchKeyWords =
-				typeof property.searchKeyWords === "function" ? property.searchKeyWords() : property.searchKeyWords
-			showProperty =
-				section.name.toLowerCase().includes(store.propertyFilter.toLowerCase()) ||
-				searchKeyWords.toLowerCase().includes(store.propertyFilter.toLowerCase())
 		}
 		return showProperty
 	})

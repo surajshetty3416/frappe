@@ -29,12 +29,6 @@
 				:key="prop.name"
 				class="flex w-full items-center [&_[data-input-label]]:text-ink-gray-4 [&_input]:bg-surface-gray-1 [&_input]:text-ink-gray-5"
 			>
-				<DynamicValueSelector
-					:block="block"
-					:isVariableBound="prop.value?.$type === 'variable' ? prop.value.name : null"
-					:class="['opacity-50', { 'mt-1 self-start': prop.inputType === 'code' }]"
-					@update:modelValue="(varName, bindVariable) => setDynamicValue(prop.name, varName, bindVariable)"
-				/>
 				<Code
 					v-if="prop.inputType === 'code'"
 					:label="prop.name"
@@ -67,7 +61,6 @@ import { Tooltip } from "frappe-ui"
 import Block from "@ui/utils/block"
 import Code from "@ui/components/Code.vue"
 import InlineInput from "@ui/components/InlineInput.vue"
-import DynamicValueSelector from "@ui/components/DynamicValueSelector.vue"
 import components from "@ui/data/components"
 import { isObjectEmpty } from "@ui/utils/helpers"
 import { isDynamicValue } from "@ui/utils/code"
@@ -105,9 +98,6 @@ function removeDeprecatedProps() {
 	deprecatedProps.value.forEach((prop) => props.block.removeProp(prop.name))
 }
 
-function setDynamicValue(propName: string, varName: string, bindVariable: boolean) {
-	props.block.setProp(propName, bindVariable ? { $type: "variable", name: varName } : `{{ ${varName} }}`)
-}
 
 function formatValue(value: any) {
 	return value?.$type === "variable" ? `{{ ${value.name} }}` : value

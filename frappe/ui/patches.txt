@@ -15,7 +15,6 @@ frappe.ui.doctype.studio_page.patches.migrate_watchers_to_page_script
 frappe.ui.doctype.studio_page.patches.migrate_espresso_color_tokens_v2
 frappe.ui.doctype.studio_page.patches.migrate_text_size_tokens_v2
 frappe.ui.doctype.studio_page.patches.migrate_event_actions_to_script
-frappe.ui.doctype.studio_ai_session.patches.migrate_ai_session_messages_to_doctype
 frappe.ui.doctype.studio_page.patches.migrate_slot_content_to_blocks
 frappe.ui.doctype.studio_page.patches.fold_raw_styles_into_base_styles
 frappe.ui.doctype.studio_page.patches.migrate_blocks_to_frappe_ui_v1

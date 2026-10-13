@@ -103,8 +103,6 @@ export const COMPONENT_FAMILIES: FrappeUIComponents = {
 		icon: LucideSettings,
 		isGroup: true,
 		blockTemplate: "settings-dialog",
-		editInFragmentMode: true,
-		proxyComponent: defineAsyncComponent(() => import("@ui/components/ProxyComponents/ProxySettingsDialog.vue")),
 		overrideProps: {
 			// tabs manager: adds/removes NavItem + Panel pairs atomically and tracks
 			// the active tab (the `tab` prop) via the leading dot

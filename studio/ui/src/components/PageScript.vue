@@ -1,51 +1,39 @@
 <template>
-	<!-- Non-exported apps keep their page scripts in the DB. The editor replaces the panel content
-	     and opens directly against the icon rail. -->
-	<CodeEditorDock
-		:open="true"
-		railLeft
-		:modelValue="script"
-		:completions="completions"
-		@update:modelValue="onChange"
-		@save="saveScript"
-	>
-		<template #title>
-			<span class="truncate text-sm text-ink-gray-8">Page Script</span>
-			<span v-if="dirty" class="text-ink-amber-5">•</span>
-		</template>
-		<template #actions>
+	<div class="flex h-full flex-col">
+		<div class="flex h-10 shrink-0 items-center justify-end gap-1 border-b border-outline-gray-2 px-3">
+			<span v-if="dirty" class="mr-auto text-sm text-ink-amber-5">Unsaved</span>
 			<Popover side="bottom" align="end" :offset="6" bare>
 				<template #trigger>
-					<Button size="xs" variant="ghost" icon="lucide-circle-help" title="How to write the page script" />
+					<Button size="sm" variant="ghost" icon="lucide-circle-help" title="How to write the page script" />
 				</template>
 				<div class="max-w-sm rounded-4 border border-outline-gray-2 bg-surface-base p-3 shadow-lg">
 					<PageScriptHelp />
 				</div>
 			</Popover>
-			<Button size="xs" variant="solid" :loading="saving" :disabled="!dirty" @click="saveScript">Save</Button>
-			<Button
-				size="xs"
-				variant="ghost"
-				icon="lucide-x"
-				title="Close editor"
-				@click="store.studioLayout.showLeftPanel = false"
+			<Button size="sm" variant="solid" :loading="saving" :disabled="!dirty" @click="saveScript">Save</Button>
+		</div>
+		<ErrorMessage v-if="scriptError" class="border-b border-outline-gray-2 px-3 py-2" :message="scriptError" />
+		<div class="relative min-h-0 flex-1 overflow-hidden">
+			<Code
+				:modelValue="script"
+				language="javascript"
+				height="100%"
+				maxHeight="100%"
+				:emitOnChange="true"
+				valueMode="text"
+				:borderless="true"
+				:completions="completions"
+				@update:modelValue="onChange"
+				@save="saveScript"
 			/>
-		</template>
-
-		<template #banner>
-			<ErrorMessage
-				v-if="scriptError"
-				class="border-b border-outline-gray-2 px-3 py-2"
-				:message="scriptError"
-			/>
-		</template>
-	</CodeEditorDock>
+		</div>
+	</div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, watch } from "vue"
 import { toast, Button, Popover, ErrorMessage } from "frappe-ui"
-import CodeEditorDock from "@ui/components/CodeEditorDock.vue"
+import Code from "@ui/components/Code.vue"
 import PageScriptHelp from "@ui/components/PageScriptHelp.vue"
 import { getScriptError } from "@ui/utils/parseCode"
 import { useStudioCompletions } from "@ui/utils/completions/useStudioCompletions"

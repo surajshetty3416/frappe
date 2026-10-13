@@ -16,17 +16,6 @@
 		>
 			<LucideRepeat v-if="block.isRepeater() || block.isRepeated()" class="h-3 w-3 shrink-0" />
 			{{ block.getBlockDescription() }}
-			<template v-if="showEditComponentAction">
-				<span class="mx-2 h-3 w-px bg-current opacity-30"></span>
-				<button
-					class="pointer-events-auto inline-flex cursor-pointer items-center gap-1 font-medium hover:opacity-80"
-					title="Edit component"
-					@click.stop="openComponentEditor"
-				>
-					<LucidePenLine class="h-2.5 w-2.5" />
-					Edit
-				</button>
-			</template>
 		</span>
 
 		<PaddingHandler
@@ -79,12 +68,9 @@ import BoxResizer from "@ui/components/BoxResizer.vue"
 import PaddingHandler from "@ui/components/PaddingHandler.vue"
 import MarginHandler from "@ui/components/MarginHandler.vue"
 import LucideRepeat from "~icons/lucide/repeat"
-import LucidePenLine from "~icons/lucide/pen-line"
 
 import Block from "@ui/utils/block"
-import useStudioStore from "@ui/stores/studioStore"
 import useCanvasStore from "@ui/stores/canvasStore"
-import useComponentEditorStore from "@ui/stores/componentEditorStore"
 import trackTarget, { Tracker } from "@ui/utils/trackTarget"
 import { isReorderable, startBlockReorder } from "@ui/utils/useBlockReorder"
 import { isMovable, startBlockMove } from "@ui/utils/useBlockMove"
@@ -114,7 +100,6 @@ const props = defineProps({
 	},
 })
 
-const store = useStudioStore()
 const canvasStore = useCanvasStore()
 const editor = ref(null) as unknown as Ref<HTMLElement>
 const resizing = ref(false)
@@ -177,14 +162,6 @@ const getStyleClasses = computed(() => {
 	return classes
 })
 
-const showEditComponentAction = computed(() => {
-	return isBlockSelected.value && props.block.isStudioComponent && !canvasStore.isDragging
-})
-
-const openComponentEditor = () => {
-	useComponentEditorStore().editComponent(props.block.componentName)
-}
-
 const componentLabelClasses = computed(() => {
 	if (isBlockSelected.value) {
 		return props.block.isStudioComponent
@@ -201,7 +178,7 @@ const componentLabelClasses = computed(() => {
 const handleMouseDown = (ev: MouseEvent) => {
 	// preventDefault keeps focus where it was, so blur explicitly to commit pending panel edits
 	;(document.activeElement as HTMLElement | null)?.blur()
-	if (ev.button !== 0 || store.mode !== "select") return
+	if (ev.button !== 0) return
 	if ((ev.target as HTMLElement).closest("button")) return
 
 	if (isReorderable(props.block, props.breakpoint)) {
@@ -248,15 +225,7 @@ watchEffect(() => {
 	parentBlock?.getStyle("paddingRight")
 	parentBlock?.getStyle("margin")
 
-	// on changing panel states
-	store.studioLayout.leftPanelWidth
-	store.studioLayout.rightPanelWidth
-	store.studioLayout.showLeftPanel
-	store.studioLayout.showRightPanel
-
 	canvasStore.activeCanvas?.activeBreakpoint
-	canvasStore.dropTarget.placeholder
-	canvasStore.dropTarget.index
 	canvasStore.activeCanvas?.canvasProps.breakpoints.map((breakpoint) => breakpoint.visible)
 
 	nextTick(() => {

@@ -40,8 +40,6 @@ export interface BlockOptions {
 	[key: string]: any
 }
 
-export type EditingMode = "page" | "fragment" | "component"
-export type StudioMode = "select" | "container"
 
 // slot
 export interface Slot {
@@ -103,8 +101,6 @@ export interface FrappeUIComponent {
 	initialSlots?: Array<string>
 	props?: Array<Record<string, any>>
 	emits?: Array<string> | Record<string, any>
-	editInFragmentMode?: boolean // whether to open a separate canvas for editing this component
-	proxyComponent?: any // pseudo-component to be used in edit mode
 	additionalProps?: Record<string, any> // additional props to be shown in the properties panel that are not explicitly defined in the component
 	overrideProps?: Record<string, ComponentProp & { props?: Record<string, any> }> // to override prop editors for specific props
 	hideProps?: Array<string> // to hide specific props from the properties panel
@@ -169,10 +165,6 @@ export type Filter = {
 	field: DocTypeField
 }
 
-export type LeftPanelOptions = "Pages" | "Add Component" | "Layers" | "Data" | "Code" | "AI Assistant"
-export type RightPanelOptions = "Properties" | "Styles" | "Events" | "Interface"
-export type leftPanelComponentTabOptions = "Standard" | "Custom"
-export type SettingsTab = "app" | "pages" | "ai"
 
 // right panel
 export type HashString = `#${string}`

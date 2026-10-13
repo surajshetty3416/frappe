@@ -8,66 +8,11 @@
 				<PropsEditor ref="propsEditor" :block="block" :multiEdit="multipleBlocksSelected" />
 			</SectionContainer>
 
-			<!-- slots -->
-			<SectionContainer title="Slots" v-show="filteredSections.includes('slots') && !multipleBlocksSelected">
-				<template #actions>
-					<Combobox
-						:key="Object.keys(block?.componentSlots || {}).length"
-						:options="availableSlotOptions"
-						placeholder="Search or add a slot"
-						@update:modelValue="(slotName: string) => addSlot(slotName)"
-						align="end"
-					>
-						<template #trigger>
-							<Button size="sm" variant="ghost" icon="lucide-plus" />
-						</template>
-						<template #item-add-slot="{ query }">Add "{{ query.trim() }}"</template>
-					</Combobox>
-				</template>
-
-				<div v-if="!isObjectEmpty(block?.componentSlots)" class="flex flex-col gap-1">
-					<div
-						v-for="(slot, slotName) in block?.componentSlots"
-						:key="slotName"
-						class="flex w-full cursor-pointer items-center justify-between gap-1 rounded-4 py-0.5"
-						@click="selectSlot(slotName)"
-					>
-						<div class="flex min-w-0 items-center gap-1.5">
-							<Tooltip
-								side="left"
-								:hoverDelay="0"
-								:text="isDynamicSlot(slotName) ? 'Dynamic slot' : 'Standard slot'"
-							>
-								<span class="inline-flex shrink-0">
-									<component
-										:is="isDynamicSlot(slotName) ? LucideZap : LucideHash"
-										class="size-3 text-ink-gray-4"
-									/>
-								</span>
-							</Tooltip>
-							<span class="truncate text-sm text-ink-gray-5">{{ slotName }}</span>
-						</div>
-						<div class="flex shrink-0 items-center gap-2">
-							<Badge
-								theme="gray"
-								variant="outline"
-								class="text-sm text-ink-gray-5"
-								v-if="getSlotSummary(slotName)"
-							>
-								{{ getSlotSummary(slotName) }}
-							</Badge>
-							<Button variant="ghost" size="sm" icon="lucide-x" @click.stop="removeSlot(slotName)" />
-						</div>
-					</div>
-				</div>
-				<EmptyState v-else message="No slots added" />
-			</SectionContainer>
-
 			<!-- Visibility Condition -->
 			<CollapsibleSection
 				v-show="filteredSections.includes('visibility')"
 				sectionName="Visibility Condition"
-				:sectionCollapsed="toValue(sections.visibility?.collapsed) && !studioStore.propertyFilter"
+				:sectionCollapsed="toValue(sections.visibility?.collapsed)"
 			>
 				<template #actions>
 					<Button
@@ -94,7 +39,7 @@
 			<CollapsibleSection
 				v-show="filteredSections.includes('attributes')"
 				sectionName="Attributes"
-				:sectionCollapsed="toValue(sections.attributes?.collapsed) && !studioStore.propertyFilter"
+				:sectionCollapsed="toValue(sections.attributes?.collapsed)"
 			>
 				<ObjectEditor
 					ref="attributesEditor"
@@ -108,32 +53,25 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, toValue, watchEffect } from "vue"
-import { Combobox, Button, Tooltip, Badge } from "frappe-ui"
+import { ref, computed, toValue } from "vue"
+import { Button } from "frappe-ui"
 import Block from "@ui/utils/block"
-import { getComponentSlots } from "@ui/utils/components"
 import PropsEditor from "@ui/components/PropsEditor.vue"
 import ObjectEditor from "@ui/components/ObjectEditor.vue"
 import EmptyState from "@ui/components/EmptyState.vue"
 import SectionContainer from "@ui/components/SectionContainer.vue"
 import CollapsibleSection from "@ui/components/CollapsibleSection.vue"
-import { confirm, isObjectEmpty } from "@ui/utils/helpers"
+import { isObjectEmpty } from "@ui/utils/helpers"
 import Code from "@ui/components/Code.vue"
 import blockController from "@ui/utils/blockController"
 import { useStudioCompletions } from "@ui/utils/completions/useStudioCompletions"
 import type { CompletionContext } from "@codemirror/autocomplete"
-import useStudioStore from "@ui/stores/studioStore"
-import useCanvasStore from "@ui/stores/canvasStore"
 
-import LucideZap from "~icons/lucide/zap"
-import LucideHash from "~icons/lucide/hash"
 
 const props = defineProps<{
 	block?: Block
 }>()
 const getCompletions = useStudioCompletions()
-const studioStore = useStudioStore()
-const canvasStore = useCanvasStore()
 
 const multipleBlocksSelected = computed(() => blockController.multipleBlocksSelected())
 const mixedTypeSelection = computed(
@@ -143,72 +81,10 @@ const mixedTypeSelection = computed(
 const attributesEditor = ref<InstanceType<typeof ObjectEditor> | null>(null)
 const propsEditor = ref<InstanceType<typeof PropsEditor> | null>(null)
 
-const declaredSlots = ref<string[]>([])
-
-watchEffect(async () => {
-	if (!props.block || props.block.isRoot() || props.block.isContainer()) {
-		declaredSlots.value = []
-		return
-	}
-	const slots = await getComponentSlots(props.block.componentName, props.block.isCustomVueComponent)
-	declaredSlots.value = slots.map((slot) => slot.name)
-})
-
-const availableSlotOptions = computed(() => [
-	...declaredSlots.value
-		.filter((name) => !props.block?.getSlot(name))
-		.map((name) => ({ label: name, value: name })),
-	{
-		type: "custom" as const,
-		key: "add-slot",
-		label: "Add slot",
-		slot: "add-slot",
-		condition: ({ query }: { query: string }) =>
-			Boolean(query.trim()) && !declaredSlots.value.includes(query.trim()),
-		onClick: ({ query }: { query: string }) => addSlot(query),
-	},
-])
-
-const addSlot = (slotName: string) => {
-	if (!slotName) return
-	slotName = slotName?.trim()
-	if (slotName && !props.block?.getSlot(slotName)) {
-		props.block?.addSlot(slotName)
-	}
-}
-
-const isDynamicSlot = (slotName: string) => !declaredSlots.value.includes(slotName)
-
-const getSlotSummary = (slotName: string) => {
-	const count = props.block?.getSlot(slotName)?.slotContent.length
-	if (!count) return ""
-	return count === 1 ? "1 block" : `${count} blocks`
-}
-
-const removeSlot = async (slotName: string) => {
-	const count = props.block?.getSlot(slotName)?.slotContent.length || 0
-	if (
-		count &&
-		!(await confirm(`${slotName} slot has ${count === 1 ? "1 block" : `${count} blocks`}. Remove it?`))
-	) {
-		return
-	}
-	props.block?.removeSlot(slotName)
-}
-
-const selectSlot = (slotName: string) => {
-	const slot = props.block?.getSlot(slotName)
-	if (slot) canvasStore.activeCanvas?.selectSlot(slot)
-}
-
 const sections: Record<string, { condition?: any; collapsed?: any; searchKeyWords: string }> = {
 	props: {
 		condition: computed(() => !props.block?.isContainer()),
 		searchKeyWords: "Props, Properties, Inputs",
-	},
-	slots: {
-		condition: computed(() => declaredSlots.value.length > 0 || !isObjectEmpty(props.block?.componentSlots)),
-		searchKeyWords: "Slots, Slot, Component Slots, Component Slot, Customize Template",
 	},
 	visibility: {
 		collapsed: computed(() => !props.block?.hasVisibilityCondition()),
@@ -221,19 +97,10 @@ const sections: Record<string, { condition?: any; collapsed?: any; searchKeyWord
 	},
 }
 
-const filteredSections = computed(() => {
-	let filtered = Object.keys(sections).filter((sectionName) => {
-		const hasCondition = sections[sectionName]?.condition
-		if (hasCondition && !hasCondition.value) return false
-
-		const filter = studioStore.propertyFilter?.toLowerCase()
-		if (!filter) return true
-
-		if (sectionName === "props" && propsEditor.value?.hasFilteredProps) {
-			return true
-		}
-		return sections[sectionName]?.searchKeyWords.toLowerCase().includes(filter) || false
-	})
-	return filtered
-})
+const filteredSections = computed(() =>
+	Object.keys(sections).filter((sectionName) => {
+		const condition = sections[sectionName]?.condition
+		return !condition || condition.value
+	}),
+)
 </script>

@@ -12,9 +12,8 @@
 				</div>
 			</div>
 
-			<EmptyState v-else message="No events added" />
+			<EmptyState v-else message="No events" />
 
-			<Button class="mt-2" icon-left="lucide-plus" @click="showAddEventDialog = true">Add Event</Button>
 			<Dialog
 				v-model:open="showAddEventDialog"
 				:title="(isEditing ? 'Edit Event' : 'Add Event') + ' - ' + block.getBlockDescription()"

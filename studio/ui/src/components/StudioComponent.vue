@@ -4,18 +4,10 @@
 		<pre class="text-xs">{{ error }}</pre>
 	</div>
 
-	<!-- nested overlay nodes (sub-dialogs) are collapsed into cards instead of rendering inline -->
-	<template v-else-if="isOverlayNode"></template>
-
 	<StudioComponentWrapper
 		v-else-if="block.isStudioComponent"
 		:studioComponent="block"
 		:evaluationContext="evaluationContext"
-		:breakpoint="breakpoint"
-	/>
-	<StudioComponentEditorWrapper
-		v-else-if="isEditingComponent"
-		:studioComponent="block"
 		:breakpoint="breakpoint"
 	/>
 
@@ -116,12 +108,10 @@ import { useEventListener } from "@vueuse/core"
 import StudioComponentWrapper from "@ui/components/StudioComponentWrapper.vue"
 import SlotScopeProvider from "@ui/components/SlotScopeProvider.vue"
 import ComponentEditor from "@ui/components/ComponentEditor.vue"
-import StudioComponentEditorWrapper from "@ui/components/StudioComponentEditorWrapper.vue"
 import { customVueComponentsRegistry } from "@ui/globals"
 
 import Block from "@ui/utils/block"
 import useCanvasStore from "@ui/stores/canvasStore"
-import useStudioStore from "@ui/stores/studioStore"
 import { getBlockInfo, getComponentRoot, isObjectEmpty } from "@ui/utils/helpers"
 import { isReorderable, startBlockReorder } from "@ui/utils/useBlockReorder"
 import { isDynamicValue } from "@ui/utils/code"
@@ -136,7 +126,6 @@ const props = withDefaults(
 	defineProps<{
 		block: Block
 		breakpoint?: string
-		isEditingComponent?: boolean
 	}>(),
 	{
 		breakpoint: "desktop",
@@ -147,7 +136,6 @@ defineOptions({
 	inheritAttrs: false,
 })
 
-const store = useStudioStore()
 const canvasStore = useCanvasStore()
 const pageScope = usePageScope()
 
@@ -161,15 +149,7 @@ const slotClasses = ["__studio_component_slot__", "outline-none", "select-none"]
 
 const canvasProps = inject("canvasProps") as CanvasProps
 
-const rendersProxy = computed(() => {
-	if (canvasStore.editingMode === "page" || props.block.isContainer()) return false
-	return Boolean(props.block.getProxyComponent())
-})
-
 const styles = computed(() => {
-	// Isolate proxies from block styles entirely since they never reach a teleported overlay at runtime,
-	// and falling through onto a proxy they'd clobber its placement.
-	if (rendersProxy.value) return {}
 	const _styles = { ...props.block.getStyles(props.breakpoint) }
 	Object.entries(_styles).forEach(([key, value]) => {
 		if (value) {
@@ -181,18 +161,10 @@ const styles = computed(() => {
 	return _styles
 })
 
-const isOverlayNode = computed(() => {
-	return (
-		canvasStore.editingMode !== "page" &&
-		props.block.isOverlayNode() &&
-		props.block.componentId !== canvasStore.primaryOverlayId
-	)
-})
-
 const componentName = computed(() => {
 	if (props.block.isContainer()) return props.block.originalElement || "div"
 
-	let name = rendersProxy.value ? props.block.getProxyComponent() : props.block.componentName
+	let name = props.block.componentName
 
 	if (props.block.isCustomVueComponent) {
 		name = customVueComponentsRegistry.value[name]
@@ -342,7 +314,7 @@ const getClickedComponent = (e: MouseEvent) => {
 // first). The threshold inside startBlockReorder means a plain click still
 // falls through to handleClick for selection.
 const handleMouseDown = (e: MouseEvent) => {
-	if (e.button !== 0 || store.mode !== "select") return
+	if (e.button !== 0) return
 	const block = getClickedComponent(e)
 	const breakpoint = getBlockInfo(e).breakpoint || props.breakpoint
 	if (!block || !isReorderable(block, breakpoint)) return
@@ -407,20 +379,10 @@ watch(
 	{ immediate: true },
 )
 
-watch(
-	() => componentContext?.value,
-	(newContext) => {
-		if (canvasStore.editingMode === "component" && newContext) {
-			props.block.setComponentContext(newContext)
-		}
-	},
-	{ deep: true, immediate: true },
-)
-
 const error = ref<Error | null>(null)
 onErrorCaptured((err, _instance, info) => {
 	const isRouterError = err.message.includes("No match for")
-	if (isRouterError || canvasStore.isAIStreaming) {
+	if (isRouterError) {
 		error.value = null
 		return false
 	}

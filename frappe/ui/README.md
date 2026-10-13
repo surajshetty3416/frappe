@@ -53,8 +53,6 @@ Frappe Studio aims to improve how developers build applications with the Frappe 
 	```
 4. Access the app editor at `studio.localhost:8000/studio/ui` in your web browser.
 
-To use the AI assistant, set your OpenRouter API key in Studio Settings.
-
 **For Frontend Development & Exported Apps**
 
 You need this setup to work on Studio's frontend, and to build standard (exported) apps, whose pages and scripts live in your Frappe app's `studio` folder — the editor loads them off disk through the vite dev server.

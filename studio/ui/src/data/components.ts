@@ -1,4 +1,3 @@
-import { defineAsyncComponent } from "vue"
 import {
 	FRAPPE_UI_COMPONENTS,
 	FRAPPE_UI_MOLECULES,
@@ -356,8 +355,6 @@ export const COMPONENTS: FrappeUIComponents = {
 				},
 			],
 		},
-		editInFragmentMode: true,
-		proxyComponent: defineAsyncComponent(() => import("@ui/components/ProxyComponents/ProxyDialog.vue")),
 	},
 	Divider: {
 		name: "Divider",
@@ -1105,13 +1102,6 @@ export const COMPONENTS: FrappeUIComponents = {
 	...COMPONENT_FAMILIES,
 }
 
-const proxyComponentMap = new Map<string, any>()
-Object.values(COMPONENTS).forEach((component: FrappeUIComponent) => {
-	if (component.proxyComponent) {
-		proxyComponentMap.set(component.name, component.proxyComponent)
-	}
-})
-
 function isFrappeUIComponent(name: string) {
 	return (
 		FRAPPE_UI_COMPONENTS.includes(name) ||
@@ -1121,36 +1111,8 @@ function isFrappeUIComponent(name: string) {
 	)
 }
 
-// frappe-ui/experimental carries no stability promise: these are on their way out
-// and the panel marks them as deprecated.
-function isDeprecatedComponent(name: string) {
-	return FRAPPE_UI_EXPERIMENTAL_COMPONENTS.includes(name)
-}
-
 function isFrameworkUIComponent(name: string) {
 	return FRAMEWORK_UI_COMPONENTS.includes(name)
-}
-
-function getComponentGroups(list: FrappeUIComponent[]) {
-	const inFrappe = (c: FrappeUIComponent) => isFrappeUIComponent(c.name)
-	const inFramework = (c: FrappeUIComponent) => isFrameworkUIComponent(c.name)
-
-	const groups = [
-		{ label: "Core", components: list.filter((c) => !inFrappe(c) && !inFramework(c)) },
-		{ label: "Frappe UI", components: list.filter(inFrappe) },
-		{ label: "Framework UI", components: list.filter(inFramework) },
-	]
-	return groups.filter((group) => group.components.length)
-}
-
-// A family's parts are the components whose `group` names this primary. The primary tile
-// drops the whole tree (via blockTemplate); each part is droppable on its own.
-function getParts(primaryName: string) {
-	return Object.values(COMPONENTS).filter((c) => c.group === primaryName)
-}
-
-function getProxyComponent(name: string) {
-	return proxyComponentMap.get(name)
 }
 
 function get(name: string): FrappeUIComponent | undefined {
@@ -1161,11 +1123,7 @@ export default {
 	...COMPONENTS,
 	list: Object.values(COMPONENTS),
 	names: Object.keys(COMPONENTS),
-	getProxyComponent,
 	isFrappeUIComponent,
-	isDeprecatedComponent,
 	isFrameworkUIComponent,
-	getComponentGroups,
-	getParts,
 	get,
 }

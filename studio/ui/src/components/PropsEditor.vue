@@ -1,13 +1,6 @@
 <template>
 	<template v-if="isObjectEmpty(componentProps)">
-		<EmptyState v-if="showComponentEditorLink">
-			<span>
-				No editable properties yet. Add inputs inside the
-				<button class="cursor-pointer underline" @click="openComponentEditor">component editor</button>
-			</span>
-		</EmptyState>
 		<EmptyState
-			v-else
 			:message="`${block?.getBlockDescription()} ${block?.isUnregisteredComponent() ? 'is missing' : 'has no editable properties'}`"
 		/>
 	</template>
@@ -16,18 +9,10 @@
 		class="mt-3 flex flex-col gap-3"
 	>
 		<div
-			v-for="(config, propName) in filteredComponentProps"
+			v-for="(config, propName) in componentProps"
 			:key="propName"
 			class="group flex w-full items-center"
 		>
-			<DynamicValueSelector
-				v-if="!isTestingComponent"
-				:block="block"
-				@update:modelValue="(value, bindVariable) => setDynamicValue(propName, value, bindVariable)"
-				:class="{ 'mt-1 self-start': isCodeField(config.inputType) || Boolean(config.editor) }"
-				:isVariableBound="isVariableBound(config.modelValue)"
-			/>
-
 			<Code
 				v-if="config.inputType === 'html'"
 				:label="propName"
@@ -141,17 +126,13 @@ import { getComponentProps } from "@ui/utils/components"
 import { isDynamicValue } from "@ui/utils/code"
 import useCanvasStore from "@ui/stores/canvasStore"
 import blockController from "@ui/utils/blockController"
-import useComponentEditorStore from "@ui/stores/componentEditorStore"
 import type { ComponentProp, ComponentProps } from "@ui/types"
 import { ComponentInput } from "@ui/types/Studio/StudioComponent"
-import DynamicValueSelector from "@ui/components/DynamicValueSelector.vue"
 import DeprecatedProps from "@ui/components/DeprecatedProps.vue"
-import useStudioStore from "@ui/stores/studioStore"
 import useComponentInstance from "@ui/utils/useComponentInstance"
 
 const props = defineProps<{
 	block?: Block
-	isTestingComponent?: boolean
 	multiEdit?: boolean
 }>()
 
@@ -160,24 +141,12 @@ const getDynamicValueCompletions = useDynamicValueCompletions()
 // created once: a fresh array here would make Code.vue rebuild its extensions on every re-render
 const dynamicValueCompletions = getDynamicValueCompletions(() => props.block?.getCompletions())
 const canvasStore = useCanvasStore()
-const store = useStudioStore()
 
 const componentInstance = useComponentInstance(() => props.block)
-
-const showComponentEditorLink = computed(() => props.block?.isStudioComponent && !props.isTestingComponent)
-
-const openComponentEditor = () => {
-	if (!props.block) return
-	useComponentEditorStore().editComponent(props.block.componentName)
-}
 
 const propConfigs = computed<ComponentProps>(() => {
 	if (!props.block || props.block.isRoot()) return {}
 
-	if (props.isTestingComponent) {
-		const componentEditorStore = useComponentEditorStore()
-		return getStudioComponentProps(componentEditorStore.componentInputs)
-	}
 	if (props.block.isStudioComponent) {
 		const componentStore = useComponentStore()
 		const componentDoc = componentStore.getComponentDoc(props.block.componentName)
@@ -219,25 +188,6 @@ const resolveDefault = (config: ComponentProp) => {
 	return typeof config.default === "function" ? config.default() : config.default
 }
 
-const filteredComponentProps = computed(() => {
-	if (!store.propertyFilter) {
-		return componentProps.value
-	}
-
-	const filter = store.propertyFilter.toLowerCase()
-	const filtered: typeof componentProps.value = {}
-
-	Object.entries(componentProps.value).forEach(([propName, config]) => {
-		if (propName.toLowerCase().includes(filter)) {
-			filtered[propName] = config
-		}
-	})
-
-	return filtered
-})
-
-const hasFilteredProps = computed(() => !isObjectEmpty(filteredComponentProps.value))
-defineExpose({ hasFilteredProps })
 
 function getStudioComponentProps(componentInputs: ComponentInput[]): ComponentProps {
 	if (isObjectEmpty(componentInputs)) return {}
@@ -287,14 +237,6 @@ function syncConditionalProps() {
 			}
 		})
 	})
-}
-
-function setDynamicValue(propName: string, varName: string, bindVariable: boolean) {
-	if (bindVariable) {
-		setProp(propName, { $type: "variable", name: varName })
-	} else {
-		setProp(propName, `{{ ${varName} }}`)
-	}
 }
 
 const getRawValue = (propName: string) => {

@@ -1,7 +1,6 @@
 <template>
 	<div ref="canvasContainer" @click="handleClick">
-		<slot name="header"></slot>
-		<div class="overlay absolute" :class="{ 'pointer-events-none': isOverDropZone }" ref="overlay" />
+		<div class="overlay absolute" ref="overlay" />
 		<DropIndicator />
 		<BlockSnapGuides />
 		<Transition name="fade">
@@ -21,84 +20,27 @@
 				transform: `scale(${canvasProps.scale}) translate(${canvasProps.translateX}px, ${canvasProps.translateY}px)`,
 			}"
 		>
-			<div class="dark:bg-zinc-900 absolute right-0 top-[-60px] flex rounded-5 bg-surface-base px-3">
+			<div class="flex">
 				<div
-					v-show="!canvasProps.scaling && !canvasProps.panning"
-					class="w-auto cursor-pointer p-2"
-					v-for="breakpoint in canvasProps.breakpoints"
-					:key="breakpoint.device"
-					@click.stop="selectBreakpoint(breakpoint)"
-				>
-					<span
-						class="h-8 w-6"
-						:class="[
-							breakpoint.icon,
-							{
-								'dark:text-zinc-50 text-ink-gray-6': breakpoint.visible,
-								'dark:text-zinc-500 text-ink-gray-2': !breakpoint.visible,
-							},
-						]"
-					/>
-				</div>
-			</div>
-			<div class="flex gap-40">
-				<div
-					class="canvas relative flex bg-surface-base shadow-2xl contain-layout"
+					class="canvas relative flex min-h-[100dvh] bg-surface-base shadow-2xl contain-layout"
 					v-for="breakpoint in visibleBreakpoints"
 					:key="breakpoint.device"
-					:class="canvasStore.editingMode === 'page' ? 'min-h-[100dvh]' : ''"
 					:style="{
 						...canvasStyles,
 						background: canvasProps.background,
 						width: `${breakpoint.width}px`,
 					}"
 				>
-					<div
-						class="cursor dark:text-zinc-300 absolute left-0 select-none text-4xl text-ink-gray-6"
-						:style="{
-							fontSize: `calc(${12}px * 1/${canvasProps.scale})`,
-							top: `calc(${-20}px * 1/${canvasProps.scale})`,
-						}"
-						v-show="!canvasProps.scaling && !canvasProps.panning"
-						@click="activeBreakpoint = breakpoint.device"
-					>
-						{{ breakpoint.displayName }}
-					</div>
 					<StudioComponent
-						:class="canvasStore.editingMode === 'fragment' ? '' : 'h-full min-h-[inherit]'"
+						class="h-full min-h-[inherit]"
 						v-if="showBlocks && rootComponent"
 						:block="rootComponent"
 						:key="rootComponent.componentId"
 						:breakpoint="breakpoint.device"
-						:isEditingComponent="canvasStore.editingMode === 'component'"
 					/>
 				</div>
 			</div>
-			<slot name="afterCanvas" :rootBlock="rootComponent"></slot>
 		</div>
-
-		<div
-			class="text-sm-semibold absolute bottom-12 left-[50%] z-40 flex translate-x-[-50%] cursor-default items-center justify-center gap-2 rounded-6 bg-surface-base px-3 py-2 text-center text-ink-gray-5 shadow-md"
-			v-show="!canvasProps.panning"
-		>
-			{{ Math.round(canvasProps.scale * 100) + "%" }}
-			<div class="ml-2 cursor-pointer" @click="setScaleAndTranslate">
-				<FitScreenIcon />
-			</div>
-		</div>
-
-		<DraggablePopup
-			v-model="store.showSearchBlock"
-			:container="canvasContainer"
-			placement="top-right"
-			:placementOffset="20"
-			v-if="store.showSearchBlock"
-		>
-			<template #header>Search Block</template>
-			<template #content>
-				<SearchBlock></SearchBlock>
-			</template>
-		</DraggablePopup>
 	</div>
 </template>
 
@@ -106,9 +48,6 @@
 import { Ref, ref, watch, reactive, computed, onMounted, provide } from "vue"
 import { LoadingIndicator } from "frappe-ui"
 import StudioComponent from "@ui/components/StudioComponent.vue"
-import FitScreenIcon from "@ui/components/Icons/FitScreenIcon.vue"
-import DraggablePopup from "@ui/components/DraggablePopup.vue"
-import SearchBlock from "@ui/components/SearchBlock.vue"
 import DropIndicator from "@ui/components/DropIndicator.vue"
 import BlockSnapGuides from "@ui/components/BlockSnapGuides.vue"
 
@@ -117,11 +56,9 @@ import useCanvasStore from "@ui/stores/canvasStore"
 import { getBlockInfo } from "@ui/utils/helpers"
 import setPanAndZoom from "@ui/utils/panAndZoom"
 import Block from "@ui/utils/block"
-import { useCanvasDropZone } from "@ui/utils/useCanvasDropZone"
 import { useCanvasUtils } from "@ui/utils/useCanvasUtils"
 import type { BreakpointConfig, CanvasHistory } from "@ui/types/StudioCanvas"
 import type { Slot } from "@ui/types"
-import { useCanvasEvents } from "@ui/utils/useCanvasEvents"
 import { getBlockCopy } from "@ui/utils/serializer"
 import { useCanvasNavigationGuard } from "@ui/utils/useCanvasNavigationGuard"
 
@@ -191,11 +128,9 @@ watch(
 		setScaleAndTranslate()
 	},
 )
-function selectBreakpoint(breakpoint: BreakpointConfig) {
-	breakpoint.visible = !breakpoint.visible
-	if (canvasProps.breakpoints.filter((bp) => bp.visible).length === 0) {
-		breakpoint.visible = true
-	}
+function setBreakpoint(device: BreakpointConfig["device"]) {
+	canvasProps.breakpoints.forEach((breakpoint) => (breakpoint.visible = breakpoint.device === device))
+	setActiveBreakpoint(device)
 }
 
 // clone props.block into canvas data to avoid mutating them
@@ -245,13 +180,6 @@ function selectBlock(block: Block, e: MouseEvent | null, setBreakpoint = true) {
 	if (setBreakpoint && e) {
 		const { breakpoint } = getBlockInfo(e)
 		setActiveBreakpoint(breakpoint)
-	}
-
-	if (block.isRoot() || block.isText() || block.isContainer()) {
-		// combined props and styles
-		store.studioLayout.rightPanelActiveTab = "Styles"
-	} else {
-		store.studioLayout.rightPanelActiveTab = "Properties"
 	}
 }
 
@@ -337,7 +265,6 @@ const {
 	setRootBlock,
 	findBlock,
 	removeBlock,
-	toggleMode,
 	scrollBlockIntoView,
 } = useCanvasUtils(canvasProps, canvasContainer, canvas, rootComponent, selectedBlockIds, history)
 
@@ -352,19 +279,6 @@ watch(
 	{ immediate: true },
 )
 
-const { isOverDropZone } = useCanvasDropZone(
-	canvasContainer as unknown as Ref<HTMLElement>,
-	rootComponent,
-	findBlock,
-)
-
-watch(
-	() => store.mode,
-	(newValue, oldValue) => {
-		toggleMode(store.mode)
-	},
-)
-
 useCanvasNavigationGuard(canvasContainer)
 
 onMounted(() => {
@@ -374,14 +288,6 @@ onMounted(() => {
 	setScaleAndTranslate()
 	showBlocks.value = true
 	setupHistory()
-	useCanvasEvents(
-		canvasContainer as unknown as Ref<HTMLElement>,
-		canvasProps,
-		history as CanvasHistory,
-		getRootBlock,
-		findBlock,
-		selectedSlot,
-	)
 	setPanAndZoom(canvasEl, canvasContainerEl, canvasProps)
 })
 
@@ -390,6 +296,7 @@ defineExpose({
 	rootComponent,
 	canvasProps,
 	canvasContainer,
+	setBreakpoint,
 	// canvas utils
 	findBlock,
 	removeBlock,
