@@ -7,15 +7,16 @@ export interface Recording {
 	title: string
 	position: number
 	steps: number
+	creation: string
 }
 
 export interface Replay {
 	session: string
 	recording: string
 	title: string
-	step: number
 	// the recording's first message, until the first step plays
 	message: string | null
+	step: number
 	steps: number
 	status: "Ready" | "Playing" | "Done" | "Failed"
 	error: string | null
