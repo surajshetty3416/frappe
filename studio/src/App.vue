@@ -28,13 +28,14 @@
 				@toggle-panel="togglePanel"
 			/>
 			<div v-if="chatLayout" ref="body" class="flex min-h-0 flex-1">
-				<div class="flex h-full min-w-0 flex-1 justify-center">
+				<!-- beside the editor the chat keeps room for its composer's controls; the editor gives way -->
+				<div class="flex h-full flex-1 justify-center" :class="panelVisible ? 'min-w-[440px]' : 'min-w-0'">
 					<div class="h-full w-full" :class="panelVisible ? '' : 'max-w-[760px]'">
 						<StudioChat />
 					</div>
 				</div>
 				<div
-					class="relative h-full shrink-0 overflow-hidden"
+					class="relative h-full overflow-hidden"
 					:class="[resizing ? '' : 'transition-[width] duration-150 ease-out', panelVisible ? 'border-l border-outline-gray-1' : '']"
 					:style="{ width: panelVisible ? `${layout.panelWidth}%` : '0px' }"
 				>

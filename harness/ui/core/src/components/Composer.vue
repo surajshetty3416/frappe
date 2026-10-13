@@ -58,9 +58,10 @@
 			</div>
 
 			<div
+				ref="grid"
 				class="grid grid-cols-[auto_minmax(0,1fr)_auto] items-end gap-x-1 gap-y-2 rounded-6 border border-outline-gray-2 bg-surface-base p-2 shadow-sm focus-within:border-outline-gray-3"
 			>
-				<!-- one row while the message fits a line; the text takes its own row once it grows -->
+				<!-- one row while the message fits a line beside the controls; the text takes its own row once it grows -->
 				<div v-if="imageTiles.length" class="col-span-3 flex flex-wrap gap-1.5 px-1 pt-1">
 					<figure
 						v-for="{ item, i } in imageTiles"
@@ -145,7 +146,7 @@
 					/>
 				</div>
 				<input ref="fileInput" type="file" multiple class="hidden" @change="onFilesPicked" />
-				<div class="col-start-3 flex items-center gap-1" :class="compact ? '' : 'order-3'">
+				<div ref="controls" class="col-start-3 flex items-center gap-1" :class="compact ? '' : 'order-3'">
 					<!-- a new chat picks its agent: build here, or send each task to its own chat -->
 					<div v-if="agentOptions" role="radiogroup" aria-label="Agent" class="mr-1 flex items-center gap-0.5">
 						<Button
@@ -216,7 +217,10 @@ const IMAGE_TYPES = new Set(["image/png", "image/jpeg", "image/gif", "image/webp
 const running = computed(() => flow.state.conversation.running)
 // once the text wraps it keeps its own row until the box empties, or it would flip back and forth
 const wrapped = ref(false)
-const compact = computed(() => !wrapped.value && !text.value.includes("\n"))
+// a narrow box, like a new chat's beside an open artifact, leaves the text no room beside the controls
+const MIN_TEXT_WIDTH = 240
+const roomy = ref(true)
+const compact = computed(() => roomy.value && !wrapped.value && !text.value.includes("\n"))
 const agentOptions = computed(() =>
 	!flow.state.sessionId && flow.options.agents?.length > 1
 		? flow.options.agents.map(({ agent, label }) => ({ value: agent ?? "", label }))
@@ -404,6 +408,18 @@ onMounted(() => {
 	if (box.value) resizes.observe(box.value)
 })
 onBeforeUnmount(() => resizes?.disconnect())
+
+// neither width depends on the layout `roomy` picks, so it cannot flip back and forth
+const grid = ref(null)
+const controls = ref(null)
+let rooms = null
+onMounted(() => {
+	rooms = new ResizeObserver(() => {
+		if (grid.value && controls.value) roomy.value = grid.value.clientWidth - controls.value.offsetWidth >= MIN_TEXT_WIDTH
+	})
+	;[grid.value, controls.value].forEach((el) => el && rooms.observe(el))
+})
+onBeforeUnmount(() => rooms?.disconnect())
 
 onMounted(() => {
 	autosize()
