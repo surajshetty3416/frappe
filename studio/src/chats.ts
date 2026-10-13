@@ -4,7 +4,7 @@ import { computed, ref } from "vue"
 
 import { type Chat, getHistory } from "./artifacts"
 import { onListUpdate } from "./realtime"
-import { isReplaying } from "./replay"
+import { isReplaying, replays } from "./replay"
 
 export type ChatStatus = "running" | "waiting" | "unread" | null
 
@@ -47,7 +47,9 @@ export function markSeen(session: string) {
 }
 
 export function chatStatus(chat: Chat, current: string | null): ChatStatus {
-	const run = runs.value[chat.name]
+	// a replay says itself when its step ended; the list may hear of it later
+	const replay = replays.get(chat.name)
+	const run = replay && !replay.live ? replay.status === "Playing" && "Running" : runs.value[chat.name]
 	if (run === "Running" || isReplaying(chat.name)) return "running"
 	if (run === "Paused") return "waiting"
 	if (chat.name === current) return null
