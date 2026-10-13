@@ -16,6 +16,8 @@ const TOOLS = {
 	find_doctypes: {
 		icon: "lucide-search",
 		label: "Finding DocTypes",
+		// a call that only filters by module names the module
+		subject: (args) => subject(args) || args.module || "",
 		stat: (result) => count(result.length, "match", "matches"),
 	},
 	describe: {
