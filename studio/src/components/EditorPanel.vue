@@ -288,12 +288,14 @@ watch(openDrawer, (open) => {
 
 const strip = ref<HTMLElement | null>(null)
 const outOfView = ref<Tab[]>([])
-// a strip scrolled past a tab fades on that side, so a tab cut mid-word reads as more to scroll
+// a strip scrolled past a tab fades on that side, so a tab cut mid-word reads as more to scroll; the fade
+// spans half a tab, since a narrower one over the strip's padding leaves the cut word whole
 const clipped = ref({ left: false, right: false })
+const FADE = "64px"
 const stripMask = computed(() => {
 	const { left, right } = clipped.value
 	if (!left && !right) return undefined
-	return `linear-gradient(to right, ${left ? "transparent, black 32px" : "black"}, ${right ? "black calc(100% - 32px), transparent" : "black"})`
+	return `linear-gradient(to right, ${left ? `transparent, black ${FADE}` : "black"}, ${right ? `black calc(100% - ${FADE}), transparent` : "black"})`
 })
 const outOfViewOptions = computed(() =>
 	outOfView.value.map((tab) => ({ label: tab.title, icon: tab.icon, onClick: () => router.push(tab.path) }))
