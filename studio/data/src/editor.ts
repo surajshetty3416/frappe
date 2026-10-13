@@ -7,6 +7,7 @@ import { toast } from "frappe-ui"
 import { renameDocType } from "./api"
 import DataBarControls from "./components/DataBarControls.vue"
 import DocTypeDetails from "./components/DocTypeDetails.vue"
+import FieldChoices from "./components/FieldChoices.vue"
 import DocTypePreview from "./components/DocTypePreview.vue"
 import {
 	VIEW_MODES,
@@ -38,6 +39,11 @@ const nodeOf = (id: string) => preview.host?.querySelector<HTMLElement>(`[data-e
 
 const choices = (values: string[]) => values.map((value) => ({ label: value, value }))
 
+const optionCount = (options?: string | null) => {
+	const count = (options || "").split("\n").filter(Boolean).length
+	return count ? `${count} option${count === 1 ? "" : "s"}` : "Add options"
+}
+
 function fieldProperties(id: string): ElementProperty[] {
 	const field = fieldOf(id)
 	if (!field || !editable.value) return []
@@ -67,7 +73,17 @@ function fieldProperties(id: string): ElementProperty[] {
 		},
 	]
 	const kind = optionsKind(field.fieldtype)
-	if (kind === "doctype" || kind === "table") {
+	if (kind === "choices") {
+		properties.push({
+			name: "options",
+			label: "Options",
+			icon: "lucide-list",
+			type: "popover",
+			value: optionCount(field.options),
+			component: { component: FieldChoices, props: { id } },
+			set: () => {},
+		})
+	} else if (kind === "doctype" || kind === "table") {
 		const names = kind === "table" ? doctypeNames.tables : doctypeNames.links
 		const value = field.options || ""
 		properties.push({
