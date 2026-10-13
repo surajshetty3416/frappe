@@ -74,7 +74,8 @@ interface OutputSpec {
 	details: (state: OutputState) => ArtifactDetail[]
 	// the form at the top of Details, mounted with the state and `set(field, value)`
 	detailsForm: Component
-	code: (state: OutputState) => { name: string; label: string; code: string; language: "html" | "css" }[]
+	// the Code drawer's tabs, each a part the server returns from the saved artifact
+	code: { name: "html" | "css"; label: string }[]
 }
 
 export type SetField = (field: string, value: unknown) => Promise<void>
@@ -195,6 +196,15 @@ export function defineOutputEditor(spec: OutputSpec) {
 		}
 	}
 
+	// the tabs share one request per saved version
+	let code: { modified: string; parts: Promise<Record<string, string>> } | null = null
+	function loadCode() {
+		const modified = state.doc?.modified ?? ""
+		if (code?.modified !== modified)
+			code = { modified, parts: call("frappe.web.output.code", { doctype: spec.doctype, name: state.name }) }
+		return code.parts
+	}
+
 	const Preview = defineComponent({
 		name: "OutputPreviewRoute",
 		setup() {
@@ -271,10 +281,13 @@ export function defineOutputEditor(spec: OutputSpec) {
 		detailsForm: () => (state.doc ? { component: spec.detailsForm, props: { state, set } } : null),
 		codeTabs: () =>
 			state.doc
-				? spec.code(state).map((tab) => ({
+				? spec.code.map((tab) => ({
 						name: tab.name,
 						label: tab.label,
-						component: { component: CodeView, props: { code: tab.code, language: tab.language } },
+						component: {
+							component: CodeView,
+							props: { load: () => loadCode().then((code) => code[tab.name] ?? ""), version: state.doc?.modified, language: tab.name },
+						},
 					}))
 				: [],
 		async reload(modified) {

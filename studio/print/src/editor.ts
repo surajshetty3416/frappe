@@ -46,8 +46,8 @@ export default defineOutputEditor({
 		]
 	},
 	detailsForm: PrintDetails,
-	code: (state) => [
-		{ name: "html", label: "HTML", code: String(state.doc?.html ?? ""), language: "html" },
-		{ name: "css", label: "CSS", code: String(state.doc?.css ?? ""), language: "css" },
+	code: [
+		{ name: "html", label: "HTML" },
+		{ name: "css", label: "CSS" },
 	],
 })

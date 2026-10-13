@@ -887,3 +887,91 @@ def to_compact_yaml(data) -> str:
 		allow_unicode=True,
 		width=1000,  # prevent wrapping long values mid-token
 	)
+
+
+# --- code as a person reads it, for the editor's Code drawer ---
+
+# the renderer's Jinja around every block: props, ids and the page's script include
+RENDER_SCAFFOLDING = re.compile(r"\{%-?\s*(?:with\b.*?|endwith|include\b.*?)\s*-?%\}")
+INLINE_TAGS = {
+	"a", "abbr", "b", "br", "code", "em", "i", "img", "label", "mark", "s", "small", "span",
+	"strong", "sub", "sup", "u",
+}  # fmt: skip
+INDENT = "  "
+
+
+def readable_html(html: str) -> str:
+	"""The markup without the renderer's scaffolding, one block element per line."""
+	from bs4 import BeautifulSoup, Comment
+
+	soup = BeautifulSoup(RENDER_SCAFFOLDING.sub("", html or ""), "html.parser")
+	for node in soup.find_all(["script", "style", "link"]):
+		node.decompose()
+	for comment in soup.find_all(string=lambda text: isinstance(text, Comment)):
+		comment.extract()
+	for tag in soup.find_all(True):
+		tag.attrs.pop("data-block-id", None)
+		# __text_block__ and the like are the editor's, not the page's
+		classes = [name for name in tag.get("class") or [] if not name.startswith("__")]
+		if classes:
+			tag["class"] = classes
+		else:
+			tag.attrs.pop("class", None)
+	return "\n".join(html_lines(soup, 0))
+
+
+def html_lines(node, depth: int):
+	from bs4 import NavigableString
+
+	pad = INDENT * depth
+	for child in node.children:
+		if isinstance(child, NavigableString):
+			if text := " ".join(child.split()):
+				yield pad + text
+		elif all(tag.name in INLINE_TAGS for tag in child.find_all(True)):
+			yield pad + " ".join(str(child).split())
+		else:
+			attrs = "".join(
+				f' {key}="{" ".join(value) if isinstance(value, list) else value}"'
+				for key, value in child.attrs.items()
+			)
+			yield f"{pad}<{child.name}{attrs}>"
+			yield from html_lines(child, depth + 1)
+			yield f"{pad}</{child.name}>"
+
+
+def readable_css(css: str) -> str:
+	"""One declaration per line, a blank line between rules."""
+	css = re.sub(r"</?style[^>]*>", "", css or "")
+	lines, depth, nesting, quote, text = [], 0, 0, None, ""
+
+	def flush(suffix: str = ""):
+		nonlocal text
+		if text.strip():
+			lines.append(INDENT * depth + " ".join(text.split()) + suffix)
+		text = ""
+
+	for char in css:
+		if quote or char in "'\"":
+			quote = None if char == quote else (quote or char)
+			text += char
+		elif char in "()":
+			nesting += 1 if char == "(" else -1
+			text += char
+		elif nesting:
+			text += char
+		elif char == "{":
+			flush(" {")
+			depth += 1
+		elif char == ";":
+			flush(";")
+		elif char == "}":
+			flush(";")
+			depth = max(depth - 1, 0)
+			lines.append(INDENT * depth + "}")
+			if not depth:
+				lines.append("")
+		else:
+			text += char
+	flush()
+	return "\n".join(lines).strip()

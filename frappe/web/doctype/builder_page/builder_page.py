@@ -53,6 +53,8 @@ from frappe.web.utils import (
 	is_component_used,
 	merge_raw_styles_into_base_styles,
 	normalize_legacy_raw_styles,
+	readable_css,
+	readable_html,
 	sanitize_style_value,
 	split_styles,
 	template_target_app,
@@ -683,6 +685,13 @@ class BuilderPage(WebsiteGenerator):
 	@frappe.whitelist()
 	def get_page_data(self, route_variables: dict | None = None) -> dict:
 		return self._get_page_data(route_variables=route_variables, for_render=False)
+
+	@frappe.whitelist()
+	def get_code(self, route_variables: dict | None = None) -> dict:
+		"""The draft's HTML, rendered with its data as a visitor gets it, and its CSS."""
+		content, style, _fonts, _dual = get_block_html(self.draft_blocks or self.blocks or "[]")
+		data = self.get_page_data(route_variables)
+		return {"html": readable_html(render_template(content, data)), "css": readable_css(style)}
 
 	def _get_page_data(self, route_variables: dict | None = None, for_render: bool = False) -> dict:
 		if route_variables:

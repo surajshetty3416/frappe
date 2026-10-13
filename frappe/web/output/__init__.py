@@ -92,6 +92,24 @@ def records(doctype: str, name: str, search: str = "") -> list[dict]:
 
 
 @frappe.whitelist()
+def code(doctype: str, name: str) -> dict:
+	"""The artifact's own HTML and CSS: a print format's template body and styles, an email's
+	markup. The print view's wrapper and base styles are left out."""
+	from frappe.web.doctype.builder_page.builder_page import get_block_html
+	from frappe.web.utils import readable_css, readable_html
+
+	doc = frappe.get_doc(doctype, name)
+	doc.check_permission("read")
+	if doctype == "Email Template":
+		return {"html": readable_html(doc.response_html)}
+	root = load(doc)
+	if not root:
+		return {"html": readable_html(doc.html), "css": readable_css(doc.css)}
+	content, style, _fonts, _dual = get_block_html([prepared(root)])
+	return {"html": readable_html(content), "css": readable_css(style + (doc.css or ""))}
+
+
+@frappe.whitelist()
 def preview(doctype: str, name: str, record: str | None = None) -> dict:
 	"""The artifact's output for one record, through the framework's own render path."""
 	from frappe.web.output import email_template, print_format

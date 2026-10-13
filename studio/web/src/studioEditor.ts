@@ -221,12 +221,34 @@ function blockProperties(block: Block): ElementProperty[] {
 	];
 }
 
+// the HTML and CSS tabs share one render of the page per version
+let pageCode: { key: string; code: Promise<{ html: string; css: string }> } | null = null;
+function loadPageCode(page: BuilderPage) {
+	const key = `${page.name}:${page.modified}`;
+	if (pageCode?.key !== key) {
+		const code = webPages.runDocMethod
+			.submit({ method: "get_code", name: page.name, route_variables: usePageStore().routeVariables })
+			.then((response: { message: { html: string; css: string } }) => response.message);
+		pageCode = { key, code };
+	}
+	return pageCode.code;
+}
+
 function codeTabs(page: BuilderPage): CodeTab[] {
 	const pageStore = usePageStore();
 	const tab = (name: string, label: string, code: string | null | undefined, language: string): CodeTab[] =>
 		code?.trim() ? [{ name, label, component: { component: CodeView, props: { code: code.trim(), language } } }] : [];
+	const rendered = (name: "html" | "css", label: string): CodeTab => ({
+		name,
+		label,
+		component: {
+			component: CodeView,
+			props: { load: () => loadPageCode(page).then((code) => code[name]), version: page.modified, language: name },
+		},
+	});
 	return [
-		...tab("blocks", "Blocks", pageStore.savedTree && JSON.stringify(JSON.parse(pageStore.savedTree), null, 2), "javascript"),
+		rendered("html", "HTML"),
+		rendered("css", "CSS"),
 		...tab("data_script", "Data script", page.page_data_script, "python"),
 		...tab("data", "Data", page.page_data_script ? JSON.stringify(pageStore.pageData, null, 2) : null, "javascript"),
 		...pageStore.activePageScripts.flatMap((script) =>

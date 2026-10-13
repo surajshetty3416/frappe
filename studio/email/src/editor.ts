@@ -33,5 +33,5 @@ export default defineOutputEditor({
 		return [{ label: "Rendered against", value: String(doc.reference_doctype || "Any record") }]
 	},
 	detailsForm: EmailDetails,
-	code: (state) => [{ name: "html", label: "HTML", code: String(state.doc?.response_html ?? ""), language: "html" }],
+	code: [{ name: "html", label: "HTML" }],
 })
