@@ -3,12 +3,7 @@
 		<div v-if="loading" class="grid grid-cols-2 gap-4 p-5">
 			<Skeleton v-for="i in 8" :key="i" class="h-12 w-full rounded-4" />
 		</div>
-		<div v-else-if="!record" class="flex flex-1 flex-col items-center justify-center px-6 text-center">
-			<span class="lucide-square-pen size-5 text-ink-gray-4" />
-			<p class="mt-3 text-base font-medium text-ink-gray-8">No record to show</p>
-			<p class="mt-1 max-w-sm text-p-sm text-ink-gray-5">Add the first {{ doctype.name }} record, or ask for demo data.</p>
-			<Button class="mt-4" label="New record" icon-left="lucide-plus" @click="pick('new')" />
-		</div>
+		<NoRecords v-else-if="!record" />
 		<div v-else class="min-h-0 flex-1 overflow-y-auto">
 			<div class="mx-auto flex max-w-3xl items-center gap-2 px-6 pt-4">
 				<template v-if="isNew">
@@ -64,6 +59,7 @@ import { useRoute, useRouter } from "vue-router"
 import { type DocField, type Row, getRecord, getRecords, insertRecord, setValues } from "../api"
 import { doctype, elementId, errorText, refreshCount, saving } from "../doctype"
 import { TABLE_TYPES, fieldLabel, hasValue } from "../fields"
+import NoRecords from "./NoRecords.vue"
 import RecordField from "./RecordField.vue"
 
 const route = useRoute()

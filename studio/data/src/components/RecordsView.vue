@@ -3,15 +3,7 @@
 		<div v-if="loading && !rows.length" class="flex flex-col gap-3 p-4">
 			<Skeleton v-for="i in 8" :key="i" class="h-8 w-full rounded-4" />
 		</div>
-		<div v-else-if="!rows.length" class="flex flex-1 flex-col items-center justify-center px-6 text-center">
-			<span class="lucide-rows-3 size-5 text-ink-gray-4" />
-			<p class="mt-3 text-base font-medium text-ink-gray-8">No {{ doctype.name }} records yet</p>
-			<p class="mt-1 max-w-sm text-p-sm text-ink-gray-5">Fill it with realistic demo data, or add the first record in the form.</p>
-			<div class="mt-4 flex gap-2">
-				<Button v-if="editable" variant="solid" label="Demo data" icon-left="lucide-sparkles" @click="doctype.demoData = true" />
-				<Button label="New record" icon-left="lucide-plus" @click="openForm('new')" />
-			</div>
-		</div>
+		<NoRecords v-else-if="!rows.length" />
 		<div v-else class="min-h-0 flex-1 overflow-auto px-3 pb-6 pt-3">
 			<ListView
 				:columns="columns"
@@ -60,14 +52,15 @@
 <script setup lang="ts">
 import { useDebounceFn } from "@vueuse/core"
 import { onListUpdate } from "@shell/realtime"
-import { Button, Skeleton, Tooltip } from "frappe-ui"
+import { Skeleton, Tooltip } from "frappe-ui"
 import { ListHeader, ListHeaderItem, ListRows, ListView } from "frappe-ui/experimental"
 import { computed, onBeforeUnmount, ref, watch } from "vue"
 import { useRoute, useRouter } from "vue-router"
 
 import { type DocField, type Row, getLinkTitles, getRecords } from "../api"
-import { doctype, editable, elementId, refreshCount } from "../doctype"
+import { doctype, elementId, refreshCount } from "../doctype"
 import { fieldIcon, fieldLabel, formatValue, hasValue } from "../fields"
+import NoRecords from "./NoRecords.vue"
 
 const route = useRoute()
 const router = useRouter()
