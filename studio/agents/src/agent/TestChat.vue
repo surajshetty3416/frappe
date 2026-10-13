@@ -65,7 +65,7 @@ async function mount() {
 	// a test asks before its agent writes, unless the person chose otherwise
 	if (!localStorage.getItem(`${key}.prefs`)) localStorage.setItem(`${key}.prefs`, JSON.stringify({ mode: "ask" }))
 	const client = new AgentClient({ socket, boot, transport })
-	const created = createFlowStore(client, { storageKey: key, presentTool })
+	const created = createFlowStore(client, { storageKey: key, presentTool, placeholder: `Message ${props.title}…` })
 	Object.assign(flow, created)
 	watch(
 		() => created.state.toast,
