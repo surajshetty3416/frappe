@@ -11,7 +11,9 @@ import { getUniqueId, waitUntil } from '../helpers'
 import { chartEntryAnimation } from '../charts/helpers'
 import dayjs from '../helpers/dayjs'
 import { __ } from '../translation'
-import type { WorkbookDashboardFilter, WorkbookDashboardItem } from '../types/workbook.types'
+import { numberReadings } from '../charts/adapter/number'
+import type { NumberChartConfig } from '../types/chart.types'
+import type { WorkbookDashboardChart, WorkbookDashboardFilter, WorkbookDashboardItem } from '../types/workbook.types'
 import useDashboard, { type Dashboard } from './dashboard'
 import DashboardDetails from './DashboardDetails.vue'
 import DashboardPreview from './DashboardPreview.vue'
@@ -101,6 +103,16 @@ const DashboardArtifactPreview = defineComponent({
 			])
 	},
 })
+
+// the title the card prints: a Number cell of a chart with several readings is titled by its reading
+function tileTitle(item: WorkbookDashboardChart, chart?: { title?: string; chart_type?: string; config?: unknown }) {
+	if (chart?.chart_type !== 'Number') return chart?.title
+	const config = chart.config as NumberChartConfig
+	const readings = numberReadings(config)
+	if (readings.length < 2) return chart.title
+	const reading = item.reading ?? readings[0]
+	return config.number_columns.find((measure) => measure?.id === reading)?.measure_name
+}
 
 function filterProperties(index: number, filter: WorkbookDashboardFilter): ElementProperty[] {
 	return [
@@ -220,7 +232,7 @@ export default defineArtifactEditor({
 			const chart = dashboard.value?.chartsByName[item.chart]
 			return {
 				id,
-				label: chart?.doc.title || __('Chart'),
+				label: tileTitle(item, chart?.doc) || __('Chart'),
 				icon: chartIcon(chart?.doc.chart_type || ''),
 				hasText: chart?.doc.chart_type !== 'Number',
 			}
