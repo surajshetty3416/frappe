@@ -60,6 +60,7 @@ def _resolve_module(doc: FlowTool) -> Tool:
 			confirm_prompt=obj.confirm_prompt,
 			background=obj.background,
 			display_template=obj.display_template,
+			replay_from_recording=obj.replay_from_recording,
 		)
 	if callable(obj):
 		return _build_tool(doc, build_schema(obj), obj)
@@ -82,6 +83,7 @@ def _build_tool(
 	confirm_prompt: Any = None,
 	background: Any = None,
 	display_template: str | None = None,
+	replay_from_recording: bool = False,
 ) -> Tool:
 	return Tool(
 		name=doc.slug,
@@ -92,6 +94,7 @@ def _build_tool(
 		confirm_prompt=confirm_prompt,
 		background=background if callable(background) else bool(doc.background),
 		display_template=display_template,
+		replay_from_recording=replay_from_recording,
 	)
 
 

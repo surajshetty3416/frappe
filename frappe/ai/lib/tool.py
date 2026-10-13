@@ -42,6 +42,7 @@ class Tool:
 	confirm_prompt: Callable[[dict[str, Any]], str] | None = None
 	background: bool | Callable[[dict[str, Any]], bool] = False
 	display_template: str | None = None
+	replay_from_recording: bool = False  # a replay answers its calls with their recorded result
 
 	def __post_init__(self) -> None:
 		if "ctx" not in inspect.signature(self.func).parameters:
@@ -83,6 +84,7 @@ def tool(
 	confirm_prompt: Callable[[dict[str, Any]], str] | None = None,
 	background: bool | Callable[[dict[str, Any]], bool] = False,
 	display_template: str | None = None,
+	replay_from_recording: bool = False,
 ) -> Tool | Callable[[Callable[..., Any]], Tool]:
 	def wrap(f: Callable[..., Any]) -> Tool:
 		if not callable(f):
@@ -96,6 +98,7 @@ def tool(
 			confirm_prompt=confirm_prompt,
 			background=background,
 			display_template=display_template,
+			replay_from_recording=replay_from_recording,
 		)
 
 	return wrap(func) if func is not None else wrap

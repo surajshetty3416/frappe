@@ -43,7 +43,7 @@ def run_automation(
 CALLBACK_TIMEOUT = 120  # the flow server's default when the site sets no flow_callback_timeout
 
 
-@tool
+@tool(replay_from_recording=True)
 def ask_agent(
 	agent: Annotated[str, "The Flow Agent's name"],
 	message: Annotated[str, "The question or task, as a visitor would send it"],

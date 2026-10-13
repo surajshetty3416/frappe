@@ -166,11 +166,13 @@ def play_step(session: str, speed: float | str | None = None) -> dict[str, Any]:
 	if went_live(replay):
 		frappe.throw(_("This chat went live, so its replay has ended."), title=_("Replay Ended"))
 
-	step = recording_steps(replay.recording)[replay.step]
+	recording = recording_steps(replay.recording)
+	step = recording[replay.step]
 	names = json.loads(replay.names or "{}")
 	message = mapped(step["message"], names)
 	reply = mapped(step["reply"], names)
-	results = [mapped(result, names) for result in step["results"] if never_ran(result, step["reply"])]
+	answered = answered_calls(recording[: replay.step + 1], replay_tools(replay.session))
+	results = [mapped(result, names) for result in step["results"] if result["tool_call_id"] in answered]
 	seconds, calls = pace(step, flt(speed) or SPEED)
 
 	with flow_server() as client:
@@ -326,6 +328,36 @@ def pace(step: dict, speed: float) -> tuple[float, dict[str, float]]:
 	return max(min(seconds, MESSAGE_CEILING) / speed, FLOOR), calls
 
 
+def replay_tools(session: str) -> set[str]:
+	"""The session's agent's tools that a replay answers from their recording."""
+	agent = frappe.db.get_value("Flow Session", session, "agent")
+	return {
+		tool.name
+		for tool in frappe.get_doc("Flow Agent", agent).client_tools(session)
+		if tool.replay_from_recording
+	}
+
+
+def answered_calls(played: list[dict], tools: set[str]) -> set[str]:
+	"""The calls of the last of `played` steps that are answered with their recorded result,
+	not run: a call the loop answered itself, a call to one of `tools`, and a call naming what
+	only such a recorded result gave, since that name exists on the recording's site alone."""
+	recorded_only: set[str] = set()
+	answered: set[str] = set()
+	for step in played:
+		answered = set()
+		calls = {block["id"]: block for block in step["reply"]["content"] if block.get("type") == "tool_call"}
+		for result in step["results"]:
+			arguments = _json(calls.get(result["tool_call_id"], {}).get("arguments"))
+			if never_ran(result, step["reply"]):
+				answered.add(result["tool_call_id"])
+			elif result["name"] in tools or _mentions(arguments, recorded_only):
+				answered.add(result["tool_call_id"])
+				if not result.get("is_error"):
+					recorded_only |= _names(_json(result["content"])) - _names(arguments)
+	return answered
+
+
 def never_ran(result: dict, reply: dict) -> bool:
 	"""A recorded call the loop answered itself (a denial, a malformed call) is answered
 	with its recorded result again, not run."""
@@ -353,25 +385,40 @@ def learn(recorded: Any, new: Any, names: dict[str, str]) -> None:
 		for old_item, new_item in zip(recorded, new, strict=False):
 			learn(old_item, new_item, names)
 	elif isinstance(recorded, str) and isinstance(new, str):
-		if (
-			4 <= len(recorded) <= NAME_LIMIT
-			and "\n" not in recorded
-			and any(c.isdigit() for c in recorded)
-			and mapped(recorded, names) != new
-		):
+		if _name_like(recorded) and mapped(recorded, names) != new:
 			names[recorded] = new
+
+
+def _name_like(value: str) -> bool:
+	return 4 <= len(value) <= NAME_LIMIT and "\n" not in value and any(c.isdigit() for c in value)
+
+
+def _names(value: Any) -> set[str]:
+	"""The name-like values anywhere in `value`."""
+	if isinstance(value, dict):
+		return set().union(*map(_names, value.values()))
+	if isinstance(value, list):
+		return set().union(*map(_names, value))
+	return {value} if isinstance(value, str) and _name_like(value) else set()
 
 
 def mapped(value: Any, names: dict[str, str]) -> Any:
 	"""`value` with every recorded name replaced by its new one, inside strings too."""
 	if not names:
 		return value
-	pattern = re.compile(
+	return _replace(value, _pattern(names), names)
+
+
+def _mentions(value: Any, names: set[str]) -> bool:
+	return bool(names) and bool(_pattern(names).search(json.dumps(value)))
+
+
+def _pattern(names) -> re.Pattern:
+	return re.compile(
 		r"(?<![A-Za-z0-9_])("
 		+ "|".join(re.escape(old) for old in sorted(names, key=len, reverse=True))
 		+ r")(?![A-Za-z0-9_])"
 	)
-	return _replace(value, pattern, names)
 
 
 def _replace(value: Any, pattern: re.Pattern, names: dict[str, str]) -> Any:
