@@ -132,6 +132,7 @@ const useStudioStore = defineStore("studioStore", () => {
 		}
 		activePage.value = page
 		loadRouteVariables(page)
+		await seedRouteVariables(page)
 		await setPageData(page)
 		await pageScope.setPageScript(page, Boolean(page.is_standard))
 
@@ -421,6 +422,28 @@ const useStudioStore = defineStore("studioStore", () => {
 			console.error(`Failed to parse route variables for ${page.name}, resetting`, error)
 			routeVariables.value = {}
 			localStorage.removeItem(key)
+		}
+	}
+
+	// a route variable without a test value takes the first record the page looks it up in, so the
+	// canvas shows a record, as the published page does, instead of a page waiting for one
+	async function seedRouteVariables(page: StudioPage) {
+		const unset = new Set(getRouteVariables(page.route).filter((name) => !routeVariables.value[name]))
+		for (const resource of page.resources || []) {
+			if (!unset.size) return
+			if (resource.resource_type !== "Document" || !resource.fetch_document_using_filters || !resource.filters) continue
+			const filters = typeof resource.filters === "string" ? JSON.parse(resource.filters) : resource.filters
+			for (const [field, value] of Object.entries(filters)) {
+				const name = typeof value === "string" ? value.match(/^\{\{\s*route\.params\.(\w+)\s*\}\}$/)?.[1] : null
+				if (!name || !unset.has(name)) continue
+				unset.delete(name)
+				const [record] = await call("frappe.client.get_list", {
+					doctype: resource.document_type,
+					fields: [field],
+					limit_page_length: 1,
+				})
+				if (record?.[field] && activePage.value?.name === page.name) routeVariables.value[name] = String(record[field])
+			}
 		}
 	}
 
