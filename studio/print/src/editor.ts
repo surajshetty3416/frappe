@@ -2,6 +2,8 @@
 // real size rendered by the print view against a record.
 import { defineOutputEditor } from "@web/output/outputEditor"
 
+import PrintDetails from "./PrintDetails.vue"
+
 const query = (params: Record<string, string>) => new URLSearchParams(params).toString()
 
 function links(format: string, doctype: string | null, record: string | null) {
@@ -34,7 +36,6 @@ export default defineOutputEditor({
 		const urls = links(state.name, state.target, state.record)
 		return [
 			{ label: "Prints", value: String(doc.doc_type ?? "") },
-			{ label: "Page", value: page ? `${page.size} portrait, ${page.width} × ${page.height} mm` : "" },
 			{ label: "Margins", value: page ? `${page.margins.top} mm` : "" },
 			...(urls
 				? [
@@ -44,5 +45,9 @@ export default defineOutputEditor({
 				: []),
 		]
 	},
-	code: (state) => ({ language: "html", content: String(state.doc?.html ?? "") }),
+	detailsForm: PrintDetails,
+	code: (state) => [
+		{ name: "html", label: "HTML", code: String(state.doc?.html ?? ""), language: "html" },
+		{ name: "css", label: "CSS", code: String(state.doc?.css ?? ""), language: "css" },
+	],
 })

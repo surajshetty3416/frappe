@@ -278,7 +278,7 @@ OUTPUT_TREE_GUIDE = """tree_yaml is one YAML block tree whose root is `el: body`
 
 {OUTPUT_TREE_GUIDE} `{{{{ qr_code(doc.<field>, <pixels>) }}}}` in a text draws a QR code. The root fills the page inside the margins, one page per record.
 
-Returns the text the format prints for a sample record, so check it reads right.""",
+Returns the text the format prints for a sample record, so check it reads right, and `fields_used`, the record's fields it prints. Every field the person asked for must be in it; name any you leave out in your reply.""",
 	requires_confirmation=True,
 	confirm_prompt=lambda args: _("Save the print format {0} for {1}").format(args.get("name"), args.get("doctype")),
 )
@@ -314,6 +314,7 @@ def save_print_format(
 	return {
 		"print_format": doc.name,
 		"page": f"{page_size}, {margin_mm}mm margins",
+		"fields_used": fields_used(root),
 		"sample_record": record,
 		"sample_text": plain_text(rendered) if record else None,
 		"print_view": f"/printview?doctype={quote(doctype)}&name={quote(record or '')}&format={quote(doc.name)}",
@@ -326,7 +327,7 @@ def save_print_format(
 
 {OUTPUT_TREE_GUIDE} Flex rows become table columns, a link with a background becomes a button, and relative links become absolute. No icons, SVG or QR codes: Gmail blocks them.
 
-Returns the subject and text for a sample record, so check they read right.""",
+Returns the subject and text for a sample record, so check they read right, and `fields_used`, the record's fields it reads. Name any field the person asked for that it leaves out.""",
 	requires_confirmation=True,
 	confirm_prompt=lambda args: _("Save the email template {0}").format(args.get("name")),
 )
@@ -355,6 +356,7 @@ def save_email_template(
 	artifact = artifacts.link(ctx.session_id, "Email Template", doc.name)
 	return {
 		"email_template": doc.name,
+		"fields_used": fields_used(root, subject),
 		"sample_record": record,
 		"sample_subject": subject_text if record else None,
 		"sample_text": plain_text(message) if record else None,
@@ -433,13 +435,8 @@ def checked_tree(tree_yaml: str, doctype: str, *extra: str) -> dict:
 		frappe.throw(_("There is no DocType {0}.").format(doctype))
 	root = expand(tree_yaml)
 	found = problems(root)
-	texts = [*extra]
-	for block in walk(root):
-		texts.append(block.get("innerHTML") or "")
-		texts.extend(str(value) for value in (block.get("baseStyles") or {}).values())
-		texts.extend(str(value) for value in (block.get("attributes") or {}).values())
 	fields = {df.fieldname for df in frappe.get_meta(doctype).fields} | set(frappe.model.default_fields) | {"get"}
-	unknown = sorted({field for text in texts for field in DOC_FIELD.findall(text)} - fields)
+	unknown = sorted(set(fields_used(root, *extra)) - fields)
 	if unknown:
 		found.append(
 			_("{0} has no field {1}. Its fields: {2}.").format(
@@ -452,6 +449,18 @@ def checked_tree(tree_yaml: str, doctype: str, *extra: str) -> dict:
 
 
 DOC_FIELD = re.compile(r"\bdoc\.([A-Za-z_][A-Za-z0-9_]*)")
+
+
+def fields_used(root: dict, *extra: str) -> list[str]:
+	"""The record's fields a tree reads, in the order it first reads them."""
+	from frappe.web.output import walk
+
+	texts = [*extra]
+	for block in walk(root):
+		texts.append(block.get("innerHTML") or "")
+		texts.extend(str(value) for value in (block.get("baseStyles") or {}).values())
+		texts.extend(str(value) for value in (block.get("attributes") or {}).values())
+	return list(dict.fromkeys(field for text in texts for field in DOC_FIELD.findall(text) if field != "get"))
 
 
 def output_doc(doctype: str, name: str, **values):

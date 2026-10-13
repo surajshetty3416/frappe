@@ -1,22 +1,5 @@
 <template>
-	<div class="flex h-full flex-col bg-surface-gray-1">
-		<!-- the switcher is the editor's own control, so the shell lets its clicks through -->
-		<div data-selection-ui class="flex h-11 shrink-0 items-center gap-2 border-b border-outline-gray-1 bg-surface-base px-3 text-sm">
-			<span class="text-ink-gray-5">Preview as</span>
-			<Combobox
-				v-if="state.records.length"
-				trigger="button"
-				size="sm"
-				class="w-60"
-				:model-value="state.record"
-				:options="options"
-				placeholder="Choose a record"
-				@update:model-value="(value: string | null) => value && emit('pick', value)"
-			/>
-			<span v-else class="text-ink-gray-6">{{ state.target ? `No ${state.target} yet` : "" }}</span>
-			<span v-if="state.page" class="ml-auto text-ink-gray-5">{{ pageLabel }}</span>
-		</div>
-
+	<div class="flex h-full flex-col bg-surface-gray-1" @click="openLink">
 		<div ref="viewport" class="relative min-h-0 flex-1 overflow-auto">
 			<div v-if="state.error" class="m-6 rounded-6 border border-outline-red-2 bg-surface-red-1 p-4 text-sm text-ink-red-4">
 				{{ state.error }}
@@ -44,6 +27,7 @@
 				<div v-if="state.subject" class="rounded-6 border border-outline-gray-1 bg-surface-base px-4 py-3">
 					<div class="text-xs text-ink-gray-5">Subject</div>
 					<div class="mt-0.5 text-base font-medium text-ink-gray-8">{{ state.subject }}</div>
+					<div v-if="state.to" class="mt-1 text-sm text-ink-gray-5">To {{ state.to }}</div>
 				</div>
 				<div ref="host" data-output-preview class="overflow-hidden rounded-6 border border-outline-gray-1" v-html="state.html" />
 			</div>
@@ -57,20 +41,24 @@
 
 <script setup lang="ts">
 import { useElementSize } from "@vueuse/core"
-import { Combobox, LoadingIndicator } from "frappe-ui"
+import { LoadingIndicator } from "frappe-ui"
 import { computed, ref, watch } from "vue"
 
 import type { OutputState } from "./outputEditor"
 
 const props = defineProps<{ state: OutputState }>()
-const emit = defineEmits<{ pick: [record: string]; host: [node: HTMLElement | null] }>()
+const emit = defineEmits<{ host: [node: HTMLElement | null] }>()
 
 const host = ref<HTMLElement | null>(null)
 watch(host, (node) => emit("host", node), { immediate: true })
 
-const options = computed(() =>
-	props.state.records.map((record) => ({ label: record.title || record.name, value: record.name })),
-)
+// in Preview a click reaches the output, and its links open beside Studio, not in place of it
+function openLink(event: MouseEvent) {
+	const link = (event.target as Element).closest<HTMLAnchorElement>("[data-output-preview] a[href]")
+	if (!link) return
+	event.preventDefault()
+	window.open(link.href, "_blank", "noopener")
+}
 
 const MM = 96 / 25.4
 const viewport = ref<HTMLElement | null>(null)
@@ -87,9 +75,5 @@ const scaledHeight = computed(() => (props.state.page?.height ?? 0) * MM * scale
 const margins = computed(() => {
 	const m = props.state.page?.margins
 	return m ? `${m.top}mm ${m.right}mm ${m.bottom}mm ${m.left}mm` : "0"
-})
-const pageLabel = computed(() => {
-	const page = props.state.page
-	return page ? `${page.size}, ${page.width} × ${page.height} mm` : ""
 })
 </script>

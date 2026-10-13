@@ -22,6 +22,7 @@ BASE_CSS = """
 :where(.fb-print) *, :where(.fb-print) *::before, :where(.fb-print) *::after { box-sizing: border-box; }
 :where(.fb-print) h1, :where(.fb-print) h2, :where(.fb-print) h3, :where(.fb-print) h4, :where(.fb-print) h5, :where(.fb-print) h6, :where(.fb-print) div, :where(.fb-print) p, :where(.fb-print) span, :where(.fb-print) a { margin: 0; padding: 0; font-size: inherit; font-weight: inherit; line-height: inherit; color: inherit; text-decoration: none; }
 :where(.fb-print) img, :where(.fb-print) svg { display: block; max-width: 100%; }
+:where(.fb-print) img[alt="QR code"] { width: 100%; height: auto; }
 """
 
 
@@ -85,9 +86,9 @@ def render_for(doc, doctype: str, record: str) -> str:
 	return get_html_and_style(doctype, record, print_format=doc.name, no_letterhead=1)["html"]
 
 
-def fit_font_size(text, width_mm: float, max_pt: float = 24, min_pt: float = 8) -> str:
-	"""A font size that fits `text` on one line `width_mm` wide, for a name on a badge. Jinja
+def fit_font_size(text, width_mm: float, max_pt: float = 24, min_pt: float = 8, lines: int = 1) -> str:
+	"""A font size that fits `text` in `lines` lines `width_mm` wide, for a name on a badge. Jinja
 	runs before layout, so it reckons with an average bold glyph instead of measuring."""
 	length = max(len(str(text or "")), 1)
-	fitting = width_mm * 72 / 25.4 / (length * 0.62)
+	fitting = width_mm * lines * 72 / 25.4 / (length * 0.62)
 	return f"{max(min_pt, min(max_pt, round(fitting, 1)))}pt"

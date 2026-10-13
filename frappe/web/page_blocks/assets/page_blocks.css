@@ -17,7 +17,9 @@
 }
 .fb-input::placeholder { color: color-mix(in srgb, currentColor 45%, transparent); }
 .fb-input:focus { border-color: var(--fb-accent, currentColor); box-shadow: 0 0 0 3px color-mix(in srgb, var(--fb-accent, currentColor) 18%, transparent); }
-.fb-input[aria-invalid="true"] { border-color: var(--fb-error, #e03636); }
+/* an error outranks the page's own field styles and the focus ring */
+.fb-form .fb-input[aria-invalid="true"] { border-color: var(--fb-error, #e03636) !important; }
+.fb-form .fb-input[aria-invalid="true"]:focus { box-shadow: 0 0 0 3px color-mix(in srgb, var(--fb-error, #e03636) 18%, transparent); }
 select.fb-input {
 	appearance: none; -webkit-appearance: none; padding-right: 36px;
 	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
@@ -54,13 +56,13 @@ textarea.fb-input { min-height: 120px; resize: vertical; }
 .fb-unavailable { margin: 0; padding: 12px; font-size: 14px; opacity: 0.6; }
 
 .fb-chat {
-	display: flex; flex-direction: column; width: 100%; height: var(--fb-chat-height, 480px); overflow: hidden;
+	display: flex; flex-direction: column; width: 100%; min-height: 280px; max-height: var(--fb-chat-height, 480px); overflow: hidden;
 	background: var(--fb-field-bg, transparent);
 	border: 1px solid var(--fb-border, color-mix(in srgb, currentColor 16%, transparent)); border-radius: var(--fb-radius, 16px);
 }
 .fb-chat-header { display: flex; align-items: center; padding: 14px 16px; border-bottom: 1px solid var(--fb-border, color-mix(in srgb, currentColor 12%, transparent)); }
 .fb-chat-title { font-size: 15px; font-weight: 600; line-height: 1.4; }
-.fb-chat-log { flex: 1; min-height: 0; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.fb-chat-log { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
 .fb-chat-msg { max-width: 85%; font-size: 15px; line-height: 1.55; overflow-wrap: anywhere; }
 .fb-chat-msg p, .fb-chat-msg ul, .fb-chat-msg ol { margin: 0 0 8px; }
 .fb-chat-msg ul, .fb-chat-msg ol { padding-left: 20px; }
@@ -68,7 +70,7 @@ textarea.fb-input { min-height: 120px; resize: vertical; }
 .fb-chat-msg code { font-size: 0.9em; padding: 1px 4px; border-radius: 4px; background: color-mix(in srgb, currentColor 8%, transparent); }
 .fb-chat-msg a { color: inherit; text-decoration: underline; }
 .fb-chat-visitor { align-self: flex-end; white-space: pre-wrap; padding: 8px 12px; border-radius: 14px; background: color-mix(in srgb, currentColor 8%, transparent); }
-.fb-chat-agent { align-self: flex-start; }
+.fb-chat-agent { align-self: flex-start; max-width: 100%; }
 .fb-chat-error { align-self: flex-start; font-size: 14px; color: var(--fb-error, #e03636); }
 .fb-chat-typing { align-self: flex-start; display: inline-flex; gap: 4px; padding: 8px 0; }
 .fb-chat-typing span { width: 6px; height: 6px; border-radius: 50%; background: currentColor; opacity: 0.3; animation: fb-chat-dot 1.2s infinite ease-in-out; }
@@ -94,6 +96,6 @@ textarea.fb-input { min-height: 120px; resize: vertical; }
 @media (max-width: 576px) {
 	.fb-form-fields { grid-template-columns: minmax(0, 1fr); }
 	.fb-submit { align-self: stretch; }
-	.fb-chat { height: var(--fb-chat-height-mobile, 70vh); }
+	.fb-chat { max-height: var(--fb-chat-height-mobile, 70vh); }
 	.fb-chat-msg { max-width: 92%; }
 }

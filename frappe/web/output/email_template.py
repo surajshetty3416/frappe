@@ -219,7 +219,41 @@ def render_for(doc, doctype: str, record: str) -> dict:
 	"""The subject and message as the framework renders them for a record."""
 	context = frappe.get_doc(doctype, record).as_dict()
 	email = doc.get_formatted_email(context)
-	return {"subject": email["subject"], "html": email["message"]}
+	return {"subject": email["subject"], "html": email["message"], "to": recipient(doctype, context)}
+
+
+def recipient(doctype: str, values: dict) -> str | None:
+	"""The record's email address, with its title, as a sender would address it."""
+	meta = frappe.get_meta(doctype)
+	field = next((df.fieldname for df in meta.fields if df.fieldtype == "Data" and df.options == "Email"), None)
+	address = values.get(field or "email") or values.get("email_id")
+	if not address:
+		return None
+	title = values.get(meta.get_title_field())
+	return f"{title} <{address}>" if title and title != address and title != values.get("name") else address
+
+
+@frappe.whitelist()
+def senders() -> dict[str, list[str]]:
+	"""Each template's automations, as when they send it: {"Registration Confirmed": ["Sent when an Attendee is created"]}."""
+	from frappe.agents.api import trigger_words
+
+	sent: dict[str, list[str]] = {}
+	actions = frappe.get_all(
+		"Automation Action",
+		filters={"parenttype": "Automation Flow", "action_type": "SendNotification"},
+		fields=["parent", "params"],
+	)
+	for action in actions:
+		template = (frappe.parse_json(action.params) or {}).get("email_template")
+		if not template or not frappe.has_permission("Automation Flow", "read", action.parent):
+			continue
+		flow = frappe.get_doc("Automation Flow", action.parent)
+		if not flow.enabled:
+			continue
+		words = trigger_words(flow)
+		sent.setdefault(template, []).append(f"Sent {words[0].lower()}{words[1:]}")
+	return sent
 
 
 @frappe.whitelist()

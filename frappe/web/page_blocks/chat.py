@@ -68,7 +68,7 @@ class ChatBlock:
 			'<form class="fb-chat-composer">'
 			f'<textarea class="fb-chat-input" rows="1" maxlength="{MESSAGE_LIMIT}" placeholder="{esc(placeholder)}" '
 			f'aria-label="{esc(placeholder)}"></textarea>'
-			f'<button class="fb-chat-send" type="submit" aria-label="{esc(_("Send"))}">{SEND_ICON}</button>'
+			f'<button class="fb-chat-send" type="submit" disabled aria-label="{esc(_("Send"))}">{SEND_ICON}</button>'
 			"</form></div>"
 		)
 

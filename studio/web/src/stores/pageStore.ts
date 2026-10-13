@@ -21,6 +21,8 @@ function normalizeRouteVariables(values: unknown) {
 	return Object.fromEntries(entries) as { [key: string]: string };
 }
 
+const treeOf = (root: Block) => JSON.stringify(getCopyWithoutParent(root));
+
 const usePageStore = defineStore("pageStore", {
 	state: () => ({
 		routeVariables: <{ [key: string]: string }>{},
@@ -33,6 +35,10 @@ const usePageStore = defineStore("pageStore", {
 		savingPage: false,
 		settingPage: false,
 		pageLoadToken: 0,
+		// the tree as last saved, and the trees before and after it, for undo and redo
+		savedTree: "",
+		undoStack: <string[]>[],
+		redoStack: <string[]>[],
 	}),
 	actions: {
 		async setPage(pageName: string, routeParams = null as Record<string, unknown> | null) {
@@ -50,6 +56,9 @@ const usePageStore = defineStore("pageStore", {
 			this.activePage = page;
 			const blocks = JSON.parse(page.draft_blocks || page.blocks || "[]");
 			this.pageBlocks = [getBlockInstance(blocks[0] || getBlockTemplate("body"))];
+			this.savedTree = treeOf(this.pageBlocks[0]);
+			this.undoStack = [];
+			this.redoStack = [];
 			this.loadRouteVariables(page.name, routeParams);
 			await this.setPageData(page);
 			useCanvasStore().activeCanvas?.setRootBlock(this.pageBlocks[0]);
@@ -114,13 +123,19 @@ const usePageStore = defineStore("pageStore", {
 		savePage() {
 			this.savingPage = true;
 			const root = useCanvasStore().activeCanvas?.getRootBlock();
+			const tree = root ? treeOf(root) : "";
+			if (tree && tree !== this.savedTree) {
+				this.undoStack.push(this.savedTree);
+				this.redoStack = [];
+				this.savedTree = tree;
+			}
 			const saveId = generateId();
 			// more saves can start before the first one completes
 			this.saveId = saveId;
 			return webPages.setValue
 				.submit({
 					name: this.activePage?.name || this.selectedPage,
-					draft_blocks: JSON.stringify(root ? [getCopyWithoutParent(root)] : []),
+					draft_blocks: `[${tree}]`,
 				})
 				.then((page: BuilderPage) => {
 					if (this.activePage) Object.assign(this.activePage, page);
@@ -131,6 +146,27 @@ const usePageStore = defineStore("pageStore", {
 					this.saveId = null;
 					this.savingPage = false;
 				});
+		},
+
+		undo() {
+			const tree = this.undoStack.pop();
+			if (!tree) return;
+			this.redoStack.push(this.savedTree);
+			this.restoreTree(tree);
+		},
+
+		redo() {
+			const tree = this.redoStack.pop();
+			if (!tree) return;
+			this.undoStack.push(this.savedTree);
+			this.restoreTree(tree);
+		},
+
+		restoreTree(tree: string) {
+			this.savedTree = tree;
+			this.pageBlocks = [getBlockInstance(tree)];
+			useCanvasStore().activeCanvas?.setRootBlock(this.pageBlocks[0]);
+			return this.savePage();
 		},
 
 		setPageData(page?: BuilderPage) {

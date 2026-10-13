@@ -11,20 +11,20 @@
 				<p v-else-if="!templates.data?.length" class="py-8 text-center text-base text-ink-gray-5">
 					No email templates yet. Ask the chat for a confirmation email or an announcement.
 				</p>
-				<List v-else class="-mx-3">
+				<List v-else class="-mx-3" :columns="COLUMNS">
 					<ListRows :items="templates.data" v-slot="{ item }">
 						<ListRow :route="{ name: 'email-template', params: { template: item.name } }">
 							<ListCell><span class="lucide-mail size-4 text-ink-gray-5" /></ListCell>
 							<ListCell>
 								<div class="flex min-w-0 flex-col gap-0.5 text-left">
 									<span class="truncate text-base text-ink-gray-8">{{ item.name }}</span>
-									<span class="truncate text-sm text-ink-gray-5">{{ item.subject }}</span>
+									<span class="truncate text-sm text-ink-gray-5">{{ senders[item.name]?.join(", ") || item.subject }}</span>
 								</div>
 							</ListCell>
-							<ListCell class="gap-3 text-sm text-ink-gray-5">
-								<span class="w-32 truncate">{{ item.reference_doctype }}</span>
+							<ListCell class="text-sm text-ink-gray-5"><span class="truncate">{{ item.reference_doctype }}</span></ListCell>
+							<ListCell class="justify-end text-sm text-ink-gray-5">
 								<UseTimeAgo v-slot="{ timeAgo }" :time="item.modified">
-									<span class="w-36 whitespace-nowrap text-right">Edited {{ timeAgo }}</span>
+									<span class="whitespace-nowrap">Edited {{ timeAgo }}</span>
 								</UseTimeAgo>
 							</ListCell>
 						</ListRow>
@@ -37,17 +37,22 @@
 				<p v-if="!groups.loading && !groups.data?.length" class="py-8 text-center text-base text-ink-gray-5">
 					No email groups yet. Ask the chat to put your attendees in one.
 				</p>
-				<List v-else class="-mx-3">
+				<List v-else class="-mx-3" :columns="COLUMNS">
 					<ListRows :items="groups.data ?? []" v-slot="{ item }">
 						<ListRow>
 							<ListCell><span class="lucide-users size-4 text-ink-gray-5" /></ListCell>
 							<ListCell>
-								<span class="truncate text-base text-ink-gray-8">{{ item.title }}</span>
+								<div class="flex min-w-0 flex-col gap-0.5 text-left">
+									<span class="truncate text-base text-ink-gray-8">{{ item.title }}</span>
+									<span class="truncate text-sm text-ink-gray-5">Email group</span>
+								</div>
 							</ListCell>
-							<ListCell class="gap-3 text-sm text-ink-gray-5">
-								<span class="w-32">{{ item.total_subscribers }} {{ item.total_subscribers === 1 ? "member" : "members" }}</span>
+							<ListCell class="text-sm text-ink-gray-5">
+								{{ item.total_subscribers }} {{ item.total_subscribers === 1 ? "member" : "members" }}
+							</ListCell>
+							<ListCell class="justify-end text-sm text-ink-gray-5">
 								<UseTimeAgo v-slot="{ timeAgo }" :time="item.modified">
-									<span class="w-36 whitespace-nowrap text-right">Edited {{ timeAgo }}</span>
+									<span class="whitespace-nowrap">Edited {{ timeAgo }}</span>
 								</UseTimeAgo>
 							</ListCell>
 						</ListRow>
@@ -59,9 +64,12 @@
 </template>
 <script setup lang="ts">
 import { UseTimeAgo } from "@vueuse/components"
-import { Skeleton, createListResource } from "frappe-ui"
+import { Skeleton, call, createListResource } from "frappe-ui"
 import { List, ListCell, ListRow, ListRows } from "frappe-ui/list"
-import { onActivated } from "vue"
+import { onActivated, ref } from "vue"
+
+// both sections share one grid, so their columns line up
+const COLUMNS = ["24px", "minmax(0, 1fr)", "160px", "180px"]
 
 const templates = createListResource({
 	doctype: "Email Template",
@@ -77,8 +85,12 @@ const groups = createListResource({
 	pageLength: 100,
 	auto: true,
 })
+const senders = ref<Record<string, string[]>>({})
+const loadSenders = () => call("frappe.web.output.email_template.senders").then((sent) => (senders.value = sent as Record<string, string[]>))
+loadSenders()
 onActivated(() => {
 	templates.reload()
 	groups.reload()
+	loadSenders()
 })
 </script>

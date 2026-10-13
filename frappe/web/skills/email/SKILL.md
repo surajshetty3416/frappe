@@ -16,7 +16,7 @@ An email is an Email Template drawn on the HTML canvas, saved with save_email_te
 
 ## One style for every email
 
-Write the header and the footer once, and copy them into every email of a set unchanged. Change only the body.
+Write the header and the footer once, and copy them into every email of a set unchanged. Change only the body. The header carries the same lockup as the event's other artifacts, such as its badge: the name and the date line. Every email opens with a greeting.
 
 ```yaml
 el: body
@@ -29,6 +29,9 @@ c:
       - el: h1
         text: Frappeverse 2027
         style: {color: '#ffffff', fontSize: 22px, fontWeight: '700'}
+      - el: p
+        text: 20–21 Aug · Mumbai
+        style: {color: '#ffffff', opacity: '0.7', fontSize: 13px}
   - el: div
     name: Body
     style: {padding: 32px, display: flex, flexDirection: column, gap: 16px}
@@ -93,6 +96,6 @@ When a field changes to a value, such as a proposal's status to Accepted: `"trig
 
 An announcement is an Email Template sent to an Email Group.
 
-1. Save the template with the people's DocType as `doctype`. A group email renders against each member, which has only `email`, so write the announcement without names or other fields.
+1. Save the template with the people's DocType as `doctype`. A group email renders against each member, which has only `email`, so write the announcement without names or other fields. Open it with "Hi there,".
 2. Fill the group with fill_email_group: its title and the DocType. It adds a member per record with an email, and skips those already in it.
 3. Send it with send_email_template only when the person says to send it. Until then it stays unsent.

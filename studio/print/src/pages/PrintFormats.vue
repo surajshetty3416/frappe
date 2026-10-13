@@ -8,24 +8,23 @@
 			<p v-else-if="!formats.data?.length" class="py-12 text-center text-base text-ink-gray-5">
 				No print formats yet. Ask the chat for a badge, an invoice or a certificate.
 			</p>
-			<List v-else class="-mx-3">
+			<List v-else class="-mx-3" :columns="['24px', 'minmax(0, 1fr)', '160px', '180px']">
 				<ListRows :items="formats.data" v-slot="{ item }">
 					<ListRow :route="{ name: 'print-format', params: { format: item.name } }">
 						<ListCell><span class="lucide-printer size-4 text-ink-gray-5" /></ListCell>
 						<ListCell>
 							<div class="flex min-w-0 flex-col gap-0.5 text-left">
 								<span class="truncate text-base text-ink-gray-8">{{ item.name }}</span>
-								<span class="truncate text-sm text-ink-gray-5">{{ item.doc_type }}</span>
+								<span class="truncate text-sm text-ink-gray-5">{{ [item.doc_type, item.canvas_blocks && item.page_size].filter(Boolean).join(" · ") }}</span>
 							</div>
 						</ListCell>
-						<ListCell class="gap-3 text-sm text-ink-gray-5">
-							<span class="w-28">{{ item.canvas_blocks ? item.page_size : "" }}</span>
-							<span class="flex w-20 items-center gap-1.5">
-								<span class="size-1.5 rounded-full" :class="item.disabled ? 'bg-surface-gray-5' : 'bg-surface-green-7'" />
-								{{ item.disabled ? "Disabled" : "Enabled" }}
-							</span>
+						<ListCell class="gap-1.5 text-sm text-ink-gray-5">
+							<span class="size-1.5 shrink-0 rounded-full" :class="item.disabled ? 'bg-surface-gray-5' : 'bg-surface-green-7'" />
+							{{ item.disabled ? "Disabled" : "Enabled" }}
+						</ListCell>
+						<ListCell class="justify-end text-sm text-ink-gray-5">
 							<UseTimeAgo v-slot="{ timeAgo }" :time="item.modified">
-								<span class="w-36 whitespace-nowrap text-right">Edited {{ timeAgo }}</span>
+								<span class="whitespace-nowrap">Edited {{ timeAgo }}</span>
 							</UseTimeAgo>
 						</ListCell>
 					</ListRow>

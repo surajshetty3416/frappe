@@ -4,11 +4,16 @@ import { call, toast } from "frappe-ui"
 
 import { defineOutputEditor } from "@web/output/outputEditor"
 
+import EmailDetails from "./EmailDetails.vue"
+
 export default defineOutputEditor({
 	doctype: "Email Template",
 	param: "template",
 	route: (name) => `/studio/email/template/${encodeURIComponent(name)}`,
-	status: (state) => ({ label: state.target ? `For ${state.target}` : "Email", theme: "gray" }),
+	status: (state) =>
+		state.senders.length
+			? { label: state.senders.join(", "), theme: "green" }
+			: { label: "Not sent automatically", theme: "gray" },
 	primaryAction(state) {
 		return {
 			label: "Send test",
@@ -19,16 +24,14 @@ export default defineOutputEditor({
 					template: state.name,
 					record: state.record,
 				})
-				toast.success(`Test sent to ${recipient}`)
+				toast.success(`Test sent to you (${recipient})`)
 			},
 		}
 	},
 	details(state) {
 		const doc = state.doc!
-		return [
-			{ label: "Subject", value: String(doc.subject ?? "") },
-			{ label: "Rendered against", value: String(doc.reference_doctype || "Any record") },
-		]
+		return [{ label: "Rendered against", value: String(doc.reference_doctype || "Any record") }]
 	},
-	code: (state) => ({ language: "html", content: String(state.doc?.response_html ?? "") }),
+	detailsForm: EmailDetails,
+	code: (state) => [{ name: "html", label: "HTML", code: String(state.doc?.response_html ?? ""), language: "html" }],
 })

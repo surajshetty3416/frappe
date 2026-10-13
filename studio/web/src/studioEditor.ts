@@ -2,14 +2,16 @@
 // answered from the page store.
 import type Block from "@web/block";
 import BuilderCanvas from "@web/components/BuilderCanvas.vue";
+import CodeView from "@web/components/CodeView.vue";
+import PageDetails from "@web/components/PageDetails.vue";
 import { webPages } from "@web/data/webPage";
 import useCanvasStore from "@web/stores/canvasStore";
 import usePageStore from "@web/stores/pageStore";
 import type { BuilderPage } from "@web/types/doctypes";
-import { getRootBlockTemplate } from "@web/utils/helpers";
+import { getBlockInstance, getCopyWithoutParent, getRootBlockTemplate } from "@web/utils/helpers";
 import { useDebounceFn } from "@vueuse/core";
-import { defineArtifactEditor, type ElementProperty } from "@shell/editor";
-import { LoadingIndicator, createListResource, toast } from "frappe-ui";
+import { type CodeTab, type ElementAction, type ElementProperty, defineArtifactEditor } from "@shell/editor";
+import { LoadingIndicator, toast } from "frappe-ui";
 import { computed, defineComponent, h, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 
@@ -45,14 +47,17 @@ const BuilderPagePreview = defineComponent({
 		}
 
 		return () =>
-			h("div", { ref: root, class: "relative h-full bg-surface-base" }, [
-				pageStore.pageBlocks[0]
-					? h(BuilderCanvas, {
-							ref: canvas,
-							blockData: pageStore.pageBlocks[0],
-							class: ["transition-opacity duration-150", pageStore.settingPage ? "opacity-0" : "opacity-100"],
-						})
-					: null,
+			// the page as a sheet on the canvas, so its own backgrounds read as the page's
+			h("div", { ref: root, class: "relative h-full bg-surface-gray-1 p-6" }, [
+				h("div", { class: "h-full overflow-hidden rounded-4 border border-outline-gray-1 bg-white" }, [
+					pageStore.pageBlocks[0]
+						? h(BuilderCanvas, {
+								ref: canvas,
+								blockData: pageStore.pageBlocks[0],
+								class: ["transition-opacity duration-150", pageStore.settingPage ? "opacity-0" : "opacity-100"],
+							})
+						: null,
+				]),
 				pageStore.settingPage
 					? h("div", { class: "absolute inset-0 grid place-items-center" }, [
 							h(LoadingIndicator, { class: "size-5 text-ink-gray-4" }),
@@ -68,6 +73,29 @@ const blockNode = (id: string) =>
 
 const save = useDebounceFn(() => usePageStore().savePage(), 300);
 
+function parentOf(id: string, block = useCanvasStore().activeCanvas?.getRootBlock() as Block | undefined): Block | null {
+	for (const child of block?.children ?? []) {
+		if (child.blockId === id) return block!;
+		const parent = parentOf(id, child);
+		if (parent) return parent;
+	}
+	return null;
+}
+
+function duplicate(block: Block, parent: Block) {
+	const copy = JSON.parse(JSON.stringify(getCopyWithoutParent(block)));
+	copy.parentBlock = parent;
+	const added = getBlockInstance(copy, false);
+	parent.children.splice(parent.children.indexOf(block) + 1, 0, added);
+	save();
+	return added.blockId;
+}
+
+function remove(block: Block, parent: Block) {
+	parent.children.splice(parent.children.indexOf(block), 1);
+	save();
+}
+
 function kind(block: Block) {
 	if (block.isRoot()) return { label: "Page", icon: "lucide-file" };
 	if (block.form) return { label: "Form", icon: "lucide-text-cursor-input" };
@@ -82,7 +110,7 @@ function kind(block: Block) {
 	if (block.isText()) return { label: "Text", icon: "lucide-type" };
 	return { label: "Container", icon: "lucide-square-dashed" };
 }
-const DEFAULT_NAMES = new Set(["body", "container", "text", "image", "button", "link", "html", "repeater", "section"]);
+const DEFAULT_NAMES = new Set(["body", "container", "text", "image", "button", "button-link", "link", "html", "repeater", "section"]);
 const hasText = (block: Block) => block.isText() || block.isLink() || block.isButton();
 
 type Option = { label: string; value: string };
@@ -110,35 +138,38 @@ function select(
 	};
 }
 
-const NO_LINK = "none";
-function linkProperty(block: Block) {
-	const options = ((webPages.data ?? []) as BuilderPage[])
-		.filter((page) => page.route && !/[<:]/.test(page.route))
-		.map((page) => ({ label: page.page_title || page.route!, value: `/${page.route!.replace(/^\//, "")}` }));
-	const href = String(block.getAttribute("href") ?? "");
-	return select("link", "Link", "lucide-link", href, [{ label: "No link", value: NO_LINK }, ...options], (value) => {
-		if (value === NO_LINK) return block.isLink() && block.unsetLink();
-		if (!block.isLink()) block.convertToLink();
-		block.setAttribute("href", value);
-	});
+function linkProperty(block: Block): ElementProperty {
+	return {
+		name: "link",
+		label: "Link",
+		icon: "lucide-link",
+		type: "text",
+		placeholder: "/schedule or https://",
+		value: String(block.getAttribute("href") ?? ""),
+		set(href) {
+			if (!href) block.isLink() && block.unsetLink();
+			else {
+				if (!block.isLink()) block.convertToLink();
+				block.setAttribute("href", href);
+			}
+			save();
+		},
+	};
 }
 
-const images = createListResource({
-	doctype: "File",
-	fields: ["file_name", "file_url"],
-	filters: { is_folder: 0, file_type: ["in", ["PNG", "JPG", "JPEG", "SVG", "WEBP", "GIF"]] },
-	orderBy: "creation desc",
-	pageLength: 50,
-	cache: "web-images",
-});
-function imageProperty(block: Block) {
-	if (!images.fetched && !images.list.loading) images.fetch();
-	const options = ((images.data ?? []) as { file_name: string; file_url: string }[]).map((file) => ({
-		label: file.file_name,
-		value: file.file_url,
-	}));
-	const src = String(block.getAttribute("src") ?? "");
-	return select("image", "Image", "lucide-image", src, options, (value) => block.setAttribute("src", value));
+function imageProperty(block: Block): ElementProperty {
+	return {
+		name: "image",
+		label: "Replace image",
+		icon: "lucide-image-up",
+		type: "upload",
+		accept: "image/*",
+		value: String(block.getAttribute("src") ?? ""),
+		set(src) {
+			block.setAttribute("src", src);
+			save();
+		},
+	};
 }
 
 function alignProperty(block: Block) {
@@ -182,27 +213,28 @@ function visibilityProperty(block: Block) {
 function blockProperties(block: Block): ElementProperty[] {
 	if (block.isRoot()) return [];
 	return [
-		linkProperty(block),
+		// a form or a chat is not a link
+		...(block.form || block.chat ? [] : [linkProperty(block)]),
 		...(block.isImage() ? [imageProperty(block)] : []),
 		...(hasText(block) ? [alignProperty(block)] : []),
 		visibilityProperty(block),
 	];
 }
 
-function codeContent(page: BuilderPage) {
+function codeTabs(page: BuilderPage): CodeTab[] {
 	const pageStore = usePageStore();
-	const sections: [string, string | null | undefined][] = [
-		["Data script", page.page_data_script],
-		["Data", page.page_data_script ? JSON.stringify(pageStore.pageData, null, 2) : null],
-		...pageStore.activePageScripts.map(
-			(script) => [`Client script: ${script.name} (${script.script_type})`, script.script] as [string, string],
+	const tab = (name: string, label: string, code: string | null | undefined, language: string): CodeTab[] =>
+		code?.trim() ? [{ name, label, component: { component: CodeView, props: { code: code.trim(), language } } }] : [];
+	return [
+		...tab("blocks", "Blocks", pageStore.savedTree && JSON.stringify(JSON.parse(pageStore.savedTree), null, 2), "javascript"),
+		...tab("data_script", "Data script", page.page_data_script, "python"),
+		...tab("data", "Data", page.page_data_script ? JSON.stringify(pageStore.pageData, null, 2) : null, "javascript"),
+		...pageStore.activePageScripts.flatMap((script) =>
+			tab(script.name, script.name, script.script, script.script_type === "CSS" ? "css" : "javascript"),
 		),
-		["Head HTML", page.head_html],
-		["Body HTML", page.body_html],
+		...tab("head_html", "Head HTML", page.head_html, "html"),
+		...tab("body_html", "Body HTML", page.body_html, "html"),
 	];
-	const filled = sections.filter(([, content]) => content?.trim());
-	if (!filled.length) return "This page has no data script, client script or custom HTML.";
-	return filled.map(([title, content]) => `# ${title}\n\n${content!.trim()}`).join("\n\n\n");
 }
 
 const page = computed(() => usePageStore().activePage);
@@ -223,33 +255,35 @@ export default defineArtifactEditor({
 		return { label: "Published", theme: "green" };
 	},
 	primaryAction() {
-		const live = page.value?.published && !page.value.draft_blocks;
+		const current = page.value;
+		// a live page's status already says so; the action opens it
+		if (current?.published && !current.draft_blocks)
+			return {
+				label: "Open",
+				icon: "lucide-external-link",
+				run: async () => void window.open(`/${(current.route || "").replace(/^\//, "")}`, "_blank"),
+			};
 		return {
-			label: live ? "Published" : "Publish",
-			icon: live ? "lucide-check" : undefined,
-			disabled: Boolean(live),
+			label: "Publish",
 			run: async () => {
 				await usePageStore().publishPage();
 				toast.success("Published");
 			},
 		};
 	},
+	modes: ["edit", "preview"],
+	detailsForm: () => (page.value ? { component: PageDetails } : null),
 	details() {
 		const current = page.value;
 		if (!current) return [];
 		const path = `/${(current.route || "").replace(/^\//, "")}`;
 		return [
-			{ label: "Address", value: path, href: current.published ? path : undefined },
-			{ label: "Sign-in", value: current.authenticated_access ? "Required" : "Not required" },
-			{ label: "Indexing", value: current.disable_indexing ? "Off" : "On" },
+			...(current.published ? [{ label: "Live page", value: path, href: path }] : []),
 			{ label: "Homepage", value: usePageStore().isHomePage() ? "Yes" : "No" },
-			{ label: "Description", value: current.meta_description || "None" },
-			{ label: "Social image", value: current.meta_image || "None", href: current.meta_image || undefined },
 		];
 	},
-	code() {
-		return { language: "text", content: page.value ? codeContent(page.value) : "" };
-	},
+	code: () => ({ language: "text", content: "" }),
+	codeTabs: () => (page.value ? codeTabs(page.value) : []),
 	async reload(modified) {
 		const pageStore = usePageStore();
 		if (!pageStore.selectedPage) return;
@@ -258,6 +292,8 @@ export default defineArtifactEditor({
 		if (modified && modified === pageStore.activePage?.modified) return;
 		await pageStore.setPage(pageStore.selectedPage);
 	},
+	undo: () => usePageStore().undo(),
+	redo: () => usePageStore().redo(),
 
 	elementAt(node) {
 		const element = node.closest<HTMLElement>(".__builder_component__[data-block-id]");
@@ -277,5 +313,14 @@ export default defineArtifactEditor({
 	properties(id) {
 		const block = findBlock(id);
 		return block ? blockProperties(block) : [];
+	},
+	actions(id): ElementAction[] {
+		const block = findBlock(id);
+		const parent = parentOf(id);
+		if (!block || !parent) return [];
+		return [
+			{ name: "duplicate", label: "Duplicate", icon: "lucide-copy", run: () => duplicate(block, parent) },
+			{ name: "delete", label: "Delete", icon: "lucide-trash-2", run: () => remove(block, parent) },
+		];
 	},
 });

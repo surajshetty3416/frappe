@@ -104,6 +104,8 @@ def preview(doctype: str, name: str, record: str | None = None) -> dict:
 	result = {"doctype": target, "record": record}
 	if doctype == "Print Format":
 		result["page"] = print_format.page_box(doc)
+	else:
+		result["senders"] = email_template.senders().get(name, [])
 	if not (target and record):
 		return {**result, "html": "", "error": _("There is no {0} to preview against.").format(target or _("record"))}
 	try:

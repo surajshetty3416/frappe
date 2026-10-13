@@ -4,18 +4,19 @@
 // or sends. Selection, text edits and properties change the tree, and a save renders it again.
 import {
 	type ArtifactAction,
-	type ArtifactCode,
 	type ArtifactDetail,
 	type ArtifactStatus,
 	type ElementProperty,
 	defineArtifactEditor,
 } from "@shell/editor"
+import CodeView from "@web/components/CodeView.vue"
 import { useDebounceFn } from "@vueuse/core"
 import { call, toast } from "frappe-ui"
-import { defineComponent, h, reactive, watch } from "vue"
-import { useRoute, useRouter } from "vue-router"
+import { type Component, defineComponent, h, reactive, watch } from "vue"
+import { useRoute } from "vue-router"
 
 import OutputPreview from "./OutputPreview.vue"
+import RecordPicker from "./RecordPicker.vue"
 
 export type OutputDoctype = "Print Format" | "Email Template"
 
@@ -54,6 +55,9 @@ export interface OutputState {
 	records: { name: string; title?: string }[]
 	html: string
 	subject: string
+	// the address the email goes to, and when automations send it
+	to: string
+	senders: string[]
 	page: Page | null
 	error: string
 	loading: boolean
@@ -68,8 +72,12 @@ interface OutputSpec {
 	status: (state: OutputState) => ArtifactStatus
 	primaryAction: (state: OutputState) => ArtifactAction | null
 	details: (state: OutputState) => ArtifactDetail[]
-	code: (state: OutputState) => ArtifactCode
+	// the form at the top of Details, mounted with the state and `set(field, value)`
+	detailsForm: Component
+	code: (state: OutputState) => { name: string; label: string; code: string; language: "html" | "css" }[]
 }
+
+export type SetField = (field: string, value: unknown) => Promise<void>
 
 const walk = (block: CanvasBlock): CanvasBlock[] => [block, ...(block.children ?? []).flatMap(walk)]
 const JINJA = /\{\{|\{%/
@@ -86,6 +94,17 @@ function kind(block: CanvasBlock, root: boolean) {
 	return { label: "Container", icon: "lucide-square-dashed" }
 }
 
+// the color the element shows: its own, or for a fill the first one behind it
+function shownColor(node: HTMLElement | null, key: "color" | "background") {
+	for (let element = node; element; element = element.parentElement) {
+		const style = getComputedStyle(element)
+		if (key === "color") return style.color
+		if (style.backgroundColor !== "rgba(0, 0, 0, 0)") return style.backgroundColor
+		if (element.hasAttribute("data-output-preview")) break
+	}
+	return "#ffffff"
+}
+
 export function defineOutputEditor(spec: OutputSpec) {
 	const state = reactive<OutputState>({
 		doctype: spec.doctype,
@@ -97,6 +116,8 @@ export function defineOutputEditor(spec: OutputSpec) {
 		records: [],
 		html: "",
 		subject: "",
+		to: "",
+		senders: [],
 		page: null,
 		error: "",
 		loading: false,
@@ -114,6 +135,8 @@ export function defineOutputEditor(spec: OutputSpec) {
 		const result = await call("frappe.web.output.preview", { doctype: spec.doctype, name: state.name, record: state.record })
 		state.html = result.html ?? ""
 		state.subject = result.subject ?? ""
+		state.to = result.to ?? ""
+		state.senders = result.senders ?? []
 		state.page = result.page ?? null
 		state.error = result.error ?? ""
 		state.target = result.doctype ?? null
@@ -159,11 +182,23 @@ export function defineOutputEditor(spec: OutputSpec) {
 	}
 	const save = useDebounceFn(persist, 300)
 
+	const set: SetField = async (field, value) => {
+		if (!state.doc || state.doc[field] === value) return
+		state.saving = true
+		try {
+			state.doc = (await call("frappe.client.set_value", { doctype: spec.doctype, name: state.name, fieldname: field, value })) as OutputDoc
+			await render()
+		} catch (error) {
+			toast.error((error as Error)?.message || "Could not save")
+		} finally {
+			state.saving = false
+		}
+	}
+
 	const Preview = defineComponent({
 		name: "OutputPreviewRoute",
 		setup() {
 			const route = useRoute()
-			const router = useRouter()
 			watch(
 				() => [route.params[spec.param], route.params.record] as const,
 				([name, record]) => {
@@ -182,14 +217,7 @@ export function defineOutputEditor(spec: OutputSpec) {
 				},
 				{ immediate: true },
 			)
-			// the record is in the path: a link to an artifact keeps its path, and the chat adds its own query
-			const pick = (record: string) => router.replace({ params: { ...route.params, record }, query: route.query })
-			return () =>
-				h(OutputPreview, {
-					state,
-					onPick: pick,
-					onHost: (node: HTMLElement | null) => (state.host = node),
-				})
+			return () => h(OutputPreview, { state, onHost: (node: HTMLElement | null) => (state.host = node) })
 		},
 	})
 
@@ -217,7 +245,7 @@ export function defineOutputEditor(spec: OutputSpec) {
 			label,
 			icon: key === "color" ? "lucide-baseline" : "lucide-paint-bucket",
 			type: "color",
-			value: block.baseStyles?.[key] ?? "",
+			value: block.baseStyles?.[key] || shownColor(nodeOf(block.blockId), key),
 			set(value) {
 				block.baseStyles = { ...block.baseStyles, [key]: value }
 				save()
@@ -237,7 +265,18 @@ export function defineOutputEditor(spec: OutputSpec) {
 		status: () => (state.saving ? { label: "Saving…", theme: "gray" } : spec.status(state)),
 		primaryAction: () => spec.primaryAction(state),
 		details: () => (state.doc ? spec.details(state) : []),
-		code: () => spec.code(state),
+		code: () => ({ language: "html", content: "" }),
+		modes: ["edit", "preview"],
+		barControls: () => (state.records.length || state.target ? { component: RecordPicker, props: { state } } : null),
+		detailsForm: () => (state.doc ? { component: spec.detailsForm, props: { state, set } } : null),
+		codeTabs: () =>
+			state.doc
+				? spec.code(state).map((tab) => ({
+						name: tab.name,
+						label: tab.label,
+						component: { component: CodeView, props: { code: tab.code, language: tab.language } },
+					}))
+				: [],
 		async reload(modified) {
 			if (!state.name) return
 			if (modified && modified === state.doc?.modified) return

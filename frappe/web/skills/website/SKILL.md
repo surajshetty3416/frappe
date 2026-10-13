@@ -54,7 +54,7 @@ add_form_block adds a form that inserts one document of a DocType when a visitor
 - Values the visitor must not choose, such as a status, a price or a code, belong in server logic on the DocType, not in the form.
 - Set `submit_label` to the action ("Register", "Submit talk") and `success_message` to what happens next. `success_route` opens a page instead.
 - `columns: 2` puts short fields two to a row on a wide screen.
-- Match the page through `style`: `--fb-accent` and `--fb-accent-ink` for the button, `--fb-radius`, `--fb-border` and `--fb-field-bg`. The form takes the page's font and text color by itself. On a dark section, set `--fb-field-bg` to a slightly lighter shade and `--fb-border` to a light border.
+- Always set `--fb-accent` to the page's primary button color and `--fb-accent-ink` to its text color, so the submit button matches the page's main button. Match the rest through `style`: `--fb-radius`, `--fb-border` and `--fb-field-bg`. The form takes the page's font and text color by itself. On a dark section, set `--fb-field-bg` to a slightly lighter shade and `--fb-border` to a light border.
 
 ## Chats
 
@@ -63,7 +63,7 @@ add_chat_block puts a chat with one agent on a page, for visitors.
 - The agent becomes public. Every visitor chats as Guest, so its tools read only DocTypes that give Guest read permission. Give Guest read on what the agent answers from, and never on DocTypes with private records, such as attendees or emails. The result lists the custom DocTypes Guest can read.
 - Give the agent read tools only. A tool call that needs approval is declined, and a public agent cannot have update_memory or execute.
 - Write a `greeting` that says what the agent can answer, and a `placeholder` with a sample question.
-- `--fb-chat-height` sets its height (default 480px).
+- The chat grows with its messages from 280px up to `--fb-chat-height` (default 480px).
 
 ## Example
 
