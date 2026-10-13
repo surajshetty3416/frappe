@@ -49,7 +49,7 @@ export interface StepCard {
 	agent_title?: string
 	// `field` is a value the run fills in from the record
 	prompt?: { text?: string; field?: string }[]
-	params?: { label: string; value: string }[]
+	params?: { label: string; value?: string; parts?: { text?: string; field?: string }[] }[]
 }
 
 export interface AutomationDoc {
