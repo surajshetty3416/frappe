@@ -27,7 +27,7 @@
 						:steps="item.steps"
 						:sealed="i < turnEnd - 1 || !conversation.running"
 					/>
-					<div v-else-if="item.kind === 'turn-tasks' && flow.options.taskCard" class="flex flex-col gap-2">
+					<div v-else-if="item.kind === 'turn-tasks' && flow.options.taskCard" class="flow-turn-tasks flex flex-col gap-2">
 						<component :is="flow.options.taskCard" v-for="task in item.tasks" :key="task.key" :task="task" />
 					</div>
 					<div v-else-if="item.kind === 'turn-artifacts'" class="flow-turn-artifacts flex flex-col gap-2">
@@ -72,12 +72,12 @@
 			</div>
 		</div>
 
+		<!-- text scrolled under the composer's chips fades instead of stopping at a hard edge -->
+		<div class="pointer-events-none absolute inset-x-0 bottom-0 h-4 bg-gradient-to-t from-surface-base" />
 		<Button
 			v-if="!stick && !blank"
 			class="absolute bottom-3 left-1/2 z-10 -translate-x-1/2 rounded-full shadow-md"
 			icon="lucide-arrow-down"
-		<!-- text scrolled under the composer's chips fades instead of stopping at a hard edge -->
-		<div class="pointer-events-none absolute inset-x-0 bottom-0 h-4 bg-gradient-to-t from-surface-base" />
 			variant="outline"
 			tooltip="Scroll to bottom"
 			@click="toBottom"
