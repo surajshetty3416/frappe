@@ -438,6 +438,7 @@ def execute(code: str, description: str, *, ctx: ToolContext) -> Any:
 	  fields=[{"SUM": "qty", "as": "total"}] or [{"COUNT": "*", "as": "n"}]),
 	  frappe.get_doc (returns a dict), frappe.get_meta, frappe.db.get_value/get_single_value/count/exists.
 	- Writes: create, update, delete, run_action, the same permission-checked tools you call directly.
+	  A record they cannot save is in `failures`, not in `created`: check `failures` first.
 	- Also: read_records, describe, find_doctypes, frappe.call (whitelisted methods), frappe.enqueue,
 	  frappe.sendmail, frappe.get_print, frappe.parse_json, frappe.as_json, frappe.safe_json_loads,
 	  frappe.generate_hash, frappe.utils.* (dates, numbers, strings).
