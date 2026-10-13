@@ -272,7 +272,8 @@ export function defineOutputEditor(spec: OutputSpec) {
 			window.history.replaceState(window.history.state, "", spec.route(name))
 			await load(name)
 		},
-		status: () => (state.saving ? { label: "Saving…", theme: "gray" } : spec.status(state)),
+		status: () => spec.status(state),
+		saving: () => state.saving,
 		primaryAction: () => spec.primaryAction(state),
 		details: () => (state.doc ? spec.details(state) : []),
 		code: () => ({ language: "html", content: "" }),

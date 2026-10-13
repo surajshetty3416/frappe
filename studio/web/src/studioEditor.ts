@@ -271,7 +271,6 @@ export default defineArtifactEditor({
 	},
 	rename: (title) => usePageStore().updateActivePage("page_title", title) as Promise<unknown>,
 	status() {
-		if (usePageStore().savingPage) return { label: "Saving…", theme: "gray" };
 		if (!page.value?.published) return { label: "Draft", theme: "gray" };
 		if (page.value.draft_blocks) return { label: "Unpublished changes", theme: "orange" };
 		return { label: "Published", theme: "green" };
@@ -293,6 +292,7 @@ export default defineArtifactEditor({
 			},
 		};
 	},
+	saving: () => usePageStore().savingPage,
 	modes: ["edit", "preview"],
 	detailsForm: () => (page.value ? { component: PageDetails } : null),
 	details() {
