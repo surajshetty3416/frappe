@@ -11,13 +11,14 @@
 			</template>
 			<template v-else-if="shellEditor && selected">
 				<div class="flex min-w-0 flex-1 items-center gap-0.5">
-					<!-- the label gives way first, down to its icon, so the layer's controls stay whole -->
-					<Tooltip :text="selected.label">
-						<span class="flex min-w-4 max-w-[160px] shrink-[1000] items-center gap-1.5 overflow-hidden pr-1 text-sm font-medium text-ink-gray-8">
-							<span :class="selected.icon" class="size-4 shrink-0 text-ink-gray-5" />
-							<span class="truncate">{{ selected.label }}</span>
-						</span>
+					<!-- beside the layer's own controls the selection shows as its icon, so neither truncates -->
+					<Tooltip v-if="properties.length && !editing" :text="selected.label">
+						<span :class="selected.icon" class="mr-1 size-4 shrink-0 text-ink-gray-5" :aria-label="selected.label" />
 					</Tooltip>
+					<span v-else class="flex min-w-0 max-w-[160px] items-center gap-1.5 pr-1 text-sm font-medium text-ink-gray-8">
+						<span :class="selected.icon" class="size-4 shrink-0 text-ink-gray-5" />
+						<span class="truncate">{{ selected.label }}</span>
+					</span>
 					<template v-if="properties.length && !editing">
 						<div class="mx-0.5 h-4 w-px shrink-0 bg-surface-gray-3" />
 						<div
