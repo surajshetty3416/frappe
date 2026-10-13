@@ -430,35 +430,59 @@ def build_repeater_data_script(parsed) -> str:
 	return "\n".join(f"data.{key} = {json.dumps(items, separators=(',', ':'))}" for key, items in out.items())
 
 
-# --- CSS in YAML flow mappings ---
+# --- one-line flow mappings with free text ---
 
-# Models write styles as one-line flow mappings with bare CSS values, where `#` starts
-# a comment and a comma ends the value: `border: 1px solid #eee` breaks the parse and
-# the salvage drops the line, `repeat(3, 1fr)` loses its second argument.
-STYLE_FLOW = re.compile(r"^(\s*(?:-\s+)?(?:style|m_style|t_style):\s*)\{(.*)\}\s*$")
-STYLE_PAIR = re.compile(r"""^\s*(['"]?)((?:[\w-]+:)?[\w-]+)\1\s*:\s+(.*)$""", re.S)
+# Models write styles and small blocks as one-line flow mappings with bare values, where `#`
+# starts a comment and a comma or `?` ends the value: `border: 1px solid #eee` and
+# `- {el: summary, text: Can I get a refund, or a transfer?}` break the parse and the salvage
+# drops the line, `repeat(3, 1fr)` loses its second argument. Each value is quoted whole,
+# reading a comma as the value's own unless a known key follows it.
+FLOW_LINE = re.compile(r"^(\s*(?:-\s+)?)(?:([\w-]+):\s*)?\{(.*)\}\s*$")
+FLOW_PAIR = re.compile(r"""^\s*(['"]?)((?:[\w-]+:)?[\w-]+)\1\s*:(?:\s+|$)(.*)$""", re.S)
 QUOTED_HEX = re.compile(r"""(['"])(#[0-9a-fA-F]{3,8})\1""")
+STYLE_KEYS = {"style", "m_style", "t_style"}
+BLOCK_KEYS = {key for key, _gloss in BlockCodec.FIELD_DOCS} | {"ref", "id", "repeat", "bind", "client_script"}
 
 
-def quote_style_values(text: str) -> str:
-	return "\n".join(quote_style_line(line) for line in text.split("\n"))
+def quote_flow_values(text: str) -> str:
+	return "\n".join(quote_flow_line(line) for line in text.split("\n"))
 
 
-def quote_style_line(line: str) -> str:
-	match = STYLE_FLOW.match(line)
+def quote_flow_line(line: str) -> str:
+	match = FLOW_LINE.match(line)
 	if not match:
 		return line
+	lead, key, body = match.groups()
+	# a style mapping takes any CSS property; a block written inline, only block keys
+	if key in STYLE_KEYS:
+		mapping = flow_mapping(body, None)
+	elif not key and lead.strip():
+		mapping = flow_mapping(body, BLOCK_KEYS)
+	else:
+		return line
+	return line if mapping is None else f"{lead}{key + ': ' if key else ''}{mapping}"
+
+
+def flow_mapping(body: str, keys: set | None) -> str | None:
 	pairs: list[list[str]] = []
-	for part in split_top_level(match.group(2)):
-		if pair := STYLE_PAIR.match(part):
-			pairs.append([pair.group(2), pair.group(3).strip()])
+	for part in split_top_level(body):
+		pair = FLOW_PAIR.match(part)
+		if pair and (keys is None or pair.group(2) in keys):
+			pairs.append([pair.group(2), pair.group(3)])
 		elif pairs:
-			# the comma belonged to the value, as in a font list
-			pairs[-1][1] += f", {part.strip()}"
+			pairs[-1][1] += f",{part}"
 		elif part.strip():
-			return line
-	quoted = ", ".join(f"{json.dumps(key)}: {json.dumps(css_value(value))}" for key, value in pairs)
-	return f"{match.group(1)}{{{quoted}}}"
+			return None
+	return "{" + ", ".join(f"{json.dumps(key)}: {flow_value(key, value)}" for key, value in pairs) + "}"
+
+
+def flow_value(key: str, value: str) -> str:
+	value = value.strip()
+	if value.startswith("{") and value.endswith("}") and (nested := flow_mapping(value[1:-1], None)):
+		return nested
+	if value.startswith("["):
+		return value
+	return json.dumps(css_value(value))
 
 
 def split_top_level(text: str) -> list[str]:
@@ -467,7 +491,7 @@ def split_top_level(text: str) -> list[str]:
 	for index, char in enumerate(text):
 		if quote:
 			quote = None if char == quote else quote
-		elif char in "'\"":
+		elif char in "'\"" and (index == start or text[index - 1] in " :,([{"):
 			quote = char
 		elif char in "([{":
 			depth += 1
@@ -502,7 +526,7 @@ def parse_generation_yaml(yaml_text: str):
 	Salvage order: drop the offending line the parser points at (up to 8 times,
 	losing a property or a block instead of the page), then fall back to trimming
 	a truncated tail (a stream cut off by max_tokens still yields its valid prefix)."""
-	text = quote_style_values(BlockCodec.strip_fences(yaml_text or ""))
+	text = quote_flow_values(BlockCodec.strip_fences(yaml_text or ""))
 	try:
 		return yaml.safe_load(text)
 	except yaml.YAMLError as exc:
