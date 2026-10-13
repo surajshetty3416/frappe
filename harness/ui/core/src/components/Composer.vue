@@ -148,18 +148,15 @@
 				<input ref="fileInput" type="file" multiple class="hidden" @change="onFilesPicked" />
 				<div ref="controls" class="col-start-3 flex items-center gap-1" :class="compact ? '' : 'order-3'">
 					<!-- a new chat picks its agent: build here, or send each task to its own chat -->
-					<div v-if="agentOptions" role="radiogroup" aria-label="Agent" class="mr-1 flex items-center gap-0.5">
-						<Button
-							v-for="option in agentOptions"
-							:key="option.value"
-							role="radio"
-							variant="ghost"
-							:label="option.label"
-							:aria-checked="(flow.state.agent ?? '') === option.value"
-							:class="(flow.state.agent ?? '') === option.value ? '!bg-surface-gray-2 !text-ink-gray-8' : '!text-ink-gray-5'"
-							@click="flow.setAgent(option.value || null)"
-						/>
-					</div>
+					<TabButtons
+						v-if="agentOptions"
+						aria-label="Agent"
+						variant="ghost"
+						class="mr-1"
+						:options="agentOptions"
+						:model-value="flow.state.agent ?? ''"
+						@update:model-value="(value) => flow.setAgent(value || null)"
+					/>
 					<Dropdown :options="modeOptions" align="end">
 						<Button variant="ghost" :label="modeLabel" icon-right="lucide-chevron-down" />
 					</Dropdown>
@@ -190,7 +187,7 @@
 
 <script setup>
 import { computed, inject, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue"
-import { Button, Dropdown } from "frappe-ui"
+import { Button, Dropdown, TabButtons } from "frappe-ui"
 import { dialogs as frappeDialogs } from "frappe-ui/src/utils/dialog"
 
 import { quoteBlock, skillSegments } from "../transcript.js"
@@ -236,7 +233,7 @@ const placeholder = computed(
 	() =>
 		(!flow.state.sessionId && agentEntry.value?.placeholder) ||
 		(flow.options.placeholder ??
-			(flow.state.sessionId ? (skillsOn.value ? "Reply, / for a skill" : "Reply…") : "Describe what to build…")),
+			(flow.state.sessionId ? "Reply…" : "Describe what to build…")),
 )
 
 const MODES = { auto: "Auto-approve", ask: "Ask first" }
