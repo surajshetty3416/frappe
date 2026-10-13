@@ -202,6 +202,8 @@ def _system_prompt(prompt: str | None) -> str:
 	note = (
 		f"Your tools are named `{TOOL_PREFIX}<name>`. "
 		f"A tool that skills or messages call `execute` is `{TOOL_PREFIX}execute`."
+		f" You have only the `{TOOL_PREFIX}` tools, with no file, shell or web tools."
+		" Read the framework through your own tools, such as `describe` or `run_query`."
 	)
 	return f"{prompt}\n\n{note}" if prompt else note
 
