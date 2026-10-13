@@ -1,5 +1,6 @@
 <template>
 	<div ref="canvasContainer" :data-builder-canvas="canvasId" class="h-full overflow-y-auto overflow-x-hidden">
+		<component :is="'style'" v-if="pageStyles" v-text="pageStyles" />
 		<component :is="'style'" v-if="blockClientStyles" v-text="blockClientStyles" />
 		<div
 			class="canvas relative min-h-full bg-white"
@@ -50,6 +51,15 @@ const { width: panelWidth } = useElementSize(canvasContainer);
 const frameWidth = computed(() => Math.max(DESKTOP_WIDTH, panelWidth.value));
 const scale = computed(() => (panelWidth.value ? panelWidth.value / frameWidth.value : 1));
 
+// the page's own CSS, from its head and its CSS scripts, held to this canvas
+const pageStyles = computed(() => {
+	const head = pageStore.activePage?.head_html || "";
+	const css = [
+		...Array.from(new DOMParser().parseFromString(head, "text/html").querySelectorAll("style"), (style) => style.textContent),
+		...pageStore.activePageScripts.filter((script) => script.script_type === "CSS").map((script) => script.script),
+	].join("\n");
+	return css.trim() ? `@scope ([data-builder-canvas="${canvasId}"]) { ${css} }` : "";
+});
 const blockStyles = reactive(new Map<string, string>());
 const blockClientStyles = computed(() => Array.from(blockStyles.values()).join("\n"));
 
