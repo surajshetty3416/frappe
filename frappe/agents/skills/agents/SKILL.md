@@ -49,7 +49,7 @@ An agent is a `Flow Agent`: instructions, a model and tools. An automation is an
 
 ```json
 {
-  "title": "Screen new proposals",
+  "title": "Run Proposal Screener",
   "enabled": 1,
   "document_type": "Talk Proposal",
   "trigger_type": "Doc Created",
@@ -63,6 +63,7 @@ An agent is a `Flow Agent`: instructions, a model and tools. An automation is an
 }
 ```
 
+- Title it after the agent it runs, so one agent has one name: `Run Proposal Screener`.
 - `enabled` defaults to 0. Set it to 1, or the automation never runs.
 - `trigger_type` is one of `Doc Created`, `Doc Updated`, `Field Value Changed`, `Doc Submitted`, `Doc Cancelled`, `Doc Deleted`, `Date Based` and `Scheduled`. Every one but `Scheduled` needs `document_type`.
 - `Field Value Changed` needs `trigger_field`, and optionally `from_value` and `to_value`.

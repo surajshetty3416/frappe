@@ -9,6 +9,8 @@ An email is an Email Template drawn on the HTML canvas, saved with save_email_te
 
 ## Steps
 
+Make the emails the person names, each under the name they give it. A message that only sets the style of the emails to come names none: say which style you will use and wait for them.
+
 1. Run `describe` on the DocType each email is about. Use its real fieldnames and exact Select options.
 2. Save each email with save_email_template. Check `sample_subject` and `sample_text` in the result.
 3. Make the automations that send them (see Sending).
@@ -72,13 +74,13 @@ c:
 
 ## Sending
 
-An Automation Flow sends a template with a `SendNotification` step. Create it with the `create` tool. `recipients` takes the record's email field as Jinja.
+An Automation Flow sends a template with a `SendNotification` step. Create it with the `create` tool. `recipients` takes the record's email field as Jinja. Title it after the template it sends, so one event has one name: `Send Registration Confirmed`.
 
 When a record is created:
 
 ```json
 {
-  "title": "Confirm new attendees",
+  "title": "Send Registration Confirmed",
   "enabled": 1,
   "document_type": "Attendee",
   "trigger_type": "Doc Created",
