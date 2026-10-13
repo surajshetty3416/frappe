@@ -8,7 +8,8 @@
 		"build": "vite build",
 		"postbuild": "yarn build:islands",
 		"build:islands": "node analytics/build-islands.mjs --production",
-		"build-studio-app": "node ui/src/scripts/build.js"
+		"build-studio-app": "node ui/src/scripts/build.js",
+		"postinstall": "patch-package"
 	},
 	"dependencies": {
 		"@codemirror/autocomplete": "^6.20.3",
@@ -81,6 +82,7 @@
 		"@vitejs/plugin-vue-jsx": "^5.1.6",
 		"autoprefixer": "^10.4.20",
 		"mdn-data": "2.35.0",
+		"patch-package": "^8.0.1",
 		"postcss": "^8.4.49",
 		"tailwindcss": "3.4.17",
 		"typescript": "^5.9.3",

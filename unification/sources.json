@@ -19,8 +19,8 @@
 		"insights": {
 			"repo": "https://github.com/frappe/insights.git",
 			"branch": "develop",
-			"commit": "ef8c48175b5fcd177f4ea08ee51100eb75816f82",
-			"rewritten": "a721d45ef1d072292d56caa95a154920e9f8308c",
+			"commit": "ce7fd17e1a0ccc32b7ed3651368b3680789f227a",
+			"rewritten": "8f57545ad6f3b74020fb5e97622419a9957316a4",
 			"moves": {
 				"frappe/insights/public/": "frappe/public/analytics/",
 				"frappe/insights/": "frappe/analytics/",
