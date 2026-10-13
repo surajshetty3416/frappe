@@ -4,13 +4,14 @@ import { findTab } from "@shell/tabs"
 import { toast } from "frappe-ui"
 
 import { docJSON, errorText, renameDoc, setValue } from "../api"
+import AgentDetails from "./AgentDetails.vue"
 import AgentPreview from "./AgentPreview.vue"
 import { agent, open, preview } from "./state"
 
-const list = (values: string[]) => values.join(", ") || "None"
-
 export default defineArtifactEditor({
 	preview: AgentPreview,
+	// the test chat is the preview, so there is nothing to select
+	modes: ["preview"],
 
 	title: () => agent.doc?.title ?? agent.name,
 	async rename(title) {
@@ -27,7 +28,7 @@ export default defineArtifactEditor({
 	},
 	status() {
 		if (!agent.doc) return { label: "Loading…", theme: "gray" }
-		return agent.doc.enabled ? { label: "Enabled", theme: "green" } : { label: "Disabled", theme: "gray" }
+		return agent.doc.enabled ? { label: "On", theme: "green" } : { label: "Off", theme: "gray" }
 	},
 	primaryAction() {
 		if (!agent.doc || agent.doc.enabled) return null
@@ -40,17 +41,15 @@ export default defineArtifactEditor({
 			},
 		}
 	},
+	detailsForm: () => (agent.doc ? { component: AgentDetails } : null),
 	details() {
 		const doc = agent.doc
 		if (!doc) return []
+		const effort = doc.reasoning_effort
 		return [
-			{ label: "Enabled", value: doc.enabled ? "Yes" : "No" },
 			{ label: "Model", value: doc.model },
-			{ label: "Reasoning effort", value: doc.reasoning_effort || "Model default" },
-			{ label: "Tools", value: list(doc.tools.map((row) => row.tool)) },
-			{ label: "Skills", value: list(doc.skills.map((row) => row.skill)) },
-			{ label: "Description", value: doc.description || "None" },
-			{ label: "Instructions", value: doc.instructions },
+			{ label: "Reasoning", value: effort ? effort.charAt(0).toUpperCase() + effort.slice(1) : "Model default" },
+			{ label: "Skills", value: doc.skills.map((row) => row.skill).join(", ") || "None" },
 		]
 	},
 	code: () => ({ language: "json", content: agent.doc ? docJSON(agent.doc) : "" }),

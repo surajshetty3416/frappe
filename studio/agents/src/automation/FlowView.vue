@@ -7,7 +7,7 @@
 			</li>
 
 			<template v-if="flow.conditions.length || flow.condition">
-				<li class="mx-auto h-5 w-px bg-outline-gray-3" aria-hidden="true" />
+				<li class="mx-auto h-6 border-l border-outline-gray-2" aria-hidden="true" />
 				<li class="rounded-6 border border-outline-gray-2 bg-surface-base px-4 py-3">
 					<p class="flex items-center gap-2 text-sm text-ink-gray-5"><span class="lucide-filter size-4" />Only when</p>
 					<p v-if="flow.conditions.length" class="mt-1 text-sm text-ink-gray-8">{{ flow.conditions.join(" ") }}</p>
@@ -16,7 +16,7 @@
 			</template>
 
 			<template v-for="step in flow.steps" :key="step.idx">
-				<li class="mx-auto h-5 w-px bg-outline-gray-3" aria-hidden="true" />
+				<li class="mx-auto h-6 border-l border-outline-gray-2" aria-hidden="true" />
 				<li class="rounded-6 border border-outline-gray-2 bg-surface-base px-4 py-3" :class="step.parent_step ? 'ml-8' : ''">
 					<p class="flex items-center gap-2 text-sm text-ink-gray-5">
 						<span :class="iconOf(step)" class="size-4" />
@@ -32,7 +32,12 @@
 							{{ step.agent_title || step.agent }}
 							<span class="lucide-arrow-up-right size-4 text-ink-gray-5" />
 						</RouterLink>
-						<p v-if="step.prompt" class="mt-2 whitespace-pre-wrap rounded-4 bg-surface-gray-1 px-3 py-2 text-sm text-ink-gray-7">{{ step.prompt }}</p>
+						<p v-if="step.prompt?.length" class="mt-2 whitespace-pre-wrap rounded-4 bg-surface-gray-1 px-3 py-2 text-sm leading-6 text-ink-gray-7">
+							<template v-for="(part, i) in step.prompt" :key="i">
+								<span v-if="part.field" class="rounded-4 bg-surface-gray-3 px-1 py-0.5 text-ink-gray-8">{{ part.field }}</span>
+								<template v-else>{{ part.text }}</template>
+							</template>
+						</p>
 					</template>
 					<code v-else-if="step.detail" class="mt-2 block whitespace-pre-wrap rounded-4 bg-surface-gray-2 px-2 py-1.5 font-mono text-sm text-ink-gray-7">{{ step.detail }}</code>
 					<dl v-if="step.params?.length" class="mt-2 flex flex-col gap-1">
@@ -45,7 +50,7 @@
 			</template>
 
 			<template v-if="!flow.steps.length">
-				<li class="mx-auto h-5 w-px bg-outline-gray-3" aria-hidden="true" />
+				<li class="mx-auto h-6 border-l border-outline-gray-2" aria-hidden="true" />
 				<li class="rounded-6 border border-dashed border-outline-gray-3 px-4 py-3 text-center text-sm text-ink-gray-5">No steps yet. Ask the chat to add one.</li>
 			</template>
 		</ol>

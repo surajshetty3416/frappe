@@ -47,7 +47,8 @@ export interface StepCard {
 	detail?: string
 	agent?: string
 	agent_title?: string
-	prompt?: string
+	// `field` is a value the run fills in from the record
+	prompt?: { text?: string; field?: string }[]
 	params?: { label: string; value: string }[]
 }
 
@@ -81,6 +82,7 @@ export interface RunRow {
 	ended_at: string | null
 	reference_doctype: string | null
 	reference_name: string | null
+	reference_title: string | null
 	error_summary: string | null
 }
 
@@ -110,8 +112,14 @@ export const getRuns = (automation: string): Promise<RunRow[]> => call("frappe.a
 
 export const getRun = (name: string): Promise<Run> => call("frappe.agents.api.get_run", { name })
 
-export const runNow = (automation: string): Promise<{ document: string | null }> =>
-	call("frappe.agents.api.run_now", { automation })
+export const runNow = (automation: string, docname?: string): Promise<{ title: string | null }> =>
+	call("frappe.agents.api.run_now", { automation, docname })
+
+export const getRecords = (automation: string): Promise<{ value: string; label: string }[]> =>
+	call("frappe.agents.api.get_records", { automation })
+
+export const getToolTitles = (names: string[]): Promise<{ name: string; title: string }[]> =>
+	call("frappe.client.get_list", { doctype: "Flow Tool", filters: { name: ["in", names] }, fields: ["name", "title"], limit_page_length: 0 })
 
 export const setValue = (doctype: string, name: string, values: Record<string, unknown>) =>
 	call("frappe.client.set_value", { doctype, name, fieldname: values })

@@ -9,11 +9,10 @@
 			<Skeleton v-for="i in 4" :key="i" class="h-8 w-full rounded-4" />
 		</div>
 		<template v-else>
-			<div class="flex h-11 shrink-0 items-center gap-2 border-b border-outline-gray-1 px-3">
+			<div class="flex min-h-11 shrink-0 items-center gap-2 border-b border-outline-gray-1 px-3 py-1.5">
 				<span class="lucide-bot size-4 shrink-0 text-ink-gray-5" />
-				<p class="min-w-0 flex-1 truncate text-sm text-ink-gray-6">{{ doc.description || "No description" }}</p>
-				<span class="shrink-0 text-sm text-ink-gray-5">{{ doc.model }} · {{ toolCount }}</span>
-				<Button variant="ghost" icon-left="lucide-rotate-ccw" label="New test" @click="chat?.restart()" />
+				<p class="line-clamp-2 min-w-0 flex-1 text-sm text-ink-gray-6" :title="doc.description">{{ doc.description || "No description" }}</p>
+				<Button variant="ghost" icon-left="lucide-plus" label="New test" @click="chat?.restart()" />
 			</div>
 			<TestChat ref="chat" :key="doc.name" class="min-h-0 flex-1" :agent="doc.name" :title="doc.title" :modified="doc.modified" />
 		</template>
@@ -34,10 +33,6 @@ preview.router = useRouter()
 const chat = ref<{ restart: () => void } | null>(null)
 const name = computed(() => String(route.params.agent ?? ""))
 const doc = computed(() => (agent.doc?.name === name.value ? agent.doc : null))
-const toolCount = computed(() => {
-	const count = doc.value?.tools.length ?? 0
-	return `${count} tool${count === 1 ? "" : "s"}`
-})
 
 watch(
 	name,

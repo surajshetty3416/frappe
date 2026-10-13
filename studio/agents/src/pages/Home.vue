@@ -4,27 +4,21 @@
 			<LoadingIndicator class="size-5 text-ink-gray-4" />
 		</div>
 
-		<div v-else-if="empty" class="flex h-full items-center justify-center px-6">
-			<div class="flex w-full max-w-xl flex-col items-center text-center">
-				<span class="grid size-10 place-items-center rounded-full bg-surface-gray-2">
-					<span class="lucide-bot size-5 text-ink-gray-6" />
-				</span>
-				<h1 class="mt-4 text-2xl font-semibold text-ink-gray-9">Put agents to work</h1>
-				<p class="mt-2 max-w-md text-p-base text-ink-gray-6">
-					Tell the assistant what a helper should do and when: on a new record, every morning, or when someone asks. Its agents and automations show here.
-				</p>
-				<AskForm v-model="prompt" class="mt-6 w-full" :rows="3" placeholder="Score each new proposal from 1 to 10 and tag it" @submit="start" />
-				<div class="mt-3 flex flex-wrap justify-center gap-1.5">
+		<div v-else class="mx-auto flex w-full max-w-3xl flex-col gap-8 px-6 py-10">
+			<div>
+				<AskForm v-model="prompt" :rows="1" placeholder="Ask for an agent or an automation…" @submit="start" />
+				<p v-if="!empty" class="mt-2 px-4 text-sm text-ink-gray-5">{{ summary }}</p>
+				<div v-else class="mt-3 flex flex-wrap gap-1.5">
 					<Button v-for="idea in IDEAS" :key="idea" size="sm" variant="subtle" :label="idea" @click="prompt = idea" />
 				</div>
 			</div>
-		</div>
 
-		<div v-else class="mx-auto flex w-full max-w-3xl flex-col gap-8 px-6 py-10">
-			<div>
-				<h1 class="text-xl font-semibold text-ink-gray-9">Agents</h1>
-				<p class="mt-1 text-sm text-ink-gray-5">{{ summary }}</p>
-				<AskForm v-model="prompt" class="mt-5" :rows="1" placeholder="Ask for an agent or an automation…" @submit="start" />
+			<div v-if="empty" class="flex flex-col items-center rounded-6 border border-dashed border-outline-gray-2 px-6 py-12 text-center">
+				<span class="lucide-bot size-4 text-ink-gray-5" />
+				<p class="mt-2 text-sm font-medium text-ink-gray-8">No agents yet</p>
+				<p class="mt-1 max-w-sm text-sm text-ink-gray-5">
+					Tell the assistant what a helper should do and when: on a new record, every morning, or when someone asks. Agents and automations you make show here.
+				</p>
 			</div>
 
 			<section v-if="automations.length">
@@ -40,12 +34,12 @@
 								<p class="truncate text-sm font-medium text-ink-gray-8">{{ flow.title }}</p>
 								<p class="mt-0.5 truncate text-sm text-ink-gray-5">{{ flow.trigger }} · {{ flow.does }}</p>
 							</div>
-							<span v-if="flow.last_run" class="flex shrink-0 items-center gap-1.5 text-sm text-ink-gray-5" :title="flow.last_run.started_at">
+							<span v-if="!flow.enabled" class="shrink-0 text-sm text-ink-gray-5">Off</span>
+							<span v-else-if="flow.last_run" class="flex shrink-0 items-center gap-1.5 text-sm text-ink-gray-5" :title="flow.last_run.started_at">
 								<span class="size-1.5 rounded-full" :class="STATUS_DOT[flow.last_run.status]" />
-								{{ flow.last_run.status }} · {{ dayjs(flow.last_run.started_at).fromNow() }}
+								{{ flow.last_run.status === "Success" ? "Ran" : flow.last_run.status }} {{ dayjs(flow.last_run.started_at).fromNow() }}
 							</span>
-							<span v-else class="shrink-0 text-sm text-ink-gray-4">Not run yet</span>
-							<Badge :label="flow.enabled ? 'On' : 'Off'" :theme="flow.enabled ? 'green' : 'gray'" size="sm" />
+							<span v-else class="shrink-0 text-sm text-ink-gray-5">Not run yet</span>
 						</RouterLink>
 					</li>
 				</ul>
@@ -64,10 +58,7 @@
 								<p class="truncate text-sm font-medium text-ink-gray-8">{{ agent.title }}</p>
 								<p class="mt-0.5 truncate text-sm text-ink-gray-5">{{ agent.description || "No description" }}</p>
 							</div>
-							<span class="shrink-0 text-sm text-ink-gray-5">
-								{{ agent.model }} · {{ agent.tools }} tool{{ agent.tools === 1 ? "" : "s" }}
-							</span>
-							<Badge v-if="!agent.enabled" label="Off" theme="gray" size="sm" />
+							<span class="shrink-0 text-sm text-ink-gray-5">{{ agent.enabled ? plural(agent.tools, "tool") : "Off" }}</span>
 						</RouterLink>
 					</li>
 				</ul>
@@ -79,7 +70,7 @@
 <script setup lang="ts">
 import { onListUpdate } from "@shell/realtime"
 import { useDebounceFn } from "@vueuse/core"
-import { Badge, Button, LoadingIndicator, dayjs } from "frappe-ui"
+import { Button, LoadingIndicator, dayjs } from "frappe-ui"
 import { computed, onBeforeUnmount, onMounted, ref } from "vue"
 import { useRouter } from "vue-router"
 

@@ -2,12 +2,20 @@
 import { defineArtifactEditor } from "@shell/editor"
 import { toast } from "frappe-ui"
 
-import { docJSON, errorText, runNow, setValue } from "../api"
+import { docJSON, errorText, setValue } from "../api"
 import AutomationPreview from "./AutomationPreview.vue"
-import { automation, open, showRuns } from "./state"
+import AutomationDetails from "./AutomationDetails.vue"
+import { automation, currentView, open, showView, startRun } from "./state"
 
 export default defineArtifactEditor({
 	preview: AutomationPreview,
+	// the flow is read-only, so there is nothing to select
+	modes: ["preview"],
+	views: () => [
+		{ name: "flow", label: "Flow", active: currentView() === "flow", open: () => showView("flow") },
+		{ name: "runs", label: "Runs", active: currentView() === "runs", open: () => showView("runs") },
+	],
+	detailsForm: () => (automation.flow ? { component: AutomationDetails } : null),
 
 	title: () => automation.flow?.doc.title ?? automation.name,
 	async rename(title) {
@@ -27,11 +35,7 @@ export default defineArtifactEditor({
 		return {
 			label: "Run now",
 			icon: "lucide-play",
-			run: async () => {
-				const { document } = await runNow(automation.name)
-				toast.success(document ? `Running on ${document}` : "Running")
-				showRuns()
-			},
+			run: async () => startRun(),
 		}
 	},
 	details() {
@@ -40,7 +44,6 @@ export default defineArtifactEditor({
 		const doc = flow.doc
 		return [
 			{ label: "Name", value: doc.title },
-			{ label: "Enabled", value: doc.enabled ? "Yes" : "No" },
 			{ label: "Trigger", value: flow.trigger },
 			{ label: "Trigger type", value: doc.trigger_type },
 			...(doc.document_type ? [{ label: "DocType", value: doc.document_type }] : []),

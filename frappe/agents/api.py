@@ -1,3 +1,5 @@
+import re
+
 import frappe
 from frappe import _
 from frappe.automation_engine.actions.base import get_action_registry
@@ -62,20 +64,41 @@ def get_flow(name: str) -> dict:
 		"trigger": trigger_words(flow),
 		"conditions": filter_words(flow.document_type, frappe.parse_json(flow.filters) if flow.filters else []),
 		"condition": flow.condition,
-		"steps": [step_card(row.as_dict()) for row in flow.actions],
+		"steps": [step_card({**row.as_dict(), "document_type": flow.document_type}) for row in flow.actions],
 	}
 
 
 @frappe.whitelist()
 def get_runs(automation: str, limit: int = 30) -> list[dict]:
 	frappe.has_permission("Automation Flow", "read", automation, throw=True)
-	return frappe.get_all(
+	runs = frappe.get_all(
 		RUN,
 		filters={"automation": automation},
 		fields=["name", "status", "started_at", "ended_at", "reference_doctype", "reference_name", "error_summary"],
 		order_by="creation desc",
 		limit=int(limit),
 	)
+	for run in runs:
+		run.reference_title = record_title(run.reference_doctype, run.reference_name)
+	return runs
+
+
+@frappe.whitelist()
+def get_records(automation: str) -> list[dict]:
+	"""The trigger DocType's records Run now can run on, newest first, by their titles."""
+	doctype = frappe.db.get_value("Automation Flow", automation, "document_type")
+	if not doctype:
+		return []
+	title_field = frappe.get_meta(doctype).get_title_field()
+	rows = frappe.get_list(doctype, fields=["name", title_field], order_by="creation desc", limit=20)
+	return [{"value": row.name, "label": row.get(title_field) or row.name} for row in rows]
+
+
+def record_title(doctype: str | None, name: str | None) -> str | None:
+	if not (doctype and name):
+		return None
+	title_field = frappe.get_meta(doctype).get_title_field()
+	return frappe.db.get_value(doctype, name, title_field) or name
 
 
 @frappe.whitelist()
@@ -112,23 +135,20 @@ def get_run(name: str) -> dict:
 		"ended_at": run.ended_at,
 		"reference_doctype": run.reference_doctype,
 		"reference_name": run.reference_name,
+		"reference_title": record_title(run.reference_doctype, run.reference_name),
 		"error_summary": run.error_summary,
 		"steps": steps,
 	}
 
 
 @frappe.whitelist(methods=["POST"])
-def run_now(automation: str) -> dict:
-	"""Run the automation once, on the newest record of its DocType when it watches one."""
+def run_now(automation: str, docname: str | None = None) -> dict:
+	"""Run the automation once, on `docname` when it watches a DocType."""
 	document_type = frappe.db.get_value("Automation Flow", automation, "document_type")
-	docname = None
-	if document_type:
-		newest = frappe.get_list(document_type, pluck="name", order_by="creation desc", limit=1)
-		if not newest:
-			frappe.throw(_("There is no {0} to run it on yet.").format(document_type))
-		docname = newest[0]
-	run_manually(automation, docname)
-	return {"document": docname}
+	if document_type and not docname:
+		frappe.throw(_("Choose the {0} to run it on.").format(document_type))
+	run_manually(automation, docname if document_type else None)
+	return {"title": record_title(document_type, docname)}
 
 
 def article(word: str) -> str:
@@ -228,7 +248,7 @@ def step_card(row: dict) -> dict:
 		agent = params.get("agent")
 		card["agent"] = agent
 		card["agent_title"] = frappe.db.get_value("Flow Agent", agent, "title") if agent else None
-		card["prompt"] = params.get("prompt")
+		card["prompt"] = prompt_parts(row.get("document_type"), params.get("prompt") or "")
 		return card
 	action = get_action_registry().get(row.get("action_type") or "")
 	labels = {field["fieldname"]: field.get("label") for field in (action.params_schema if action else [])}
@@ -238,6 +258,20 @@ def step_card(row: dict) -> dict:
 		if value not in (None, "", [], {})
 	]
 	return card
+
+
+def prompt_parts(doctype: str | None, prompt: str) -> list[dict]:
+	"""The prompt as text and fields: `{{ doc.name }}` reads as the record, `{{ doc.title }}` as its Title."""
+	parts, at = [], 0
+	for match in re.finditer(r"{{\s*doc\.(\w+)\s*}}", prompt):
+		if match.start() > at:
+			parts.append({"text": prompt[at : match.start()]})
+		fieldname = match.group(1)
+		parts.append({"field": (doctype or "Record") if fieldname == "name" else field_label(doctype, fieldname)})
+		at = match.end()
+	if at < len(prompt):
+		parts.append({"text": prompt[at:]})
+	return parts
 
 
 def action_words(flow) -> str:

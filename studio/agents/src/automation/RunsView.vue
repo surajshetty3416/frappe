@@ -3,19 +3,18 @@
 		<div v-if="loading" class="flex flex-1 items-center justify-center">
 			<LoadingIndicator class="size-4 text-ink-gray-5" />
 		</div>
-		<div v-else-if="!runs.length" class="flex flex-1 flex-col items-center justify-center px-6 text-center">
-			<span class="lucide-history size-5 text-ink-gray-4" />
-			<p class="mt-3 text-base font-medium text-ink-gray-8">No runs yet</p>
-			<p class="mt-1 max-w-sm text-sm text-ink-gray-5">A run shows here when its trigger fires, or when you click Run now.</p>
+		<div v-else-if="!runs.length" class="flex flex-1 flex-col items-center justify-center px-6 text-center text-sm text-ink-gray-5">
+			<span class="lucide-history size-4" />
+			<p class="mt-2">No runs yet</p>
+			<Button class="mt-2" variant="ghost" label="Run now" icon-left="lucide-play" @click="startRun" />
 		</div>
 		<template v-else>
 			<ul class="w-64 shrink-0 overflow-y-auto border-r border-outline-gray-1 p-2">
 				<li v-for="run in runs" :key="run.name">
 					<ItemListRow as="button" type="button" size="md" class="text-left hover:bg-surface-gray-2" :selected="run.name === selected" @click="selected = run.name">
 						<template #prefix><span class="size-1.5 rounded-full" :class="STATUS_DOT[run.status]" /></template>
-						<span class="block truncate text-sm">{{ run.status }}</span>
-						<span class="block truncate text-sm text-ink-gray-5" :title="run.started_at ?? ''">{{ when(run.started_at) }}</span>
-						<template #suffix><span class="text-sm text-ink-gray-5">{{ duration(run) }}</span></template>
+						<span class="block truncate text-sm text-ink-gray-8" :title="run.status">{{ record(run) }}</span>
+						<span class="block truncate text-sm text-ink-gray-5" :title="run.started_at ?? ''">{{ [when(run.started_at), duration(run)].filter(Boolean).join(" · ") }}</span>
 					</ItemListRow>
 				</li>
 			</ul>
@@ -26,12 +25,11 @@
 				</div>
 				<template v-else>
 					<div class="flex items-center gap-2">
-						<span class="size-2 rounded-full" :class="STATUS_DOT[detail.status]" />
-						<p class="text-base font-medium text-ink-gray-8">{{ detail.status }}</p>
+						<span class="size-2 shrink-0 rounded-full" :class="STATUS_DOT[detail.status]" :title="detail.status" />
+						<p class="truncate text-base font-medium text-ink-gray-8">{{ detail.reference_name ? `Run on ${record(detail)}` : record(detail) }}</p>
 					</div>
-					<p class="mt-1 text-sm text-ink-gray-5">
-						Started {{ detail.started_at ? dayjs(detail.started_at).format("D MMM, h:mm:ss a") : "—" }} · {{ duration(detail) }}
-						<template v-if="detail.reference_name"> · on {{ detail.reference_doctype }} {{ detail.reference_name }}</template>
+					<p class="mt-1 pl-4 text-sm text-ink-gray-5">
+						{{ [detail.started_at ? dayjs(detail.started_at).format("D MMM, h:mm a") : "", duration(detail), detail.status === "Success" ? "" : detail.status].filter(Boolean).join(" · ") }}
 					</p>
 					<p v-if="detail.error_summary" class="mt-3 rounded-4 bg-surface-red-1 px-3 py-2 text-sm text-ink-red-7">{{ detail.error_summary }}</p>
 
@@ -40,8 +38,8 @@
 							<div class="flex items-center gap-2 text-sm">
 								<span :class="step.action_type === 'RunAgent' ? 'lucide-bot' : 'lucide-square-play'" class="size-4 text-ink-gray-5" />
 								<span class="min-w-0 flex-1 truncate font-medium text-ink-gray-8">{{ step.label }}<template v-if="step.agent"> · {{ step.agent }}</template></span>
-								<span class="size-1.5 rounded-full" :class="STATUS_DOT[step.status]" />
-								<span class="text-ink-gray-5">{{ step.status }} · {{ ms(step.duration_ms) }}</span>
+								<span class="size-1.5 rounded-full" :class="STATUS_DOT[step.status]" :title="step.status" />
+								<span class="text-ink-gray-5">{{ ms(step.duration_ms) }}</span>
 							</div>
 							<template v-if="step.agent_run">
 								<p v-if="step.agent_run.output" class="mt-2 whitespace-pre-wrap text-sm text-ink-gray-8">{{ step.agent_run.output }}</p>
@@ -54,7 +52,7 @@
 									:to="{ name: 'studio-chat', params: { session: step.agent_run.session } }"
 									class="mt-2 inline-flex items-center gap-1 text-sm text-ink-gray-6 hover:text-ink-gray-8 hover:underline"
 								>
-									Open its session <span class="lucide-arrow-up-right size-3.5" />
+									Open chat <span class="lucide-arrow-up-right size-3.5" />
 								</RouterLink>
 							</template>
 							<p v-else-if="step.message || step.detail" class="mt-2 whitespace-pre-wrap text-sm text-ink-gray-6">{{ step.message || step.detail }}</p>
@@ -67,10 +65,11 @@
 </template>
 
 <script setup lang="ts">
-import { ItemListRow, LoadingIndicator, Skeleton, dayjs } from "frappe-ui"
+import { Button, ItemListRow, LoadingIndicator, Skeleton, dayjs } from "frappe-ui"
 import { onBeforeUnmount, ref, watch } from "vue"
 
 import { type Run, type RunRow, STATUS_DOT, getRun, getRuns } from "../api"
+import { startRun } from "./state"
 
 const props = defineProps<{ automation: string }>()
 
@@ -80,9 +79,12 @@ const selected = ref<string | null>(null)
 const detail = ref<Run | null>(null)
 
 async function load() {
+	const newest = runs.value[0]?.name
 	runs.value = await getRuns(props.automation)
 	loading.value = false
-	if (!runs.value.some((run) => run.name === selected.value)) selected.value = runs.value[0]?.name ?? null
+	// a new run, from Run now or its trigger, is the one to watch
+	const arrived = newest && runs.value[0]?.name !== newest
+	if (arrived || !runs.value.some((run) => run.name === selected.value)) selected.value = runs.value[0]?.name ?? null
 	else if (selected.value) loadDetail(selected.value)
 }
 
@@ -101,6 +103,7 @@ load()
 const timer = setInterval(load, 3000)
 onBeforeUnmount(() => clearInterval(timer))
 
+const record = (run: RunRow) => (run.reference_name ? `${run.reference_doctype}: ${run.reference_title || run.reference_name}` : "Run without a record")
 const when = (value: string | null) => (value ? dayjs(value).fromNow() : "Not started")
 const ms = (value: number) => (value < 1000 ? `${value} ms` : `${(value / 1000).toFixed(1)} s`)
 function duration(run: RunRow) {
