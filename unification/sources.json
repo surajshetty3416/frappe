@@ -1,0 +1,61 @@
+{
+	"sources": {
+		"frappe": {
+			"repo": "https://github.com/frappe/frappe.git",
+			"branch": "develop",
+			"commit": "c8d85d6356ca4ef3ec8edfa3340985c3007bfa55"
+		},
+		"builder": {
+			"repo": "https://github.com/frappe/builder.git",
+			"branch": "develop",
+			"commit": "477481ff78aaae7ef1c7318258f2b3aa159ff6fd",
+			"rewritten": "c587875347a7014d16b4f7dc9f9d875c00dd0949",
+			"moves": {
+				"frappe/builder/public/": "frappe/public/web/",
+				"frappe/builder/": "frappe/web/",
+				"frontend/builder/": "studio/web/"
+			}
+		},
+		"insights": {
+			"repo": "https://github.com/frappe/insights.git",
+			"branch": "develop",
+			"commit": "ef8c48175b5fcd177f4ea08ee51100eb75816f82",
+			"rewritten": "a721d45ef1d072292d56caa95a154920e9f8308c",
+			"moves": {
+				"frappe/insights/public/": "frappe/public/analytics/",
+				"frappe/insights/": "frappe/analytics/",
+				"frontend/insights/": "studio/analytics/"
+			},
+			"regenerate": ["python3 -I frappe/analytics/tests/features.py generate"]
+		},
+		"flow": {
+			"repo": "https://github.com/frappe/flow.git",
+			"branch": "main",
+			"commit": "b3466bf0624d66ce796fb3c155eb8361739fa7a3",
+			"rewritten": "dba5b9b949a294e90f494bed7d67e9789a5e8163",
+			"moves": {
+				"frappe/flow/harness/": "harness/",
+				"frappe/flow/realtime/handlers.js": "realtime/flow_handlers.js",
+				"frappe/flow/tailwind.config.js": "studio/ai/tailwind.config.js",
+				"frappe/flow/": "frappe/ai/",
+				"frontend/flow/": "studio/ai/"
+			}
+		},
+		"studio": {
+			"repo": "https://github.com/frappe/studio.git",
+			"branch": "develop",
+			"commit": "42491ecdedc01a4d4630503443ed9125ca63887f",
+			"rewritten": "04f6cec5bc06d4bf0a3b14c256860a12acbb2b8f",
+			"moves": {
+				"frappe/studio/": "frappe/ui/",
+				"frontend/studio/": "studio/ui/"
+			}
+		}
+	},
+	"commit_trailers": [
+		"Co-Authored-By: Claude <noreply@anthropic.com>",
+		"Co-Authored-By: Rucha Mahabal <24353136+ruchamahabal@users.noreply.github.com>",
+		"Co-Authored-By: Shrihari Mahabal <166826779+ShrihariMahabal@users.noreply.github.com>",
+		"Co-Authored-By: Saqib Ansari <25369014+nextchamp-saqib@users.noreply.github.com>"
+	]
+}
