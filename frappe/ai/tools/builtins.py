@@ -9,6 +9,7 @@ from typing import Any, Literal
 
 import frappe
 from frappe import _
+from frappe.model import child_table_fields, default_fields, optional_fields
 
 from frappe.ai import artifacts
 from frappe.ai.lib.tool import Tool, ToolContext, tool
@@ -143,6 +144,7 @@ def read_records(
 	A single DocType returns its one record, with every field unless `fields` is given.
 	For a child table used by more than one DocType, pass the one you mean as `parent_doctype`.
 	"""
+	_check_field_names(doctype, fields, filters)
 	if frappe.get_meta(doctype).issingle:
 		return _read_single(doctype, filters, fields)
 	limit = min(max(int(limit), 1), MAX_READ_LIMIT)
@@ -159,6 +161,35 @@ def read_records(
 		limit=limit,
 		order_by=order_by,
 		parent_doctype=parent_doctype,
+	)
+
+
+def _filter_field_names(filters: Any, doctype: str) -> list[str]:
+	if isinstance(filters, dict):
+		return list(filters)
+	names = []
+	for f in filters if isinstance(filters, (list, tuple)) else []:
+		if isinstance(f, (list, tuple)) and len(f) >= 3:
+			# [doctype, field, op, value] or [field, op, value]
+			if len(f) >= 4 and f[0] != doctype:
+				continue
+			names.append(f[1] if len(f) >= 4 else f[0])
+	return names
+
+
+def _check_field_names(doctype: str, fields: list[str] | None, filters: Any) -> None:
+	"""Name the DocType's real fields when a requested one is not among them; frappe's own error hides it as a permission error."""
+	meta = frappe.get_meta(doctype)
+	known = {*default_fields, *optional_fields, *child_table_fields, *(df.fieldname for df in meta.fields)}
+	requested = [*(fields or []), *_filter_field_names(filters, doctype)]
+	# SQL expressions, aliases and dict aggregates are left to frappe
+	unknown = [f for f in requested if isinstance(f, str) and re.fullmatch(r"\w+", f) and f not in known]
+	if not unknown or not frappe.has_permission(doctype, "read"):
+		return
+	own = [df.fieldname for df in meta.fields if df.fieldtype not in LAYOUT_FIELDTYPES]
+	standard = [f for f in default_fields if f != "doctype"]
+	raise ValueError(
+		f"{doctype} has no field {', '.join(dict.fromkeys(unknown))}. Its fields are: {', '.join(own + standard)}"
 	)
 
 
