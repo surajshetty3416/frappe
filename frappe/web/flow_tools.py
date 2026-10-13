@@ -227,7 +227,8 @@ def set_page_data_script(
 	doc.check_permission("write")
 	doc.page_data_script = script
 	data = doc.get_page_data()
-	frappe.db.set_value("Builder Page", page, "page_data_script", script, update_modified=True)
+	# an open editor reloads the page's data
+	doc.db_set("page_data_script", script, notify=True)
 	artifact = artifacts.link(ctx.session_id, "Builder Page", page)
 	return {"page": page, "data": data_sample(data), "artifact": artifact}
 

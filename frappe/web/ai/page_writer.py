@@ -526,9 +526,7 @@ def save_draft_blocks(page_id: str, root_block: dict) -> None:
 	"""Persist an edited block tree back to draft_blocks (same shape persist_page
 	writes). Used by the headless loop after each round of applied block ops; the
 	round's checkpoint commit is what makes a cancelled or crashed turn keep it."""
-	frappe.db.set_value(
-		"Builder Page", page_id, "draft_blocks", compact_json([root_block]), update_modified=True
-	)
+	frappe.get_doc("Builder Page", page_id).db_set("draft_blocks", compact_json([root_block]), notify=True)
 
 
 def persist_page(page_id: str, yaml_text: str) -> tuple[dict | None, str]:
@@ -541,9 +539,10 @@ def persist_page(page_id: str, yaml_text: str) -> tuple[dict | None, str]:
 	updates = {"draft_blocks": compact_json(blocks)}
 	if data_script:
 		updates["page_data_script"] = data_script
-	# set_value, NOT doc.save: the canvas autosaves the throwaway streamed preview
+	# db_set, NOT doc.save: the canvas autosaves the throwaway streamed preview
 	# repeatedly throughout a generation, so a timestamp-checked save loses the race
 	# arbitrarily often (a single retry was observed losing twice within 200ms). The
-	# generated result is authoritative and must land regardless.
-	frappe.db.set_value("Builder Page", page_id, updates, update_modified=True)
+	# generated result is authoritative and must land regardless. notify reloads an
+	# open editor, as a save would.
+	frappe.get_doc("Builder Page", page_id).db_set(updates, notify=True)
 	return blocks[0], data_script
