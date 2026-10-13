@@ -62,8 +62,6 @@ const props = defineProps({
 	initialMessage: { type: String, default: "" },
 	// (artifact) => icon class, for the artifact cards in the transcript
 	artifactIcon: { type: Function, default: null },
-	// (artifact) => the layer it belongs to, for the same cards
-	artifactLayer: { type: Function, default: null },
 });
 // "session" when the chat on screen gets its session or loses it (null when it is deleted),
 // "artifact" when its tool hands one back live or a card is clicked
@@ -97,7 +95,6 @@ function createStore() {
 		storageKey: `studio.chat.${props.boot.user?.name ?? "user"}`,
 		presentTool,
 		openArtifact: (artifact) => store === shown.value && emit("artifact", artifact),
-		artifactLayer: (artifact) => props.artifactLayer?.(artifact),
 		artifactIcon: (artifact) => props.artifactIcon?.(artifact),
 		// a replay keeps its turn open from step to step, and folds it once it finished
 		openTurn: () => {

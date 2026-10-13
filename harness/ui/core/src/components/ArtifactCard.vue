@@ -9,7 +9,7 @@
 		</span>
 		<span class="min-w-0 flex-1">
 			<span class="block truncate text-base font-medium text-ink-gray-8">{{ artifact.title }}</span>
-			<span class="block truncate text-sm text-ink-gray-5">{{ layer }}</span>
+			<span class="block truncate text-sm text-ink-gray-5">{{ artifact.label }}</span>
 		</span>
 		<span class="lucide-chevron-right size-4 flex-none text-ink-gray-4" />
 	</button>
@@ -22,5 +22,4 @@ const props = defineProps({ artifact: { type: Object, required: true } })
 const flow = inject("flow")
 
 const icon = computed(() => flow.options.artifactIcon?.(props.artifact) ?? "lucide-file")
-const layer = computed(() => flow.options.artifactLayer?.(props.artifact) ?? props.artifact.label)
 </script>

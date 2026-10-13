@@ -11,7 +11,7 @@
 			</span>
 			<span class="min-w-0 flex-1">
 				<span class="block truncate text-base font-medium text-ink-gray-8">{{ title }}</span>
-				<span class="block truncate text-sm text-ink-gray-5">{{ layers }}</span>
+				<span class="block truncate text-sm text-ink-gray-5">{{ titles }}</span>
 			</span>
 			<span :class="open ? 'lucide-chevron-up' : 'lucide-chevron-down'" class="size-4 flex-none text-ink-gray-4" />
 		</button>
@@ -37,9 +37,7 @@ const title = computed(() => {
 	const last = parts.pop()
 	return `Changed ${parts.length ? `${parts.join(", ")} and ${last}` : last}`
 })
-const layers = computed(() =>
-	[...new Set(props.artifacts.map((artifact) => flow.options.artifactLayer?.(artifact) ?? artifact.label))].join(", "),
-)
+const titles = computed(() => props.artifacts.map((artifact) => artifact.title).join(", "))
 const icon = computed(() => {
 	const icons = new Set(props.artifacts.map((artifact) => flow.options.artifactIcon?.(artifact) ?? "lucide-file"))
 	return icons.size === 1 ? [...icons][0] : "lucide-layers"

@@ -32,7 +32,6 @@ function readJSON(key, fallback, storage = globalThis.localStorage) {
 //                  tools in rows, approvals and expanded output
 //   openArtifact   (artifact) => void, called when an artifact card in the transcript is clicked
 //   artifactIcon   (artifact) => icon class of an artifact card
-//   artifactLayer  (artifact) => the name an artifact card gives its kind, instead of its label
 //   openTurn       () => true while the latest turn stays open after its run ends, as if it still ran
 //   stop           (session) => true when the host stopped the run its own way, instead of
 //                  aborting it, as a replay that pauses once its step finished
