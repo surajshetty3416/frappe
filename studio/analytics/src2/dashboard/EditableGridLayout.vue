@@ -244,7 +244,7 @@ const lifted = computed(() => {
 				     too late. Only while editing: it costs the reader nothing, and
 				     an author who wants to scroll starts the drag off a card. -->
 				<div
-					class="relative h-full w-full"
+					class="group/cell relative h-full w-full"
 					:class="[
 						editable ? 'cursor-grab touch-none' : '',
 						gesture?.i === cell.i ? 'cursor-grabbing' : '',
@@ -261,12 +261,13 @@ const lifted = computed(() => {
 					/>
 					<slot name="item" v-bind="cell" />
 					<!-- The corner an author grabs is 24px, the corner they see is
-					     8px. A mark big enough to take a fingertip would be a mark
-					     that pulls the eye away from the card it sits on. -->
+					     8px, and only while pointing at the card. A mark big enough to
+					     take a fingertip would be a mark that pulls the eye away from
+					     the card it sits on. -->
 					<div
 						v-if="editable"
 						data-testid="dashboard-cell-resize"
-						class="absolute right-0 bottom-0 h-6 w-6 cursor-se-resize"
+						class="absolute right-0 bottom-0 h-6 w-6 cursor-se-resize opacity-0 group-hover/cell:opacity-100"
 						@pointerdown.stop="start('resize', cell.i, $event)"
 					>
 						<div
