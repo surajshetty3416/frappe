@@ -1,9 +1,11 @@
 """Runs a turn on Claude Code through the Claude Agent SDK, for `claude-code/*` models.
 
-Claude Code owns the loop, its tools and the conversation. It runs as the unmodified
-`claude` binary under the user's own login, so a Claude subscription works and Flow
-never holds a Claude credential. Flow's log mirrors what Claude Code did as ordinary
-events, and each Flow session resumes one Claude Code session with a derived id.
+Claude Code owns the loop and the conversation; Flow owns the tools. Claude Code's own
+tools, settings, skills and MCP servers are all off: it sees only the session's client
+tools, served in process as the `flow` MCP server, and Flow's system prompt. It runs
+under the daemon user's Claude login.
+Flow's log mirrors what Claude Code did as ordinary events, under Flow's tool names, and
+each Flow session resumes one Claude Code session.
 """
 
 from __future__ import annotations
@@ -14,29 +16,29 @@ import uuid
 from collections.abc import AsyncIterator
 from typing import Any, cast
 
+from claude_agent_sdk import AssistantMessage as SDKAssistantMessage
 from claude_agent_sdk import (
-	TERMINAL_TASK_STATUSES,
 	ClaudeAgentOptions,
 	ClaudeSDKClient,
 	EffortLevel,
 	HookCallback,
 	HookJSONOutput,
 	HookMatcher,
+	McpSdkServerConfig,
 	ResultMessage,
+	SdkMcpTool,
 	StreamEvent,
-	TaskNotificationMessage,
-	TaskStartedMessage,
-	TaskUpdatedMessage,
+	ToolAnnotations,
+	create_sdk_mcp_server,
 	get_session_messages,
 )
-from claude_agent_sdk import AssistantMessage as SDKAssistantMessage
 from claude_agent_sdk import TextBlock as SDKTextBlock
 from claude_agent_sdk import ThinkingBlock as SDKThinkingBlock
 from claude_agent_sdk import ToolResultBlock as SDKToolResultBlock
 from claude_agent_sdk import ToolUseBlock as SDKToolUseBlock
 from claude_agent_sdk import UserMessage as SDKUserMessage
-from claude_agent_sdk.types import SystemPromptPreset
 
+from flow_harness.agent import loop
 from flow_harness.agent.loop import LoopInputs
 from flow_harness.events import (
 	AnyEvent,
@@ -57,13 +59,17 @@ from flow_harness.events import (
 	Usage,
 	UserMessage,
 )
-from flow_harness.model.cancellation import iterate_with_cancellation
+from flow_harness.model.cancellation import ModelCancelled, iterate_with_cancellation
 from flow_harness.model.content import resolve_user_content
 from flow_harness.model.tool_display import with_tool_call_displays
 from flow_harness.session.transcript import PendingApproval
+from flow_harness.tools.builtins.common import DEFAULT_MAX_BYTES
 
 PREFIX = "claude-code"
 API = "claude-agent-sdk"
+MCP_SERVER = "flow"
+# how Claude Code names a tool of the `flow` MCP server
+TOOL_PREFIX = f"mcp__{MCP_SERVER}__"
 _EFFORT: dict[ReasoningEffort, EffortLevel] = {
 	"minimal": "low",
 	"low": "low",
@@ -72,38 +78,15 @@ _EFFORT: dict[ReasoningEffort, EffortLevel] = {
 	"xhigh": "xhigh",
 	"max": "max",
 }
-
-
-# Claude Code's tools, worded like Flow's own so both render alike
-_DISPLAY_TEMPLATES = {
-	"Bash": "Running command {{ command }}",
-	"Read": "Reading file {{ file_path }}",
-	"Write": "Writing file {{ file_path }}",
-	"Edit": "Editing file {{ file_path }}",
-	"MultiEdit": "Editing file {{ file_path }}",
-	"NotebookEdit": "Editing notebook {{ notebook_path }}",
-	"Grep": "Searching code for {{ pattern }}",
-	"Glob": "Finding files {{ pattern }}",
-	"Task": "Sub-agent: {{ description }}",
-	"Agent": "Sub-agent: {{ description }}",
-	"WebFetch": "Fetching {{ url }}",
-	"WebSearch": "Searching the web for {{ query }}",
-	"TodoWrite": "Updating todos",
-}
 _context_windows: dict[str, int] = {}
-# Claude Code's tools that do what a Flow built-in does; one the session leaves out, by
-# its own choice or the daemon's policy, is withheld from Claude Code too
-_FLOW_EQUIVALENTS = {
-	"bash": ("Bash", "BashOutput", "KillShell", "Monitor"),
-	"write": ("Write", "NotebookEdit"),
-	"edit": ("Edit", "MultiEdit", "NotebookEdit"),
-	"read": ("Read",),
-}
-_GATED_TOOLS = frozenset({"Bash", "Edit", "MultiEdit", "Write", "NotebookEdit", "WebFetch"})
 
 
 def is_claude_code(model_name: str) -> bool:
 	return model_name.split("/", 1)[0] == PREFIX
+
+
+def flow_tool_name(name: str) -> str:
+	return name.removeprefix(TOOL_PREFIX)
 
 
 async def run(message: UserMessage, inputs: LoopInputs) -> AsyncIterator[AnyEvent]:
@@ -126,32 +109,26 @@ async def resume(
 async def compact(instructions: str | None, inputs: LoopInputs) -> AsyncIterator[AnyEvent]:
 	"""Claude Code compacts its own conversation; Flow's log keeps the full mirror."""
 	yield RunStarted(run_id=uuid.uuid4().hex[:12])
-	async for event in _turns(inputs, f"/compact {instructions or ''}".strip(), {}):
+	async for event in _turns(inputs, f"/compact {instructions or ''}".strip(), {}, command=True):
 		yield event
 
 
 async def _turns(
-	inputs: LoopInputs, prompt: str | AsyncIterator[dict[str, Any]] | None, answers: dict[str, str]
+	inputs: LoopInputs,
+	prompt: str | AsyncIterator[dict[str, Any]] | None,
+	answers: dict[str, str],
+	*,
+	command: bool = False,
 ) -> AsyncIterator[AnyEvent]:
-	"""One Flow run lasts until Claude Code is idle: a result that leaves background
-	tasks running is followed by another turn once they report back."""
-	turn = _Agents(inputs.model_name)
-	tasks: set[str] = set()
-	async with ClaudeSDKClient(_options(inputs, answers)) as client:
+	"""One Flow run lasts until Claude Code returns a result."""
+	prompts: dict[str, str] = {}
+	turn = _Turn(inputs.model_name, inputs.config.client_tools, prompts)
+	async with ClaudeSDKClient(_options(inputs, answers, prompts, command=command)) as client:
 		await client.query(prompt if prompt is not None else _nothing())
 		async for sdk_message in iterate_with_cancellation(client.receive_messages(), inputs.abort):
-			if isinstance(sdk_message, TaskStartedMessage):
-				tasks.add(sdk_message.task_id)
-			elif isinstance(sdk_message, TaskNotificationMessage) or (
-				isinstance(sdk_message, TaskUpdatedMessage) and sdk_message.status in TERMINAL_TASK_STATUSES
-			):
-				tasks.discard(sdk_message.task_id)
-			events = turn.events(sdk_message)
-			if isinstance(sdk_message, ResultMessage) and tasks:
-				events = [event for event in events if not isinstance(event, RunEnded)]
-			for event in events:
+			for event in turn.events(sdk_message):
 				yield event
-			if isinstance(sdk_message, ResultMessage) and not tasks:
+			if isinstance(sdk_message, ResultMessage):
 				return
 			for steering in _drain(inputs):
 				yield steering
@@ -186,14 +163,69 @@ async def _nothing() -> AsyncIterator[dict[str, Any]]:
 	yield
 
 
-def _approval_hook(inputs: LoopInputs, answers: dict[str, str]) -> HookCallback:
+def _options(
+	inputs: LoopInputs, answers: dict[str, str], prompts: dict[str, str], *, command: bool = False
+) -> ClaudeAgentOptions:
+	config = inputs.config
+	return ClaudeAgentOptions(
+		model=inputs.model_name.partition("/")[2] or None,
+		cwd=config.cwd,
+		system_prompt=config.system_prompt or "",
+		tools=[],
+		setting_sources=[],
+		strict_mcp_config=True,
+		mcp_servers={MCP_SERVER: _flow_server(inputs)},
+		allowed_tools=[f"mcp__{MCP_SERVER}"],
+		permission_mode="dontAsk",
+		hooks={"PreToolUse": [HookMatcher(hooks=[_approval_hook(inputs, answers, prompts)])]},
+		# a user's "@/path" or "/command" stays text; only Flow's own /compact is a command
+		verbatim_prompts=not command,
+		include_partial_messages=True,
+		max_turns=config.max_turns,
+		effort=_EFFORT.get(inputs.reasoning_effort) if inputs.reasoning_effort else None,
+		**_resume_options(_anchor(inputs), config.cwd),
+	)
+
+
+def _flow_server(inputs: LoopInputs) -> McpSdkServerConfig:
+	"""The session's client tools, each calling back to the client like the native loop."""
+	tools = []
+	for client_tool in inputs.config.client_tools:
+		function = client_tool["function"]
+		tools.append(
+			SdkMcpTool(
+				name=function["name"],
+				description=function.get("description") or "",
+				input_schema=function.get("parameters") or {"type": "object", "properties": {}},
+				handler=_client_tool_handler(inputs, function["name"]),
+				# results are capped to this already; past it Claude Code would park them in a file
+				annotations=ToolAnnotations(maxResultSizeChars=2 * DEFAULT_MAX_BYTES),
+			)
+		)
+	return create_sdk_mcp_server(MCP_SERVER, tools=tools)
+
+
+def _client_tool_handler(inputs: LoopInputs, name: str):
+	async def handler(args: dict[str, Any]) -> dict[str, Any]:
+		call = ToolCall(id=uuid.uuid4().hex, name=name, arguments=args)
+		try:
+			result = await loop._finished_call(call, {}, loop._tool_context(inputs), inputs)
+		except ModelCancelled:
+			return {"content": [{"type": "text", "text": loop._ABORTED}], "is_error": True}
+		return {"content": [{"type": "text", "text": result.content}], "is_error": result.is_error}
+
+	return handler
+
+
+def _approval_hook(inputs: LoopInputs, answers: dict[str, str], prompts: dict[str, str]) -> HookCallback:
 	async def hook(hook_input: Any, tool_use_id: str | None, context: Any) -> HookJSONOutput:
+		name = flow_tool_name(hook_input["tool_name"])
 		answer = answers.get(tool_use_id or "")
-		if answer == "Approve" or (
-			answer is None and not _needs_confirmation(inputs, hook_input["tool_name"])
-		):
+		if answer == "Approve" or (answer is None and not loop._needs_confirmation(inputs, name, {})):
 			return {}
 		if answer is None:
+			call = ToolCall(id=tool_use_id or "", name=name, arguments=hook_input.get("tool_input") or {})
+			prompts[call.id] = await loop._confirmation_prompt(call, {}, inputs)
 			decision, reason = "defer", None
 		elif answer == "Deny":
 			decision, reason = "deny", "The user denied this tool call."
@@ -205,41 +237,6 @@ def _approval_hook(inputs: LoopInputs, answers: dict[str, str]) -> HookCallback:
 		return cast(HookJSONOutput, {"hookSpecificOutput": output})
 
 	return hook
-
-
-def _needs_confirmation(inputs: LoopInputs, tool_name: str) -> bool:
-	if (inputs.approval_config or inputs.config).auto_approve:
-		return False
-	return tool_name in _GATED_TOOLS or tool_name in inputs.config.confirm_tools
-
-
-def _options(inputs: LoopInputs, answers: dict[str, str]) -> ClaudeAgentOptions:
-	config = inputs.config
-	anchor = _anchor(inputs)
-	system_prompt = SystemPromptPreset(type="preset", preset="claude_code")
-	if config.system_append:
-		system_prompt["append"] = config.system_append
-	return ClaudeAgentOptions(
-		model=inputs.model_name.partition("/")[2] or None,
-		cwd=config.cwd,
-		system_prompt=system_prompt,
-		setting_sources=["user", "project", "local"],
-		permission_mode="bypassPermissions",
-		hooks={"PreToolUse": [HookMatcher(hooks=[_approval_hook(inputs, answers)])]},
-		disallowed_tools=_withheld_tools(inputs),
-		include_partial_messages=True,
-		forward_subagent_text=True,
-		max_turns=config.max_turns,
-		effort=_EFFORT.get(inputs.reasoning_effort) if inputs.reasoning_effort else None,
-		**_resume_options(anchor, config.cwd),
-	)
-
-
-def _withheld_tools(inputs: LoopInputs) -> list[str]:
-	enabled = inputs.server_tools or {}
-	return sorted(
-		{name for tool, names in _FLOW_EQUIVALENTS.items() if tool not in enabled for name in names}
-	)
 
 
 def _anchor(inputs: LoopInputs) -> dict[str, str] | None:
@@ -272,39 +269,14 @@ def _drain(inputs: LoopInputs) -> list[UserMessage]:
 	return list(iter(inputs.next_steering, None))
 
 
-class _Agents:
-	"""One `_Turn` per agent: Claude Code's sub-agents report under the id of the `Task`
-	call that started them, which is what Flow tags a sub-agent's events with."""
-
-	def __init__(self, model_name: str) -> None:
-		self.model_name = model_name
-		self.turns: dict[str | None, _Turn] = {}
-
-	def events(self, message: object) -> list[AnyEvent]:
-		if isinstance(message, ResultMessage):
-			children = [
-				e for key, turn in self.turns.items() if key is not None for e in _tagged(turn._flush(), key)
-			]
-			return children + self._turn(None).events(message)
-		parent = getattr(message, "parent_tool_use_id", None)
-		return _tagged(self._turn(parent).events(message), parent)
-
-	def _turn(self, parent: str | None) -> _Turn:
-		return self.turns.setdefault(parent, _Turn(self.model_name))
-
-
-def _tagged(events: list[AnyEvent], subagent_id: str | None) -> list[AnyEvent]:
-	if subagent_id is None:
-		return events
-	return [event.model_copy(update={"subagent_id": subagent_id}) for event in events]
-
-
 class _Turn:
 	"""Folds the SDK's per-block assistant messages back into one Flow message per API
-	response, and names tool results after the call they answer."""
+	response, and names tool calls and results by Flow's tool names."""
 
-	def __init__(self, model_name: str) -> None:
+	def __init__(self, model_name: str, client_tools: list[dict], prompts: dict[str, str]) -> None:
 		self.model_name = model_name
+		self.display_templates = loop.client_display_templates(client_tools)
+		self.prompts = prompts
 		self.message_id: str | None = None
 		self.content: list[AssistantContent] = []
 		self.usage: dict[str, Any] | None = None
@@ -322,7 +294,7 @@ class _Turn:
 			self.content.extend(item for block in message.content if (item := _content(block)) is not None)
 			for block in message.content:
 				if isinstance(block, SDKToolUseBlock):
-					self.tool_names[block.id] = block.name
+					self.tool_names[block.id] = flow_tool_name(block.name)
 			return events
 		if isinstance(message, SDKUserMessage):
 			if isinstance(message.content, str):
@@ -343,8 +315,11 @@ class _Turn:
 				raise RuntimeError(message.result or "Claude Code request failed")
 			if message.deferred_tool_use is not None:
 				call = message.deferred_tool_use
-				prompt = f"Approve `{call.name}`?\n\n" + json.dumps(call.input, indent=2, default=str)
-				pending = PendingCall(id=call.id, name=call.name, args=call.input, prompt=prompt)
+				name = flow_tool_name(call.name)
+				prompt = self.prompts.get(call.id) or (
+					f"Approve `{name}`?\n\n" + json.dumps(call.input, indent=2, default=str)
+				)
+				pending = PendingCall(id=call.id, name=name, args=call.input, prompt=prompt)
 				return [*events, ApprovalRequired(calls=[pending]), RunEnded(reason="paused")]
 			reason = "max_turns" if message.subtype == "error_max_turns" else "done"
 			return [*events, RunEnded(reason=reason)]
@@ -355,7 +330,7 @@ class _Turn:
 		if event.get("type") == "content_block_start":
 			block = event.get("content_block", {})
 			if block.get("type") == "tool_use":
-				return [ToolCallStarted(id=block["id"], name=block["name"])]
+				return [ToolCallStarted(id=block["id"], name=flow_tool_name(block["name"]))]
 		if event.get("type") == "content_block_delta":
 			delta = event.get("delta", {})
 			if delta.get("type") == "text_delta":
@@ -378,7 +353,7 @@ class _Turn:
 			response_id=self.message_id,
 			stop_reason="tool_use" if calls else "stop",
 		)
-		events: list[AnyEvent] = [with_tool_call_displays(assistant, _DISPLAY_TEMPLATES)]
+		events: list[AnyEvent] = [with_tool_call_displays(assistant, self.display_templates)]
 		if self.usage:
 			events.append(_usage(self.usage).model_copy(update={"context_window": self._context_window()}))
 		self.message_id, self.content, self.usage = None, [], None
@@ -403,7 +378,7 @@ def _content(block: object) -> AssistantContent | None:
 	if isinstance(block, SDKThinkingBlock):
 		return ThinkingContent(thinking=block.thinking, thinking_signature=block.signature)
 	if isinstance(block, SDKToolUseBlock):
-		return ToolCall(id=block.id, name=block.name, arguments=block.input)
+		return ToolCall(id=block.id, name=flow_tool_name(block.name), arguments=block.input)
 	return None
 
 

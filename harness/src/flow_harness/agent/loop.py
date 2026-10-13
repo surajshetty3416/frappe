@@ -255,12 +255,7 @@ async def _loop(inputs: LoopInputs) -> AsyncIterator[AnyEvent]:
 	}
 	for client_tool in config.client_tools:  # its display template is for the UI, not the model
 		schemas.append({key: value for key, value in client_tool.items() if key != "display_template"})
-		if template := client_tool.get("display_template"):
-			try:
-				display_template_variables(template)
-			except (TypeError, ValueError):
-				continue  # a malformed one would end the run when rendered
-			tool_display_templates[client_tool["function"]["name"]] = template
+	tool_display_templates.update(client_display_templates(config.client_tools))
 	ctx = _tool_context(inputs)
 
 	budget = inputs.budget or TokenBudget(config.token_budget)
@@ -340,6 +335,19 @@ async def _loop(inputs: LoopInputs) -> AsyncIterator[AnyEvent]:
 			return
 
 	yield RunEnded(reason="max_turns")
+
+
+def client_display_templates(client_tools: list[dict]) -> dict[str, str]:
+	"""Each client tool's display template by tool name."""
+	templates = {}
+	for client_tool in client_tools:
+		if template := client_tool.get("display_template"):
+			try:
+				display_template_variables(template)
+			except (TypeError, ValueError):
+				continue  # a malformed one would end the run when rendered
+			templates[client_tool["function"]["name"]] = template
+	return templates
 
 
 async def _auto_compact(
