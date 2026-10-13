@@ -55,7 +55,7 @@ describe("what the Measure's own format says", () => {
 	it('prints the site currency where the site puts it', () => {
 		session.site.currency = 'INR'
 		session.site.currency_symbols = { INR: { symbol: '₹', symbol_on_right: false } }
-		expect(numberFormatter(null, measure('revenue', 'currency'))(1200)).toBe('₹ 1,200')
+		expect(numberFormatter(null, measure('revenue', 'currency'))(1200)).toBe('₹1,200')
 
 		session.site.currency_symbols.INR.symbol_on_right = true
 		expect(numberFormatter(null, measure('revenue', 'currency'))(1200)).toBe('1,200 ₹')
@@ -79,7 +79,7 @@ describe("what the Measure's own format says", () => {
 		expect(numberFormatter(null, revenue, mixed)(1200)).toBe('1,200')
 
 		const withoutCurrency = [{ revenue: 1200 }]
-		expect(numberFormatter(null, revenue, withoutCurrency)(1200)).toBe('₹ 1,200')
+		expect(numberFormatter(null, revenue, withoutCurrency)(1200)).toBe('₹1,200')
 
 		session.site.currency = null
 		session.site.currency_symbols = {}

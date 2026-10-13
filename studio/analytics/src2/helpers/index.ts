@@ -228,7 +228,8 @@ export type FormatUnits = {
 const NO_UNITS: FormatUnits = { scale: 1, prefix: '', suffix: '' }
 
 // A measure states its unit once, and every reading of it prints that unit the
-// same way. The symbol sits where fmt_money puts it, so Insights and desk agree.
+// same way. The symbol sits on the side fmt_money puts it, and a leading one
+// reads as ₹31.2L, with no space.
 export function getFormatUnits(format?: DataFormat, code?: string | null): FormatUnits {
 	if (format === 'percent') {
 		return { scale: 100, prefix: '', suffix: '%' }
@@ -240,7 +241,7 @@ export function getFormatUnits(format?: DataFormat, code?: string | null): Forma
 	if (!currency?.symbol) return NO_UNITS
 	return currency.symbol_on_right
 		? { scale: 1, prefix: '', suffix: ` ${currency.symbol}` }
-		: { scale: 1, prefix: `${currency.symbol} `, suffix: '' }
+		: { scale: 1, prefix: currency.symbol, suffix: '' }
 }
 
 export function guessPrecision(number: number) {
