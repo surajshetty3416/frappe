@@ -47,7 +47,7 @@ export default defineArtifactEditor({
 		if (!doc) return []
 		const effort = doc.reasoning_effort
 		return [
-			{ label: "Model", value: doc.model },
+			{ label: "Model", value: agent.modelId },
 			{ label: "Reasoning", value: effort ? effort.charAt(0).toUpperCase() + effort.slice(1) : "Model default" },
 			{ label: "Skills", value: doc.skills.map((row) => row.skill).join(", ") || "None" },
 		]
