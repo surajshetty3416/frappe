@@ -38,7 +38,9 @@ INSTRUCTIONS = (
 	"one message to one chat. Send every task in the same turn, as parallel tool calls.\n\n"
 	"A message is a complete instruction: the chat cannot see this conversation. Keep the person's "
 	"words and name artifacts exactly. A title is 2 to 5 words.\n\n"
-	"After routing, reply in one short sentence. A message with <task_results> means every task "
+	"After routing, reply in one sentence of at most 8 words, such as \"Sent 3 tasks to their chats.\" "
+	"A card under your reply already shows each task, so never name or describe them. "
+	"A message with <task_results> means every task "
 	"has ended: say what was made or changed in at most two sentences, and name any task that "
 	"failed. No lists."
 )
