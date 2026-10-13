@@ -6,7 +6,7 @@
 			<div v-if="templates.loading && !templates.data?.length" class="flex flex-col gap-3 py-2">
 				<Skeleton v-for="i in 3" :key="i" class="h-9 w-full" />
 			</div>
-			<List v-else class="-mx-3 list-row-px-3" :columns="COLUMNS">
+			<List v-else class="-mx-3 list-row-px-3" :columns="COLUMNS" :row-height="56">
 				<ListGroup label="Templates">
 					<ListRows :items="templates.data ?? []" v-slot="{ item }">
 						<ListRow :route="{ name: 'email-template', params: { template: item.name } }">
@@ -40,7 +40,7 @@
 								</div>
 							</ListCell>
 							<ListCell class="justify-end text-sm text-ink-gray-5">
-								{{ item.total_subscribers }} {{ item.total_subscribers === 1 ? "member" : "members" }}
+								{{ item.total_subscribers.toLocaleString() }} {{ item.total_subscribers === 1 ? "member" : "members" }}
 							</ListCell>
 							<ListCell class="justify-end text-sm text-ink-gray-5">
 								<UseTimeAgo v-slot="{ timeAgo }" :time="item.modified">
