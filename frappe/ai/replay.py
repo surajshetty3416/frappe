@@ -35,6 +35,7 @@ BLOCK_KEYS = {
 	"tool_call": ("type", "id", "name", "arguments", "error"),
 }
 ON_COMPLETE = "frappe.ai.replay.settle_run"
+NAME_LIMIT = 140  # a Data field's length
 
 
 @frappe.whitelist()
@@ -279,7 +280,8 @@ def never_ran(result: dict, reply: dict) -> bool:
 def learn(recorded: Any, new: Any, names: dict[str, str]) -> None:
 	"""Walk a recorded result beside its replayed one; a name-like value that differs at
 	the same path maps to the new one. Values with a digit only: document names and routes
-	carry one, while a different word (a status, a label) is not a rename."""
+	carry one, while a different word (a status, a label) is not a rename, and a name is one
+	short line, while a changed text (a skill, a message) is not a rename either."""
 	if isinstance(recorded, dict) and isinstance(new, dict):
 		for key in recorded.keys() & new.keys():
 			learn(recorded[key], new[key], names)
@@ -287,7 +289,12 @@ def learn(recorded: Any, new: Any, names: dict[str, str]) -> None:
 		for old_item, new_item in zip(recorded, new, strict=False):
 			learn(old_item, new_item, names)
 	elif isinstance(recorded, str) and isinstance(new, str):
-		if len(recorded) >= 4 and any(c.isdigit() for c in recorded) and mapped(recorded, names) != new:
+		if (
+			4 <= len(recorded) <= NAME_LIMIT
+			and "\n" not in recorded
+			and any(c.isdigit() for c in recorded)
+			and mapped(recorded, names) != new
+		):
 			names[recorded] = new
 
 
