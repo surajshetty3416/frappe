@@ -344,11 +344,16 @@ class Generator:
 				owners[name] = fieldname
 				slots[name] = bag
 		for spec in specs.values():
-			if spec["kind"] == "text":
+			if spec["kind"] in ("text", "choice"):
 				spec["slot_bags"] = slots
 		for spec in specs.values():
 			if spec["kind"] == "text":
 				self.check_text(spec, specs, meta, given_keys)
+			if "options_from" in spec:
+				try:
+					self.check_choice(spec)
+				except SpecError as e:
+					self.errors.append(f"{spec['where']}: {e}")
 			if spec.get("unique") and not prefix:
 				spec["taken"] |= {str(row[spec["df"].fieldname]) for row in self.given if spec["df"].fieldname in row}
 		return specs
@@ -436,23 +441,45 @@ class Generator:
 	compile_float = compile_int
 
 	def compile_choice(self, spec, df, draws):
-		outcomes, weights = weighted(spec.get("options") or [])
+		"""`options` is a list, a weight map, or {slot.key} for a list each object of a slot holds,
+		so the options follow the record's slot value."""
+		options = spec.get("options")
+		if isinstance(options, str):
+			if not (m := re.fullmatch(r"\{(\w+)\.(\w+)\}", options.strip())):
+				raise SpecError("options is a list, a {value: weight} map, or {slot.key} naming a list in each object of a slot")
+			spec["options_from"] = (m[1], m[2])
+			return
+		outcomes, weights = weighted(options or [])
 		if not outcomes:
-			raise SpecError("options is a list or a {value: weight} map")
+			raise SpecError("options is a list, a {value: weight} map, or {slot.key} naming a list in each object of a slot")
+		self.check_options(spec, df, [outcomes])
+		spec["bag"] = Bag(self.rng, outcomes, weights, draws)
+
+	def check_options(self, spec, df, lists: list[list]) -> None:
 		if "pick" in spec:
 			pick = spec["pick"]
 			low, high = (pick, pick) if isinstance(pick, int) else (pick[0], pick[1])
 			if df.fieldtype == "Select":
 				raise SpecError("a Select field holds one value; pick fills a text field")
-			if not 1 <= cint(low) <= cint(high) <= len(outcomes):
-				raise SpecError(f"pick is a count or [min, max] options, at most the {len(outcomes)} options")
+			fewest = min(len(options) for options in lists)
+			if not 1 <= cint(low) <= cint(high) <= fewest:
+				raise SpecError(f"pick is a count or [min, max] options, at most the {fewest} options")
 			spec["pick_range"] = (cint(low), cint(high))
 		if df.fieldtype == "Select":
 			allowed = [o for o in (df.options or "").split("\n")]
-			bad = [str(o) for o in outcomes if str(o) not in allowed]
+			bad = sorted({str(o) for options in lists for o in options if str(o) not in allowed})
 			if bad:
 				raise SpecError(f"{', '.join(bad)} not in the options {', '.join(o for o in allowed if o)}")
-		spec["bag"] = Bag(self.rng, outcomes, weights, draws)
+
+	def check_choice(self, spec) -> None:
+		name, key = spec["options_from"]
+		self.read.add(name)
+		bag = spec["slot_bags"].get(name)
+		if not bag:
+			raise SpecError(f"options {{{name}.{key}}}: no slot {name}; give it in a text field's slots")
+		if not all(isinstance(o, dict) and isinstance(o.get(key), list) and o[key] for o in bag.outcomes):
+			raise SpecError(f"options {{{name}.{key}}}: every value of slot {name} must be an object with {key} as a list of options")
+		self.check_options(spec, spec["df"], [o[key] for o in bag.outcomes])
 
 	def compile_link(self, spec, df, draws):
 		if df.fieldtype != "Link":
@@ -747,9 +774,16 @@ class Row:
 	make_float = make_int
 
 	def make_choice(self, spec):
-		if "pick_range" not in spec:
+		if "options_from" in spec:
+			name, key = spec["options_from"]
+			outcomes = list(self.slot(name, spec, 0)[key])
+			weights = [1.0] * len(outcomes)
+			if "pick_range" not in spec:
+				return self.rng.choice(outcomes)
+		elif "pick_range" in spec:
+			outcomes, weights = list(spec["bag"].outcomes), list(spec["bag"].weights)
+		else:
 			return spec["bag"].draw()
-		outcomes, weights = list(spec["bag"].outcomes), list(spec["bag"].weights)
 		picked = []
 		for _ in range(self.rng.randint(*spec["pick_range"])):
 			i = self.rng.choices(range(len(outcomes)), weights)[0]
@@ -793,7 +827,10 @@ class Row:
 			value = spec["slot_bags"][name].draw()
 			if depth < 5:
 				if isinstance(value, dict):
-					value = {k: self.render(str(v), spec, depth + 1) for k, v in value.items()}
+					value = {
+						k: [self.render(str(x), spec, depth + 1) for x in v] if isinstance(v, list) else self.render(str(v), spec, depth + 1)
+						for k, v in value.items()
+					}
 				else:
 					value = self.render(str(value), spec, depth + 1)
 			self.slots[name] = value

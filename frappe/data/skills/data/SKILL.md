@@ -51,7 +51,7 @@ Check-ins busiest at 09:30: `"checked_in_at": {"kind": "datetime", "from": "2027
 
 ## Prose example
 
-Talk proposals whose title, track, abstract, tags and speaker bio agree. Slots given in one field serve every field. Write 10 to 20 topics; the slots multiply them into distinct records.
+Talk proposals whose title, track, abstract, tags and speaker bio agree. Slots given in one field serve every field, and tags pick from the topic's own list. Write 10 to 20 topics; the slots multiply them into distinct records.
 
 ```json
 "fields": {
@@ -59,13 +59,13 @@ Talk proposals whose title, track, abstract, tags and speaker bio agree. Slots g
     "templates": {"{topic.subject}: {angle}": 3, "{topic.subject} for {client}": 2, "{lesson} from {topic.subject}": 1},
     "slots": {
       "topic": [
-        {"track": "Run", "product": "ERPNext", "subject": "GST E-Invoicing", "result": "cut month-end filing from three days to four hours"},
-        {"track": "Build", "product": "Insights", "subject": "CFO Dashboards", "result": "replaced {12..30} weekly spreadsheets with one dashboard"}],
+        {"track": "Run", "product": "ERPNext", "subject": "GST E-Invoicing", "result": "cut month-end filing from three days to four hours", "tags": ["erpnext", "gst", "india", "compliance", "case-study"]},
+        {"track": "Build", "product": "Insights", "subject": "CFO Dashboards", "result": "replaced {12..30} weekly spreadsheets with one dashboard", "tags": ["insights", "dashboards", "finance", "deep-dive"]}],
       "angle": ["The Hard Parts", "What We Got Wrong", "Two Years In", "A Field Guide"],
       "client": ["a 40-Plant Manufacturer", "a Pune Pharma Distributor", "a Chain of 30 Clinics"],
       "lesson": ["Five Lessons", "Field Notes", "What Broke"]}},
   "track": {"kind": "text", "template": "{topic.track}"},
-  "screener_tags": {"kind": "choice", "options": ["erpnext", "insights", "india", "case-study", "deep-dive"], "pick": [2, 4]},
+  "screener_tags": {"kind": "choice", "options": "{topic.tags}", "pick": [2, 4]},
   "abstract": {"kind": "text", "words": [60, 110],
     "templates": ["We run {topic.product} for {client}. In {months} months we {topic.result}. We walk through {walk}, and you leave with {takeaway}.",
                   "{topic.subject} took {client} {months} months on {topic.product} before we {topic.result}. We cover {walk}. You take away {takeaway}."],
