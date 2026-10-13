@@ -266,7 +266,8 @@ def bind_to_dynamic_values(bind: dict) -> list:
 	return [binding_entry(prop, field) for prop, field in bind.items()]
 
 
-def convert_yaml_block(node, is_root: bool = False) -> dict | None:
+def convert_yaml_block(node, is_root: bool = False, bindings: bool = True) -> dict | None:
+	"""`bindings=False` keeps `{{ ... }}` text as Jinja, for outputs rendered against a document."""
 	if not isinstance(node, dict):
 		return node
 	# Icon reference → inline-svg wrapper (see convert_icon_block).
@@ -318,7 +319,7 @@ def convert_yaml_block(node, is_root: bool = False) -> dict | None:
 
 	children = node.get("c")
 	child_blocks = (
-		[b for c in children if isinstance(c, dict) and (b := convert_yaml_block(c))]
+		[b for c in children if isinstance(c, dict) and (b := convert_yaml_block(c, bindings=bindings))]
 		if isinstance(children, list)
 		else []
 	)
@@ -328,7 +329,7 @@ def convert_yaml_block(node, is_root: bool = False) -> dict | None:
 	# data_script); the block keeps only the loop wiring + template child.
 	repeat = node.get("repeat")
 	if isinstance(repeat, dict) and repeat.get("item"):
-		item = convert_yaml_block(repeat["item"])
+		item = convert_yaml_block(repeat["item"], bindings=bindings)
 		if item:
 			block["isRepeaterBlock"] = True
 			block["dataKey"] = {
@@ -342,7 +343,8 @@ def convert_yaml_block(node, is_root: bool = False) -> dict | None:
 		block["children"] = child_blocks
 	elif block.get("extendedFromComponent"):
 		block["children"] = component_instance_children(block["extendedFromComponent"])
-	absorb_moustache_bindings(block)
+	if bindings:
+		absorb_moustache_bindings(block)
 	return block
 
 
@@ -489,7 +491,7 @@ def unwrap_root(parsed) -> dict | None:
 	return root
 
 
-def expand_page_yaml(yaml_text: str, is_root: bool = True) -> tuple[list, str]:
+def expand_page_yaml(yaml_text: str, is_root: bool = True, bindings: bool = True) -> tuple[list, str]:
 	"""Return ([root_block_dict], page_data_script). Empty ([], "") if unparseable.
 
 	`is_root=True` marks the block as the page <body> (root); pass False when
@@ -500,7 +502,7 @@ def expand_page_yaml(yaml_text: str, is_root: bool = True) -> tuple[list, str]:
 	root = unwrap_root(parsed)
 	if not isinstance(root, dict) or not root.get("el"):
 		return [], ""
-	block = convert_yaml_block(root, is_root=is_root)
+	block = convert_yaml_block(root, is_root=is_root, bindings=bindings)
 	if not block:
 		return [], ""
 	data_script = build_repeater_data_script(parsed)

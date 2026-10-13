@@ -5,6 +5,8 @@ import web from "@web/layer"
 
 import agents from "../agents/src/layer"
 import data from "../data/src/layer"
+import email from "../email/src/layer"
+import print from "../print/src/layer"
 import settings from "../settings/src/layer"
 
-export const layers = [data, ui, web, analytics, agents, ai, settings]
+export const layers = [data, ui, web, analytics, print, email, agents, ai, settings]

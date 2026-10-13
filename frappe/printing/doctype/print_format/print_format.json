@@ -27,6 +27,8 @@
   "margin_bottom",
   "margin_left",
   "margin_right",
+  "page_size",
+  "canvas_blocks",
   "align_labels_right",
   "show_section_headings",
   "line_breaks",
@@ -286,6 +288,19 @@
    "label": "Margin Right"
   },
   {
+   "default": "A4",
+   "fieldname": "page_size",
+   "fieldtype": "Select",
+   "label": "Page Size",
+   "options": "A4\nA5\nA6\nLetter"
+  },
+  {
+   "fieldname": "canvas_blocks",
+   "fieldtype": "JSON",
+   "hidden": 1,
+   "label": "Canvas Blocks"
+  },
+  {
    "default": "14",
    "fieldname": "font_size",
    "fieldtype": "Int",
@@ -360,7 +375,7 @@
  "icon": "printer",
  "idx": 1,
  "links": [],
- "modified": "2026-10-10 12:00:00.000000",
+ "modified": "2026-10-13 18:00:00.000000",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Print Format",

@@ -49,6 +49,7 @@ website_generators = ["Builder Page"]
 jinja = {
 	"methods": [
 		"frappe.web.doctype.builder_component.builder_component.get_component_data",
+		"frappe.web.output.print_format.fit_font_size",
 	],
 	"filters": [
 		"frappe.web.utils.combine",
@@ -111,6 +112,9 @@ doc_events = {
 	"User Invitation": {
 		"after_insert": "frappe.web.user_invitation.capture_user_invited",
 	},
+	# the HTML canvas writes print and email output into the framework's own fields
+	"Print Format": {"before_validate": "frappe.web.output.print_format.write"},
+	"Email Template": {"before_validate": "frappe.web.output.email_template.write"},
 }
 
 # Scheduled Tasks
@@ -212,10 +216,16 @@ flow_tools = [
 	"frappe.web.flow_tools.add_form_block",
 	"frappe.web.flow_tools.add_chat_block",
 	"frappe.web.flow_tools.set_page_data_script",
+	"frappe.web.flow_tools.save_print_format",
+	"frappe.web.flow_tools.save_email_template",
+	"frappe.web.flow_tools.preview_output",
+	"frappe.web.flow_tools.fill_email_group",
 ]
-flow_skills = ["web/skills/website/SKILL.md"]
+flow_skills = ["web/skills/website/SKILL.md", "web/skills/print/SKILL.md", "web/skills/email/SKILL.md"]
 
 # what Studio opens beside the chat for an artifact of this layer
 studio_artifacts = {
 	"Builder Page": {"label": "Web page", "route": "/studio/web/page/{name}", "title_field": "page_title"},
+	"Print Format": {"label": "Print format", "route": "/studio/print/format/{name}", "title_field": "name"},
+	"Email Template": {"label": "Email", "route": "/studio/email/template/{name}", "title_field": "name"},
 }

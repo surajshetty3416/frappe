@@ -9,7 +9,7 @@ export default {
 	content: [
 		"./index.html",
 		"./src/**/*.{vue,js,ts}",
-		"./{agents,ai,data,settings,ui,web}/src/**/*.{vue,js,ts}",
+		"./{agents,ai,data,email,print,settings,ui,web}/src/**/*.{vue,js,ts}",
 		"./analytics/src2/**/*.{vue,js,ts}",
 		// the chat's menu sits in the shell's top bar, its items portaled to the page
 		"../harness/ui/core/src/components/ChatMenu.vue",

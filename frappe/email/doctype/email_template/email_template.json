@@ -13,6 +13,7 @@
   "reference_doctype",
   "use_html",
   "response_html",
+  "canvas_blocks",
   "response",
   "section_break_4",
   "email_reply_help"
@@ -61,11 +62,17 @@
    "fieldtype": "Code",
    "label": "Response",
    "options": "Jinja"
+  },
+  {
+   "fieldname": "canvas_blocks",
+   "fieldtype": "JSON",
+   "hidden": 1,
+   "label": "Canvas Blocks"
   }
  ],
  "icon": "fa fa-comment",
  "links": [],
- "modified": "2026-05-27 00:00:00.000000",
+ "modified": "2026-10-13 18:00:00.000000",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Template",

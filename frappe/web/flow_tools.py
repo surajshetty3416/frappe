@@ -1,10 +1,14 @@
 """Tools that let the AI layer (flow) build the website with Builder. Listed under the
 `flow_tools` hook, so every flow agent can attach them."""
 
+import re
 from typing import Annotated
+from urllib.parse import quote
 
 import frappe
+from bs4 import BeautifulSoup
 from frappe import _
+from frappe.utils import validate_email_address
 from frappe.ai import artifacts, tool
 from frappe.ai.lib.tool import ToolContext
 from frappe.web.ai.block_codec import BlockCodec
@@ -18,6 +22,7 @@ from frappe.web.ai.page_writer import (
 )
 from frappe.web.page_blocks.chat import ChatBlock
 from frappe.web.page_blocks.form import FormBlock
+from frappe.web.utils import compact_json
 
 PAGE_YAML_GUIDE = f"""Create a website page with Frappe Builder; its editor opens beside the chat. The page stays a draft until it is published.
 
@@ -261,3 +266,224 @@ def data_sample(data: dict) -> dict:
 		key: {"count": len(value), "first": value[:2]} if isinstance(value, list) else value
 		for key, value in frappe.parse_json(frappe.as_json(data)).items()
 	}
+
+
+# --- print formats and emails: the same block tree, rendered against a document ---
+
+OUTPUT_TREE_GUIDE = """tree_yaml is one YAML block tree whose root is `el: body`, in the web page format: el, name, style (CSS-in-JS, camelCase, string values with units), attrs (href, src, alt), text (inline HTML), c (children). Text and style values take Jinja against the record as `doc`: `text: "{{ doc.full_name }}"`. Quote any value that starts with `{`. Name the blocks a person may ask about (`name: Ribbon`)."""
+
+
+@tool(
+	description=f"""Create or replace a Print Format drawn on the HTML canvas, for printing and PDFs of one DocType's records. Its editor opens beside the chat with the page at its real size, rendered against a record. Load the Print skill first.
+
+{OUTPUT_TREE_GUIDE} `{{{{ qr_code(doc.<field>, <pixels>) }}}}` in a text draws a QR code. The root fills the page inside the margins, one page per record.
+
+Returns the text the format prints for a sample record, so check it reads right.""",
+	requires_confirmation=True,
+	confirm_prompt=lambda args: _("Save the print format {0} for {1}").format(args.get("name"), args.get("doctype")),
+)
+def save_print_format(
+	name: Annotated[str, "The format's name, e.g. Frappeverse Badge"],
+	doctype: Annotated[str, "The DocType it prints"],
+	tree_yaml: Annotated[str, "The page's block tree"],
+	page_size: Annotated[str, "A4, A5, A6 or Letter, portrait"] = "A4",
+	margin_mm: Annotated[float, "The margin on every side, in millimetres"] = 10,
+	*,
+	ctx: ToolContext,
+) -> dict:
+	from frappe.web.output import print_format
+
+	if page_size not in print_format.PAGE_SIZES:
+		frappe.throw(_("page_size must be one of {0}.").format(", ".join(print_format.PAGE_SIZES)))
+	root = checked_tree(tree_yaml, doctype)
+	doc = output_doc("Print Format", name, doc_type=doctype, module=module_of(doctype))
+	doc.update(
+		{
+			"page_size": page_size,
+			"disabled": 0,
+			"canvas_blocks": compact_json(root),
+			**{f"margin_{side}": margin_mm for side in ("top", "bottom", "left", "right")},
+		}
+	)
+	print_format.write(doc)
+	record = sample_record(doctype)
+	if record:
+		rendered = render_or_fix(doc.html, {"doc": frappe.get_doc(doctype, record)}, record)
+	persist(doc)
+	artifact = artifacts.link(ctx.session_id, "Print Format", doc.name)
+	return {
+		"print_format": doc.name,
+		"page": f"{page_size}, {margin_mm}mm margins",
+		"sample_record": record,
+		"sample_text": plain_text(rendered) if record else None,
+		"print_view": f"/printview?doctype={quote(doctype)}&name={quote(record or '')}&format={quote(doc.name)}",
+		"artifact": artifact,
+	}
+
+
+@tool(
+	description=f"""Create or replace an Email Template drawn on the HTML canvas. It is written as email clients need it: a 600px column of tables with inline styles. Its editor opens beside the chat with the subject and the email rendered against a record. Load the Email skill first.
+
+{OUTPUT_TREE_GUIDE} Flex rows become table columns, a link with a background becomes a button, and relative links become absolute. No icons, SVG or QR codes: Gmail blocks them.
+
+Returns the subject and text for a sample record, so check they read right.""",
+	requires_confirmation=True,
+	confirm_prompt=lambda args: _("Save the email template {0}").format(args.get("name")),
+)
+def save_email_template(
+	name: Annotated[str, "The template's name, e.g. Registration Confirmed"],
+	subject: Annotated[str, "The subject line; Jinja against the record, e.g. Your talk is in: {{ doc.title }}"],
+	tree_yaml: Annotated[str, "The email's block tree"],
+	doctype: Annotated[str, "The DocType whose record it is rendered against, e.g. Attendee"],
+	*,
+	ctx: ToolContext,
+) -> dict:
+	from frappe.web.output import email_template
+
+	root = checked_tree(tree_yaml, doctype, subject)
+	if found := email_template.problems(root):
+		frappe.throw("\n".join(found))
+	doc = output_doc("Email Template", name)
+	doc.update({"subject": subject, "reference_doctype": doctype, "canvas_blocks": compact_json(root)})
+	email_template.write(doc)
+	record = sample_record(doctype)
+	if record:
+		context = frappe.get_doc(doctype, record).as_dict()
+		subject_text = render_or_fix(subject, {**context, "doc": context}, record)
+		message = render_or_fix(doc.response_html, {**context, "doc": context}, record)
+	persist(doc)
+	artifact = artifacts.link(ctx.session_id, "Email Template", doc.name)
+	return {
+		"email_template": doc.name,
+		"sample_record": record,
+		"sample_subject": subject_text if record else None,
+		"sample_text": plain_text(message) if record else None,
+		"artifact": artifact,
+	}
+
+
+@tool
+def preview_output(
+	doctype: Annotated[str, "Print Format or Email Template"],
+	name: Annotated[str, "The format's or template's name"],
+	record: Annotated[str, "The record to render it against, by name"],
+	*,
+	ctx: ToolContext,
+) -> dict:
+	"""Open a print format or email template beside the chat, rendered against one record, and return the text it renders. Use it when the person asks to see one for a particular record."""
+	from frappe.web.output import preview
+
+	result = preview(doctype, name, record)
+	if result.get("error"):
+		frappe.throw(result["error"])
+	target = result["doctype"]
+	title = frappe.db.get_value(target, record, frappe.get_meta(target).get_title_field()) or record
+	artifact = artifacts.link(ctx.session_id, doctype, name)
+	artifact = {**artifact, "title": f"{name} · {title}", "route": f"{artifact['route']}/{quote(record)}"}
+	return {
+		"record": record,
+		"subject": result.get("subject"),
+		"text": plain_text(result["html"]),
+		"artifact": artifact,
+	}
+
+
+@tool(
+	requires_confirmation=True,
+	confirm_prompt=lambda args: _("Add a member to the email group {0} for each {1}").format(
+		args.get("title"), args.get("doctype")
+	),
+)
+def fill_email_group(
+	title: Annotated[str, "The Email Group's title, e.g. Frappeverse 2027 Attendees"],
+	doctype: Annotated[str, "The DocType whose records join, e.g. Attendee"],
+	email_field: Annotated[str, "The field holding the address; empty finds the DocType's Email field"] = "",
+	filters: Annotated[dict | None, "Only records matching these, e.g. {\"status\": \"Confirmed\"}"] = None,
+	*,
+	ctx: ToolContext,
+) -> dict:
+	"""Make an Email Group if it is missing, and add one member per record of a DocType with an email address. A record already in the group is skipped, so run it again to add newer records. Sends nothing."""
+	meta = frappe.get_meta(doctype)
+	field = email_field or next(
+		(df.fieldname for df in meta.fields if df.options == "Email" or df.fieldname in ("email", "email_id")), None
+	)
+	if not field or not meta.get_field(field):
+		frappe.throw(_("{0} has no email field. Pass email_field.").format(doctype))
+	if not frappe.db.exists("Email Group", title):
+		frappe.get_doc({"doctype": "Email Group", "title": title}).insert()
+	group = frappe.get_doc("Email Group", title)
+	group.check_permission("write")
+	existing = set(frappe.get_all("Email Group Member", filters={"email_group": title}, pluck="email"))
+	added = 0
+	for email in frappe.get_list(doctype, filters=filters, pluck=field, limit=0):
+		email = validate_email_address(email or "")
+		if not email or email in existing:
+			continue
+		frappe.get_doc({"doctype": "Email Group Member", "email_group": title, "email": email}).insert()
+		existing.add(email)
+		added += 1
+	return {"email_group": title, "added": added, "members": group.update_total_subscribers()}
+
+
+def checked_tree(tree_yaml: str, doctype: str, *extra: str) -> dict:
+	"""The tree expanded, or an error naming each problem and its fix."""
+	from frappe.web.output import expand, problems, walk
+
+	if not frappe.db.exists("DocType", doctype):
+		frappe.throw(_("There is no DocType {0}.").format(doctype))
+	root = expand(tree_yaml)
+	found = problems(root)
+	texts = [*extra]
+	for block in walk(root):
+		texts.append(block.get("innerHTML") or "")
+		texts.extend(str(value) for value in (block.get("baseStyles") or {}).values())
+		texts.extend(str(value) for value in (block.get("attributes") or {}).values())
+	fields = {df.fieldname for df in frappe.get_meta(doctype).fields} | set(frappe.model.default_fields) | {"get"}
+	unknown = sorted({field for text in texts for field in DOC_FIELD.findall(text)} - fields)
+	if unknown:
+		found.append(
+			_("{0} has no field {1}. Its fields: {2}.").format(
+				doctype, ", ".join(unknown), ", ".join(sorted(fields - set(frappe.model.default_fields) - {"get"}))
+			)
+		)
+	if found:
+		frappe.throw("\n".join(found))
+	return root
+
+
+DOC_FIELD = re.compile(r"\bdoc\.([A-Za-z_][A-Za-z0-9_]*)")
+
+
+def output_doc(doctype: str, name: str, **values):
+	if frappe.db.exists(doctype, name):
+		doc = frappe.get_doc(doctype, name)
+		doc.check_permission("write")
+		return doc
+	return frappe.get_doc({"doctype": doctype, "name": name, "__newname": name, **values})
+
+
+def persist(doc) -> None:
+	if frappe.db.exists(doc.doctype, doc.name):
+		doc.save()
+	else:
+		doc.insert()
+
+
+def module_of(doctype: str) -> str:
+	return frappe.db.get_value("DocType", doctype, "module") or "Custom"
+
+
+def sample_record(doctype: str) -> str | None:
+	return frappe.db.get_value(doctype, {}, "name", order_by="creation desc")
+
+
+def render_or_fix(template: str, context: dict, record: str) -> str:
+	try:
+		return frappe.render_template(template, context)
+	except Exception as exc:
+		frappe.throw(_("The Jinja fails against {0}: {1}").format(record, exc))
+
+
+def plain_text(html: str, limit: int = 600) -> str:
+	text = re.sub(r"\s+", " ", BeautifulSoup(html or "", "html.parser").get_text(" ")).strip()
+	return text[:limit]

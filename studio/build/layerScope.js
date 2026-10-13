@@ -7,7 +7,7 @@
 
 import path from "node:path"
 
-export const LAYERS = ["data", "agents", "web", "analytics", "ui", "ai", "settings"]
+export const LAYERS = ["data", "agents", "web", "analytics", "ui", "ai", "settings", "print", "email"]
 
 const frontendDir = path.resolve(import.meta.dirname, "..")
 

@@ -36,10 +36,10 @@ class EmailTemplate(Document):
 		validate_template(self.response_)
 
 	def get_formatted_subject(self, doc):
-		return frappe.render_template(self.subject, doc)
+		return frappe.render_template(self.subject, template_context(doc))
 
 	def get_formatted_response(self, doc):
-		return frappe.render_template(self.response_, doc)
+		return frappe.render_template(self.response_, template_context(doc))
 
 	def get_formatted_email(self, doc, sender=None):
 		if isinstance(doc, str):
@@ -67,6 +67,12 @@ class EmailTemplate(Document):
 				{"email_signature": get_signature(email_account), "email_footer": get_footer(email_account)}
 			)
 		return doc
+
+
+def template_context(doc) -> dict:
+	"""The document's fields, and the document itself as `doc`, as print formats and automations read it."""
+	values = doc.as_dict() if isinstance(doc, Document) else frappe._dict(doc or {})
+	return {**values, "doc": values.get("doc") or values}
 
 
 @frappe.whitelist()
