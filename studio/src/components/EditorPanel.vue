@@ -198,7 +198,9 @@ const layerName = computed(() => route.matched[0]?.meta.layer as string | undefi
 
 const artifact = computed(() => routeArtifact(route))
 const artifactKey = computed(() => (artifact.value ? tabKey(artifact.value) : ""))
-const isActive = (tab: Tab) => tabKey(tab) === artifactKey.value
+// a layer's own view beside the chat, such as the Data overview, has no artifact; its tab is keyed by its path
+const openKey = computed(() => artifactKey.value || (route.matched.some((match) => match.meta.artifact) ? tabKey({ doctype: "", name: route.path }) : ""))
+const isActive = (tab: Tab) => tabKey(tab) === openKey.value
 
 const editor = shallowRef<ArtifactEditor | null>(null)
 watch(
@@ -211,18 +213,23 @@ watch(
 
 // an artifact the route opens joins the tabs, or focuses its tab
 watch(
-	() => [artifactKey.value, route.fullPath],
+	() => [openKey.value, route.fullPath],
 	async () => {
 		const open = artifact.value
-		if (!open) return
 		const layer = layers.find((layer) => layer.name === route.matched[0]?.meta.layer)
+		const chat = typeof route.query.chat === "string" ? route.query.chat : null
+		if (!open) {
+			if (openKey.value)
+				openTab({ doctype: "", name: route.path, title: layer?.title ?? "", icon: layer?.icon ?? "lucide-file", path: route.fullPath, chat })
+			return
+		}
 		openTab({
 			doctype: open.doctype,
 			name: open.name,
 			title: findTab(open.doctype, open.name)?.title ?? open.name,
 			icon: layer?.icon ?? "lucide-file",
 			path: route.fullPath,
-			chat: typeof route.query.chat === "string" ? route.query.chat : null,
+			chat,
 		})
 		if (!open.editor) {
 			const info = await getArtifactInfo(open.doctype, open.name).catch(() => null)
@@ -309,11 +316,11 @@ function scrollTabs(event: WheelEvent) {
 }
 // the open tab stays in view as tabs come and go, and as the strip narrows for the menu
 function revealActive() {
-	strip.value?.querySelector(`[data-tab="${CSS.escape(artifactKey.value)}"]`)?.scrollIntoView({ block: "nearest", inline: "nearest" })
+	strip.value?.querySelector(`[data-tab="${CSS.escape(openKey.value)}"]`)?.scrollIntoView({ block: "nearest", inline: "nearest" })
 	measureTabs()
 }
 watch(
-	() => [tabs.value.map((tab) => tabKey(tab) + tab.title).join(), artifactKey.value],
+	() => [tabs.value.map((tab) => tabKey(tab) + tab.title).join(), openKey.value],
 	() => nextTick(revealActive),
 	{ immediate: true }
 )
