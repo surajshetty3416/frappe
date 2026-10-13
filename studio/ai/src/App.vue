@@ -1,5 +1,5 @@
 <template>
-	<Chat v-if="boot" :boot="boot" v-bind="$attrs">
+	<Chat v-if="boot" ref="chat" :boot="boot" v-bind="$attrs">
 		<template v-for="(_, name) in $slots" #[name]="scope"><slot :name="name" v-bind="scope ?? {}" /></template>
 	</Chat>
 	<div v-else class="flex h-full items-center justify-center bg-surface-base px-6 text-center">
@@ -20,6 +20,8 @@ defineOptions({ inheritAttrs: false });
 
 const boot = ref(null);
 const error = ref("");
+const chat = ref(null);
+defineExpose({ send: (message) => chat.value?.send(message) ?? false });
 
 onMounted(async () => {
 	try {

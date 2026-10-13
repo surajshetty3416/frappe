@@ -14,6 +14,8 @@ export interface Layer {
 	routes: RouteRecordRaw[]
 	setup?: (app: App) => void | Promise<void>
 	beforeEnter?: NavigationGuardWithThis<undefined>
+	// kept out of the sidebar
+	hidden?: boolean
 }
 
 export const defineLayer = (layer: Layer) => layer

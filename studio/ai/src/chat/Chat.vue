@@ -105,6 +105,15 @@ watch(
 	}
 );
 
+// an editor beside the chat sends a message as if the person typed it
+defineExpose({
+	send(message) {
+		if (readOnly.value) return false;
+		store.send(message);
+		return true;
+	},
+});
+
 onMounted(async () => {
 	if (props.session) await store.openSession(props.session);
 	if (props.initialMessage) await store.send(props.initialMessage);

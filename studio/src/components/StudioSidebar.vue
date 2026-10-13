@@ -130,7 +130,7 @@ const user = sessionUser()
 const fullName = decodeURIComponent(document.cookie.match(/full_name=([^;]*)/)?.[1] ?? user).replace(/\+/g, " ")
 
 // Settings sits at the bottom, not among the layers a person builds with
-const buildLayers = layers.filter((layer) => layer.name !== "settings")
+const buildLayers = layers.filter((layer) => layer.name !== "settings" && !layer.hidden)
 
 const { resolvedColorScheme, toggleColorScheme } = useColorScheme()
 const userMenu = computed(() => [

@@ -8,12 +8,13 @@
 		<aside
 			v-if="drawer"
 			data-editor-drawer
-			class="absolute inset-y-0 right-0 z-20 flex w-[340px] flex-col overflow-hidden border-l border-outline-gray-1 bg-surface-base shadow-xl"
+			:class="drawer === 'code' && codeTabs.length ? 'w-[600px]' : 'w-[360px]'"
+			class="absolute inset-y-0 right-0 z-20 flex max-w-full flex-col overflow-hidden border-l border-outline-gray-1 bg-surface-base shadow-xl"
 		>
 			<header class="flex h-10 shrink-0 items-center justify-between border-b border-outline-gray-1 pl-4 pr-2">
 				<h2 class="text-base font-medium text-ink-gray-8">{{ label }}</h2>
 				<div class="flex items-center gap-0.5">
-					<Button v-if="drawer === 'code'" variant="ghost" icon="lucide-copy" tooltip="Copy" @click="copyCode" />
+					<Button v-if="code" variant="ghost" icon="lucide-copy" tooltip="Copy" @click="copyCode" />
 					<Button variant="ghost" icon="lucide-x" tooltip="Close (Esc)" @click="emit('close')" />
 				</div>
 			</header>
@@ -62,15 +63,27 @@
 				</ol>
 			</div>
 
-			<dl v-else-if="drawer === 'details'" class="min-h-0 flex-1 overflow-y-auto px-4 py-3">
-				<div v-for="row in details" :key="row.label" class="flex items-baseline gap-3 py-1.5">
-					<dt class="w-24 shrink-0 text-sm text-ink-gray-5">{{ row.label }}</dt>
-					<dd class="min-w-0 flex-1 break-words text-sm text-ink-gray-8">
-						<a v-if="row.href" :href="row.href" target="_blank" class="underline decoration-outline-gray-3 underline-offset-2 hover:decoration-outline-gray-5">{{ row.value }}</a>
-						<template v-else>{{ row.value }}</template>
-					</dd>
+			<div v-else-if="drawer === 'details'" class="min-h-0 flex-1 overflow-y-auto">
+				<LayerComponent v-if="detailsForm" :mount="detailsForm" :layer="layer" />
+				<dl class="px-4 py-3" :class="detailsForm ? 'border-t border-outline-gray-1' : ''">
+					<div v-for="row in details" :key="row.label" class="flex items-baseline gap-3 py-1.5">
+						<dt class="w-24 shrink-0 text-sm text-ink-gray-5">{{ row.label }}</dt>
+						<dd class="min-w-0 flex-1 break-words text-sm text-ink-gray-8">
+							<a v-if="row.href" :href="row.href" target="_blank" class="underline decoration-outline-gray-3 underline-offset-2 hover:decoration-outline-gray-5">{{ row.value }}</a>
+							<template v-else>{{ row.value }}</template>
+						</dd>
+					</div>
+				</dl>
+			</div>
+
+			<div v-else-if="drawer === 'code' && codeTabs.length" class="flex min-h-0 flex-1 flex-col">
+				<div v-if="codeTabs.length > 1" class="flex h-10 shrink-0 items-center border-b border-outline-gray-1 px-3">
+					<TabButtons v-model="codeTab" :options="codeTabs.map((tab) => ({ value: tab.name, label: tab.label }))" />
 				</div>
-			</dl>
+				<div class="flex min-h-0 flex-1 flex-col p-3">
+					<LayerComponent v-if="activeCodeTab" :key="activeCodeTab.name" :mount="activeCodeTab.component" :layer="layer" />
+				</div>
+			</div>
 
 			<div v-else-if="drawer === 'code' && code" class="min-h-0 flex-1 overflow-auto bg-surface-gray-1">
 				<pre class="whitespace-pre-wrap break-words p-4 font-mono text-xs leading-5 text-ink-gray-8">{{ code.content }}</pre>
@@ -80,12 +93,13 @@
 </template>
 
 <script setup lang="ts">
-import { Avatar, Button, Skeleton, dayjs, toast } from "frappe-ui"
+import { Avatar, Button, Skeleton, TabButtons, dayjs, toast } from "frappe-ui"
 import { computed, onBeforeUnmount, reactive, ref, watch } from "vue"
 
-import { type ArtifactInfo, type Version, artifactLabel, getArtifactInfo, getVersions, restoreVersion } from "../artifacts"
+import { type ArtifactInfo, type Version, getArtifactInfo, getVersions, restoreVersion } from "../artifacts"
 import type { ArtifactEditor } from "../editor"
 import { onDocUpdate } from "../realtime"
+import LayerComponent from "./LayerComponent.vue"
 
 const props = defineProps<{
 	drawer: string | null
@@ -93,6 +107,7 @@ const props = defineProps<{
 	name: string
 	label: string
 	editor: ArtifactEditor | null
+	layer?: string
 }>()
 const emit = defineEmits<{ close: [] }>()
 
@@ -120,8 +135,7 @@ async function restore(version: string) {
 
 const info = ref<ArtifactInfo | null>(null)
 const details = computed(() => {
-	const rows = [{ label: "Type", value: artifactLabel(props.doctype) }]
-	rows.push(...(props.editor?.details() ?? []))
+	const rows = [...(props.editor?.details() ?? [])]
 	if (info.value) {
 		rows.push(
 			{ label: "Created by", value: info.value.owner },
@@ -129,11 +143,14 @@ const details = computed(() => {
 			{ label: "Last changed", value: dayjs(info.value.modified).fromNow() }
 		)
 	}
-	rows.push({ label: "ID", value: props.name })
 	return rows
 })
+const detailsForm = computed(() => props.editor?.detailsForm?.() ?? null)
 
-const code = computed(() => (props.drawer === "code" ? props.editor?.code() : null))
+const codeTabs = computed(() => props.editor?.codeTabs?.() ?? [])
+const codeTab = ref("")
+const activeCodeTab = computed(() => codeTabs.value.find((tab) => tab.name === codeTab.value) ?? codeTabs.value[0])
+const code = computed(() => (props.drawer === "code" && !codeTabs.value.length ? props.editor?.code() : null))
 function copyCode() {
 	if (!code.value) return
 	navigator.clipboard.writeText(code.value.content)

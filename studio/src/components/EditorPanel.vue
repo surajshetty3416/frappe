@@ -7,7 +7,7 @@
 				role="tab"
 				:aria-selected="isActive(tab)"
 				:title="tab.title"
-				class="group flex h-7 min-w-0 max-w-[200px] shrink-0 cursor-pointer items-center gap-1.5 rounded-4 pl-2 pr-0.5 text-sm transition-colors"
+				class="group flex h-7 min-w-[96px] max-w-[280px] shrink cursor-pointer items-center gap-1.5 rounded-4 pl-2 pr-0.5 text-sm transition-colors"
 				:class="isActive(tab) ? 'bg-surface-gray-2 text-ink-gray-8' : 'text-ink-gray-6 hover:bg-surface-gray-1'"
 				@click="router.push(tab.path)"
 				@auxclick.middle="close(tab)"
@@ -26,8 +26,8 @@
 			</div>
 		</div>
 
-		<div v-if="artifact" class="flex h-11 shrink-0 items-center gap-2 border-b border-outline-gray-1 pl-3 pr-2">
-			<div class="flex min-w-0 flex-1 items-center gap-2">
+		<div v-if="artifact" data-artifact-bar class="flex h-11 shrink-0 items-center gap-2 border-b border-outline-gray-1 pl-3 pr-2">
+			<div class="flex min-w-0 flex-1 items-center gap-2 overflow-hidden">
 				<TextInput
 					v-if="renaming"
 					ref="titleInput"
@@ -40,18 +40,34 @@
 				/>
 				<Tooltip v-else :text="editor ? 'Rename' : undefined" :disabled="!editor">
 					<span
-						class="truncate rounded-4 px-1 py-0.5 text-base font-medium text-ink-gray-8"
+						class="block min-w-[72px] max-w-[240px] truncate rounded-4 px-1 py-0.5 text-base font-medium text-ink-gray-8"
 						:class="editor ? 'cursor-text hover:bg-surface-gray-2' : ''"
 						@click="startRename"
 						>{{ title }}</span
 					>
 				</Tooltip>
-				<span v-if="status" class="flex shrink-0 items-center gap-1.5 text-sm text-ink-gray-5">
-					<span class="size-1.5 rounded-full" :class="STATUS_DOT[status.theme]" />
-					{{ status.label }}
+				<!-- in a narrow panel the label gives way first, down to its dot -->
+				<span v-if="status" class="flex min-w-1.5 shrink-[20] items-center gap-1.5 text-sm text-ink-gray-5" :title="status.label">
+					<span class="size-1.5 shrink-0 rounded-full" :class="STATUS_DOT[status.theme]" />
+					<span class="truncate">{{ status.label }}</span>
 				</span>
+				<TabButtons
+					v-if="views.length"
+					class="ml-2 shrink-0"
+					:options="views.map((view) => ({ value: view.name, label: view.label }))"
+					:model-value="views.find((view) => view.active)?.name"
+					@update:model-value="(name) => views.find((view) => view.name === name)?.open()"
+				/>
+				<LayerComponent v-if="barControls" :mount="barControls" :layer="layerName" />
 			</div>
 			<div class="flex shrink-0 items-center gap-0.5">
+				<TabButtons
+					v-if="modes.length > 1"
+					class="mr-1"
+					:options="MODES"
+					:model-value="editorMode"
+					@update:model-value="(mode) => setMode(mode as EditorMode)"
+				/>
 				<Button
 					variant="ghost"
 					icon="lucide-message-square-plus"
@@ -59,7 +75,7 @@
 					aria-label="Comment"
 					:disabled="!editor"
 					:class="commenting ? '!bg-surface-gray-3' : ''"
-					@click="commenting = !commenting"
+					@click="toggleCommenting"
 				/>
 				<Button
 					v-for="drawer in drawers"
@@ -87,7 +103,7 @@
 		</div>
 
 		<div class="relative min-h-0 flex-1">
-			<SelectionLayer :editor="editor" :artifact="artifactKey" :covered="!!openDrawer" :data-layer="route.matched[0]?.meta.layer">
+			<SelectionLayer :editor="editor" :artifact="artifactKey" :covered="!!openDrawer" :data-layer="layerName">
 				<slot />
 			</SelectionLayer>
 			<EditorDrawer
@@ -96,6 +112,7 @@
 				:doctype="artifact.doctype"
 				:name="artifact.name"
 				:editor="editor"
+				:layer="layerName"
 				:label="drawers.find((drawer) => drawer.name === openDrawer)?.label ?? ''"
 				@close="openDrawer = null"
 			/>
@@ -104,23 +121,30 @@
 </template>
 
 <script setup lang="ts">
-import { Button, TextInput, Tooltip, toast } from "frappe-ui"
+import { Button, TabButtons, TextInput, Tooltip, toast } from "frappe-ui"
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, shallowRef, watch } from "vue"
 import { useRoute, useRouter } from "vue-router"
 
 import { getArtifactInfo, routeArtifact } from "../artifacts"
 import { commenting } from "../context"
-import type { ArtifactEditor } from "../editor"
+import { type ArtifactEditor, type EditorMode, editorMode } from "../editor"
 import { layers } from "../layers"
 import { onDocUpdate } from "../realtime"
 import { type Tab, closeTab, findTab, openTab, tabKey, tabs } from "../tabs"
 import EditorDrawer from "./EditorDrawer.vue"
+import LayerComponent from "./LayerComponent.vue"
 import SelectionLayer from "./SelectionLayer.vue"
 
 const STATUS_DOT = { gray: "bg-surface-gray-5", green: "bg-surface-green-7", orange: "bg-surface-amber-6" }
 
+const MODES = [
+	{ value: "edit", label: "Edit", icon: "lucide-mouse-pointer-2" },
+	{ value: "preview", label: "Preview (Esc to edit)", icon: "lucide-play" },
+]
+
 const route = useRoute()
 const router = useRouter()
+const layerName = computed(() => route.matched[0]?.meta.layer as string | undefined)
 
 const artifact = computed(() => routeArtifact(route))
 const artifactKey = computed(() => (artifact.value ? tabKey(artifact.value) : ""))
@@ -165,6 +189,24 @@ watch(title, (value) => {
 })
 const status = computed(() => editor.value?.status() ?? null)
 const action = computed(() => editor.value?.primaryAction() ?? null)
+const views = computed(() => editor.value?.views?.() ?? [])
+const barControls = computed(() => editor.value?.barControls?.() ?? null)
+
+const modes = computed<EditorMode[]>(() => (editor.value ? (editor.value.modes ?? ["edit", "preview"]) : []))
+// each artifact opens in its layer's first mode
+watch(
+	() => [artifactKey.value, editor.value] as const,
+	() => (editorMode.value = modes.value[0] ?? "edit"),
+	{ immediate: true }
+)
+function setMode(mode: EditorMode) {
+	editorMode.value = mode
+	if (mode === "preview") commenting.value = false
+}
+function toggleCommenting() {
+	commenting.value = !commenting.value
+	if (commenting.value) editorMode.value = "edit"
+}
 
 const drawers = computed(() => [
 	{ name: "versions", label: "Versions", icon: "lucide-history", disabled: false },
@@ -177,6 +219,11 @@ watch(editor, (open) => {
 })
 onBeforeUnmount(() => (commenting.value = false))
 const toggleDrawer = (name: string) => (openDrawer.value = openDrawer.value === name ? null : name)
+// a closed drawer's button lets go of the focus, or it still looks pressed
+watch(openDrawer, (open) => {
+	const focused = document.activeElement
+	if (!open && focused instanceof HTMLElement && focused.closest("[data-artifact-bar]")) focused.blur()
+})
 
 function close(tab: Tab) {
 	const wasActive = isActive(tab)
@@ -228,9 +275,21 @@ watch(
 )
 onBeforeUnmount(() => stopWatching?.())
 
+const typing = (target: EventTarget | null) =>
+	target instanceof HTMLElement && Boolean(target.closest('input, textarea, select, [contenteditable="true"], .cm-editor'))
+
 function onKeydown(event: KeyboardEvent) {
-	if (event.key === "Escape" && openDrawer.value && !event.defaultPrevented) {
+	if (event.defaultPrevented) return
+	if (event.key === "Escape" && openDrawer.value) {
 		openDrawer.value = null
+		event.preventDefault()
+	} else if (event.key === "Escape" && editorMode.value === "preview" && modes.value.includes("edit")) {
+		editorMode.value = "edit"
+		event.preventDefault()
+	} else if (event.key.toLowerCase() === "z" && (event.metaKey || event.ctrlKey) && editor.value && !typing(event.target)) {
+		const step = event.shiftKey ? editor.value.redo : editor.value.undo
+		if (!step) return
+		step()
 		event.preventDefault()
 	}
 }

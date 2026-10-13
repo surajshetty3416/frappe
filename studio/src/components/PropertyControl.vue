@@ -30,26 +30,73 @@
 			</div>
 		</template>
 	</Popover>
-	<Tooltip v-else :text="property.label">
-		<Select
-			size="sm"
-			variant="ghost"
-			:placeholder="property.label"
-			:model-value="property.value || null"
-			:options="property.options ?? []"
-			@update:model-value="(value) => property.set(String(value))"
-		>
-			<template #prefix><span :class="property.icon" class="size-4 text-ink-gray-5" /></template>
-		</Select>
-	</Tooltip>
+	<Popover v-else-if="property.type === 'popover' && property.component" side="bottom" align="start">
+		<template #trigger>
+			<Button variant="ghost" :icon-left="property.icon" :label="property.value || property.label" />
+		</template>
+		<div data-selection-ui class="max-h-[60vh] w-[340px] overflow-y-auto p-3">
+			<LayerComponent :mount="property.component" :layer="layer" />
+		</div>
+	</Popover>
+	<FileUploader
+		v-else-if="property.type === 'upload'"
+		:file-types="property.accept"
+		:private="false"
+		@success="(file: { file_url: string }) => property.set(file.file_url)"
+	>
+		<template #default="{ uploading, progress, openFileSelector }">
+			<Button
+				variant="ghost"
+				:icon="uploading ? undefined : property.icon"
+				:label="uploading ? `${progress}%` : undefined"
+				:tooltip="property.value ? `${property.label}: ${property.value.split('/').pop()}` : property.label"
+				:aria-label="property.label"
+				@click="openFileSelector"
+			/>
+		</template>
+	</FileUploader>
+	<Popover v-else-if="property.type === 'text'" side="bottom" align="start">
+		<template #trigger>
+			<Button variant="ghost" :icon="property.icon" :tooltip="property.value ? `${property.label}: ${property.value}` : property.label" :aria-label="property.label" />
+		</template>
+		<template #default="{ close }">
+			<div data-layer="shell" data-selection-ui class="w-[280px] p-2">
+				<p class="px-0.5 pb-2 text-xs font-medium text-ink-gray-5">{{ property.label }}</p>
+				<TextInput
+					size="sm"
+					:model-value="property.value"
+					:placeholder="property.placeholder"
+					@keydown.enter="pick(($event.target as HTMLInputElement).value, close, true)"
+				/>
+			</div>
+		</template>
+	</Popover>
+	<!-- the select shows its value, so it needs no tooltip -->
+	<Select
+		v-else
+		size="sm"
+		variant="ghost"
+		:placeholder="property.label"
+		:aria-label="property.label"
+		:model-value="property.value || null"
+		:options="property.options ?? []"
+		@update:model-value="(value) => property.set(String(value))"
+	>
+		<template #prefix><span :class="property.icon" class="size-4 text-ink-gray-5" /></template>
+	</Select>
 </template>
 
 <script setup lang="ts">
-import { Button, Popover, Select, TextInput, Tooltip } from "frappe-ui"
+import { Button, FileUploader, Popover, Select, TextInput, Tooltip } from "frappe-ui"
+import { computed } from "vue"
+import { useRoute } from "vue-router"
 
 import type { ElementProperty } from "../editor"
+import LayerComponent from "./LayerComponent.vue"
 
 const props = defineProps<{ property: ElementProperty }>()
+const route = useRoute()
+const layer = computed(() => route.matched[0]?.meta.layer as string | undefined)
 
 const SWATCHES = [
 	"#ffffff", "#f5f5f4", "#d6d3d1", "#a8a29e", "#57534e", "#292524", "#171717", "#000000",
@@ -57,9 +104,10 @@ const SWATCHES = [
 	"#dc2626", "#d97706", "#16a34a", "#2563eb", "#7c3aed", "#db2777", "#ea580c", "#0d9488",
 ]
 
-function pick(value: string, close: () => void) {
-	const color = value.trim()
-	if (color) props.property.set(color)
+// a text property may be cleared; a color may not
+function pick(value: string, close: () => void, empty = false) {
+	const next = value.trim()
+	if (next || empty) props.property.set(next)
 	close()
 }
 </script>

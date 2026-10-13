@@ -2,6 +2,7 @@
 	<div data-layer="ai" class="flex h-full w-full flex-col bg-surface-base">
 		<FlowApp
 			v-if="ready"
+			ref="flowApp"
 			:key="mountKey"
 			:session="mountSession"
 			:initial-message="initialMessage"
@@ -58,12 +59,13 @@
 
 <script setup lang="ts">
 import { Alert, Button, LoadingIndicator, dayjs } from "frappe-ui"
-import { computed, defineAsyncComponent, ref, watch } from "vue"
+import { computed, defineAsyncComponent, onBeforeUnmount, ref, watch } from "vue"
 import { useRoute, useRouter } from "vue-router"
 
 import { type Artifact, artifactIcon, artifactLabel, getArtifactSession, linkArtifact, routeArtifact } from "../artifacts"
 import { chats } from "../chats"
 import { chatContext, clearSent, contextChips, pendingChips, removeComment } from "../context"
+import { chatSender } from "../editor"
 import { findTab } from "../tabs"
 
 const route = useRoute()
@@ -121,6 +123,11 @@ function onArtifact(made: Artifact) {
 	if (route.path === made.route) return
 	router.push({ path: made.route, query: current.value ? { chat: current.value } : {} })
 }
+
+// an editor action that asks the agent sends through the open chat
+const flowApp = ref<{ send: (message: string) => boolean } | null>(null)
+chatSender.value = (message) => flowApp.value?.send(message) ?? false
+onBeforeUnmount(() => (chatSender.value = null))
 
 const needsSetup = !window.flow_boot?.models?.length
 const openTitle = computed(() => (artifact.value && findTab(artifact.value.doctype, artifact.value.name)?.title) || "this artifact")

@@ -26,6 +26,7 @@ const LAYER_ICONS = {
 	analytics: "lucide-chart-column",
 	ui: "lucide-blocks",
 	data: "lucide-database",
+	agents: "lucide-bot",
 	ai: "lucide-bot",
 }
 const icon = computed(() => LAYER_ICONS[props.artifact.route.split("/")[2]] ?? "lucide-file")
