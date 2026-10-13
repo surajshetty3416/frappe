@@ -31,31 +31,31 @@ def create_test_users():
     create_user(
         NON_INSIGHTS_USER,
         first_name="Non",
-        last_name="Insights User",
+        last_name="Analytics User",
     )
     create_user(
         USER_1,
         first_name="Insights",
         last_name="User",
-        roles="Insights User",
+        roles="Analytics User",
     )
     create_user(
         USER_2,
         first_name="Insights",
         last_name="User",
-        roles="Insights User",
+        roles="Analytics User",
     )
     create_user(
         USER_3,
         first_name="Insights",
         last_name="User",
-        roles="Insights User",
+        roles="Analytics User",
     )
     create_user(
         ADMIN,
         first_name="Insights",
         last_name="Admin",
-        roles="Insights Admin",
+        roles="Analytics Manager",
     )
 
 

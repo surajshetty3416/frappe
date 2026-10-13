@@ -78,8 +78,8 @@ def get_currency_info():
 @frappe.whitelist()
 def get_user_info():
     roles = frappe.get_roles()
-    is_user = "Insights User" in roles
-    is_admin = "Insights Admin" in roles
+    is_user = "Analytics User" in roles
+    is_admin = "Analytics Manager" in roles
 
     user = frappe.db.get_value(
         "User", frappe.session.user, ["first_name", "last_name", "user_type", "language"], as_dict=1

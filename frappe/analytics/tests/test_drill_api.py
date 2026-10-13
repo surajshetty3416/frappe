@@ -301,8 +301,8 @@ class TestDrillAPI(InsightsIntegrationTestCase):
         frappe.db.set_single_value(DT.SETTINGS, "allow_download", 1)
         cls.cleanup()
 
-        create_user(OWNER, first_name="Drill", last_name="Owner", roles="Insights User")
-        create_user(OUTSIDER, first_name="Drill", last_name="Outsider", roles="Insights User")
+        create_user(OWNER, first_name="Drill", last_name="Owner", roles="Analytics User")
+        create_user(OUTSIDER, first_name="Drill", last_name="Outsider", roles="Analytics User")
         create_user(DESK_USER, first_name="Drill", last_name="Desk User")
 
         for description, (status, priority) in OWNER_TODOS.items():
@@ -2143,7 +2143,7 @@ class TestDrillAPI(InsightsIntegrationTestCase):
         """The dashboard's visibility allows them, but the owner saved only the
         chart. A breakdown is the owner's rows grouped another way."""
         _, chart, dashboard = self.make_content(run_as_owner=1)
-        self.assertNotIn("Insights User", frappe.get_roles(DESK_USER))
+        self.assertNotIn("Analytics User", frappe.get_roles(DESK_USER))
 
         result = self.view_drill(
             DESK_USER, chart.name, dashboard.name, drill_stack=[breakdown_level("priority")]
@@ -2300,7 +2300,7 @@ class TestDrillAPI(InsightsIntegrationTestCase):
         The reader's own permissions match none of the fixture rows, so the file
         is only its header."""
         _, chart, dashboard = self.make_content(run_as_owner=0)
-        self.assertNotIn("Insights User", frappe.get_roles(DESK_USER))
+        self.assertNotIn("Analytics User", frappe.get_roles(DESK_USER))
         with as_user(DESK_USER):
             # neither doctype's `export` is granted to a role they hold
             self.assertFalse(frappe.has_permission(DT.CHART, ptype="export"))
@@ -2326,9 +2326,9 @@ class TestDrillAPI(InsightsIntegrationTestCase):
                     )
                     if level == "Roles":
                         board = frappe.get_doc(DT.DASHBOARD, dashboard.name)
-                        board.append("visible_to_roles", {"role": "Insights User"})
+                        board.append("visible_to_roles", {"role": "Analytics User"})
                         board.save(ignore_permissions=True)
-                    self.assertIn("Insights User", frappe.get_roles(OUTSIDER))
+                    self.assertIn("Analytics User", frappe.get_roles(OUTSIDER))
 
                     with as_user(OUTSIDER), db_connections():
                         card = get_chart_data(chart=chart.name, dashboard=dashboard.name)
@@ -2355,12 +2355,12 @@ class TestDrillAPI(InsightsIntegrationTestCase):
 
         # a chart that runs as them, so the role is the only thing left to refuse
         _, chart, dashboard = self.make_content(run_as_owner=0)
-        self.assertIn("Insights User", frappe.get_roles(OUTSIDER))
+        self.assertIn("Analytics User", frappe.get_roles(OUTSIDER))
 
-        update_permission_property(DT.QUERY, "Insights User", 0, "export", 0)
+        update_permission_property(DT.QUERY, "Analytics User", 0, "export", 0)
         frappe.clear_cache(doctype=DT.QUERY)
         self.addCleanup(frappe.clear_cache, doctype=DT.QUERY)
-        self.addCleanup(update_permission_property, DT.QUERY, "Insights User", 0, "export", 1)
+        self.addCleanup(update_permission_property, DT.QUERY, "Analytics User", 0, "export", 1)
 
         answer = self.view_drill(OUTSIDER, chart.name, dashboard.name, drill_stack=[rows_level()])
         self.assertFalse(answer["can_export"])

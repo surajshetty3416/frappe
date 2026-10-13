@@ -66,7 +66,7 @@ class TestInvitationKeyIsStoredHashed(IntegrationTestCase):
         no other role needs this doctype."""
         roles = frappe.get_all(
             "DocPerm",
-            filters={"parent": "Insights User Invitation", "role": "Insights User"},
+            filters={"parent": "Insights User Invitation", "role": "Analytics User"},
             pluck="name",
         )
         self.assertEqual(roles, [])
@@ -108,7 +108,7 @@ class TestInvitationDoesNotAuthenticate(IntegrationTestCase):
         self.assertEqual(
             frappe.db.get_value("Insights User Invitation", invitation.name, "status"), "Accepted"
         )
-        self.assertIn("Insights User", frappe.get_roles(email))
+        self.assertIn("Analytics User", frappe.get_roles(email))
 
     # @feature settings.invite-users
     def test_a_new_invitee_is_signed_in(self):
@@ -122,7 +122,7 @@ class TestInvitationDoesNotAuthenticate(IntegrationTestCase):
 
         self.assertEqual(self.logged_in_as, [email])
         self.assertNotEqual(response.location, "/login")
-        self.assertIn("Insights User", frappe.get_roles(email))
+        self.assertIn("Analytics User", frappe.get_roles(email))
 
     # @feature settings.invite-users
     def test_an_unknown_key_is_refused(self):

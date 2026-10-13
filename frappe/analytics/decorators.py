@@ -17,7 +17,7 @@ def check_role(role):
                 return function(*args, **kwargs)
 
             has_required_role = role in frappe.get_roles(frappe.session.user)
-            if role == "Insights User" and is_admin(frappe.session.user):
+            if role == "Analytics User" and is_admin(frappe.session.user):
                 has_required_role = True
 
             if not has_required_role:
@@ -115,13 +115,13 @@ def debounce(wait):
     return decorator
 
 
-def insights_whitelist(*args, role="Insights User", **kwargs):
+def insights_whitelist(*args, role="Analytics User", **kwargs):
     # usage:
     # @insights_whitelist()
     # def my_function():
     #     pass
     #
-    # @insights_whitelist(role="Insights Admin")
+    # @insights_whitelist(role="Analytics Manager")
     # def admin_function():
     #     pass
     #

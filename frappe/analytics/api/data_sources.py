@@ -170,13 +170,13 @@ def make_data_source(data_source):
     return ds
 
 
-@insights_whitelist(role="Insights Admin")
+@insights_whitelist(role="Analytics Manager")
 def test_connection(data_source: dict):
     ds = make_data_source(data_source)
     return ds.test_connection(raise_exception=True)
 
 
-@insights_whitelist(role="Insights Admin")
+@insights_whitelist(role="Analytics Manager")
 def create_data_source(data_source: dict):
     ds = make_data_source(data_source)
     ds.save()

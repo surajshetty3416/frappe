@@ -191,7 +191,7 @@
   },
   {
    "read": 1,
-   "role": "Flow User"
+   "role": "Assistant User"
   }
  ],
  "row_format": "Dynamic",

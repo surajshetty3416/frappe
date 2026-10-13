@@ -79,8 +79,8 @@ class TestVerifyWorkbook(InsightsIntegrationTestCase):
         cls.original_enable_permissions = frappe.db.get_single_value(DT.SETTINGS, "enable_permissions")
         frappe.db.set_single_value(DT.SETTINGS, "enable_permissions", 0)
         cls.cleanup()
-        create_user(OWNER, roles="Insights User")
-        create_user(OUTSIDER, roles="Insights User")
+        create_user(OWNER, roles="Analytics User")
+        create_user(OUTSIDER, roles="Analytics User")
         for description in TODOS:
             # ToDo reads only what is allocated to the reader
             frappe.get_doc({"doctype": "ToDo", "description": description, "allocated_to": OWNER}).insert(

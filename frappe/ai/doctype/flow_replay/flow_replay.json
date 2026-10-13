@@ -89,7 +89,7 @@
    "delete": 1,
    "if_owner": 1,
    "read": 1,
-   "role": "Flow User",
+   "role": "Assistant User",
    "write": 1
   },
   {

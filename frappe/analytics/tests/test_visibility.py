@@ -26,7 +26,7 @@ OWNER = "visibility_owner@test.com"
 INSIGHTS_PEER = "visibility_peer@test.com"
 # has only VISIBILITY_ROLE, like a desk user who reads reports
 ROLE_HOLDER = "visibility_role_holder@test.com"
-# has no role, to prove that reading never needs `Insights User`
+# has no role, to prove that reading never needs `Analytics User`
 DESK_USER = "visibility_desk_user@test.com"
 GUEST = "Guest"
 
@@ -37,8 +37,8 @@ def create_visibility_users():
     if not frappe.db.exists("Role", VISIBILITY_ROLE):
         frappe.get_doc({"doctype": "Role", "role_name": VISIBILITY_ROLE}).insert(ignore_permissions=True)
 
-    create_user(OWNER, first_name="Visibility", last_name="Owner", roles="Insights User")
-    create_user(INSIGHTS_PEER, first_name="Visibility", last_name="Peer", roles="Insights User")
+    create_user(OWNER, first_name="Visibility", last_name="Owner", roles="Analytics User")
+    create_user(INSIGHTS_PEER, first_name="Visibility", last_name="Peer", roles="Analytics User")
     create_user(ROLE_HOLDER, first_name="Visibility", last_name="Role Holder", roles=VISIBILITY_ROLE)
     create_user(DESK_USER, first_name="Visibility", last_name="Desk User")
 
@@ -250,7 +250,7 @@ class TestVisibility(InsightsIntegrationTestCase):
 
     # @feature permissions.visibility permissions.non-insights-user
     def test_no_visibility_level_consults_the_insights_user_role(self):
-        self.assertNotIn("Insights User", frappe.get_roles(DESK_USER))
+        self.assertNotIn("Analytics User", frappe.get_roles(DESK_USER))
         for doc in self.make_content():
             self.assert_can_read(DESK_USER, self.declare(doc, "Everyone"))
 
@@ -322,7 +322,7 @@ class TestVisibility(InsightsIntegrationTestCase):
             doc = self.declare(doc, "Roles", roles=[VISIBILITY_ROLE])
             with self.as_user(INSIGHTS_PEER), self.assertRaises(frappe.PermissionError):
                 writable = frappe.get_doc(doc.doctype, doc.name)
-                writable.append("visible_to_roles", {"role": "Insights User"})
+                writable.append("visible_to_roles", {"role": "Analytics User"})
                 writable.save()
 
             self.assertEqual(
@@ -572,12 +572,12 @@ class TestVisibility(InsightsIntegrationTestCase):
     def test_a_chart_says_who_may_move_its_box(self):
         """`ChartShareDialog` enables its Run as owner toggle by this.
         `validate_run_as_owner` treats a System Manager as an admin without
-        `Insights Admin`. Only the owner may tick it. Unticking only narrows, so
+        `Analytics Manager`. Only the owner may tick it. Unticking only narrows, so
         any editor may."""
         chart, _ = self.make_content()
         self.edits_through_workbook(chart)
         system_manager = create_user("visibility_system_manager@test.com", roles="System Manager")
-        self.assertNotIn("Insights Admin", frappe.get_roles(system_manager.name))
+        self.assertNotIn("Analytics Manager", frappe.get_roles(system_manager.name))
 
         def may_move(user):
             with self.as_user(user):
@@ -708,7 +708,7 @@ class TestVisibility(InsightsIntegrationTestCase):
 
         with self.as_user(INSIGHTS_PEER), self.assertRaises(frappe.PermissionError):
             writable = frappe.get_doc(chart.doctype, chart.name)
-            writable.append("visible_to_roles", {"role": "Insights User"})
+            writable.append("visible_to_roles", {"role": "Analytics User"})
             writable.save()
 
     # @feature shared.publish-needs-share

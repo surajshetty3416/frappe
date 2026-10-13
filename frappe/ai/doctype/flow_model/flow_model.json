@@ -72,7 +72,7 @@
    "label": "Base URL"
   },
   {
-   "description": "Extra LiteLLM params sent with every call to this model, e.g. <code>{\"provider\": {\"zdr\": true}}</code> for OpenRouter's zero data retention. Flow Users can read them, so keep keys out.",
+   "description": "Extra LiteLLM params sent with every call to this model, e.g. <code>{\"provider\": {\"zdr\": true}}</code> for OpenRouter's zero data retention. Assistant Users can read them, so keep keys out.",
    "fieldname": "extra_params",
    "fieldtype": "JSON",
    "label": "Extra Params"
@@ -98,7 +98,7 @@
   },
   {
    "read": 1,
-   "role": "Flow User"
+   "role": "Assistant User"
   }
  ],
  "row_format": "Dynamic",

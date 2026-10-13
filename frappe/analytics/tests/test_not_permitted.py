@@ -21,7 +21,7 @@ PREFIX = "Not Permitted Test"
 WORKBOOK_TITLE = f"{PREFIX} Workbook"
 READER = "not-permitted-reader@test.com"
 
-# an Insights User cannot read these on a stock site: a doctype, and a child
+# an Analytics User cannot read these on a stock site: a doctype, and a child
 # table whose only parent is also unreadable
 UNREADABLE_TABLE = "tabError Log"
 UNREADABLE_CHILD_TABLE = "tabWorkflow Document State"
@@ -56,7 +56,7 @@ class ContentOverATableTheReaderCannotRead(InsightsIntegrationTestCase):
     @classmethod
     def before_class(cls):
         cls.cleanup()
-        create_user(READER, first_name="Not", last_name="Permitted", roles="Insights User")
+        create_user(READER, first_name="Not", last_name="Permitted", roles="Analytics User")
 
         cls.todo = (
             frappe.get_doc(

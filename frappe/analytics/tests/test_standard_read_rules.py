@@ -47,8 +47,8 @@ class AStandardChartReadsAsAnyChart(InsightsIntegrationTestCase):
     @classmethod
     def before_class(cls):
         cls.cleanup()
-        create_user(GRANTED, first_name="Standard", last_name="Granted", roles="Insights User")
-        create_user(UNGRANTED, first_name="Standard", last_name="Ungranted", roles="Insights User")
+        create_user(GRANTED, first_name="Standard", last_name="Granted", roles="Analytics User")
+        create_user(UNGRANTED, first_name="Standard", last_name="Ungranted", roles="Analytics User")
 
         # each ToDo is allocated to its reader, so desk permissions allow the
         # reader and the tests observe only the team grant. Only the ungranted

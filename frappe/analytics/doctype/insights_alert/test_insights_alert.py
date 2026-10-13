@@ -96,7 +96,7 @@ class TestWebhookFailures(IntegrationTestCase):
 
     # @feature alerts.webhook
     def test_transport_failure_does_not_leak_the_exception_text(self):
-        """Any Insights User can reach this. It gets the class, not the internals."""
+        """Any Analytics User can reach this. It gets the class, not the internals."""
         with patch(POST, side_effect=requests.ConnectionError("connect to 10.1.2.3 failed")):
             with self.assertRaises(frappe.ValidationError) as raised:
                 webhook_alert().send_webhook_alert("msg", message_context())
@@ -254,7 +254,7 @@ class TestEmailRecipients(InsightsIntegrationTestCase):
 
     @classmethod
     def before_class(cls):
-        create_user(cls.MEMBER, first_name="Alert", last_name="Recipient", roles="Insights User")
+        create_user(cls.MEMBER, first_name="Alert", last_name="Recipient", roles="Analytics User")
         cls.workbook = create_test_workbook("Administrator", title="Alert Workbook").name
         cls.query = create_test_query("Administrator", cls.workbook, title="Alert Query").name
 
@@ -308,7 +308,7 @@ class TestAlertMailIsAttributable(InsightsIntegrationTestCase):
 
     @classmethod
     def before_class(cls):
-        create_user(cls.AUTHOR, first_name="Alert", last_name="Author", roles="Insights User")
+        create_user(cls.AUTHOR, first_name="Alert", last_name="Author", roles="Analytics User")
         cls.workbook = create_test_workbook("Administrator", title="Mail Workbook").name
         cls.query = create_test_query("Administrator", cls.workbook, title="Mail Query").name
 
@@ -609,7 +609,7 @@ class TestWhoMaySend(AlertOverSeededTodos):
     @classmethod
     def before_class(cls):
         super().before_class()
-        create_user(cls.READER, first_name="Alert", last_name="Reader", roles="Insights User")
+        create_user(cls.READER, first_name="Alert", last_name="Reader", roles="Analytics User")
 
     @classmethod
     def after_class(cls):

@@ -15,7 +15,7 @@ neither, which is why a public link is safe to open to a guest. Here they are
 the point. The builder shows the SQL it ran and opens a drill level as a query
 of its own, so this endpoint is closed to anyone without an Insights role.
 
-Two things are checked: the `Insights User` role `insights_whitelist` requires,
+Two things are checked: the `Analytics User` role `insights_whitelist` requires,
 and read on the source query, because naming a query is how this endpoint says
 what to run. A caller who names a saved chart they may not write is not its
 writer (`is_writer`). `frappe.analytics.api.view` answers them, as it answers every

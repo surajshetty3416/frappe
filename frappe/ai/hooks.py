@@ -47,13 +47,13 @@ scheduler_events = {
 
 after_install = [
 	"frappe.ai.shell.make_chat_the_home",
-	"frappe.ai.permissions.ensure_flow_role",
+	"frappe.ai.permissions.ensure_assistant_role",
 	"frappe.ai.lib.model.ensure_claude_code_model",
 	"frappe.ai.assistant.sync_builtin_assistant",
 	"frappe.ai.daemon.lifecycle.after_install",
 ]
 after_migrate = [
-	"frappe.ai.permissions.ensure_flow_role",
+	"frappe.ai.permissions.ensure_assistant_role",
 	"frappe.ai.lib.model.ensure_claude_code_model",
 	"frappe.ai.assistant.sync_builtin_assistant",
 	"frappe.ai.lib.agent.sync_agents",

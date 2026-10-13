@@ -163,7 +163,7 @@ class TestValidateExpressionSandbox(InsightsIntegrationTestCase):
     columns = json.dumps([{"value": "amount", "description": "Integer"}, {"value": "frappe"}])
 
     def before_test(self):
-        create_user(VALIDATOR, roles="Insights User")
+        create_user(VALIDATOR, roles="Analytics User")
         self.addCleanup(delete_users, VALIDATOR)
         self.todo = frappe.get_doc({"doctype": "ToDo", "description": "validate"}).insert(
             ignore_permissions=True
@@ -184,7 +184,7 @@ class TestValidateExpressionSandbox(InsightsIntegrationTestCase):
             "after_commit": "frappe.db.after_commit.add(if_else)",
             "commit": "frappe.db.commit()",
             "rollback": "frappe.db.rollback()",
-            # another user's ToDo: an Insights User reads only their own
+            # another user's ToDo: an Analytics User reads only their own
             "read": f"frappe.get_doc('ToDo', '{todo}').description",
         }
         for runs_as in (VALIDATOR, "Administrator"):

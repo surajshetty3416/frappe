@@ -4,13 +4,13 @@
 import frappe
 from frappe.ai import artifacts
 from frappe.ai.lib.tool import ToolContext
-from frappe.ai.permissions import FLOW_USER_ROLE, ensure_flow_role
+from frappe.ai.permissions import ASSISTANT_USER_ROLE, ensure_assistant_role
 from frappe.tests import IntegrationTestCase
 from frappe.utils import add_to_date, now_datetime
 
 OWNER = "artifacts-owner@example.com"
 OTHER = "artifacts-other@example.com"
-STUDIO_USER_ROLE = "Studio User"
+APP_MANAGER_ROLE = "App Manager"
 
 
 def user(email: str, *roles: str) -> str:
@@ -65,9 +65,9 @@ def age(session: str, minutes: int) -> None:
 
 class ArtifactsTestCase(IntegrationTestCase):
 	def setUp(self):
-		ensure_flow_role()
-		user(OWNER, FLOW_USER_ROLE, STUDIO_USER_ROLE)
-		user(OTHER, FLOW_USER_ROLE)
+		ensure_assistant_role()
+		user(OWNER, ASSISTANT_USER_ROLE, APP_MANAGER_ROLE)
+		user(OTHER, ASSISTANT_USER_ROLE)
 
 	def tearDown(self):
 		frappe.set_user("Administrator")

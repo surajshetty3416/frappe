@@ -3,7 +3,7 @@
 
 """Who may use Flow. Three checks, each answering one question:
 
-- Base access: Flow Users use Flow within their own records; System Managers administer its
+- Base access: Assistant Users use Flow within their own records; System Managers administer its
   setup. Deliberate Frappe shares may delegate an individual record.
 - Doctype permissions: which agents and models. User Permissions narrow them per user; checked
   when a session starts and on every turn.
@@ -17,14 +17,14 @@ from __future__ import annotations
 
 import frappe
 
-FLOW_USER_ROLE = "Flow User"
+ASSISTANT_USER_ROLE = "Assistant User"
 
 
-def ensure_flow_role() -> None:
+def ensure_assistant_role() -> None:
 	"""Create the role on install and migrate."""
-	if frappe.db.exists("Role", FLOW_USER_ROLE):
+	if frappe.db.exists("Role", ASSISTANT_USER_ROLE):
 		return
-	frappe.get_doc({"doctype": "Role", "role_name": FLOW_USER_ROLE, "desk_access": 1}).insert(
+	frappe.get_doc({"doctype": "Role", "role_name": ASSISTANT_USER_ROLE, "desk_access": 1}).insert(
 		ignore_permissions=True, ignore_if_duplicate=True
 	)
 

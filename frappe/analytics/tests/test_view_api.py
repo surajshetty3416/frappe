@@ -85,10 +85,10 @@ class TestViewAPI(InsightsIntegrationTestCase):
         frappe.db.set_single_value(DT.SETTINGS, "enable_permissions", 0)
         cls.cleanup()
 
-        create_user(OWNER, first_name="View", last_name="Owner", roles="Insights User")
-        create_user(OUTSIDER, first_name="View", last_name="Outsider", roles="Insights User")
+        create_user(OWNER, first_name="View", last_name="Owner", roles="Analytics User")
+        create_user(OUTSIDER, first_name="View", last_name="Outsider", roles="Analytics User")
         create_user(DESK_USER, first_name="View", last_name="Desk User")
-        create_user(ADMIN, first_name="View", last_name="Admin", roles=["Insights User", "System Manager"])
+        create_user(ADMIN, first_name="View", last_name="Admin", roles=["Analytics User", "System Manager"])
 
         for description in OWNER_TODOS:
             frappe.get_doc(
@@ -189,7 +189,7 @@ class TestViewAPI(InsightsIntegrationTestCase):
     # @feature permissions.non-insights-user
     def test_a_reader_without_an_insights_role_reads_the_dashboard(self):
         _, chart, dashboard = self.make_content(visibility="Everyone")
-        self.assertNotIn("Insights User", frappe.get_roles(DESK_USER))
+        self.assertNotIn("Analytics User", frappe.get_roles(DESK_USER))
 
         with as_user(DESK_USER):
             response = get_dashboard(dashboard=dashboard.name)
@@ -728,7 +728,7 @@ class TestViewAPI(InsightsIntegrationTestCase):
 
     # @feature permissions.non-insights-user dashboard.filter-values
     def test_a_roleless_reader_reaches_what_the_authoring_endpoints_gate(self):
-        """The `Insights User` check is on the endpoint, not on the computation.
+        """The `Analytics User` check is on the endpoint, not on the computation.
 
         A view needs two answers that authoring clients also ask for: how many
         rows are behind a number, and which values a column has. The view's

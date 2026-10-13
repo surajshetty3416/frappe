@@ -25,7 +25,7 @@ OWNER = "daily_activity_owner@test.com"
 class TestDailyActivity(InsightsIntegrationTestCase):
     @classmethod
     def before_class(cls):
-        create_user(OWNER, first_name="Daily", last_name="Owner", roles="Insights Admin")
+        create_user(OWNER, first_name="Daily", last_name="Owner", roles="Analytics Manager")
         cls.workbook = create_test_workbook(OWNER, title="Daily Activity Workbook").name
         cls.dashboard = create_test_dashboard(OWNER, cls.workbook, title="Daily Activity Dashboard").name
 

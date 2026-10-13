@@ -19,7 +19,7 @@ def create_user(email):
     user.email = email
     user.first_name = email.split("@")[0]
     user.send_welcome_email = 0
-    user.append("roles", {"role": "Insights User"})
+    user.append("roles", {"role": "Analytics User"})
     user.insert(ignore_permissions=True)
 
 

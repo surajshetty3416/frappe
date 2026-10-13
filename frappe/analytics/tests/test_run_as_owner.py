@@ -64,14 +64,14 @@ class TestRunAsOwner(InsightsIntegrationTestCase):
     @classmethod
     def before_class(cls):
         cls.cleanup()
-        create_user(OWNER, first_name="Permissions", last_name="Owner", roles="Insights User")
-        create_user(READER, first_name="Permissions", last_name="Reader", roles="Insights User")
+        create_user(OWNER, first_name="Permissions", last_name="Owner", roles="Analytics User")
+        create_user(READER, first_name="Permissions", last_name="Reader", roles="Analytics User")
         create_user(ADMIN, first_name="Permissions", last_name="Admin", roles="System Manager")
         create_user(
             INSIGHTS_ADMIN,
             first_name="Permissions",
-            last_name="Insights Admin",
-            roles=["Insights User", "Insights Admin"],
+            last_name="Analytics Manager",
+            roles=["Analytics User", "Analytics Manager"],
         )
 
         for user, descriptions in ((OWNER, OWNER_TODOS), (READER, READER_TODOS)):
@@ -473,7 +473,7 @@ class TestRunAsOwner(InsightsIntegrationTestCase):
 
     # @feature permissions.team-grant permissions.table-row-restriction permissions.site-user-permissions
     def test_an_admin_reads_the_site_rows_desk_allows_whatever_their_team_grants(self):
-        """An Insights Admin passes every team check, but that is not a grant. On
+        """An Analytics Manager passes every team check, but that is not a grant. On
         site data an admin reads only what desk allows."""
         from frappe.analytics.doctype.insights_team.insights_team import clear_cache, is_admin
 

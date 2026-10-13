@@ -83,7 +83,7 @@ OPERATIONS = [
 class TestSiteScan(InsightsIntegrationTestCase):
     @classmethod
     def before_class(cls):
-        create_user(USER, first_name="Site", last_name="Scan", roles="Insights User")
+        create_user(USER, first_name="Site", last_name="Scan", roles="Analytics User")
         cls.workbook = create_test_workbook(USER, title=WORKBOOK_TITLE).name
         cls.query = create_test_query(USER, cls.workbook, title="Site Scan Query", operations=OPERATIONS).name
         cls.chart = create_test_chart(USER, cls.workbook, query=cls.query, title="Site Scan Chart").name

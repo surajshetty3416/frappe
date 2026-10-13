@@ -121,7 +121,7 @@
    "print": 1,
    "read": 1,
    "report": 1,
-   "role": "Studio User",
+   "role": "App Manager",
    "share": 1,
    "write": 1
   }

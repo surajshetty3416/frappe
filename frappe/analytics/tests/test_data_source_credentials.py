@@ -31,8 +31,8 @@ SERVICE_ACCOUNT_KEY = '{"type": "service_account", "private_key": "-----BEGIN PR
 class TestDataSourceCredentials(InsightsIntegrationTestCase):
     @classmethod
     def before_class(cls):
-        create_user(ADMIN, first_name="Credentials", last_name="Admin", roles="Insights Admin")
-        create_user(USER, first_name="Credentials", last_name="User", roles="Insights User")
+        create_user(ADMIN, first_name="Credentials", last_name="Admin", roles="Analytics Manager")
+        create_user(USER, first_name="Credentials", last_name="User", roles="Analytics User")
         cls.data_source = (
             frappe.get_doc(
                 {
@@ -63,7 +63,7 @@ class TestDataSourceCredentials(InsightsIntegrationTestCase):
     def test_an_insights_user_reads_no_credential_field(self):
         doc = self.read_as(USER)
         for fieldname in CREDENTIAL_FIELDS:
-            self.assertIsNone(doc.get(fieldname), f"{fieldname} reached an Insights User")
+            self.assertIsNone(doc.get(fieldname), f"{fieldname} reached an Analytics User")
 
     # @feature data-source.credentials-stay-with-admins
     def test_an_insights_admin_still_reads_the_credentials(self):
@@ -89,7 +89,7 @@ class TestDataSourceCredentials(InsightsIntegrationTestCase):
         with self.as_user(USER):
             doc = frappe.client.get(DT.DATA_SOURCE, self.data_source)
         for fieldname in CREDENTIAL_FIELDS:
-            self.assertIsNone(doc.get(fieldname), f"{fieldname} reached an Insights User")
+            self.assertIsNone(doc.get(fieldname), f"{fieldname} reached an Analytics User")
 
     # @feature data-source.credentials-stay-with-admins
     def test_the_title_stays_readable(self):

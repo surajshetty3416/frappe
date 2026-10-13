@@ -14,7 +14,7 @@ const SENTENCE =
 describe('getErrorMessage', () => {
 	// @feature permissions.error-is-text
 	it('reads the sentence to a user sent no traceback', () => {
-		// an Insights User has no desk access, so gets no traceback
+		// an Analytics User has no desk access, so gets no traceback
 		expect(getErrorMessage(refusal({ messages: [SENTENCE] }))).toBe(
 			'Fill in the value of the variable api_key on this query to run it.',
 		)

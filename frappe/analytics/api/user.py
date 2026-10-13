@@ -67,7 +67,7 @@ def get_users(search_term: str | None = None):
         or_filters=or_filters,
     )
 
-    insights_admins = get_users_with_role("Insights Admin")
+    insights_admins = get_users_with_role("Analytics Manager")
     for user in users:
         user["type"] = "Admin" if user.name in insights_admins else "User"
 
@@ -181,7 +181,7 @@ def get_teams(search_term: str | None = None):
     return teams
 
 
-@insights_whitelist(role="Insights Admin")
+@insights_whitelist(role="Analytics Manager")
 def create_team(team_name: str):
     team = frappe.new_doc("Insights Team")
     team.team_name = team_name
@@ -189,7 +189,7 @@ def create_team(team_name: str):
     return team
 
 
-@insights_whitelist(role="Insights Admin")
+@insights_whitelist(role="Analytics Manager")
 def update_team(team: dict):
     team = frappe._dict(team)
     doc = frappe.get_doc("Insights Team", team.name)
@@ -228,7 +228,7 @@ def update_team(team: dict):
     doc.save()
 
 
-@insights_whitelist(role="Insights Admin")
+@insights_whitelist(role="Analytics Manager")
 def delete_team(team_name: str):
     frappe.delete_doc("Insights Team", team_name)
 
@@ -270,7 +270,7 @@ def accept_invitation(key: str):
     frappe.local.response["location"] = get_app_url()
 
 
-@insights_whitelist(role="Insights Admin", methods=["POST"])
+@insights_whitelist(role="Analytics Manager", methods=["POST"])
 def invite_users(emails: str):
     if not emails:
         return

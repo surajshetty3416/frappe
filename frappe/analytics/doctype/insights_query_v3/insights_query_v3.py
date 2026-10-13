@@ -364,7 +364,7 @@ class InsightsQueryv3(Document):
     def get_count(self, active_operation_idx: int | None = None, adhoc_filters: dict | None = None):
         """The authoring client's endpoint for `count_rows`.
 
-        The `Insights User` role belongs to the endpoint a client reaches, not to
+        The `Analytics User` role belongs to the endpoint a client reaches, not to
         the computation behind it: a surface that settled its own read before it
         counts anything calls the plain method instead.
         """
@@ -700,7 +700,7 @@ class InsightsQueryv3(Document):
         new_query.insert()
         return new_query.name
 
-    @insights_whitelist(role="Insights Admin", methods=["POST"])
+    @insights_whitelist(role="Analytics Manager", methods=["POST"])
     def refresh_stored_tables(self):
         """Import all source tables used in this query to the data store"""
         tables = self.get_source_tables()

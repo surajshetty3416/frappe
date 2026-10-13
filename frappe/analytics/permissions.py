@@ -84,7 +84,7 @@ TEAM_BASED_PERMISSION_DOCTYPES = [
     "Insights Chart v3",
 ]
 
-INSIGHTS_ROLES = ("Insights User", "Insights Admin")
+INSIGHTS_ROLES = ("Analytics User", "Analytics Manager")
 
 # Documents that belong to a workbook. Only the workbook grants write on them.
 # An alert belongs to its query's workbook.
@@ -448,7 +448,7 @@ class InsightsPermissions:
         """Documents whose visibility allows this user.
 
         Visibility grants read only, never write or share. No level checks the
-        `Insights User` role. Under `ignore_visibility` it allows nobody.
+        `Analytics User` role. Under `ignore_visibility` it allows nobody.
         """
         if ptype != "read" or doctype not in VISIBILITY_DOCTYPES or self.ignore_visibility:
             return None
@@ -1337,7 +1337,7 @@ def can_download(user=None) -> bool:
     """Whether this user may download data as a file at all.
 
     It depends on the user, never on a document: the site's `allow_download`
-    setting, which an Insights Admin ignores, and the role's `export`
+    setting, which an Analytics Manager ignores, and the role's `export`
     permission, because downloading data is a role's decision. `get_user_info`
     returns it so the client can show the control.
 
@@ -1437,7 +1437,7 @@ def check_app_permission(user=None):
 
 
 def check_trusted_code_author(documents) -> None:
-    """Only an Insights Admin adds or changes trusted code (`trusted_code_of`).
+    """Only an Analytics Manager adds or changes trusted code (`trusted_code_of`).
 
     `documents` holds `(title, content, stored content)` for each query, chart or
     alert being saved. Stored content is empty for a new one. Trusted code that
@@ -1456,7 +1456,7 @@ def check_trusted_code_author(documents) -> None:
     if titles:
         frappe.throw(
             frappe._(
-                "Only an Insights Admin can add or change a script, an expression that runs SQL or a stored procedure call: {0}"
+                "Only an Analytics Manager can add or change a script, an expression that runs SQL or a stored procedure call: {0}"
             ).format(", ".join(frappe.bold(frappe.utils.escape_html(title)) for title in titles)),
             frappe.PermissionError,
         )

@@ -95,7 +95,7 @@ class InsightsTeam(Document):
             frappe.throw("Admin team cannot be deleted")
 
     def set_admin_roles(self):
-        current_admins = get_users_with_role("Insights Admin")
+        current_admins = get_users_with_role("Analytics Manager")
         valid_admins = [m.user for m in self.team_members]
 
         invalid_admins = list(set(current_admins) - set(valid_admins))
@@ -167,8 +167,8 @@ def update_admin_team(user, method=None):
             return
 
         roles = user.get("roles", [])
-        is_user = next((True for role in roles if role.role == "Insights User"), False)
-        is_admin = next((True for role in roles if role.role == "Insights Admin"), False)
+        is_user = next((True for role in roles if role.role == "Analytics User"), False)
+        is_admin = next((True for role in roles if role.role == "Analytics Manager"), False)
         if not is_user and not is_admin:
             return
 
@@ -378,7 +378,7 @@ def remove_admin_role(users):
             {
                 "parent": user,
                 "parenttype": "User",
-                "role": "Insights Admin",
+                "role": "Analytics Manager",
             },
         )
 
@@ -387,7 +387,7 @@ def give_admin_role(users):
     for user in users:
         if not has_admin_role(user):
             u = frappe.get_doc("User", user)
-            u.add_roles("Insights Admin")
+            u.add_roles("Analytics Manager")
 
 
 def has_admin_role(user):
@@ -396,6 +396,6 @@ def has_admin_role(user):
         {
             "parent": user,
             "parenttype": "User",
-            "role": "Insights Admin",
+            "role": "Analytics Manager",
         },
     )

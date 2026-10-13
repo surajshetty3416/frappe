@@ -278,7 +278,7 @@
    "print": 1,
    "read": 1,
    "report": 1,
-   "role": "Insights Admin",
+   "role": "Analytics Manager",
    "share": 1,
    "write": 1
   },
@@ -288,13 +288,13 @@
    "print": 1,
    "read": 1,
    "report": 1,
-   "role": "Insights User",
+   "role": "Analytics User",
    "share": 1
   },
   {
    "permlevel": 1,
    "read": 1,
-   "role": "Insights Admin",
+   "role": "Analytics Manager",
    "write": 1
   }
  ],

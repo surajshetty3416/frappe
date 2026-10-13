@@ -14,7 +14,7 @@ from frappe.ai.daemon.client import DaemonClient, DaemonError
 from frappe.ai.doctype.flow_session.flow_session import FlowSession
 from frappe.ai.doctype.flow_session_attachment.test_flow_session_attachment import png_bytes
 from frappe.ai.memory import store as memory_store
-from frappe.ai.permissions import FLOW_USER_ROLE
+from frappe.ai.permissions import ASSISTANT_USER_ROLE
 from frappe.ai.tests.test_fake_daemon import PENDING, TITLE, FakeDaemon, pause, turn
 from frappe.ai.tools.builtins import sync_builtin_tools
 
@@ -783,7 +783,7 @@ class TestFlowSessionModelPermission(IntegrationTestCase):
 				"email": "model-perm@example.com",
 				"first_name": "Model Perm",
 				"send_welcome_email": 0,
-				"roles": [{"role": FLOW_USER_ROLE}],
+				"roles": [{"role": ASSISTANT_USER_ROLE}],
 			}
 		).insert(ignore_permissions=True)
 

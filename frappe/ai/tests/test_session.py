@@ -10,7 +10,7 @@ from frappe.tests import IntegrationTestCase
 from frappe.ai.daemon.client import DaemonClient, DaemonError
 from frappe.ai.doctype.flow_session_attachment.test_flow_session_attachment import png_bytes
 from frappe.ai.lib.session import load_session, new_session
-from frappe.ai.permissions import FLOW_USER_ROLE
+from frappe.ai.permissions import ASSISTANT_USER_ROLE
 from frappe.ai.tests.test_fake_daemon import FakeDaemon
 from frappe.ai.tests.test_live_server import LiveServerCase
 from frappe.ai.tools.builtins import sync_builtin_tools
@@ -26,7 +26,7 @@ def _ensure_other() -> None:
 				"email": OTHER,
 				"first_name": "Other",
 				"send_welcome_email": 0,
-				"roles": [{"role": FLOW_USER_ROLE}],
+				"roles": [{"role": ASSISTANT_USER_ROLE}],
 			}
 		).insert(ignore_permissions=True)
 

@@ -27,8 +27,8 @@ DRIVER_ERROR = OSError(f'connection to "postgresql://svc:{SECRET}@warehouse.inte
 class TestConnectionErrorReporting(InsightsIntegrationTestCase):
     @classmethod
     def before_class(cls):
-        create_user(ADMIN, first_name="Connection", last_name="Admin", roles="Insights Admin")
-        create_user(USER, first_name="Connection", last_name="User", roles="Insights User")
+        create_user(ADMIN, first_name="Connection", last_name="Admin", roles="Analytics Manager")
+        create_user(USER, first_name="Connection", last_name="User", roles="Analytics User")
         cls.data_source = (
             frappe.get_doc(
                 {

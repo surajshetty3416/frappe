@@ -2,7 +2,7 @@
 # For license information, please see license.txt
 """Outbound HTTP to a URL that a user chose.
 
-An Insights User is the least privileged role the app has, and it can already
+An Analytics User is the least privileged role the app has, and it can already
 save a webhook alert and press "send test". A URL from that form is therefore
 an instruction to this server from an untrusted caller. A URL that resolves
 onto the server's own network reaches databases, admin ports and metadata

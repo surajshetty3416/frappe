@@ -92,7 +92,7 @@ class TestCardFilterValues(InsightsIntegrationTestCase):
         frappe.db.set_single_value(DT.SETTINGS, "enable_permissions", 0)
         cls.cleanup()
 
-        create_user(AUTHOR, first_name="Card", last_name="Author", roles="Insights User")
+        create_user(AUTHOR, first_name="Card", last_name="Author", roles="Analytics User")
         for description, status in TODOS.items():
             frappe.get_doc(
                 {

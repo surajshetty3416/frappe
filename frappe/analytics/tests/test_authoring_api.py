@@ -106,8 +106,8 @@ class TestAuthoringAPI(InsightsIntegrationTestCase):
         frappe.db.set_single_value(DT.SETTINGS, "enable_permissions", 0)
         cls.cleanup()
 
-        create_user(OWNER, first_name="Authoring", last_name="Owner", roles="Insights User")
-        create_user(OUTSIDER, first_name="Authoring", last_name="Outsider", roles="Insights User")
+        create_user(OWNER, first_name="Authoring", last_name="Owner", roles="Analytics User")
+        create_user(OUTSIDER, first_name="Authoring", last_name="Outsider", roles="Analytics User")
         create_user(READER, first_name="Authoring", last_name="Reader")
 
         for description in OWNER_TODOS:
@@ -603,7 +603,7 @@ class TestAuthoringAPI(InsightsIntegrationTestCase):
     # @feature permissions.authoring-needs-role
     def test_a_reader_without_an_insights_role_is_refused(self):
         query, chart = self.make_content()
-        self.assertNotIn("Insights User", frappe.get_roles(READER))
+        self.assertNotIn("Analytics User", frappe.get_roles(READER))
 
         # the reader may see the chart, but not the pipeline behind it
         with as_user(READER):

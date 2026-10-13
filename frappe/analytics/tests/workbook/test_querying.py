@@ -251,7 +251,7 @@ class TestQuerying(InsightsIntegrationTestCase):
 
         self.assertIn("full_name", preview_column_names)
         self.assertEqual(len(result["rows"]), 3)
-        self.assertEqual({row["full_name"] for row in result["rows"]}, {"Workbook Flow User"})
+        self.assertEqual({row["full_name"] for row in result["rows"]}, {"Workbook Test User"})
 
     # @feature query.remove-column query.join
     def test_a_remove_after_a_join_takes_the_column_off(self):
@@ -865,18 +865,18 @@ class TestQuerying(InsightsIntegrationTestCase):
         self.assertEqual(
             [(row["description"], row["full_name"]) for row in left["rows"]],
             [
-                (f"{TODO_PREFIX} Closed Beta", "Workbook Flow User"),
-                (f"{TODO_PREFIX} Open Alpha", "Workbook Flow User"),
-                (f"{TODO_PREFIX} Open Gamma", "Workbook Flow User"),
+                (f"{TODO_PREFIX} Closed Beta", "Workbook Test User"),
+                (f"{TODO_PREFIX} Open Alpha", "Workbook Test User"),
+                (f"{TODO_PREFIX} Open Gamma", "Workbook Test User"),
                 (f"{TODO_PREFIX} Orphan Delta", None),
             ],
         )
         self.assertEqual(
             [(row["description"], row["full_name"]) for row in inner["rows"]],
             [
-                (f"{TODO_PREFIX} Closed Beta", "Workbook Flow User"),
-                (f"{TODO_PREFIX} Open Alpha", "Workbook Flow User"),
-                (f"{TODO_PREFIX} Open Gamma", "Workbook Flow User"),
+                (f"{TODO_PREFIX} Closed Beta", "Workbook Test User"),
+                (f"{TODO_PREFIX} Open Alpha", "Workbook Test User"),
+                (f"{TODO_PREFIX} Open Gamma", "Workbook Test User"),
             ],
         )
 
@@ -943,9 +943,9 @@ class TestQuerying(InsightsIntegrationTestCase):
         self.assertEqual(
             [(row["description"], row["full_name"]) for row in result["rows"]],
             [
-                (f"{TODO_PREFIX} Closed Beta", "Workbook Flow User"),
-                (f"{TODO_PREFIX} Open Alpha", "Workbook Flow User"),
-                (f"{TODO_PREFIX} Open Gamma", "Workbook Flow User"),
+                (f"{TODO_PREFIX} Closed Beta", "Workbook Test User"),
+                (f"{TODO_PREFIX} Open Alpha", "Workbook Test User"),
+                (f"{TODO_PREFIX} Open Gamma", "Workbook Test User"),
             ],
         )
 
@@ -1173,7 +1173,7 @@ class TestQuerying(InsightsIntegrationTestCase):
             "enqueue": not_in_sandbox,
             "call": not_in_sandbox,
             "sendmail": not_in_sandbox,
-            "sql": (frappe.PermissionError, "Only an Insights Admin"),
+            "sql": (frappe.PermissionError, "Only an Analytics Manager"),
             "get_all": not_in_sandbox,
             "http": not_in_sandbox,
             # `frappe.db` returns a no-op for a name it does not have

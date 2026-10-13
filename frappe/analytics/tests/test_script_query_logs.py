@@ -94,7 +94,7 @@ class TestScriptQueryLogs(InsightsIntegrationTestCase):
         their logs."""
         from frappe.analytics.permission_user import permission_user
 
-        create_user(SCRIPT_READER, roles="Insights User")
+        create_user(SCRIPT_READER, roles="Analytics User")
         self.addCleanup(delete_users, SCRIPT_READER)
         code = "print(frappe.session.user)\nresults = [{'a': 1}]"
 
@@ -217,7 +217,7 @@ class TestScriptSandbox(InsightsIntegrationTestCase):
         not see the caller's session. The caller's own run also sees only `user`."""
         from frappe.analytics.permission_user import permission_user
 
-        create_user(SCRIPT_READER, roles="Insights User")
+        create_user(SCRIPT_READER, roles="Analytics User")
         self.addCleanup(delete_users, SCRIPT_READER)
         frappe.local.session.data.csrf_token = "caller-token"
         self.addCleanup(frappe.local.session.data.pop, "csrf_token")
@@ -319,7 +319,7 @@ class TestScriptSandbox(InsightsIntegrationTestCase):
 
         todo = frappe.get_doc({"doctype": "ToDo", "description": "sandbox"}).insert(ignore_permissions=True)
         self.addCleanup(frappe.delete_doc, "ToDo", todo.name, force=True)
-        create_user(SCRIPT_READER, roles="Insights User")
+        create_user(SCRIPT_READER, roles="Analytics User")
         self.addCleanup(delete_users, SCRIPT_READER)
         self.addCleanup(frappe.db.delete, "UTM Source", {"name": "insights-script-probe"})
 
@@ -391,7 +391,7 @@ class TestScriptAuthor(InsightsIntegrationTestCase):
     def before_test(self):
         from frappe.analytics.tests.factories import create_test_workbook
 
-        create_user(SCRIPT_READER, roles="Insights User")
+        create_user(SCRIPT_READER, roles="Analytics User")
         self.addCleanup(delete_users, SCRIPT_READER)
         self.workbook = create_test_workbook(SCRIPT_READER).name
         self.addCleanup(self.delete_workbooks)
@@ -624,7 +624,7 @@ class TestScriptAuthor(InsightsIntegrationTestCase):
     def test_the_script_editor_is_shown_to_whoever_may_save_a_script(self):
         """`ScriptQueryEditor` shows the script editor only when
         `can_write_trusted_code` is set. The flag must match the save check: a
-        System Manager without the `Insights Admin` role may save a script, and a
+        System Manager without the `Analytics Manager` role may save a script, and a
         holder of that role outside the Admin team may not."""
         import frappe.share
         from frappe.client import insert
@@ -633,8 +633,8 @@ class TestScriptAuthor(InsightsIntegrationTestCase):
         from frappe.analytics.doctype.insights_team.insights_team import clear_cache
 
         manager, role_holder = "script-manager@test.com", "script-role-holder@test.com"
-        create_user(manager, roles=["Insights User", "System Manager"])
-        create_user(role_holder, roles=["Insights User", "Insights Admin"])
+        create_user(manager, roles=["Analytics User", "System Manager"])
+        create_user(role_holder, roles=["Analytics User", "Analytics Manager"])
         self.addCleanup(delete_users, manager, role_holder)
         frappe.db.delete("Insights Team Member", {"parent": "Admin", "user": role_holder})
         clear_cache()
@@ -868,7 +868,7 @@ class TestScriptQueryCache(InsightsIntegrationTestCase):
         query is stored because only an admin may run an unsaved script (Q17)."""
         from frappe.analytics.tests.factories import create_test_workbook
 
-        create_user(SCRIPT_READER, roles="Insights User")
+        create_user(SCRIPT_READER, roles="Analytics User")
         self.addCleanup(delete_users, SCRIPT_READER)
         workbook = create_test_workbook("Administrator").name
         self.addCleanup(frappe.delete_doc, "Insights Workbook", workbook, force=True)

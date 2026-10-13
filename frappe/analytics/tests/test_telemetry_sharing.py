@@ -30,8 +30,8 @@ WORKBOOK_TITLE = "Share Granted Test Workbook"
 class TestShareGranted(InsightsIntegrationTestCase):
     @classmethod
     def before_class(cls):
-        create_user(OWNER, first_name="Share", last_name="Owner", roles=["Insights User", "Insights Admin"])
-        create_user(VIEWER, first_name="Share", last_name="Viewer", roles="Insights User")
+        create_user(OWNER, first_name="Share", last_name="Owner", roles=["Analytics User", "Analytics Manager"])
+        create_user(VIEWER, first_name="Share", last_name="Viewer", roles="Analytics User")
 
     @classmethod
     def after_class(cls):

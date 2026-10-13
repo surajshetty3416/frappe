@@ -277,7 +277,7 @@ class TestInsightsPermissions(InsightsIntegrationTestCase):
         # address to match
         with self.as_user(USER_1):
             by_email = [user["email"] for user in get_users("user1")]
-            by_name = [user["email"] for user in get_users("Insights User")]
+            by_name = [user["email"] for user in get_users("Analytics User")]
 
         self.assertIn(USER_1, by_email)
         self.assertNotIn(USER_2, by_email)
@@ -605,7 +605,7 @@ class TestInsightsPermissions(InsightsIntegrationTestCase):
             # the same rows save through the member
             writable = frappe.get_doc(chart.doctype, chart.name)
             writable.visibility = "Roles"
-            writable.append("visible_to_roles", {"role": "Insights User"})
+            writable.append("visible_to_roles", {"role": "Analytics User"})
             writable.save()
 
         # every table of every member, whoever saves the row
@@ -654,7 +654,7 @@ class TestInsightsPermissions(InsightsIntegrationTestCase):
         rows = [
             (dashboard, {"parentfield": "linked_charts", "chart": private_chart.name}),
             (dashboard, {"parentfield": "visible_to_roles", "role": "All"}),
-            (chart, {"parentfield": "visible_to_roles", "role": "Insights User"}),
+            (chart, {"parentfield": "visible_to_roles", "role": "Analytics User"}),
             (query, {"parentfield": "variables", "variable_name": "key"}),
         ]
         with self.as_user(USER_1):
@@ -983,7 +983,7 @@ class TestInsightsPermissions(InsightsIntegrationTestCase):
         frappe.db.set_single_value(DT.SETTINGS, "allow_download", 1)
         self.addCleanup(frappe.clear_cache, doctype=DT.QUERY)
 
-        update_permission_property(DT.QUERY, "Insights User", 0, "export", 0)
+        update_permission_property(DT.QUERY, "Analytics User", 0, "export", 0)
         frappe.clear_cache(doctype=DT.QUERY)
 
         with self.as_user(USER_1):
@@ -991,7 +991,7 @@ class TestInsightsPermissions(InsightsIntegrationTestCase):
             with self.assertRaisesRegex(frappe.PermissionError, "not allowed to download"):
                 query_doc.download_results(format="csv")
 
-        update_permission_property(DT.QUERY, "Insights User", 0, "export", 1)
+        update_permission_property(DT.QUERY, "Analytics User", 0, "export", 1)
         frappe.clear_cache(doctype=DT.QUERY)
 
         with self.as_user(USER_1):
@@ -1072,7 +1072,7 @@ class TestInsightsPermissions(InsightsIntegrationTestCase):
         self.set_team_permissions(False)
         frappe.db.set_single_value(DT.SETTINGS, "allow_download", 0)
 
-        # USER_1 has the export permission via the Insights User role,
+        # USER_1 has the export permission via the Analytics User role,
         # but the global toggle must still block the download
         with self.as_user(USER_1):
             self.assertTrue(frappe.has_permission(DT.QUERY, ptype="export"))

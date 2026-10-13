@@ -7,7 +7,7 @@ from frappe.analytics.decorators import insights_whitelist
 from frappe.analytics.setup.demo import DemoDataFactory
 
 
-@insights_whitelist(role="Insights Admin")
+@insights_whitelist(role="Analytics Manager")
 def check_demo_data_exists() -> bool:
     from frappe.analytics.doctype.insights_data_source_v3.insights_data_source_v3 import (
         db_connections,
@@ -22,7 +22,7 @@ def check_demo_data_exists() -> bool:
         return factory.demo_data_exists()
 
 
-@insights_whitelist(role="Insights Admin", methods=["POST"])
+@insights_whitelist(role="Analytics Manager", methods=["POST"])
 def setup_demo_data():
     try:
         factory = DemoDataFactory()

@@ -6,9 +6,9 @@ from frappe.tests import IntegrationTestCase
 
 from frappe.ai import api
 from frappe.ai.memory import store as memory_store
-from frappe.ai.patches.grant_flow_role import FLOW_USER_ROLE_PROFILE
+from frappe.ai.patches.grant_flow_role import ASSISTANT_USER_ROLE_PROFILE
 from frappe.ai.patches.grant_flow_role import execute as grant_flow_role
-from frappe.ai.permissions import FLOW_USER_ROLE, ensure_flow_role
+from frappe.ai.permissions import ASSISTANT_USER_ROLE, ensure_assistant_role
 
 ROLE_DOCTYPES = ("Flow Agent", "Flow Model", "Flow Session", "Flow Run")
 
@@ -51,19 +51,19 @@ def _agent() -> str:
 
 class TestFlowAccess(IntegrationTestCase):
 	def setUp(self):
-		ensure_flow_role()
+		ensure_assistant_role()
 
 	def tearDown(self):
 		frappe.set_user("Administrator")
 		frappe.db.rollback()
 
 	def test_the_role_exists_with_desk_access(self):
-		ensure_flow_role()
-		self.assertEqual(frappe.db.get_value("Role", FLOW_USER_ROLE, "desk_access"), 1)
+		ensure_assistant_role()
+		self.assertEqual(frappe.db.get_value("Role", ASSISTANT_USER_ROLE, "desk_access"), 1)
 
 	def test_the_doctype_rows_follow_the_role(self):
 		outsider = _user("flow-access-none@example.com")
-		member = _user("flow-access-member@example.com", FLOW_USER_ROLE)
+		member = _user("flow-access-member@example.com", ASSISTANT_USER_ROLE)
 		manager = _user("flow-access-manager@example.com", "System Manager")
 		for doctype in ROLE_DOCTYPES:
 			with self.subTest(doctype):
@@ -73,8 +73,8 @@ class TestFlowAccess(IntegrationTestCase):
 
 	def test_sessions_runs_and_personal_memories_stay_private_to_their_owner(self):
 		self.addCleanup(memory_store.drop_table)
-		owner = _user("flow-private-owner@example.com", FLOW_USER_ROLE)
-		member = _user("flow-private-member@example.com", FLOW_USER_ROLE)
+		owner = _user("flow-private-owner@example.com", ASSISTANT_USER_ROLE)
+		member = _user("flow-private-member@example.com", ASSISTANT_USER_ROLE)
 		manager = _user("flow-private-manager@example.com", "System Manager")
 		agent = _agent()
 		frappe.set_user(owner)
@@ -189,21 +189,21 @@ class TestFlowAccess(IntegrationTestCase):
 		grant_flow_role()
 
 		for name in (manager, profiled):
-			self.assertIn(FLOW_USER_ROLE, frappe.get_roles(name), name)
+			self.assertIn(ASSISTANT_USER_ROLE, frappe.get_roles(name), name)
 		for name in (plain, retired, operator, peer, website_user, dormant_operator):
-			self.assertNotIn(FLOW_USER_ROLE, frappe.get_roles(name), name)
+			self.assertNotIn(ASSISTANT_USER_ROLE, frappe.get_roles(name), name)
 		self.assertNotIn(
-			FLOW_USER_ROLE, [row.role for row in frappe.get_doc("Role Profile", manager_profile).roles]
+			ASSISTANT_USER_ROLE, [row.role for row in frappe.get_doc("Role Profile", manager_profile).roles]
 		)
 		self.assertNotIn(
-			FLOW_USER_ROLE, [row.role for row in frappe.get_doc("Role Profile", operator_profile).roles]
+			ASSISTANT_USER_ROLE, [row.role for row in frappe.get_doc("Role Profile", operator_profile).roles]
 		)
 		for name in (profiled,):
 			profiles = {row.role_profile for row in frappe.get_doc("User", name).role_profiles}
-			self.assertIn(FLOW_USER_ROLE_PROFILE, profiles)
+			self.assertIn(ASSISTANT_USER_ROLE_PROFILE, profiles)
 		self.assertEqual(
-			[row.role for row in frappe.get_doc("Role Profile", FLOW_USER_ROLE_PROFILE).roles],
-			[FLOW_USER_ROLE],
+			[row.role for row in frappe.get_doc("Role Profile", ASSISTANT_USER_ROLE_PROFILE).roles],
+			[ASSISTANT_USER_ROLE],
 		)
 		self.assertEqual(frappe.db.get_value("User", website_user, "user_type"), "Website User")
 

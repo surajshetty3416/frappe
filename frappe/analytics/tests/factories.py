@@ -68,11 +68,11 @@ def create_user(
     return frappe.get_doc(DT.USER, email)
 
 
-def create_test_user(email=USER_1, role="Insights User"):
+def create_test_user(email=USER_1, role="Analytics User"):
     return create_user(
         email,
         first_name="Workbook",
-        last_name="Flow User",
+        last_name="Test User",
         roles=role,
     )
 

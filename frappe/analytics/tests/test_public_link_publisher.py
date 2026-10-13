@@ -52,7 +52,7 @@ class TestPublicLinkPublisher(InsightsIntegrationTestCase):
             OWNER, workbook.name, cls.chart, title=f"{PREFIX} Dashboard"
         ).name
         cls.workbook = workbook.name
-        create_user(PUBLISHER, first_name="Public", last_name="Publisher", roles="Insights User")
+        create_user(PUBLISHER, first_name="Public", last_name="Publisher", roles="Analytics User")
 
     @classmethod
     def after_class(cls):

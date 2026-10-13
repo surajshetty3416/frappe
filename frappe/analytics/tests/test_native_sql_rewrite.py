@@ -230,7 +230,7 @@ class TestNativeSQL(InsightsIntegrationTestCase):
         """On the data store, the rows desk permits are read from the live site
         into an in-memory table. The SQL sent to DuckDB reads that table."""
         reader = "native_sql_rows@test.com"
-        create_user(reader, first_name="Native", last_name="Rows", roles="Insights User")
+        create_user(reader, first_name="Native", last_name="Rows", roles="Analytics User")
         self.addCleanup(delete_users, reader)
 
         with as_user(reader), db_connections():

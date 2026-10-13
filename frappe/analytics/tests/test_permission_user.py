@@ -57,7 +57,7 @@ class TestPreviewKeyNamesItsUser(InsightsIntegrationTestCase):
     @classmethod
     def before_class(cls):
         delete_users(PUBLISHER)
-        create_user(PUBLISHER, first_name="Perm", last_name="Publisher", roles="Insights User")
+        create_user(PUBLISHER, first_name="Perm", last_name="Publisher", roles="Analytics User")
 
     @classmethod
     def after_class(cls):
@@ -74,7 +74,7 @@ class TestPreviewKeyNamesItsUser(InsightsIntegrationTestCase):
 
 
 def error_log_operations():
-    """A query over `tabError Log`, which an Insights User may not read at all."""
+    """A query over `tabError Log`, which an Analytics User may not read at all."""
     return [
         {
             "type": "source",
@@ -84,7 +84,7 @@ def error_log_operations():
 
 
 def user_operations():
-    """A query over `tabUser`, which an Insights User may not read at large."""
+    """A query over `tabUser`, which an Analytics User may not read at large."""
     return [
         {
             "type": "source",
@@ -100,8 +100,8 @@ class TestAlertRunsAsItsEnabler(InsightsIntegrationTestCase):
     @classmethod
     def before_class(cls):
         cls.cleanup()
-        create_user(PUBLISHER, first_name="Perm", last_name="Publisher", roles="Insights User")
-        create_user(EDITOR, first_name="Perm", last_name="Editor", roles="Insights User")
+        create_user(PUBLISHER, first_name="Perm", last_name="Publisher", roles="Analytics User")
+        create_user(EDITOR, first_name="Perm", last_name="Editor", roles="Analytics User")
         cls.workbook = create_test_workbook(PUBLISHER, title=WORKBOOK_TITLE).name
         cls.query = create_test_query(
             PUBLISHER, cls.workbook, title="Alert Query", operations=todo_operations()

@@ -93,7 +93,7 @@ class InsightsUserInvitation(Document):
             frappe.throw("Invitation already accepted")
 
         user, account_was_created = self.create_user_if_not_exists()
-        user.append_roles("Insights User")
+        user.append_roles("Analytics User")
         user.save(ignore_permissions=True)
 
         self.status = "Accepted"

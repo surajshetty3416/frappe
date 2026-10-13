@@ -246,14 +246,14 @@ class InsightsTablev3(Document):
 
     @frappe.whitelist(methods=["POST"])
     def import_to_warehouse(self):
-        frappe.only_for("Insights Admin")
+        frappe.only_for("Analytics Manager")
         self.check_identity()
         wt = insights.warehouse.get_table(self.data_source, self.table)
         wt.enqueue_import()
 
     @frappe.whitelist(methods=["POST"])
     def clear_warehouse_data(self):
-        frappe.only_for("Insights Admin")
+        frappe.only_for("Analytics Manager")
         self.check_identity()
         insights.warehouse.get_table(self.data_source, self.table).drop()
         self.db_set(

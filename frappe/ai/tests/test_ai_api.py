@@ -14,7 +14,7 @@ from frappe.ai.daemon.client import DaemonClient
 from frappe.ai.doctype.flow_session.flow_session import FlowSession
 from frappe.ai.doctype.flow_session_attachment.test_flow_session_attachment import png_bytes
 from frappe.ai.lib.session import new_session
-from frappe.ai.permissions import FLOW_USER_ROLE
+from frappe.ai.permissions import ASSISTANT_USER_ROLE
 from frappe.ai.tests.test_fake_daemon import FakeDaemon, child_pause, pause
 from frappe.ai.tests.test_live_server import LiveServerCase
 from frappe.ai.tools.builtins import sync_builtin_tools
@@ -117,15 +117,15 @@ def _ensure_user(email: str) -> str:
 				"enabled": 1,
 			}
 		).insert(ignore_permissions=True)
-	frappe.get_doc("User", email).add_roles(FLOW_USER_ROLE)
+	frappe.get_doc("User", email).add_roles(ASSISTANT_USER_ROLE)
 	return email
 
 
 def _ensure_manager() -> str:
-	"""A System Manager without the Flow User role."""
+	"""A System Manager without the Assistant User role."""
 	user = frappe.get_doc("User", _ensure_user(MANAGER))
 	user.add_roles("System Manager")
-	user.remove_roles(FLOW_USER_ROLE)
+	user.remove_roles(ASSISTANT_USER_ROLE)
 	return user.name
 
 

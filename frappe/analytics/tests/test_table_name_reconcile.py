@@ -365,7 +365,7 @@ class TestTableNameReconcile(InsightsIntegrationTestCase):
     def test_a_rename_clears_the_cached_team_grants(self):
         loser = self.create_table("public.orders", stored=1)
         self.create_table("orders")
-        user = create_user("reconcile_test_user@test.com", roles="Insights User")
+        user = create_user("reconcile_test_user@test.com", roles="Analytics User")
         self.addCleanup(frappe.delete_doc, DT.USER, user.name, force=True)
         self.create_team_with_grant(loser.name, members=[user.name])
         self.set_team_permissions(True)

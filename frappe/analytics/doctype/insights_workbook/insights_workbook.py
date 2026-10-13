@@ -510,7 +510,7 @@ class InsightsWorkbook(Document):
         if not frappe.conf.developer_mode:
             frappe.throw(frappe._("A workbook is marked standard in developer mode."))
 
-        frappe.only_for("Insights Admin")
+        frappe.only_for("Analytics Manager")
         self.check_permission("write")
 
         if not module:
@@ -577,7 +577,7 @@ class InsightsWorkbook(Document):
     def get_lineage_graph(self):
         """Return query-reference graph nodes and edges for queries in this workbook,
         including all upstream table and query dependencies."""
-        frappe.only_for("Insights Admin")
+        frappe.only_for("Analytics Manager")
 
         Ref = frappe.qb.DocType("Insights Query Reference")
         Query = frappe.qb.DocType("Insights Query v3")

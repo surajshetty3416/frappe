@@ -1,6 +1,6 @@
 """What code in a query may use.
 
-A script is trusted code, written by an Insights Admin like a Server Script. It
+A script is trusted code, written by an Analytics Manager like a Server Script. It
 ignores permissions and may make HTTP requests. Anyone who may change a query
 may write an expression, so an expression reads only what its Permission User
 may read. Neither may write, queue a job, call a method, send mail or register

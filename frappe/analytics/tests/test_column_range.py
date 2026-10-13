@@ -61,7 +61,7 @@ class TestColumnRange(InsightsIntegrationTestCase):
         frappe.db.set_single_value(DT.SETTINGS, "enable_permissions", 0)
         cls.cleanup()
 
-        create_user(AUTHOR, first_name="Range", last_name="Author", roles="Insights User")
+        create_user(AUTHOR, first_name="Range", last_name="Author", roles="Analytics User")
         for description in TODOS:
             frappe.get_doc(
                 {
