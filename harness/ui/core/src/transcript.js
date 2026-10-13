@@ -518,6 +518,7 @@ function foldLabel(turn) {
 //   {kind: "turn-artifacts", turnKey, artifacts: [{doctype, name, label, title, route}]}
 //   {kind: "turn-tasks", turnKey, tasks: [{key, chat, title, message, run, status}]}
 //   {kind: "compaction", entry}
+//   {kind: "system", text}  a message the host marks as a notice
 //   {kind: "error", error}
 // Every item carries a stable `key` (derived from seq / call id) so v-for
 // state (expanded panels) survives the tail reshaping while streaming.
@@ -617,7 +618,7 @@ export function buildItems(conversation, expandedTurnKeys = new Set(), openPanel
 		if (entry.type === "user_message") {
 			flushThoughts()
 			// a message the host marks as a notice, such as one sent by the system, is no bubble
-			if (entry.notice) items.push({ kind: "notice", key: `u:${entry.seq}`, turnKey: currentTurnKey, text: entry.notice })
+			if (entry.notice) items.push({ kind: "system", key: `u:${entry.seq}`, turnKey: currentTurnKey, text: entry.notice })
 			else items.push({ kind: "user", key: `u:${entry.seq}`, entry })
 		} else if (entry.type === "assistant_message") {
 			appendAssistantBlocks(entry.content ?? [], { entry, seconds })
@@ -710,7 +711,7 @@ export function buildItems(conversation, expandedTurnKeys = new Set(), openPanel
 		const turn = turns.get(item.turnKey)
 		if (!turn?.hasUser || item.turnKey === unsettledTurnKey) continue
 		const foldable =
-			["group", "thinking", "compaction"].includes(item.kind) ||
+			["group", "thinking", "compaction", "system"].includes(item.kind) ||
 			(item.kind === "text" && !item.provisional && item.entry !== turn.terminalAssistant)
 		if (!foldable) continue
 		const foldableItems = foldableByTurn.get(item.turnKey) ?? []

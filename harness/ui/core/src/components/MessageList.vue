@@ -42,6 +42,10 @@
 						<span>Context compacted</span>
 					</div>
 					<p v-else-if="item.kind === 'notice'" class="text-sm text-ink-gray-5">{{ item.text }}</p>
+					<div v-else-if="item.kind === 'system'" class="flex items-center gap-2 text-sm text-ink-gray-5">
+						<span class="lucide-circle-check size-4 flex-none" />
+						<span>{{ item.text }}</span>
+					</div>
 					<div
 						v-else-if="item.kind === 'error'"
 						class="break-words rounded-4 border border-outline-red-1 bg-surface-red-1 px-3 py-2 text-sm text-ink-red-6"
