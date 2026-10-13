@@ -33,6 +33,7 @@ from frappe.utils.safe_exec import (
 	is_job_queued,
 	safe_enqueue,
 	safe_exec_flags,
+	safe_render_template,
 	safer_get_meta,
 	safer_log_error,
 )
@@ -194,6 +195,7 @@ def get_flow_safe_globals(*, tool_context: ToolContext | None = None) -> Namespa
 			get_list=_permissioned_get_list,
 			get_print=_gated_get_print,
 			attach_print=_gated_attach_print,
+			render_template=safe_render_template,
 			sendmail=frappe.sendmail,
 			log=frappe.log,
 			log_error=safer_log_error,
