@@ -223,6 +223,7 @@ def get_flow_safe_globals(*, tool_context: ToolContext | None = None) -> Namespa
 	out._print_ = FrappePrintCollector
 	out._getiter_ = iter
 	out._iter_unpack_sequence_ = RestrictedPython.Guards.guarded_iter_unpack_sequence
+	out._unpack_sequence_ = RestrictedPython.Guards.guarded_unpack_sequence
 	out._inplacevar_ = protected_inplacevar
 	out.update(get_python_builtins())
 

@@ -118,7 +118,7 @@ COMPANY_WORDS = (
 )
 FREE_MAIL = {"gmail.com": 8, "outlook.com": 1, "yahoo.com": 1}
 SKEWS = {"rising": 2, "falling": -2, "flat": 0}
-PERSON_ATTRS = {"first_name", "last_name", "full_name", "country", "he", "she", "his", "her"}
+PERSON_ATTRS = {"first_name", "last_name", "full_name", "country", "he", "He", "his", "His", "him", "Him"}
 FAKER_BLOCKED = {"seed", "seed_instance", "seed_locale", "add_provider", "format", "parse", "provider"}
 
 COMMON_PARAMS = {"kind", "empty", "unique"}
@@ -215,8 +215,9 @@ class Person:
 	def __init__(self, first: str, last: str, woman: bool, country: str):
 		self.first_name, self.last_name, self.country = first, last, country
 		self.full_name = f"{first} {last}"
-		self.he, self.she = ("she", "She") if woman else ("he", "He")
-		self.his, self.her = ("her", "Her") if woman else ("his", "His")
+		self.he, self.He = ("she", "She") if woman else ("he", "He")
+		self.his, self.His = ("her", "Her") if woman else ("his", "His")
+		self.him, self.Him = ("her", "Her") if woman else ("him", "Him")
 
 
 class Generator:
@@ -296,6 +297,19 @@ class Generator:
 			except Exception as e:
 				self.errors.append(f"{where}: {kind} spec is invalid ({e})")
 			specs[fieldname] = spec
+		slots: dict[str, Bag] = {}
+		owners: dict[str, str] = {}
+		for fieldname, spec in specs.items():
+			for name, bag in spec.pop("own_slots", {}).items():
+				if name in owners:
+					self.errors.append(f"slot {name} is in both {owners[name]} and {fieldname}; give it once, every field of the record can use it")
+				elif name in specs:
+					self.errors.append(f"{fieldname}: slot {name} has the name of a field; rename it")
+				owners[name] = fieldname
+				slots[name] = bag
+		for spec in specs.values():
+			if spec["kind"] == "text":
+				spec["slot_bags"] = slots
 		for spec in specs.values():
 			if spec["kind"] == "text":
 				self.check_text(spec, specs, meta)
@@ -424,23 +438,45 @@ class Generator:
 		if not templates:
 			raise SpecError("give template, or templates as a list or a {template: weight} map")
 		spec["bag"] = Bag(self.rng, *weighted(templates), draws)
-		spec["slot_bags"] = {name: Bag(self.rng, *weighted(values), None) for name, values in (spec.get("slots") or {}).items()}
+		slots = spec.get("slots") or {}
+		if not isinstance(slots, dict):
+			raise SpecError("slots maps a slot name to a list or a {value: weight} map")
+		spec["own_slots"] = {}
+		for name, values in slots.items():
+			outcomes, weights = weighted(values)
+			if not outcomes:
+				raise SpecError(f"slot {name} has no values")
+			objects = [o for o in outcomes if isinstance(o, dict)]
+			if objects and len(objects) != len(outcomes):
+				raise SpecError(f"slot {name} mixes objects and plain values")
+			if objects and not set.intersection(*(set(o) for o in objects)):
+				raise SpecError(f"the objects of slot {name} share no key")
+			spec["own_slots"][name] = Bag(self.rng, outcomes, weights, draws)
 		spec["counter"] = cint(spec.get("start", 1))
 
 	def check_text(self, spec, specs: dict, meta) -> None:
 		if "bag" not in spec:
 			return
-		slots = spec.get("slots") or {}
-		texts = list(spec["bag"].outcomes) + [str(v) for values in slots.values() for v in weighted(values)[0]]
+		slots = spec["slot_bags"]
+		texts = list(spec["bag"].outcomes)
+		for values in (spec.get("slots") or {}).values():
+			for value in weighted(values)[0]:
+				texts.extend(value.values() if isinstance(value, dict) else [value])
 		for text in texts:
 			for token in PLACEHOLDER.findall(str(text)):
 				if problem := self.placeholder_problem(token, slots, specs, meta):
 					self.errors.append(f"{spec['where']}: {{{token}}} {problem}")
 
 	def placeholder_problem(self, token: str, slots: dict, specs: dict, meta) -> str | None:
-		if token in slots or re.fullmatch(r"0+|\d+\.\.\d+|code:\d+", token):
+		if re.fullmatch(r"0+|\d+\.\.\d+|code:\d+", token):
 			return None
 		head, _, attr = token.partition(".")
+		if head in slots:
+			objects = [o for o in slots[head].outcomes if isinstance(o, dict)]
+			if not objects:
+				return None if not attr else f"{head} holds plain values, so write {{{head}}}"
+			keys = set.intersection(*(set(o) for o in objects))
+			return None if attr in keys else f"pick a key of {head}: {', '.join(sorted(keys))}"
 		if head == "person":
 			return None if attr in PERSON_ATTRS else f"person has {', '.join(sorted(PERSON_ATTRS))}"
 		if head not in specs:
@@ -515,6 +551,7 @@ class Row:
 	def __init__(self, gen: Generator, specs: dict, index: int):
 		self.gen, self.specs, self.index, self.rng = gen, specs, index, gen.rng
 		self.cache: dict[str, Any] = {}
+		self.slots: dict[str, Any] = {}
 		self.pending: set[str] = set()
 		self._person: Person | None = None
 
@@ -525,7 +562,10 @@ class Row:
 		return self._person
 
 	def values(self) -> dict:
-		return {fieldname: self.get(fieldname) for fieldname in self.specs}
+		# unique fields first, so their retries can redraw slots no other field has used yet
+		for fieldname in sorted(self.specs, key=lambda f: not self.specs[f].get("unique")):
+			self.get(fieldname)
+		return {fieldname: self.cache[fieldname] for fieldname in self.specs}
 
 	def get(self, fieldname: str) -> Any:
 		if fieldname in self.cache:
@@ -538,9 +578,14 @@ class Row:
 			value = None
 		elif spec.get("unique") and spec["kind"] not in PERSON_KINDS | {"email", "link", "table"}:
 			for _ in range(UNIQUE_TRIES):
+				slots, cached = set(self.slots), set(self.cache)
 				value = self.make(spec)
 				if str(value) not in spec["taken"]:
 					break
+				for name in set(self.slots) - slots:
+					del self.slots[name]
+				for name in set(self.cache) - cached:
+					del self.cache[name]
 			else:
 				raise SpecError(f"{spec['where']} ran out of unique values; widen its spec")
 			spec["taken"].add(str(value))
@@ -629,16 +674,16 @@ class Row:
 	def render(self, template: str, spec: dict, depth: int) -> str:
 		def fill(match: re.Match) -> str:
 			token = match.group(1)
-			if token in spec["slot_bags"]:
-				value = spec["slot_bags"][token].draw()
-				return self.render(str(value), spec, depth + 1) if depth < 5 else str(value)
+			head, _, attr = token.partition(".")
+			if head in spec["slot_bags"]:
+				value = self.slot(head, spec, depth)
+				return str(value[attr] if attr else value)
 			if re.fullmatch(r"0+", token):
 				return str(spec["counter"]).zfill(len(token))
 			if m := re.fullmatch(r"(\d+)\.\.(\d+)", token):
 				return str(self.rng.randint(int(m.group(1)), int(m.group(2))))
 			if m := re.fullmatch(r"code:(\d+)", token):
 				return "".join(self.rng.choice("ABCDEFGHJKLMNPQRSTUVWXYZ23456789") for _ in range(int(m.group(1))))
-			head, _, attr = token.partition(".")
 			if head == "person":
 				return getattr(self.person, attr)
 			value = self.get(head)
@@ -647,6 +692,18 @@ class Row:
 			return "" if value is None else str(value)
 
 		return PLACEHOLDER.sub(fill, str(template))
+
+	def slot(self, name: str, spec: dict, depth: int) -> Any:
+		"""A slot is drawn once per record, so every field of the record reads the same value."""
+		if name not in self.slots:
+			value = spec["slot_bags"][name].draw()
+			if depth < 5:
+				if isinstance(value, dict):
+					value = {k: self.render(str(v), spec, depth + 1) for k, v in value.items()}
+				else:
+					value = self.render(str(value), spec, depth + 1)
+			self.slots[name] = value
+		return self.slots[name]
 
 	def make_constant(self, spec):
 		return spec["value"]
