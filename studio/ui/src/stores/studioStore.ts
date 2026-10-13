@@ -425,26 +425,52 @@ const useStudioStore = defineStore("studioStore", () => {
 		}
 	}
 
-	// a route variable without a test value takes the first record the page looks it up in, so the
-	// canvas shows a record, as the published page does, instead of a page waiting for one
+	// a route variable without a test value takes the first record the screen would open on: the first
+	// row of the list that links to it, or else the first record the page looks it up in
 	async function seedRouteVariables(page: StudioPage) {
 		const unset = new Set(getRouteVariables(page.route).filter((name) => !routeVariables.value[name]))
 		for (const resource of page.resources || []) {
 			if (!unset.size) return
 			if (resource.resource_type !== "Document" || !resource.fetch_document_using_filters || !resource.filters) continue
-			const filters = typeof resource.filters === "string" ? JSON.parse(resource.filters) : resource.filters
+			const filters = parseFilters(resource.filters)
 			for (const [field, value] of Object.entries(filters)) {
 				const name = typeof value === "string" ? value.match(/^\{\{\s*route\.params\.(\w+)\s*\}\}$/)?.[1] : null
 				if (!name || !unset.has(name)) continue
 				unset.delete(name)
-				const [record] = await call("frappe.client.get_list", {
-					doctype: resource.document_type,
-					fields: [field],
-					limit_page_length: 1,
-				})
-				if (record?.[field] && activePage.value?.name === page.name) routeVariables.value[name] = String(record[field])
+				const testValue =
+					(await getFirstListedValue(page, resource.document_type, name)) ??
+					(await getFirstValue(resource.document_type, field))
+				if (testValue && activePage.value?.name === page.name) routeVariables.value[name] = String(testValue)
 			}
 		}
+	}
+
+	const parseFilters = (filters: unknown) => (typeof filters === "string" ? JSON.parse(filters) : filters || {}) as Record<string, unknown>
+
+	// the first row of another page's list whose rows route to this page, in the list's filter and order;
+	// filters on page variables are left out, as those start empty
+	async function getFirstListedValue(page: StudioPage, doctype: string, variable: string) {
+		const escape = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+		const routePattern = page.route
+			.split("/")
+			.map((part) => (part === `:${variable}` ? "\\{\\{\\s*\\w+\\.(\\w+)\\s*\\}\\}" : part.startsWith(":") ? "\\{\\{[^}]*\\}\\}" : escape(part)))
+			.join("/")
+		const linkPattern = new RegExp(`"route":\\s*"${routePattern}"`)
+		for (const sibling of Object.values(appPages.value)) {
+			if (sibling.name === page.name) continue
+			const doc = await fetchPage(sibling.name)
+			const field = String(doc?.draft_blocks || doc?.blocks || "").match(linkPattern)?.[1]
+			const list = field && doc.resources?.find((resource: any) => resource.resource_type === "Document List" && resource.document_type === doctype)
+			if (!list) continue
+			const filters = Object.fromEntries(Object.entries(parseFilters(list.filters)).filter(([, value]) => !JSON.stringify(value).includes("{{")))
+			return getFirstValue(doctype, field, filters, list.sort_field && `${list.sort_field} ${list.sort_order || "desc"}`)
+		}
+		return null
+	}
+
+	async function getFirstValue(doctype: string, field: string, filters = {}, order_by?: string) {
+		const [record] = await call("frappe.client.get_list", { doctype, fields: [field], filters, order_by, limit_page_length: 1 })
+		return record?.[field] ?? null
 	}
 
 	function setRouteVariable(name: string, value: string) {
