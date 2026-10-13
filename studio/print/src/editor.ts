@@ -24,12 +24,17 @@ export default defineOutputEditor({
 	primaryAction(state) {
 		const urls = links(state.name, state.target, state.record)
 		if (!urls) return null
+		if (!state.pdfShown) return { label: "View PDF", icon: "lucide-file-text", run: async () => void (state.pdfShown = true) }
 		return {
 			label: "Download PDF",
 			icon: "lucide-download",
-			run: async () => void window.open(urls.pdf, "_blank"),
+			run: async () => {
+				const link = Object.assign(document.createElement("a"), { href: urls.pdf, download: `${state.record}.pdf` })
+				link.click()
+			},
 		}
 	},
+	pdf: (state) => links(state.name, state.target, state.record)?.pdf ?? null,
 	details(state) {
 		const doc = state.doc!
 		const page = state.page

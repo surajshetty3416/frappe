@@ -1,6 +1,12 @@
 <template>
 	<div class="flex h-full flex-col bg-surface-gray-1" @click="openLink">
-		<div ref="viewport" class="relative min-h-0 flex-1 overflow-auto">
+		<template v-if="pdf && state.pdfShown">
+			<div class="flex h-10 shrink-0 items-center border-b border-outline-gray-1 bg-surface-base px-2">
+				<Button variant="ghost" label="Back to the canvas" icon-left="lucide-arrow-left" @click="state.pdfShown = false" />
+			</div>
+			<iframe :key="`${pdf}:${state.doc?.modified}`" :src="`${pdf}#navpanes=0`" title="PDF" class="min-h-0 w-full flex-1 border-0" />
+		</template>
+		<div v-else ref="viewport" class="relative min-h-0 flex-1 overflow-auto">
 			<div v-if="state.error && state.target && !state.record" class="flex h-full flex-col items-center justify-center px-6 text-center">
 				<span class="lucide-rows-3 size-5 text-ink-gray-4" />
 				<p class="mt-3 text-base font-medium text-ink-gray-8">No {{ state.target }} yet</p>
@@ -55,7 +61,7 @@ import { useRouter } from "vue-router"
 
 import type { OutputState } from "./outputEditor"
 
-const props = defineProps<{ state: OutputState }>()
+const props = defineProps<{ state: OutputState; pdf?: string | null }>()
 const emit = defineEmits<{ host: [node: HTMLElement | null] }>()
 
 const router = useRouter()

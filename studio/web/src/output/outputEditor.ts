@@ -63,6 +63,8 @@ export interface OutputState {
 	loading: boolean
 	saving: boolean
 	host: HTMLElement | null
+	// the panel shows the rendered PDF instead of the canvas
+	pdfShown: boolean
 }
 
 interface OutputSpec {
@@ -71,6 +73,7 @@ interface OutputSpec {
 	route: (name: string) => string
 	status: (state: OutputState) => ArtifactStatus
 	primaryAction: (state: OutputState) => ArtifactAction | null
+	pdf?: (state: OutputState) => string | null
 	details: (state: OutputState) => ArtifactDetail[]
 	// the form at the top of Details, mounted with the state and `set(field, value)`
 	detailsForm: Component
@@ -124,6 +127,7 @@ export function defineOutputEditor(spec: OutputSpec) {
 		loading: false,
 		saving: false,
 		host: null,
+		pdfShown: false,
 	})
 
 	const findBlock = (id: string) => (state.tree ? walk(state.tree).find((block) => block.blockId === id) ?? null : null)
@@ -219,6 +223,7 @@ export function defineOutputEditor(spec: OutputSpec) {
 						state.record = recordName
 						state.doc = null
 						state.html = ""
+						state.pdfShown = false
 						load(name)
 					} else if (recordName && recordName !== state.record) {
 						state.record = recordName
@@ -227,7 +232,8 @@ export function defineOutputEditor(spec: OutputSpec) {
 				},
 				{ immediate: true },
 			)
-			return () => h(OutputPreview, { state, onHost: (node: HTMLElement | null) => (state.host = node) })
+			return () =>
+				h(OutputPreview, { state, pdf: spec.pdf?.(state) ?? null, onHost: (node: HTMLElement | null) => (state.host = node) })
 		},
 	})
 
