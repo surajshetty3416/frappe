@@ -6,6 +6,7 @@
 		<NoRecords v-else-if="!rows.length" />
 		<div v-else class="flex min-h-0 flex-1 flex-col px-3 pb-3 pt-3">
 			<div ref="frame" class="relative flex min-h-0 flex-1 flex-col">
+				<span ref="probe" aria-hidden="true" class="invisible absolute text-sm" />
 				<ListView
 					:columns="columns"
 					:rows="rows"
@@ -33,13 +34,13 @@
 							<span class="truncate text-sm text-ink-gray-5">{{ item }}</span>
 						</span>
 						<Tooltip v-else-if="column.field?.fieldtype === 'Link' && titles[`${column.field.options}::${item}`]" :text="String(item)">
-							<span class="block truncate text-sm text-ink-gray-7">{{ titles[`${column.field.options}::${item}`] }}</span>
+							<span class="block truncate text-sm text-ink-gray-7">{{ cellText(column.field, item) }}</span>
 						</Tooltip>
 						<span v-else-if="column.field && NUMERIC.has(column.field.fieldtype)" class="block truncate text-right text-sm tabular-nums text-ink-gray-7">
-							{{ formatValue(column.field, item) || "—" }}
+							{{ cellText(column.field, item) || "—" }}
 						</span>
 						<span v-else class="block truncate text-sm" :class="column.key === 'name' ? 'text-ink-gray-8' : 'text-ink-gray-7'">
-							{{ column.field ? formatValue(column.field, item) : item }}
+							{{ cellText(column.field, item) }}
 						</span>
 					</template>
 				</ListView>
@@ -103,13 +104,61 @@ const all = computed(() => [
 		field,
 	})),
 ].map((column) => ({ ...column, width: grid(column.size) })))
-// each column takes its minimum and a 1rem gap, the row 1rem of padding
+const cellText = (field: DocField | null, item: unknown) => {
+	if (!field) return String(item ?? "")
+	if (field.fieldtype === "Link") return titles.value[`${field.options}::${item}`] || String(item ?? "")
+	return formatValue(field, item)
+}
+
+// a column shows when its widest value fits whole in the width the grid gives it; the first column always shows
 const frame = ref<HTMLElement | null>(null)
+const probe = ref<HTMLElement | null>(null)
 const { width } = useElementSize(frame)
-const columns = computed(() => {
-	let room = width.value / 16 - 1
-	return all.value.filter((column, index) => (room -= column.size[0] + 1) >= 0 || index === 0)
+type Column = (typeof all.value)[number]
+const widest = computed(() => {
+	const style = probe.value && getComputedStyle(probe.value)
+	const context = style && document.createElement("canvas").getContext("2d")
+	if (!context) return {} as Record<string, number>
+	context.font = `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`
+	context.letterSpacing = style.letterSpacing
+	const swatch = 20
+	return Object.fromEntries(
+		all.value.map((column) => [
+			column.key,
+			Math.max(
+				0,
+				...rows.value.map((row) => {
+					const text = cellText(column.field, row[column.key])
+					return context.measureText(text).width + (column.field?.fieldtype === "Color" && text ? swatch : 0)
+				})
+			),
+		])
+	)
 })
+// the grid's widths for these columns: minmax(min, share fr) in a row with 1rem gaps and 1rem of padding
+function gridWidths(chosen: Column[]) {
+	const room = width.value - 16 - 16 * (chosen.length - 1)
+	const fixed = new Set<number>()
+	for (;;) {
+		const flexible = chosen.filter((_, index) => !fixed.has(index))
+		const rest = room - chosen.reduce((sum, column, index) => sum + (fixed.has(index) ? column.size[0] * 16 : 0), 0)
+		const fr = rest / flexible.reduce((sum, column) => sum + column.size[1], 0)
+		const below = chosen.findIndex((column, index) => !fixed.has(index) && column.size[1] * fr < column.size[0] * 16)
+		if (below < 0 || !flexible.length) return chosen.map((column, index) => (fixed.has(index) ? column.size[0] * 16 : column.size[1] * fr))
+		fixed.add(below)
+	}
+}
+const columns = computed(() =>
+	all.value.reduce<Column[]>((chosen, column, index) => {
+		if (index === 0) return [column]
+		const next = [...chosen, column]
+		const widths = gridWidths(next)
+		const minimums = next.reduce((sum, each) => sum + each.size[0] * 16, 0)
+		const fits = minimums <= width.value - 16 - 16 * (next.length - 1)
+		const whole = next.every((each, at) => at === 0 || widest.value[each.key] <= widths[at] + 0.5)
+		return fits && whole ? next : chosen
+	}, [])
+)
 
 const rows = ref<Row[]>([])
 const titles = ref<Record<string, string>>({})
