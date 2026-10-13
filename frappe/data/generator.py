@@ -14,7 +14,7 @@ from frappe.model import no_value_fields, table_fields
 from frappe.utils import add_days, cint, flt, getdate, nowdate
 
 MAX_COUNT = 2000
-UNIQUE_TRIES = 50
+TRIES = 50
 
 INDIA = {  # region: (men, women, surnames), weight
 	"hindi": (
@@ -133,9 +133,9 @@ KINDS: dict[str, set[str]] = {
 	"datetime": {"from", "to", "ranges", "skew", "weekdays", "times"},
 	"int": {"min", "max", "skew"},
 	"float": {"min", "max", "skew", "precision"},
-	"choice": {"options"},
-	"link": {"filters", "weights", "distribution", "unique"},
-	"text": {"template", "templates", "slots", "start"},
+	"choice": {"options", "pick"},
+	"link": {"filters", "weights", "distribution", "unique", "each"},
+	"text": {"template", "templates", "slots", "start", "words"},
 	"constant": {"value"},
 	"fake": {"method", "locale", "args"},
 	"table": {"rows", "fields"},
@@ -221,7 +221,9 @@ class Person:
 
 
 class Generator:
-	def __init__(self, doctype: str, count: int, fields: dict[str, Any], seed: int | None = None):
+	def __init__(
+		self, doctype: str, count: int, fields: dict[str, Any], seed: int | None = None, given: list[dict] | None = None
+	):
 		self.doctype, self.count = doctype, count
 		self.rng = random.Random(seed)
 		self.meta = frappe.get_meta(doctype)
@@ -229,14 +231,23 @@ class Generator:
 		self.emails_taken: set[str] = set()
 		self.link_values: dict[tuple[str, str], dict] = {}
 		self.errors: list[str] = []
+		self.read: set[str] = set()
 		if not 1 <= count <= MAX_COUNT:
 			self.errors.append(f"count must be 1 to {MAX_COUNT}; split larger sets into several calls")
+		self.given = self.compile_given(given)
+		self.given_keys = {key for row in self.given for key in row}
 		self.specs = self.compile(self.meta, fields, "", count)
 		self.check_required(self.meta, self.specs, "")
+		for key in sorted(self.given_keys - set(value_fields(self.meta)) - self.read):
+			self.errors.append(f"given {key} is not a field of {doctype}, and no template reads it")
 		if self.errors:
 			raise SpecError("Fix the spec: " + "; ".join(self.errors))
 		self.person_spec = next(
 			(s for s in self.walk(self.specs) if s["kind"] in PERSON_KINDS), {"kind": "name", "india": 1}
+		)
+		# a given name is the record's person, so its email and pronouns follow it
+		self.person_fields = {f: s["kind"] for f, s in self.specs.items() if s["kind"] in PERSON_KINDS} or (
+			{self.meta.title_field: "name"} if self.meta.title_field else {}
 		)
 		self.persons_taken: set[str] = set()
 		self.persons_unique = False
@@ -262,11 +273,33 @@ class Generator:
 
 	# compile: check each spec against the DocType and prepare its draws
 
+	def compile_given(self, given) -> list[dict]:
+		"""Exact records, dealt one per generated record in order. Keys that are fields set the
+		field; any key, field or not, reads in templates as {key}."""
+		if given is None:
+			return []
+		if not isinstance(given, list) or not given or not all(isinstance(row, dict) and row for row in given):
+			self.errors.append("given is a list of records, each a {field: value} map")
+			return []
+		if len(given) != self.count:
+			self.errors.append(f"count is {self.count} but given has {len(given)} records; make them equal")
+		known = value_fields(self.meta)
+		for key in sorted({key for row in given for key in row} & set(known)):
+			if not (known[key].unique or self.meta.autoname == f"field:{key}"):
+				continue
+			values = [str(row[key]) for row in given if row.get(key) not in (None, "")]
+			repeated = sorted({v for v in values if values.count(v) > 1})
+			existing = frappe.get_all(self.doctype, filters={key: ["in", values]}, pluck=key) if values else []
+			if repeated or existing:
+				self.errors.append(f"given {key} must be unique; {', '.join(repeated + existing)} repeat or exist")
+		return given
+
 	def compile(self, meta, fields: dict, prefix: str, draws: int | None) -> dict[str, dict]:
-		if not isinstance(fields, dict) or not fields:
+		given_keys = set() if prefix else self.given_keys
+		if not isinstance(fields, dict) or not (fields or given_keys):
 			self.errors.append(f"{prefix or 'fields'} must map fieldnames to specs")
 			return {}
-		known = {f.fieldname: f for f in meta.fields if f.fieldtype not in no_value_fields or f.fieldtype in table_fields}
+		known = value_fields(meta)
 		specs = {}
 		for fieldname, raw in fields.items():
 			where = f"{prefix}{fieldname}"
@@ -306,8 +339,8 @@ class Generator:
 			for name, bag in spec.pop("own_slots", {}).items():
 				if name in owners:
 					self.errors.append(f"slot {name} is in both {owners[name]} and {fieldname}; give it once, every field of the record can use it")
-				elif name in specs:
-					self.errors.append(f"{fieldname}: slot {name} has the name of a field; rename it")
+				elif name in specs or name in given_keys:
+					self.errors.append(f"{fieldname}: slot {name} has the name of a field or a given value; rename it")
 				owners[name] = fieldname
 				slots[name] = bag
 		for spec in specs.values():
@@ -315,7 +348,9 @@ class Generator:
 				spec["slot_bags"] = slots
 		for spec in specs.values():
 			if spec["kind"] == "text":
-				self.check_text(spec, specs, meta)
+				self.check_text(spec, specs, meta, given_keys)
+			if spec.get("unique") and not prefix:
+				spec["taken"] |= {str(row[spec["df"].fieldname]) for row in self.given if spec["df"].fieldname in row}
 		return specs
 
 	def check_required(self, meta, specs: dict, prefix: str) -> None:
@@ -325,6 +360,7 @@ class Generator:
 			if df.reqd
 			and not (df.default or df.fetch_from)
 			and df.fieldname not in specs
+			and not (not prefix and self.given and all(df.fieldname in row for row in self.given))
 			and df.fieldtype not in no_value_fields
 		]
 		if missing:
@@ -403,6 +439,14 @@ class Generator:
 		outcomes, weights = weighted(spec.get("options") or [])
 		if not outcomes:
 			raise SpecError("options is a list or a {value: weight} map")
+		if "pick" in spec:
+			pick = spec["pick"]
+			low, high = (pick, pick) if isinstance(pick, int) else (pick[0], pick[1])
+			if df.fieldtype == "Select":
+				raise SpecError("a Select field holds one value; pick fills a text field")
+			if not 1 <= cint(low) <= cint(high) <= len(outcomes):
+				raise SpecError(f"pick is a count or [min, max] options, at most the {len(outcomes)} options")
+			spec["pick_range"] = (cint(low), cint(high))
 		if df.fieldtype == "Select":
 			allowed = [o for o in (df.options or "").split("\n")]
 			bad = [str(o) for o in outcomes if str(o) not in allowed]
@@ -417,6 +461,11 @@ class Generator:
 		names = frappe.get_list(target, filters=spec.get("filters") or {}, pluck="name", order_by="creation asc", limit=100000)
 		if not names:
 			raise SpecError(f"no {target} records match; create them first")
+		if spec.get("each"):
+			if draws != len(names):
+				raise SpecError(f"each gives each of the {len(names)} matching {target} records one record, so count must be {len(names)}")
+			spec["queue"] = names[::-1]
+			return
 		if spec.get("unique"):
 			if draws is None or draws > len(names):
 				raise SpecError(f"unique needs at least {draws} {target} records; {len(names)} match")
@@ -456,8 +505,13 @@ class Generator:
 				raise SpecError(f"the objects of slot {name} share no key")
 			spec["own_slots"][name] = Bag(self.rng, outcomes, weights, draws)
 		spec["counter"] = cint(spec.get("start", 1))
+		if "words" in spec:
+			words = spec["words"]
+			if not (isinstance(words, list) and len(words) == 2 and 0 < cint(words[0]) <= cint(words[1])):
+				raise SpecError("words is [min, max]")
+			spec["words"] = (cint(words[0]), cint(words[1]))
 
-	def check_text(self, spec, specs: dict, meta) -> None:
+	def check_text(self, spec, specs: dict, meta, given_keys: set[str]) -> None:
 		if "bag" not in spec:
 			return
 		slots = spec["slot_bags"]
@@ -467,13 +521,14 @@ class Generator:
 				texts.extend(value.values() if isinstance(value, dict) else [value])
 		for text in texts:
 			for token in PLACEHOLDER.findall(str(text)):
-				if problem := self.placeholder_problem(token, slots, specs, meta):
+				if problem := self.placeholder_problem(token, slots, specs, meta, given_keys):
 					self.errors.append(f"{spec['where']}: {{{token}}} {problem}")
 
-	def placeholder_problem(self, token: str, slots: dict, specs: dict, meta) -> str | None:
+	def placeholder_problem(self, token: str, slots: dict, specs: dict, meta, given_keys: set[str]) -> str | None:
 		if re.fullmatch(r"0+|\d+\.\.\d+|code:\d+", token):
 			return None
 		head, _, attr = token.partition(".")
+		self.read.add(head)
 		if head in slots:
 			objects = [o for o in slots[head].outcomes if isinstance(o, dict)]
 			if not objects:
@@ -482,11 +537,11 @@ class Generator:
 			return None if attr in keys else f"pick a key of {head}: {', '.join(sorted(keys))}"
 		if head == "person":
 			return None if attr in PERSON_ATTRS else f"person has {', '.join(sorted(PERSON_ATTRS))}"
-		if head not in specs:
-			return "is not a slot, a field in the spec, person.*, {0000}, {1..9} or {code:6}"
+		if head not in specs and head not in given_keys:
+			return "is not a slot, a field in the spec, a given value, person.*, {0000}, {1..9} or {code:6}"
 		if attr:
-			df = specs[head]["df"]
-			if df.fieldtype != "Link" or (attr != "name" and not frappe.get_meta(df.options).has_field(attr)):
+			df = specs[head]["df"] if head in specs else meta.get_field(head)
+			if not df or df.fieldtype != "Link" or (attr != "name" and not frappe.get_meta(df.options).has_field(attr)):
 				return f"{head} is not a Link whose DocType has {attr}"
 		return None
 
@@ -520,7 +575,7 @@ class Generator:
 
 	def new_person(self) -> Person:
 		india, woman = self.india.draw(), self.women.draw()
-		tries = UNIQUE_TRIES if self.persons_unique else 5
+		tries = TRIES if self.persons_unique else 5
 		for _ in range(tries):
 			if india:
 				men, women, surnames, _w = INDIA[self.regions.draw()]
@@ -539,7 +594,7 @@ class Generator:
 		return person
 
 	def rows(self) -> list[dict]:
-		return [Row(self, self.specs, i).values() for i in range(self.count)]
+		return [Row(self, self.specs, i, self.given[i] if self.given else {}).values() for i in range(self.count)]
 
 	def linked(self, doctype: str, name: str, field: str) -> Any:
 		if not name:
@@ -551,8 +606,9 @@ class Generator:
 
 
 class Row:
-	def __init__(self, gen: Generator, specs: dict, index: int):
+	def __init__(self, gen: Generator, specs: dict, index: int, given: dict | None = None):
 		self.gen, self.specs, self.index, self.rng = gen, specs, index, gen.rng
+		self.given = given or {}
 		self.cache: dict[str, Any] = {}
 		self.slots: dict[str, Any] = {}
 		self.pending: set[str] = set()
@@ -561,37 +617,64 @@ class Row:
 	@property
 	def person(self) -> Person:
 		if self._person is None:
-			self._person = self.gen.new_person()
+			self._person = self.given_person() or self.gen.new_person()
 		return self._person
 
+	def given_person(self) -> Person | None:
+		names = {kind: str(self.given[f]) for f, kind in self.gen.person_fields.items() if self.given.get(f)}
+		if not names:
+			return None
+		first, _, last = names.get("name", "").partition(" ")
+		first, last = names.get("first_name", first), names.get("last_name", last)
+		return Person(first, last, self.gen.women.draw(), str(self.given.get("country") or ""))
+
 	def values(self) -> dict:
+		fieldnames = [*self.specs, *(f for f in self.given if f not in self.specs and self.gen.meta.has_field(f))]
 		# unique fields first, so their retries can redraw slots no other field has used yet
-		for fieldname in sorted(self.specs, key=lambda f: not self.specs[f].get("unique")):
+		for fieldname in sorted(fieldnames, key=lambda f: not self.specs.get(f, {}).get("unique")):
 			self.get(fieldname)
-		return {fieldname: self.cache[fieldname] for fieldname in self.specs}
+		return {fieldname: self.cache[fieldname] for fieldname in fieldnames}
+
+	def df(self, fieldname: str):
+		return self.specs[fieldname]["df"] if fieldname in self.specs else self.gen.meta.get_field(fieldname)
 
 	def get(self, fieldname: str) -> Any:
 		if fieldname in self.cache:
 			return self.cache[fieldname]
+		if fieldname in self.given:
+			df = self.df(fieldname)
+			self.cache[fieldname] = cast(self.given[fieldname], df) if df else self.given[fieldname]
+			return self.cache[fieldname]
+		if fieldname not in self.specs:
+			raise SpecError(f"given record {self.index + 1} has no {fieldname}; give it in every record or add a spec")
 		if fieldname in self.pending:
 			raise SpecError(f"{fieldname} refers to itself through other fields")
 		self.pending.add(fieldname)
 		spec = self.specs[fieldname]
+		unique = spec.get("unique") and spec["kind"] not in PERSON_KINDS | {"email", "link", "table"}
 		if spec.get("empty") and self.rng.random() < flt(spec["empty"]):
 			value = None
-		elif spec.get("unique") and spec["kind"] not in PERSON_KINDS | {"email", "link", "table"}:
-			for _ in range(UNIQUE_TRIES):
+		elif unique or spec.get("words"):
+			counts = []
+			for _ in range(TRIES):
 				slots, cached = set(self.slots), set(self.cache)
 				value = self.make(spec)
-				if str(value) not in spec["taken"]:
+				counts.append(len(str(value).split()))
+				low, high = spec.get("words") or (0, counts[-1])
+				if low <= counts[-1] <= high and not (unique and str(value) in spec["taken"]):
 					break
 				for name in set(self.slots) - slots:
 					del self.slots[name]
 				for name in set(self.cache) - cached:
 					del self.cache[name]
 			else:
+				if not any(low <= n <= high for n in counts):
+					raise SpecError(
+						f"{spec['where']} made {min(counts)} to {max(counts)} words in {TRIES} tries, outside {low} to {high}; fit its templates and slots to the range"
+					)
 				raise SpecError(f"{spec['where']} ran out of unique values; widen its spec")
-			spec["taken"].add(str(value))
+			if unique:
+				spec["taken"].add(str(value))
 		else:
 			value = self.make(spec)
 		self.pending.discard(fieldname)
@@ -630,7 +713,7 @@ class Row:
 		return email
 
 	def company_for_email(self, spec) -> str | None:
-		field = spec.get("company") or ("company" if "company" in self.specs else None)
+		field = spec.get("company") or ("company" if "company" in self.specs or "company" in self.given else None)
 		return field and self.get(field)
 
 	def make_phone(self, spec):
@@ -664,7 +747,15 @@ class Row:
 	make_float = make_int
 
 	def make_choice(self, spec):
-		return spec["bag"].draw()
+		if "pick_range" not in spec:
+			return spec["bag"].draw()
+		outcomes, weights = list(spec["bag"].outcomes), list(spec["bag"].weights)
+		picked = []
+		for _ in range(self.rng.randint(*spec["pick_range"])):
+			i = self.rng.choices(range(len(outcomes)), weights)[0]
+			picked.append(str(outcomes.pop(i)))
+			weights.pop(i)
+		return ", ".join(picked)
 
 	def make_link(self, spec):
 		return spec["queue"].pop() if "queue" in spec else spec["bag"].draw()
@@ -691,7 +782,7 @@ class Row:
 				return getattr(self.person, attr)
 			value = self.get(head)
 			if attr:
-				value = self.gen.linked(self.specs[head]["df"].options, value, attr)
+				value = self.gen.linked(self.df(head).options, value, attr)
 			return "" if value is None else str(value)
 
 		return PLACEHOLDER.sub(fill, str(template))
@@ -717,6 +808,10 @@ class Row:
 	def make_table(self, spec):
 		low, high = spec["row_range"]
 		return [Row(self.gen, spec["fields"], i).values() for i in range(self.rng.randint(low, high))]
+
+
+def value_fields(meta) -> dict:
+	return {f.fieldname: f for f in meta.fields if f.fieldtype not in no_value_fields or f.fieldtype in table_fields}
 
 
 def cast(value: Any, df) -> Any:
