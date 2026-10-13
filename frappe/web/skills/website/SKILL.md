@@ -34,10 +34,67 @@ In the page YAML, repeat a block over a list and bind its fields, as in Cards be
 
 `style` is the desktop. `t_style` applies below 1024px, and `m_style` below 576px, over `t_style`.
 
-- Header and footer: write one Nav and one Footer and put the same blocks on every page. Link only to pages that exist and to anchors on the home page, such as `/event#speakers` with `attrs: {id: speakers}` on that section. Leave out a link to a page you have not made. A page cannot script or toggle a menu, so the nav never collapses. Make the Nav a wrapping row of the wordmark, the links in one block and the Register link, in `order` wordmark, links, Register on desktop. On phone the links block takes `m_style: {order: 3, flexBasis: 100%}`, so Register stays beside the wordmark and the links wrap below. Never hide a link.
-- Sections: the same padding on every section, such as `96px 48px` with `m_style: {padding: 64px 20px}`.
+- Width: at 390px nothing is wider than the screen. Give wide content, such as the schedule grid, its own scroll container (see Schedule), and no block a fixed width over 350px.
+- Header and footer: write one Nav and one Footer and put the same blocks on every page. Link only to pages that exist and to anchors on the home page, such as `/event#speakers` with `attrs: {id: speakers}` on that section. Leave out a link to a page you have not made. Below 1024px the links fold into a Menu button, see Nav.
+- Sections: a section stacks its children in a column, so a block added to it later lands under its content. The section takes the padding, the same on every section, and an inner block holds the content at a readable width:
+
+  ```yaml
+  - el: section
+    name: Speakers
+    style: {display: flex, flexDirection: column, gap: 48px, padding: 96px 48px}
+    m_style: {padding: 64px 20px}
+    c:
+      - el: div
+        style: {display: flex, flexDirection: column, gap: 24px, width: 100%, maxWidth: 1200px, marginLeft: auto, marginRight: auto}
+  ```
+
+  Never make a section a row (`justifyContent: center` on a flex row) to center its content: a second child then squeezes in beside it.
 - Identity without images: a hero with a gradient or pattern in the site's colors, such as `backgroundImage: radial-gradient(circle at 80% 0%, rgba(37,99,235,0.45), transparent 60%)`. One wordmark, spelled the same in nav, hero and footer. Link color only on links. All numbers in a row in one color.
 - Card text never clips: no fixed `height`, no `overflow: hidden` or `whiteSpace: nowrap` on a card or its text. A card grows with its text.
+
+### Nav
+
+One row: the wordmark, the links, Register. Below 1024px the links hide, and a Menu button opens them under the header. A `details` element opens and closes by itself, so the page needs no script. Register stays beside the wordmark at every width.
+
+```yaml
+- el: header
+  name: Nav
+  style: {display: flex, alignItems: center, gap: 28px, padding: 16px 48px, background: '#0B1220', position: relative}
+  t_style: {gap: 12px, padding: 12px 20px}
+  c:
+    - el: a
+      name: Wordmark
+      text: Frappeverse 2027
+      attrs: {href: /frappeverse}
+      style: {marginRight: auto, color: '#FFFFFF', fontSize: 20px, fontWeight: '800', textDecoration: none, whiteSpace: nowrap}
+      m_style: {fontSize: 17px}
+    - el: nav
+      name: Links
+      style: {display: flex, alignItems: center, gap: 28px}
+      t_style: {display: none}
+      c:
+        - {el: a, text: Schedule, attrs: {href: /frappeverse/schedule}, style: {color: 'rgba(255,255,255,0.8)', textDecoration: none}}
+    - el: a
+      name: Register
+      text: Register
+      attrs: {href: /frappeverse/register}
+      style: {padding: 10px 20px, borderRadius: 999px, background: '#2563EB', color: '#FFFFFF', fontWeight: '700', textDecoration: none, whiteSpace: nowrap}
+      m_style: {padding: 8px 14px}
+    - el: details
+      name: Menu
+      style: {display: none}
+      t_style: {display: block}
+      c:
+        - el: summary
+          text: Menu
+          style: {listStyle: none, cursor: pointer, padding: 8px 14px, borderRadius: 999px, border: '1px solid rgba(255,255,255,0.3)', color: '#FFFFFF', fontWeight: '600'}
+        - el: nav
+          style: {position: absolute, top: 100%, left: '0', right: '0', zIndex: '20', display: flex, flexDirection: column, padding: 8px 20px 20px, background: '#0B1220'}
+          c:
+            - {el: a, text: Schedule, attrs: {href: /frappeverse/schedule}, style: {padding: 12px 0, color: '#FFFFFF', textDecoration: none}}
+```
+
+Both navs list the same links; the lists above are cut short. The wordmark, Register and Menu fit one 390px row, so keep the wordmark short.
 
 ### Cards
 
@@ -79,7 +136,9 @@ Sponsors sit in a wrapping row per tier, each tile sized to its content, a highe
 
 ### Schedule
 
-Room headers and sessions share one grid, so each header heads its column. The repeat block takes `display: contents`, which makes its cards cells of that grid. The data script gives each session a `cell` with its column and rows as CSS variables. The rows are the session's start and end among the day's sorted times, so a 10-minute talk gets a whole row. A break spans every room with `--col: 1 / -1`. On phone the grid turns to one column and the cards stack in time order, each showing its room.
+Room headers and sessions share one grid, so each header heads its column. The repeat block takes `display: contents`, which makes its cards cells of that grid. The data script gives each session a `cell` with its column and rows as CSS variables. The rows are the session's start and end among the day's sorted times, so a 10-minute talk gets a whole row. A break spans every room with `--col: 1 / -1`.
+
+The grid keeps its columns at every width. Each column has a minimum width, and the grid sits in a block with `overflowX: auto`, so on a phone the grid scrolls sideways inside that block and the page stays as wide as the screen.
 
 ```python
 rooms = ["Main Hall", "Room A", "Room B"]
@@ -94,26 +153,27 @@ data.sessions = rows
 
 ```yaml
 - el: div
-  name: Schedule
-  style: {display: grid, gridTemplateColumns: repeat(3, minmax(0, 1fr)), gap: 8px}
-  m_style: {gridTemplateColumns: 1fr}
+  name: Schedule Scroll
+  style: {overflowX: auto, width: 100%}
   c:
-    - {el: div, text: Main Hall, style: {fontWeight: '700'}, m_style: {display: none}}
-    - {el: div, text: Room A, style: {fontWeight: '700'}, m_style: {display: none}}
-    - {el: div, text: Room B, style: {fontWeight: '700'}, m_style: {display: none}}
     - el: div
-      style: {display: contents}
-      repeat:
-        data: sessions
-        item:
-          el: div
-          style: {gridColumn: var(--col), gridRow: var(--row), display: flex, flexDirection: column, gap: 4px, padding: 12px, borderRadius: 10px, background: '#141925'}
-          m_style: {gridColumn: auto, gridRow: auto}
-          bind: {style: cell}
-          c:
-            - {el: span, bind: {text: time}, style: {fontSize: 12px}}
-            - {el: strong, bind: {text: session_title}}
-            - {el: span, bind: {text: room}, style: {display: none}, m_style: {display: inline}}
+      name: Schedule
+      style: {display: grid, gridTemplateColumns: repeat(3, minmax(200px, 1fr)), gap: 8px}
+      c:
+        - {el: div, text: Main Hall, style: {fontWeight: '700'}}
+        - {el: div, text: Room A, style: {fontWeight: '700'}}
+        - {el: div, text: Room B, style: {fontWeight: '700'}}
+        - el: div
+          style: {display: contents}
+          repeat:
+            data: sessions
+            item:
+              el: div
+              style: {gridColumn: var(--col), gridRow: var(--row), display: flex, flexDirection: column, gap: 4px, padding: 12px, borderRadius: 10px, background: '#141925'}
+              bind: {style: cell}
+              c:
+                - {el: span, bind: {text: time}, style: {fontSize: 12px}}
+                - {el: strong, bind: {text: session_title}}
 ```
 
 ## Forms
@@ -135,6 +195,7 @@ add_chat_block puts a chat with one agent on a page, for visitors.
 - Give the agent read tools only. A tool call that needs approval is declined, and a public agent cannot have update_memory or execute.
 - Write a `greeting` that says what the agent can answer, and a `placeholder` with a sample question.
 - The chat grows with its messages from 280px up to `--fb-chat-height` (default 480px).
+- `inside` names the section of the content the chat serves, such as the schedule's section. The chat lands under that content, centered and at most 640px wide, never beside or over it. Never put it inside a row or a grid.
 
 ## Example
 
