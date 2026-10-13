@@ -24,7 +24,7 @@ from frappe.web.page_blocks.chat import ChatBlock
 from frappe.web.page_blocks.form import FormBlock
 from frappe.web.utils import compact_json
 
-PAGE_YAML_GUIDE = f"""Create a website page with Frappe Builder; its editor opens beside the chat. The page stays a draft until it is published.
+PAGE_YAML_GUIDE = f"""Create a website page with Frappe Builder; its editor opens beside the chat. The page stays a draft until it is published. If a page already exists at the route, this replaces that page's draft blocks, and the page keeps its name and data script.
 
 page_yaml is one YAML block tree whose root is `el: body`. Block keys: {BlockCodec.fields_doc()}. Every block is a flex or block box styled with CSS-in-JS (camelCase properties, string values with units); text goes in `text` (inline HTML allowed); children go in `c`; links and images use attrs (href, src, alt). Example:
 
@@ -84,9 +84,11 @@ def create_web_page(
 ) -> dict:
 	if not expand_page_yaml(page_yaml)[0]:
 		frappe.throw(_("page_yaml has no blocks Builder can read. The root must be a block with `el: body`."))
-	page = frappe.get_doc(
-		{"doctype": "Builder Page", "page_title": title, "route": route.strip("/")}
-	).insert()
+	route = route.strip("/")
+	name = frappe.db.get_value("Builder Page", {"route": route}, order_by="published desc, creation asc")
+	page = frappe.get_doc("Builder Page", name) if name else frappe.new_doc("Builder Page", route=route)
+	page.page_title = title
+	page.save()
 	persist_page(page.name, page_yaml)
 	artifact = artifacts.link(ctx.session_id, "Builder Page", page.name)
 	return {
