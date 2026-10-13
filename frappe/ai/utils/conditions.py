@@ -5,7 +5,7 @@
 
 A condition is either a single Python expression whose value is the verdict,
 or a multi-line script that sets a `result` variable. Authoring is restricted
-to System Managers (Flow Trigger / Flow Knowledge Source permissions), the
+to System Managers (Flow Knowledge Source permissions), the
 same trust level frappe requires for Server Scripts.
 """
 

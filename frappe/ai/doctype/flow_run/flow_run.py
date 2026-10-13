@@ -38,7 +38,6 @@ class FlowRun(Document):
 		source: DF.Literal["Manual", "Trigger"]
 		status: DF.Literal["Running", "Paused", "Completed", "Denied", "Failed"]
 		tool_calls: DF.JSON | None
-		trigger: DF.Link | None
 		usage: DF.JSON | None
 	# end: auto-generated types
 

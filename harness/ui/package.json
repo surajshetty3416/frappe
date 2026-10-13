@@ -2,7 +2,6 @@
 	"name": "flow-ui-workspace",
 	"private": true,
 	"workspaces": [
-		"core",
-		"app"
+		"core"
 	]
 }

@@ -1,32 +1,12 @@
 # Flow web UI
 
-Two packages (npm workspaces):
+One package (npm workspace):
 
 - **`core/`** — `@flow/ui-core`: the daemon client (HTTP + SSE), the transcript
   reducer, and the chat components (Vue 3, styled with frappe-ui tokens only).
   Shipped as source; the consuming app compiles the `.vue` files and Tailwind
   classes. The Flow Frappe app imports these same components for its full-page
   UI and swaps `DaemonClient` for a proxy-backed one.
-- **`app/`** — the standalone web shell: connect screen, theme, Vite dev server
-  with a proxy to the daemon (it has no CORS middleware, so the app must be
-  same-origin or proxied).
-
-## Run
-
-Production-style — one command, UI served by the daemon itself (same origin):
-
-```bash
-cd ui && npm install && npm run build -w app   # builds into src/flow_harness/server/webui/
-flow web
-```
-
-Development — Vite dev server with HMR, proxying to a separate daemon:
-
-```bash
-cd ui && npm install
-flow serve            # daemon on 127.0.0.1:8787 (or FLOW_DAEMON_URL)
-npm run dev -w app
-```
 
 ## Host options
 

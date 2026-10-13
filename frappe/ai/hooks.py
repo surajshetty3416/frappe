@@ -1,15 +1,7 @@
 # The /flow page: a Vite app (frontend/) built by `yarn build` into public/studio, its
 # entry copied to www/flow/index.html. Every path under /flow serves that page.
 
-doc_events = {
-	"*": {
-		"after_insert": "frappe.ai.triggers.dispatch",
-		"on_update": ["frappe.ai.triggers.dispatch", "frappe.ai.versions.record"],
-		"on_submit": "frappe.ai.triggers.dispatch",
-		"on_cancel": "frappe.ai.triggers.dispatch",
-		"on_trash": "frappe.ai.triggers.dispatch",
-	}
-}
+doc_events = {"*": {"on_update": "frappe.ai.versions.record"}}
 
 # a session's tools run as its owner, so its content is theirs alone
 has_permission = {
@@ -24,8 +16,8 @@ permission_query_conditions = {
 }
 
 # Flow's references to other docs are bookkeeping — they must never block deleting
-# the referenced doc. A knowledge chunk indexes a doc; a Flow Run records the doc a
-# trigger acted on. The incremental sweep removes orphaned chunks afterwards.
+# the referenced doc. A knowledge chunk indexes a doc; a Flow Run records the doc an
+# agent run acted on. The incremental sweep removes orphaned chunks afterwards.
 # A session's Flow Model reference is historical bookkeeping and must not block deletion,
 # nor its list of the artifacts it made; a deleted one drops out of that list when read.
 ignore_links_on_delete = ["Flow Knowledge Chunk", "Flow Run", "Flow Session", "Flow Session Artifact"]
@@ -40,7 +32,6 @@ scheduler_events = {
 	],
 	"cron": {
 		"*/5 * * * *": [
-			"frappe.ai.triggers.dispatch_scheduled",
 			"frappe.ai.daemon.lifecycle.keep_alive",
 		],
 	},

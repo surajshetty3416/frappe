@@ -39,12 +39,8 @@ flow = "flow_harness.cli.main:main"
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
-[tool.hatch.build.hooks.custom]
-path = "hatch_build.py"
-
 [tool.hatch.build.targets.wheel]
 packages = ["src/flow_harness", "src/flow_tui"]
-artifacts = ["src/flow_harness/server/webui/**"]
 
 # Flow's own docs and examples ship inside the package, so a session can point the
 # model at them on any install; flow_harness.session.prompt resolves them.
@@ -53,9 +49,8 @@ artifacts = ["src/flow_harness/server/webui/**"]
 "examples" = "flow_harness/data/examples"
 
 [tool.hatch.build.targets.sdist]
-include = ["src", "ui", "docs", "examples", "hatch_build.py", "README.md", "LICENSE", "pyproject.toml"]
+include = ["src", "ui", "docs", "examples", "README.md", "LICENSE", "pyproject.toml"]
 exclude = ["ui/node_modules", "ui/**/dist"]
-artifacts = ["src/flow_harness/server/webui/**"]
 
 [tool.ty.src]
 exclude = ["tests"]

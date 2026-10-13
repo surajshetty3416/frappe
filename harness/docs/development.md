@@ -37,19 +37,6 @@ Formatting and static checks use Ruff and ty. The codebase uses tabs, double quo
 
 The private daemon used by `flow tui` has a fresh bearer token, a private socket, and exits when its parent TUI exits. It is POSIX-only. `flow serve` is the long-lived option; closing an attached client never stops its run.
 
-Build the web UI before `flow` or `flow web` if packaged assets are unavailable:
-
-```bash
-cd ui
-npm ci
-npm run build -w app
-```
-
-Packaging does this for you: a source-tree `uv build` always runs the same npm build,
-so both the wheel and source distribution carry the current UI. A wheel built from an
-sdist reuses the compiled UI already inside it. Only an editable source checkout needs
-the manual step above.
-
 ## Environment
 
 | Variable | Default | Meaning |

@@ -6,8 +6,7 @@ FLOW_USER_ROLE_PROFILE = "Frappe Flow User"
 
 
 def execute():
-	"""Every logged-in user could use Flow before the role. Keep enabled System Managers and
-	eligible trigger accounts on it. Unsafe legacy triggers are disabled for explicit remediation."""
+	"""Every logged-in user could use Flow before the role. Keep enabled System Managers on it."""
 	ensure_flow_role()
 	managers = frappe.get_all(
 		"Has Role", filters={"role": "System Manager", "parenttype": "User"}, pluck="parent", distinct=True
@@ -17,14 +16,6 @@ def execute():
 			"User", filters={"name": ("in", managers), "enabled": 1, "user_type": "System User"}, pluck="name"
 		)
 	)
-	for trigger in frappe.get_all("Flow Trigger", filters={"enabled": 1}, fields=["name", "run_as", "owner"]):
-		account = trigger.run_as or trigger.owner
-		if account == "Administrator":
-			continue
-		if _is_enabled_system_user(account):
-			accounts.add(account)
-		else:
-			_disable_trigger(trigger.name, account)
 	accounts.discard("Administrator")
 	for name in sorted(accounts):
 		_grant(frappe.get_doc("User", name))
@@ -65,17 +56,3 @@ def _ensure_flow_user_profile() -> None:
 		}
 	).insert(ignore_permissions=True)
 
-
-def _is_enabled_system_user(name: str) -> bool:
-	return bool(frappe.db.exists("User", {"name": name, "enabled": 1, "user_type": "System User"}))
-
-
-def _disable_trigger(name: str, account: str) -> None:
-	frappe.db.set_value("Flow Trigger", name, "enabled", 0, update_modified=False)
-	frappe.log_error(
-		title="Flow Trigger disabled during Flow User migration",
-		message=(
-			f"Disabled Flow Trigger {name!r}: its run account {account!r} is not an enabled System User. "
-			"Choose an eligible account and enable the trigger again."
-		),
-	)

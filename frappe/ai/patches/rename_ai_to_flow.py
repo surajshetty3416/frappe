@@ -15,7 +15,6 @@ DOCTYPE_RENAMES = {
 	"AI Session Message": "Flow Session Message",
 	"AI Session Attachment": "Flow Session Attachment",
 	"AI Run": "Flow Run",
-	"AI Trigger": "Flow Trigger",
 }
 
 
