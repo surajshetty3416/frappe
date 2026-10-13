@@ -12,7 +12,6 @@ An agent is a `Flow Agent`: instructions, a model and tools. An automation is an
 1. Run `describe` on every DocType the agent reads or writes. Use the real fieldnames and the exact Select options in its instructions.
 2. Find the model with `read_records` on `Flow Model` (`enabled` = 1). Use its `name`.
 3. Create the agent. Then create the automation that runs it, if the request says when it should run.
-4. Reply with one sentence per artifact: what the agent does, and when the automation runs it.
 
 ## Flow Agent
 
@@ -73,4 +72,4 @@ An agent is a `Flow Agent`: instructions, a model and tools. An automation is an
 
 ## Check
 
-After you make an automation on a document event, create one test record only if the person asks for a test. The run starts in the background and the agent writes a few seconds later. Read the record back with `read_records` to show what the agent wrote.
+After you make an automation on a document event, create one test record only if the person asks for a test. The run starts in the background and the agent writes a few seconds later. Read the record back with `read_records` to see what the agent wrote.
