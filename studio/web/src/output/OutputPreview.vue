@@ -1,7 +1,14 @@
 <template>
 	<div class="flex h-full flex-col bg-surface-gray-1" @click="openLink">
 		<div ref="viewport" class="relative min-h-0 flex-1 overflow-auto">
-			<div v-if="state.error" class="m-6 rounded-6 border border-outline-red-2 bg-surface-red-1 p-4 text-sm text-ink-red-4">
+			<div v-if="state.error && state.target && !state.record" class="flex h-full flex-col items-center justify-center px-6 text-center">
+				<span class="lucide-rows-3 size-5 text-ink-gray-4" />
+				<p class="mt-3 text-base font-medium text-ink-gray-8">No {{ state.target }} yet</p>
+				<p class="mt-1 max-w-sm text-p-sm text-ink-gray-5">Add one or ask for demo data</p>
+				<Button class="mt-4" variant="solid" label="Demo data" icon-left="lucide-sparkles" @click="askForDemoData" />
+			</div>
+
+			<div v-else-if="state.error" class="m-6 rounded-6 border border-outline-red-2 bg-surface-red-1 p-4 text-sm text-ink-red-4">
 				{{ state.error }}
 			</div>
 
@@ -40,14 +47,23 @@
 </template>
 
 <script setup lang="ts">
+import { sendToChat } from "@shell/editor"
 import { useElementSize } from "@vueuse/core"
-import { LoadingIndicator } from "frappe-ui"
+import { Button, LoadingIndicator } from "frappe-ui"
 import { computed, ref, watch } from "vue"
+import { useRouter } from "vue-router"
 
 import type { OutputState } from "./outputEditor"
 
 const props = defineProps<{ state: OutputState }>()
 const emit = defineEmits<{ host: [node: HTMLElement | null] }>()
+
+const router = useRouter()
+function askForDemoData() {
+	const message = `Add 20 realistic demo records to ${props.state.target}. Fill every field with believable, varied values, and link only to records that exist.`
+	if (sendToChat(message)) return
+	router.push({ name: "studio-chat", params: { session: "new" }, query: { prompt: message } })
+}
 
 const host = ref<HTMLElement | null>(null)
 watch(host, (node) => emit("host", node), { immediate: true })

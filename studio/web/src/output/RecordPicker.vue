@@ -1,13 +1,11 @@
 <template>
 	<Combobox
-		v-if="state.records.length"
 		class="w-48 min-w-28 shrink"
 		:model-value="state.record"
 		:options="options"
 		:placeholder="`Choose a ${state.target ?? 'record'}`"
 		@update:model-value="(value) => value && pick(String(value))"
 	/>
-	<span v-else class="shrink-0 text-sm text-ink-gray-5">No {{ state.target }} yet</span>
 </template>
 
 <script setup lang="ts">

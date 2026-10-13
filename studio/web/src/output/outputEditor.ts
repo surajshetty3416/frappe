@@ -278,7 +278,7 @@ export function defineOutputEditor(spec: OutputSpec) {
 		details: () => (state.doc ? spec.details(state) : []),
 		code: () => ({ language: "html", content: "" }),
 		modes: ["edit", "preview"],
-		barControls: () => (state.records.length || state.target ? { component: RecordPicker, props: { state } } : null),
+		barControls: () => (state.records.length ? { component: RecordPicker, props: { state } } : null),
 		detailsForm: () => (state.doc ? { component: spec.detailsForm, props: { state, set } } : null),
 		codeTabs: () =>
 			state.doc
