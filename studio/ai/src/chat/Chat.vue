@@ -12,7 +12,15 @@
 			<slot name="intro" />
 		</div>
 		<ReplayIntro v-else-if="replayIntro" :key="viewKey" :replay="replayIntro" />
-		<MessageList v-else :key="viewKey" />
+		<MessageList v-else :key="viewKey">
+			<template #end>
+				<div
+					v-if="replayError"
+					data-replay-error
+					class="whitespace-pre-wrap break-words rounded-4 border border-outline-red-1 bg-surface-red-1 px-3 py-2 text-sm text-ink-red-6"
+				>{{ replayError }}</div>
+			</template>
+		</MessageList>
 		<ReplayBar v-if="!readOnly" :key="viewKey" />
 		<Composer v-if="!readOnly" ref="composer" :key="viewKey" />
 		<p v-else class="flex-none px-4 pb-4 text-center text-sm text-ink-gray-5">
@@ -176,6 +184,12 @@ const replayIntro = computed(() => {
 	const replay = id && replays.get(id);
 	const waiting = replay && !replay.step && replay.status === "Ready" && !replay.live;
 	return waiting && unsent(shown.value) && !isReplaying(id) ? replay : null;
+});
+
+// why a replay stopped, under the step that failed
+const replayError = computed(() => {
+	const replay = replays.get(shown.value.state.sessionId);
+	return (replay && !replay.live && replay.error) || "";
 });
 
 // the shown chat got its session, or lost it

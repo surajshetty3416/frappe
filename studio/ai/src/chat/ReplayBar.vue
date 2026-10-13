@@ -12,7 +12,20 @@
 					icon-right="lucide-arrow-right"
 					:loading="starting"
 					:label="`Next: ${next.title}`"
-					@click="startNext"
+					@click="start(next.name)"
+				/>
+			</template>
+			<!-- the transcript shows what failed, in full -->
+			<template v-else-if="replay.status === 'Failed'">
+				<span class="lucide-circle-alert ml-1.5 size-4 flex-none text-ink-red-5" />
+				<span class="ml-1 flex-1 tabular-nums text-ink-gray-8">Stopped at step {{ replay.step }} of {{ replay.steps }}</span>
+				<Button
+					size="sm"
+					icon-left="lucide-rotate-ccw"
+					label="Retry"
+					tooltip="Replay the recording again in a new chat"
+					:loading="starting"
+					@click="start(replay.recording)"
 				/>
 			</template>
 			<template v-else>
@@ -42,11 +55,7 @@
 					@click="stepReplay(session, flow.state)"
 				/>
 				<span class="ml-1 flex-none tabular-nums text-ink-gray-8">{{ progress }}</span>
-				<template v-if="replay.error">
-					<span class="lucide-circle-alert ml-1 size-4 flex-none text-ink-red-4" />
-					<span class="min-w-0 flex-1 truncate text-ink-red-6" :title="replay.error">{{ replay.error }}</span>
-				</template>
-				<span v-else class="flex-1" />
+				<span class="flex-1" />
 				<Dropdown :options="speedOptions" align="end">
 					<Button variant="ghost" :label="`${speed}x`" icon-right="lucide-chevron-down" tooltip="Replay speed" />
 				</Dropdown>
@@ -116,10 +125,10 @@ watch(
 );
 
 const starting = ref(false);
-async function startNext() {
+async function start(recording) {
 	starting.value = true;
 	try {
-		const started = await startReplay(next.value.name);
+		const started = await startReplay(recording);
 		router.push({ name: "studio-chat", params: { session: started.session } });
 	} finally {
 		starting.value = false;

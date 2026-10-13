@@ -7,7 +7,7 @@
 			@click="expandable && (open = !open)"
 		>
 			<!-- the icon yields to a chevron on hover, and to the turned chevron while open -->
-			<span class="relative size-4 flex-none text-ink-gray-5">
+			<span class="relative size-4 flex-none" :class="failed ? 'text-ink-red-5' : 'text-ink-gray-5'">
 				<span :class="[icon, open ? 'opacity-0' : expandable ? 'group-hover:opacity-0' : '']" class="absolute inset-0 size-4" />
 				<span
 					v-if="expandable"
@@ -61,10 +61,10 @@ const flow = inject("flow", null)
 // a host describes its own tools
 const args = computed(() => props.step.call.arguments ?? props.step.call.args ?? {})
 const meta = computed(() => flow?.options?.presentTool?.(props.step.call.name, args.value, props.step.result) ?? {})
-const icon = computed(() => meta.value.icon ?? stepIcon(props.step.call.name))
+const failed = computed(() => props.step.result?.is_error === true)
+const icon = computed(() => (failed.value ? "lucide-circle-x" : meta.value.icon ?? stepIcon(props.step.call.name)))
 const label = computed(() => meta.value.label ?? stepLabel(props.step.call.name))
 const subject = computed(() => meta.value.subject ?? stepSubject(props.step.call))
-const failed = computed(() => props.step.result?.is_error === true)
 const output = computed(() => {
 	const content = props.step.result?.content ?? ""
 	return typeof content === "string" ? content : JSON.stringify(content, null, 2)
@@ -86,7 +86,7 @@ const stat = computed(() => {
 	if (child?.running && !props.step.result) return child.liveLabel ?? "Working"
 	// what the user decided about the call outranks what the tool says about itself
 	if (decision.value) return stepStat(props.step)
-	return meta.value.stat || stepStat(props.step) || ""
+	return meta.value.stat || stepStat(props.step) || (failed.value ? "Failed" : "")
 })
 const statClass = computed(() => {
 	if (decision.value) return decision.value.status === "redirect" ? "text-ink-amber-6" : "text-ink-red-6"

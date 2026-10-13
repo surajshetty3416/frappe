@@ -90,7 +90,7 @@ export async function playReplay(session: string, chat: ChatState) {
 	try {
 		while (playing.has(session) && !spoke(chat)) {
 			const replay = replays.get(session)
-			if (replay?.status !== "Ready" || replay.live || replay.error) break
+			if (replay?.status !== "Ready" || replay.live) break
 			if (!(await stepReplay(session, chat))) break
 		}
 	} finally {

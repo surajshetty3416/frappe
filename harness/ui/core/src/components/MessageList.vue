@@ -69,6 +69,9 @@
 					<span class="flow-shimmer">{{ liveLabel }}</span>
 					<span v-if="elapsed" class="tabular-nums text-ink-gray-5">{{ elapsed }}</span>
 				</div>
+
+				<!-- what the host adds at the thread's end -->
+				<div ref="end" class="empty:hidden"><slot name="end" /></div>
 			</div>
 		</div>
 
@@ -108,9 +111,8 @@ const expandedTurnKeys = ref(new Set())
 // rows (tool calls, thoughts) the user has open, by id
 const openPanels = reactive(new Set())
 provide("openPanels", openPanels)
-const items = computed(() =>
-	buildItems(conversation.value, expandedTurnKeys.value, openPanels, { openLatest: Boolean(flow.options.openTurn?.()) }),
-)
+const openLatest = computed(() => Boolean(flow.options.openTurn?.()))
+const items = computed(() => buildItems(conversation.value, expandedTurnKeys.value, openPanels, { openLatest: openLatest.value }))
 
 const blank = computed(() => !items.value.length && !conversation.value.running && !conversation.value.liveLabel)
 const loading = computed(() => blank.value && flow.state.loading)
@@ -184,15 +186,18 @@ function onMouseDown(event) {
 	if (event.target.closest("button, a[href], summary")) event.preventDefault()
 }
 
-// collapsing rows or resizing the column moves no scroll position; a view that sat on the bottom stays there
+// collapsing rows, resizing the column or what the host adds at the end moves no scroll position;
+// a view that sat on the bottom stays there
 const thread = ref(null)
+const end = ref(null)
 let resizeObserver = null
 onMounted(() => {
 	if (typeof ResizeObserver === "undefined") return
 	resizeObserver = new ResizeObserver((entries) => {
 		const el = scroller.value
 		if (!el) return
-		if (stick.value && atBottom && entries.some((entry) => entry.target === el)) el.scrollTop = el.scrollHeight
+		const resized = (target) => entries.some((entry) => entry.target === target)
+		if (stick.value && ((atBottom && resized(el)) || resized(end.value))) el.scrollTop = el.scrollHeight
 		atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 4
 		if (atBottom) stick.value = true
 	})
@@ -202,6 +207,7 @@ onMounted(() => {
 			resizeObserver.disconnect()
 			resizeObserver.observe(scroller.value)
 			if (el) resizeObserver.observe(el)
+			if (end.value) resizeObserver.observe(end.value)
 		},
 		{ immediate: true },
 	)
@@ -240,7 +246,14 @@ watch(sendingCount, (count, before) => {
 })
 
 watch(
-	() => [conversation.value.entries.length, sendingCount.value, partialVersion.value, working.value, approval.value?.call.id],
+	() => [
+		conversation.value.entries.length,
+		sendingCount.value,
+		partialVersion.value,
+		working.value,
+		approval.value?.call.id,
+		openLatest.value,
+	],
 	async () => {
 		if (!stick.value) return
 		await nextTick()
