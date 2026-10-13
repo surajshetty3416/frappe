@@ -202,7 +202,8 @@ def resolve_recipients(recipients: list, doc) -> list:
 		elif recipient == ASSIGNEES_TOKEN:
 			resolved.extend(_assignees(doc))
 		else:
-			resolved.append(recipient)
+			# a field of the document, such as {{ doc.email }}
+			resolved.append(render_value(recipient, doc))
 	return list(dict.fromkeys(user for user in resolved if user))
 
 
