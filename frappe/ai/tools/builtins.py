@@ -579,20 +579,32 @@ def create(doctype: str, records: list[dict[str, Any]], *, ctx: ToolContext) -> 
 		raise PermissionError(f"No permission to create {doctype}")
 
 	created: list[str] = []
+	saved: dict[str, Any] = {}
 	failures: list[dict[str, Any]] = []
 	for row, values in enumerate(records):
 		try:
 			doc = frappe.new_doc(doctype)
-			doc.update(values or {})
-			doc.insert()
+			_save(doc, values, saved)
 			created.append(doc.name)
 		except Exception as e:
 			failures.append({"row": row, "error": _error_text(e)})
 
 	result: dict[str, Any] = {"doctype": doctype, "created": created}
+	if saved:
+		result["saved"] = saved
 	if failures:
 		result["failures"] = failures
 	return _with_artifact(result, ctx, doctype, created)
+
+
+def _save(doc: Any, values: dict[str, Any] | None, saved: dict[str, Any]) -> None:
+	"""Apply the agent's values and save. A layer's `before_flow_save` doc event fills what the values leave
+	out before the DocType's defaults do, and its `after_flow_save` returns what the agent should see was saved."""
+	doc.update(values or {})
+	doc.run_method("before_flow_save")
+	doc.save()
+	if shown := doc.run_method("after_flow_save"):
+		saved[doc.name] = shown
 
 
 @tool(
@@ -609,19 +621,21 @@ def create(doctype: str, records: list[dict[str, Any]], *, ctx: ToolContext) -> 
 def update(doctype: str, names: list[str], values: dict[str, Any], *, ctx: ToolContext) -> dict[str, Any]:
 	"""Apply the same field values to one or more existing records. Runs full validation per record."""
 	updated: list[str] = []
+	saved: dict[str, Any] = {}
 	failures: list[dict[str, Any]] = []
 	for name in names:
 		try:
 			if not frappe.has_permission(doctype, "write", name):
 				raise frappe.PermissionError(_("No permission to update {0} {1}.").format(doctype, name))
 			doc = frappe.get_doc(doctype, name)
-			doc.update(values or {})
-			doc.save()
+			_save(doc, values, saved)
 			updated.append(doc.name)
 		except Exception as e:
 			failures.append({"name": name, "error": _error_text(e)})
 
 	result: dict[str, Any] = {"doctype": doctype, "updated": updated}
+	if saved:
+		result["saved"] = saved
 	if failures:
 		result["failures"] = failures
 	return _with_artifact(result, ctx, doctype, updated)

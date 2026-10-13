@@ -27,5 +27,9 @@ const roleOptions = computed(() => {
 	return roles.value.filter((role) => !taken.has(role)).map((role) => ({ label: role, value: role }))
 })
 
-const addRole = (role: string) => change((doc) => doc.permissions.push({ role, permlevel: 0, read: 1 }))
+// DocPerm defaults every right below to 1, so a new role names each one it does not get
+const addRole = (role: string) =>
+	change((doc) =>
+		doc.permissions.push({ role, permlevel: 0, read: 1, write: 0, create: 0, delete: 0, report: 0, export: 0, share: 0, print: 0, email: 0 })
+	)
 </script>
