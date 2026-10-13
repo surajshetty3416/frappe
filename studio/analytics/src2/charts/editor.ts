@@ -2,9 +2,10 @@
 // preview, and the shell's contract answered from the chart store.
 import { defineArtifactEditor } from '@shell/editor'
 import { type UseRefHistoryReturn, useDebouncedRefHistory } from '@vueuse/core'
-import { computed, defineComponent, h, ref, shallowReactive, shallowRef, watch } from 'vue'
+import { computed, defineComponent, h, provide, ref, shallowReactive, shallowRef, watch } from 'vue'
 import JsonCode from '../components/JsonCode.vue'
 import { waitUntil } from '../helpers'
+import { chartEntryAnimation } from './helpers'
 import dayjs from '../helpers/dayjs'
 import useQuery, { type Query } from '../query/query'
 import { __ } from '../translation'
@@ -55,6 +56,7 @@ const ChartArtifactPreview = defineComponent({
 	name: 'ChartArtifactPreview',
 	props: { name: { type: String, required: true } },
 	setup(props) {
+		provide(chartEntryAnimation, false)
 		const root = ref<HTMLElement | null>(null)
 		watch(root, (value) => (host = value))
 		watch(
@@ -99,9 +101,12 @@ export default defineArtifactEditor({
 	primaryAction: () => null,
 	details() {
 		const executedAt = read.value?.executedAt
+		const title = query.value?.doc.title || chart.value?.doc.query || '—'
+		const from = source(query.value)
 		return [
-			{ label: __('Query'), value: query.value?.doc.title || chart.value?.doc.query || '—' },
-			{ label: __('Source'), value: source(query.value) || '—' },
+			{ label: __('Query'), value: title },
+			// a query named after its table says its source already
+			...(from && from !== title ? [{ label: __('Source'), value: from }] : []),
 			{ label: __('Last fetched'), value: executedAt ? dayjs(executedAt).fromNow() : '—' },
 		]
 	},

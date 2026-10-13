@@ -59,7 +59,7 @@
 				v-for="name in routeVariableNames"
 				:key="name"
 				:label="`Preview ${name.replace(/_/g, ' ')}`"
-				variant="outline"
+				:hideClearButton="true"
 				:modelValue="store.routeVariables[name] || ''"
 				@update:modelValue="(value: string) => store.setRouteVariable(name, value)"
 			/>

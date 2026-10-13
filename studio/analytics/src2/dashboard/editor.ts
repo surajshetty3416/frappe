@@ -3,11 +3,12 @@
 import { defineArtifactEditor, type ElementAction, type ElementProperty } from '@shell/editor'
 import { type UseRefHistoryReturn, useDebouncedRefHistory } from '@vueuse/core'
 import { call } from 'frappe-ui'
-import { type Component, computed, defineComponent, h, ref, shallowReactive, watch } from 'vue'
+import { type Component, computed, defineComponent, h, provide, ref, shallowReactive, watch } from 'vue'
 import { titleNode } from '../charts/editor'
 import { chartIcon, chartProperties, plainText } from '../charts/properties'
 import JsonCode from '../components/JsonCode.vue'
 import { getUniqueId, waitUntil } from '../helpers'
+import { chartEntryAnimation } from '../charts/helpers'
 import dayjs from '../helpers/dayjs'
 import { __ } from '../translation'
 import type { WorkbookDashboardFilter, WorkbookDashboardItem } from '../types/workbook.types'
@@ -72,6 +73,7 @@ const DashboardArtifactPreview = defineComponent({
 	name: 'DashboardArtifactPreview',
 	props: { name: { type: String, required: true } },
 	setup(props) {
+		provide(chartEntryAnimation, false)
 		const root = ref<HTMLElement | null>(null)
 		watch(root, (value) => (host = value))
 		watch(

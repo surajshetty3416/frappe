@@ -160,7 +160,8 @@ function defaultValuesProvider(search: string) {
 			</div>
 		</div>
 
-		<div class="flex flex-col gap-1.5">
+		<!-- a default needs a column to read its values from -->
+		<div v-if="enabledLinks.length" class="flex flex-col gap-1.5">
 			<div class="flex items-center justify-between">
 				<label class="text-xs text-ink-gray-5">{{ __('Default value') }}</label>
 				<Button
@@ -176,15 +177,16 @@ function defaultValuesProvider(search: string) {
 				v-model:operator="filter.default_operator"
 				v-model:value="filter.default_value as number"
 			/>
-			<div v-else class="flex flex-wrap items-start gap-2">
-				<FormControl
-					class="w-32 flex-shrink-0"
-					type="select"
-					:placeholder="__('Operator')"
-					:modelValue="filter.default_operator"
-					:options="defaultOperatorOptions"
-					@update:modelValue="onDefaultOperatorChange($event)"
-				/>
+			<div v-else class="flex items-start gap-2">
+				<div class="w-32 shrink-0">
+					<FormControl
+						type="select"
+						:placeholder="__('Operator')"
+						:modelValue="filter.default_operator"
+						:options="defaultOperatorOptions"
+						@update:modelValue="onDefaultOperatorChange($event)"
+					/>
+				</div>
 				<template v-if="defaultValueSelectorType">
 					<DatePicker
 						v-if="defaultValueSelectorType === 'date'"
@@ -216,6 +218,7 @@ function defaultValuesProvider(search: string) {
 						autocomplete="off"
 					/>
 				</template>
+				<FormControl v-else class="flex-1" :placeholder="__('Value')" disabled />
 			</div>
 		</div>
 	</div>

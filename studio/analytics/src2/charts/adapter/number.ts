@@ -62,6 +62,11 @@ export function adaptNumberChart(input: ChartAdapterInput): ChartFiller | undefi
 	const cards = shown.map((reading) =>
 		cardFor(config, rows, reading, input.comparisonRows, input.sparklineResult?.rows),
 	)
+	// A chart of one reading is that reading, so the card wears the chart's title,
+	// the name the author gave it, rather than the Measure's column name.
+	if (input.title && numberReadings(config).length === 1) {
+		for (const card of cards) if (!card.missing) card.title = input.title
+	}
 
 	// Nothing to drill into until there is a row behind the reading, and the card
 	// reads as clickable on the same answer: a pointer over an empty or failed

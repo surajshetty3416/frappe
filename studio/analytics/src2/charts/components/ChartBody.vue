@@ -2,7 +2,9 @@
 import { Button, LoadingIndicator } from 'frappe-ui'
 import { ChartContainer, useChartTokens } from 'frappe-ui/charts'
 import { InfoIcon, RefreshCcw } from 'lucide-vue-next'
-import { computed, onBeforeUnmount, ref, shallowRef, watch } from 'vue'
+import { computed, inject, onBeforeUnmount, ref, shallowRef, watch } from 'vue'
+import { chartEntryAnimation } from '../helpers'
+import { AXIS_CHARTS } from '../../types/chart.types'
 import { refusalDetail, refusalHeadline } from '../../not_permitted'
 import { __ } from '../../translation'
 import { emptyResult } from '../../query/helpers'
@@ -95,7 +97,15 @@ const ownsStates = computed(() => rendersOwnCards(chart_type.value))
 const description = computed(() => (ownsStates.value ? undefined : props.description || undefined))
 const info = computed(() => (ownsStates.value ? undefined : props.info || undefined))
 
+const animates = inject(chartEntryAnimation, true)
+
 const filler = computed(() => {
+	const adapted = adaptedFiller()
+	if (animates || !adapted || !AXIS_CHARTS.includes(chart_type.value)) return adapted
+	return { ...adapted, props: { ...adapted.props, echartOptions: { ...adapted.props.echartOptions, animation: false } } }
+})
+
+function adaptedFiller() {
 	// the result outlives a chart type switch, so without this the adapter would
 	// run against the incoming type's still-empty config
 	if (props.chart.configErrors.length) return
@@ -135,7 +145,7 @@ const filler = computed(() => {
 				  }
 				: undefined,
 	})
-})
+}
 
 // Rows on screen stay through the next run, veiled. Blanking them unmounts the
 // plot, and a plot mounted again is a new echarts instance that replays its

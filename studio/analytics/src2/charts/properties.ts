@@ -1,4 +1,6 @@
 import type { ElementProperty } from '@shell/editor'
+import { paletteColors, useChartTokens } from 'frappe-ui/charts'
+import { ref } from 'vue'
 import { column } from '../query/helpers'
 import { __ } from '../translation'
 import {
@@ -82,6 +84,9 @@ function sort(chart: Chart, read: ChartRead | undefined): ElementProperty {
 	}
 }
 
+// the theme's colors, as a chart with no color of its own draws in
+const { tokens } = useChartTokens(ref(document.documentElement))
+
 function color(chart: Chart, reading?: string): ElementProperty | null {
 	const type = chart.doc.chart_type
 	if (type === 'Number') {
@@ -93,7 +98,7 @@ function color(chart: Chart, reading?: string): ElementProperty | null {
 			label: __('Color'),
 			icon: 'lucide-palette',
 			type: 'color',
-			value: config.number_column_options?.[index]?.color || '',
+			value: config.number_column_options?.[index]?.color || 'var(--ink-gray-8)',
 			set(value) {
 				config.number_column_options ||= []
 				const options = (config.number_column_options[index] ||= {})
@@ -102,15 +107,16 @@ function color(chart: Chart, reading?: string): ElementProperty | null {
 		}
 	}
 	if (!AXIS_CHARTS.includes(type)) return null
-	const series = (chart.doc.config as AxisChartConfig).y_axis?.series?.[0]
+	const series = (chart.doc.config as AxisChartConfig).y_axis?.series
+	const first = series?.[0]
 	return {
 		name: 'color',
 		label: __('Color'),
 		icon: 'lucide-palette',
 		type: 'color',
-		value: series?.color?.[0] || '',
+		value: first?.color?.[0] || paletteColors('sequential', tokens.value, series?.length || 1)[0],
 		set(value) {
-			if (series) series.color = value ? [value] : undefined
+			if (first) first.color = value ? [value] : undefined
 		},
 	}
 }

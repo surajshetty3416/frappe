@@ -1,13 +1,12 @@
 <template>
 	<div class="flex w-full flex-col gap-4">
-		<Input label="Page Title" type="text" variant="outline" class="w-full" v-model="title" />
+		<Input label="Page Title" type="text" class="w-full" :hideClearButton="true" v-model="title" />
 
 		<div class="relative flex w-full items-stretch">
 			<Input
 				ref="routeInput"
 				label="Page Route"
 				type="text"
-				variant="outline"
 				class="w-full"
 				:hideClearButton="true"
 				:modelValue="route.replace(/^\//, '')"

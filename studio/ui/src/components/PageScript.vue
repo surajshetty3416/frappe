@@ -1,19 +1,22 @@
 <template>
-	<div class="flex h-full flex-col">
-		<div class="flex h-10 shrink-0 items-center justify-end gap-1 border-b border-outline-gray-2 px-3">
-			<span v-if="dirty" class="mr-auto text-sm text-ink-amber-5">Unsaved</span>
-			<Popover side="bottom" align="end" :offset="6" bare>
-				<template #trigger>
-					<Button size="sm" variant="ghost" icon="lucide-circle-help" title="How to write the page script" />
-				</template>
-				<div class="max-w-sm rounded-4 border border-outline-gray-2 bg-surface-base p-3 shadow-lg">
-					<PageScriptHelp />
-				</div>
-			</Popover>
-			<Button size="sm" variant="solid" :loading="saving" :disabled="!dirty" @click="saveScript">Save</Button>
+	<div class="flex h-full flex-col gap-2">
+		<div class="flex items-center gap-1">
+			<span class="text-sm text-ink-gray-5">JavaScript</span>
+			<span v-if="dirty" class="text-sm text-ink-amber-5">· Unsaved</span>
+			<div class="ml-auto flex items-center gap-1">
+				<Popover side="bottom" align="end" :offset="6" bare>
+					<template #trigger>
+						<Button variant="ghost" icon="lucide-circle-help" tooltip="How to write the page script" />
+					</template>
+					<div class="max-w-sm rounded-4 border border-outline-gray-2 bg-surface-base p-3 shadow-lg">
+						<PageScriptHelp />
+					</div>
+				</Popover>
+				<Button :loading="saving" :disabled="!dirty" label="Save" icon-left="lucide-check" @click="saveScript" />
+			</div>
 		</div>
-		<ErrorMessage v-if="scriptError" class="border-b border-outline-gray-2 px-3 py-2" :message="scriptError" />
-		<div class="relative min-h-0 flex-1 overflow-hidden">
+		<ErrorMessage v-if="scriptError" :message="scriptError" />
+		<div class="relative min-h-0 flex-1 overflow-hidden rounded-4 border border-outline-gray-2">
 			<Code
 				:modelValue="script"
 				language="javascript"
@@ -22,6 +25,7 @@
 				:emitOnChange="true"
 				valueMode="text"
 				:borderless="true"
+				placeholder="// Runs when the page loads"
 				:completions="completions"
 				@update:modelValue="onChange"
 				@save="saveScript"

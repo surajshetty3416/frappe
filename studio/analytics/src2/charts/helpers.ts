@@ -1,4 +1,8 @@
+import type { InjectionKey } from 'vue'
 import { AXIS_CHARTS, ChartConfig } from '../types/chart.types'
+
+/** False under an editor, where a plot growing from zero reads as a broken chart. */
+export const chartEntryAnimation: InjectionKey<boolean> = Symbol('chartEntryAnimation')
 
 // What a Chart's config needs doing to it before anything reads it. Rendering is
 // not here: the adapter turns a config into chart props, and frappe-ui renders

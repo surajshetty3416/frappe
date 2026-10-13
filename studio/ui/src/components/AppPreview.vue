@@ -32,6 +32,8 @@ const canvasStore = useCanvasStore()
 
 const PAD = 24
 const PHONE = { width: 390, height: 844, bezel: 10 }
+const TABLET_WIDTH = 768
+const TABLET_INSET = 20
 
 const room = ref<HTMLElement | null>(null)
 const pageCanvas = ref<InstanceType<typeof StudioCanvas> | null>(null)
@@ -43,21 +45,25 @@ const device = computed(
 	() => pageCanvas.value?.canvasProps.breakpoints.find((breakpoint) => breakpoint.visible)?.device ?? "desktop",
 )
 
-const frameStyles = computed(() =>
-	device.value === "mobile"
-		? {
-				height: `${PHONE.height}px`,
-				minHeight: `${PHONE.height}px`,
-				overflowY: "auto",
-				borderRadius: "44px",
-				// the status bar and home indicator keep the page off the rounded corners
-				padding: "44px 0 20px",
-				boxShadow: `0 0 0 ${PHONE.bezel}px var(--surface-gray-9), 0 24px 48px -12px rgb(0 0 0 / 0.3)`,
-			}
-		: { minHeight: `${minHeight.value}px`, boxShadow: "0 0 0 1px var(--outline-gray-2)" },
-)
+const bezel = `0 0 0 ${PHONE.bezel}px var(--surface-gray-9), 0 24px 48px -12px rgb(0 0 0 / 0.3)`
+const frameStyles = computed(() => {
+	if (device.value === "mobile")
+		return {
+			height: `${PHONE.height}px`,
+			minHeight: `${PHONE.height}px`,
+			overflowY: "auto",
+			borderRadius: "44px",
+			// the status bar and home indicator keep the page off the rounded corners
+			padding: "44px 0 20px",
+			boxShadow: bezel,
+		}
+	// a tablet narrower than its own width still reads as one by its frame
+	if (device.value === "tablet") return { minHeight: `${minHeight.value}px`, borderRadius: "20px", padding: `${TABLET_INSET}px 0`, boxShadow: bezel }
+	return { minHeight: `${minHeight.value}px`, boxShadow: "0 0 0 1px var(--outline-gray-2)" }
+})
 
-// desktop renders at the panel's width at 100%; tablet and the phone frame scale down to fit
+// desktop and tablet render at 100%, desktop at the panel's width and tablet at its own or narrower;
+// the phone frame scales down to fit
 async function fit() {
 	const el = room.value
 	const canvas = pageCanvas.value
@@ -73,8 +79,8 @@ async function fit() {
 		breakpoint.width = width
 		minHeight.value = height
 	} else if (breakpoint.device === "tablet") {
-		scale = Math.min(1, width / breakpoint.width)
-		minHeight.value = height / scale
+		breakpoint.width = Math.min(TABLET_WIDTH, width - PHONE.bezel * 2)
+		minHeight.value = height - PHONE.bezel * 2 - TABLET_INSET * 2
 	} else {
 		breakpoint.width = PHONE.width
 		const frame = PHONE.bezel * 2
@@ -87,7 +93,10 @@ async function fit() {
 	const page = el.querySelector(".canvas")
 	if (!page) return
 	const origin = el.getBoundingClientRect().top
-	const top = breakpoint.device === "mobile" ? origin + (el.clientHeight - PHONE.height * scale) / 2 : origin + PAD
+	const top =
+		breakpoint.device === "mobile"
+			? origin + (el.clientHeight - PHONE.height * scale) / 2
+			: origin + PAD + (breakpoint.device === "tablet" ? PHONE.bezel : 0)
 	canvasProps.translateY = (top - page.getBoundingClientRect().top) / scale
 	fitted.value = true
 }
