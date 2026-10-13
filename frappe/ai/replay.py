@@ -20,7 +20,7 @@ from frappe import _
 from frappe.utils import cint, flt
 
 from frappe.ai.daemon.client import DaemonClient, DaemonError
-from frappe.ai.lib.session import _default_agent_name, new_session
+from frappe.ai.lib.session import FAILED, _default_agent_name, new_session
 
 FORMAT = "flow-recording"
 NEVER_RAN = {
@@ -215,8 +215,8 @@ def settle_run(run) -> None:
 
 
 def settle(replay) -> None:
-	"""Once the playing step's run has ended, learn the names it got and stop on a call that
-	failed where the recording's succeeded."""
+	"""Once the playing step's run has ended, learn the names it got and stop on a failed run
+	or on a call that failed where the recording's succeeded."""
 	if replay.status != "Playing":
 		return
 	# the end the sync recorded, so the next step's rows never share a sync with this one's
@@ -237,6 +237,8 @@ def settle(replay) -> None:
 		return
 	new = {row["tool_call_id"]: row for row in rows if row["type"] == "tool_result"}
 	errors = [row["message"] for row in rows if row["type"] == "run_error"]
+	if run.status == "Failed" and not errors:
+		errors.append(run.error or FAILED)
 	names = json.loads(replay.names or "{}")
 	recording = recording_steps(replay.recording)
 	for recorded in recording[replay.step]["results"]:
