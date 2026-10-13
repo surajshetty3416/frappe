@@ -67,10 +67,10 @@
 	}
 }
 
-/* streaming */
+/* streaming: the whole label pulses, since a band sweeping across it reads as bold letters */
 @keyframes flow-shimmer {
-	to {
-		background-position: -200% 0;
+	50% {
+		color: var(--ink-gray-7);
 	}
 }
 .flow-shimmer {
@@ -81,7 +81,6 @@
 	.flow-shimmer {
 		animation: none;
 		color: var(--ink-gray-5);
-		background: none;
 	}
 }
 
