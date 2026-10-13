@@ -22,7 +22,7 @@
 					@auxclick.middle="close(tab)"
 				>
 					<span :class="tab.icon" class="size-4 shrink-0 text-ink-gray-5" />
-					<span class="min-w-0 flex-1 truncate">{{ ownTitle(tab.title) }}</span>
+					<span class="min-w-0 flex-1 truncate">{{ tab.title }}</span>
 					<Button
 						size="xs"
 						variant="ghost"
@@ -56,7 +56,7 @@
 						class="block min-w-0 truncate rounded-4 px-1 py-0.5 text-base font-medium text-ink-gray-8"
 						:class="editor ? 'cursor-text hover:bg-surface-gray-2' : ''"
 						@click="startRename"
-						>{{ ownTitle(title) }}</span
+						>{{ title }}</span
 					>
 				</Tooltip>
 				<!-- the status gives way before the title does -->
@@ -179,7 +179,7 @@ import { type ArtifactEditor, type EditorMode, editorMode } from "../editor"
 import { layers } from "../layers"
 import { overlayOpen } from "../layout"
 import { onDocUpdate } from "../realtime"
-import { type Tab, closeTab, findTab, openTab, ownTitle, tabKey, tabs } from "../tabs"
+import { type Tab, closeTab, findTab, openTab, tabKey, tabs } from "../tabs"
 import EditorDrawer from "./EditorDrawer.vue"
 import LayerComponent from "./LayerComponent.vue"
 import SelectionLayer from "./SelectionLayer.vue"
@@ -281,7 +281,7 @@ watch(openDrawer, (open) => {
 const strip = ref<HTMLElement | null>(null)
 const outOfView = ref<Tab[]>([])
 const outOfViewOptions = computed(() =>
-	outOfView.value.map((tab) => ({ label: ownTitle(tab.title), icon: tab.icon, onClick: () => router.push(tab.path) }))
+	outOfView.value.map((tab) => ({ label: tab.title, icon: tab.icon, onClick: () => router.push(tab.path) }))
 )
 function measureTabs() {
 	const el = strip.value

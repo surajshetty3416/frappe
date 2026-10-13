@@ -36,6 +36,3 @@ export function closeTab(tab: Tab) {
 	allTabs.value.splice(allTabs.value.indexOf(shown[index]), 1)
 	return shown[index + 1] ?? shown[index - 1] ?? null
 }
-
-// a page's title ends with its site's name, as "Code of conduct · Frappeverse 2027"; tabs and the bar show the page's own
-export const ownTitle = (title: string) => title.replace(/ · [^·]+$/, "")
