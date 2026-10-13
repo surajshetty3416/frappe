@@ -12,6 +12,39 @@ Writing records by hand is slow: each one costs output tokens, and a thousand of
 - `create` only for a handful of records whose every value is given, such as 3 tracks or 6 ticket types with their prices.
 - To try a spec, call `generate_records` with `"preview": true`. It inserts nothing, and returns five samples and, per text field, the number of distinct values and the fewest and most words. Never insert test records to see what a spec makes.
 
+## Kinds
+
+This list is complete. A spec takes `kind`, the params its kind lists here, `empty` (share left blank, 0 to 1) and `unique` (true). Any other key fails the call. A field given a bare value, such as `"status": "Accepted"`, is a constant.
+
+| kind | params |
+| --- | --- |
+| name, first_name, last_name | `india` share of Indian names (default 1, the rest international), `women` share (default 0.5). One person per record, shared by these kinds, email and `{person.*}`. |
+| company | `names` list or weight map; without it, made-up Indian company names, a `pool` of that many, a few big. |
+| email | `company`: the fieldname whose company gives the domain (default company), or a fixed `domain`, not both; `free` share at gmail.com and similar. first.last of the record's person. Unique by default, also against existing records: a taken address gets a number. |
+| phone | `prefix` (default "+91 "), `digits` (default 10), `first`: the digits a number may start with, such as "987". Unique by default. |
+| date | `from` and `to` (YYYY-MM-DD, today, -30d or +7d), or `ranges` [[from, to, weight], ...]; `skew` rising, falling or -5 to 5 within each range; `weekdays` 7 weights, Monday to Sunday. |
+| datetime | the date params, and `times` [["09:00", "09:30", weight], ...] for the time of day (default 09:00 to 18:00). |
+| int | `min` and `max`, both required; `skew`. |
+| float | `min` and `max`, both required; `skew`, `precision`. |
+| choice | `options`: a list, a {value: weight} map, or "{slot.key}" for the list each object of a slot holds; `pick` a count or [min, max] of different options per record, joined by ", ". |
+| link | `filters`, `weights` {name: weight}, `distribution` uniform or skewed, `unique` (each linked record at most once), `each` (every matching record exactly once, oldest first). |
+| text | `template`, or `templates` as a list or weight map; `slots` {slot: list or weight map}; `words` [min, max]; `start` for the {0000} counter (default 1). |
+| constant | `value`. |
+| fake | `method`: a Faker method, such as city or street_address; `args`; `locale` (default en_IN). |
+| table | `rows` a count or [min, max]; `fields`, a spec for the child DocType. |
+
+Text placeholders: {slot} or {slot.key} from `slots`; {field} for another field or a given value of the record; {link_field.field} for a field of the linked record; {person.first_name}, {person.last_name}, {person.full_name}, {person.country}, and {person.he}, {person.his}, {person.him}, capitalised as {person.He}; {0000} a counter; {10..90} a number; {code:6} random capitals and digits.
+
+Rules the server checks, so a spec that breaks one fails:
+
+- `count` equals the number of `given` records, in a preview too. To preview a few, send those few given records and their count.
+- A given key is a field of the DocType, or a fact a text template reads. To set a field per given record, such as its tags, give it under the fieldname: `"screener_tags": "framework, beginner-friendly"`.
+- A choice on a Select field takes only the field's options, and no `pick`. `pick` fills a text field.
+- With `"options": "{topic.tags}"`, every object of the slot has a `tags` list at least as long as the most `pick` asks for: `"pick": [2, 4]` needs four tags on every topic.
+- A link with `each` makes one record per matching record, so `count` equals their number. `unique` needs at least `count` matching records.
+- A slot is given in one field's `slots` only, and never has the name of a field or a given key.
+- Every required field has a spec, a given value or a default.
+
 ## Steps
 
 1. `describe` the DocType and every DocType its Link fields point to. Use the real fieldnames and the exact Select options.
