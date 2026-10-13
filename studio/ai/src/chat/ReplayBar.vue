@@ -3,9 +3,17 @@
 		<div class="mx-auto flex h-9 max-w-[760px] items-center gap-1 rounded-6 border border-outline-gray-1 bg-surface-gray-1 px-1 text-sm">
 			<template v-if="replay.status === 'Done'">
 				<span class="lucide-circle-check ml-1.5 size-4 flex-none text-ink-gray-5" />
-				<span class="ml-1 flex-none text-ink-gray-8">Replay finished</span>
-				<span class="min-w-0 flex-1 truncate text-ink-gray-5">{{ replay.title }}</span>
-				<Button v-if="next" variant="solid" icon-right="lucide-arrow-right" :loading="starting" :label="`Next: ${next.title}`" @click="startNext" />
+				<span class="ml-1 flex-1 text-ink-gray-8">Replay finished</span>
+				<Button
+					v-if="next"
+					class="min-w-0 max-w-[60%]"
+					size="sm"
+					variant="solid"
+					icon-right="lucide-arrow-right"
+					:loading="starting"
+					:label="`Next: ${next.title}`"
+					@click="startNext"
+				/>
 			</template>
 			<template v-else>
 				<Button
