@@ -2,7 +2,7 @@
 	<div class="flex w-full flex-col gap-2">
 		<ArrayInput
 			:modelValue="columnWidths"
-			:label="label"
+			:label="Array.isArray(columns) || !label ? label : `${label} · ${breakpointKey === 'md' ? 'from 768px' : 'phone'}`"
 			addLabel="Add Column"
 			newItemValue="8rem"
 			@update:modelValue="setColumnWidths"
@@ -23,35 +23,53 @@
 import { computed } from "vue"
 import ArrayInput from "@ui/components/ArrayInput.vue"
 import Block from "@ui/utils/block"
+import useCanvasStore from "@ui/stores/canvasStore"
 import { listCell, listHeaderCell } from "@ui/utils/blockTemplate/familyTemplates"
 
 const props = defineProps<{ block: Block; label?: string }>()
 
+const canvasStore = useCanvasStore()
+
 const HEADER_CELL_NAMES = ["ListHeaderCell", "ListHeaderCellSort"]
 
+// `columns` is one template, or one per breakpoint (`{ base, md }`): the phone view edits `base`,
+// the wider views `md`, which falls back to `base` as the CSS does
+const columns = computed(() => props.block.getProp("columns"))
+const breakpointKey = computed(() => (canvasStore.activeCanvas?.activeBreakpoint === "mobile" ? "base" : "md"))
+
 const columnWidths = computed<string[]>(() => {
-	const value = props.block.getProp("columns")
-	return Array.isArray(value) ? value : []
+	const value = columns.value
+	if (Array.isArray(value)) return value
+	if (!value || typeof value !== "object") return []
+	return value[breakpointKey.value] ?? value.base ?? []
 })
 
 function setColumnWidths(next: string[]) {
-	props.block.setProp("columns", next)
+	const value = columns.value
+	if (Array.isArray(value) || !value || typeof value !== "object") return props.block.setProp("columns", next)
+	props.block.setProp("columns", { ...value, [breakpointKey.value]: next })
 }
+
+// the phone's template holds only the columns it keeps, so its edits leave the cells alone
+const editsCells = computed(() => Array.isArray(columns.value) || breakpointKey.value === "md")
 
 // A column lives in three places — a width entry in `columns`, a header cell, and a cell
 // in every row template — kept in step positionally so header and rows never drift.
 // ArrayInput edits the widths; `add`/`remove` mirror the operation onto the cells.
 function addCells() {
+	if (!editsCells.value) return
 	headerBlock.value?.addChild(listHeaderCell(`Column ${columnWidths.value.length}`), null, false)
 	rowBlocks.value.forEach((row) => row.addChild(listCell("—"), null, false))
 }
 
 function removeCells(index: number) {
+	if (!editsCells.value) return
 	removeCellAt(headerBlock.value, HEADER_CELL_NAMES, index)
 	rowBlocks.value.forEach((row) => removeCellAt(row, ["ListCell"], index))
 }
 
 function moveCells({ from, to }: { from: number; to: number }) {
+	if (!editsCells.value) return
 	moveCellAt(headerBlock.value, HEADER_CELL_NAMES, from, to)
 	rowBlocks.value.forEach((row) => moveCellAt(row, ["ListCell"], from, to))
 }
@@ -59,11 +77,11 @@ function moveCells({ from, to }: { from: number; to: number }) {
 const mismatch = computed(() => {
 	const expected = columnWidths.value.length
 	const problems: string[] = []
-	if (headerBlock.value) {
+	if (editsCells.value && headerBlock.value) {
 		const count = cellsOf(headerBlock.value, HEADER_CELL_NAMES).length
 		if (count !== expected) problems.push(`Header has ${count} of ${expected} cells`)
 	}
-	const offRows = rowBlocks.value.filter((row) => cellsOf(row, ["ListCell"]).length !== expected)
+	const offRows = editsCells.value ? rowBlocks.value.filter((row) => cellsOf(row, ["ListCell"]).length !== expected) : []
 	if (offRows.length) {
 		problems.push(`${offRows.length} row${offRows.length === 1 ? "" : "s"} with a mismatched cell count`)
 	}
