@@ -171,7 +171,15 @@ export default defineArtifactEditor({
 		if (!field || !editable.value) return []
 		return [
 			{ name: "duplicate", label: "Duplicate", icon: "lucide-copy", run: () => duplicateField(field) },
-			{ name: "delete", label: "Delete", icon: "lucide-trash-2", run: () => removeField(field) },
+			{
+				name: "delete",
+				label: "Delete",
+				icon: "lucide-trash-2",
+				run() {
+					toast.success(`Deleted ${fieldLabel(field)}`, { duration: 5000, action: { label: "Undo", onClick: undo } })
+					return removeField(field)
+				},
+			},
 		]
 	},
 })
