@@ -160,12 +160,15 @@ class App(Source):
 		branch, parents = self.config["branch"], self.merged_parents()
 		self.clone()
 		parents_callback = f"PARENTS = {parents!r}\ncommit.parents = [PARENTS.get(p, p) for p in commit.parents]"
-		subprocess.run(
+		rewrite = subprocess.run(
 			[*FILTER_REPO, "--force", "--quiet", "--refs", f"{self.config['commit']}..{branch}"]
 			+ ["--filename-callback", CALLBACK.format(app=self.name), "--commit-callback", parents_callback],
 			cwd=self.work,
-			check=True,
+			capture_output=True,
+			text=True,
 		)
+		if rewrite.returncode:
+			sys.exit(f"{self.name}: git-filter-repo failed:\n{rewrite.stdout}{rewrite.stderr}")
 		rewritten = git("rev-parse", branch, cwd=self.work)
 		git("merge-base", "--is-ancestor", self.config["rewritten"], rewritten, cwd=self.work)
 		git("fetch", "--quiet", self.work, f"+refs/heads/{branch}:{self.ref}")
