@@ -14,7 +14,7 @@
 							<ListCell>
 								<div class="flex min-w-0 flex-col gap-0.5 text-left">
 									<span class="truncate text-base text-ink-gray-8">{{ item.name }}</span>
-									<span class="truncate text-sm text-ink-gray-5">{{ senders[item.name]?.join(", ") || "Not sent automatically" }}</span>
+									<span class="truncate text-sm text-ink-gray-5">{{ sentWhen(senders[item.name]) }}</span>
 								</div>
 							</ListCell>
 							<ListCell class="justify-end text-sm text-ink-gray-5"><span class="truncate">{{ item.reference_doctype }}</span></ListCell>
@@ -62,6 +62,8 @@ import { UseTimeAgo } from "@vueuse/components"
 import { Skeleton, call, createListResource } from "frappe-ui"
 import { List, ListCell, ListGroup, ListRow, ListRows } from "frappe-ui/list"
 import { onActivated, ref } from "vue"
+
+import { sentWhen } from "../senders"
 
 const COLUMNS = ["24px", "minmax(0, 1fr)", "176px", "160px"]
 

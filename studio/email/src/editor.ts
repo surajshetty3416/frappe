@@ -5,6 +5,7 @@ import { call, toast } from "frappe-ui"
 import { defineOutputEditor } from "@web/output/outputEditor"
 
 import EmailDetails from "./EmailDetails.vue"
+import { sentWhen } from "./senders"
 
 export default defineOutputEditor({
 	doctype: "Email Template",
@@ -12,7 +13,7 @@ export default defineOutputEditor({
 	route: (name) => `/studio/email/template/${encodeURIComponent(name)}`,
 	status: (state) =>
 		state.senders.length
-			? { label: state.senders.join(", "), theme: "green" }
+			? { label: sentWhen(state.senders), theme: "green" }
 			: { label: "Not sent automatically", theme: "gray" },
 	primaryAction(state) {
 		return {
