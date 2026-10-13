@@ -2,7 +2,7 @@
 	<div class="flex h-full w-full flex-col gap-2">
 		<div v-if="tab !== 'Script'" class="flex items-center justify-between">
 			<span class="text-sm text-ink-gray-5">JSON</span>
-			<Button :loading="saving" label="Save" icon-left="lucide-check" @click="save" />
+			<Button :loading="saving" label="Apply" icon-left="lucide-check" @click="save" />
 		</div>
 		<PageScript v-if="tab === 'Script'" class="min-h-0 flex-1" />
 		<div v-else class="relative min-h-0 flex-1 overflow-hidden rounded-4 border border-outline-gray-2">
@@ -56,7 +56,7 @@ async function save() {
 	try {
 		if (tab.value === "Page") savePage()
 		else await saveData()
-		toast.success("Saved")
+		toast.success("Applied")
 	} catch (error: any) {
 		toast.error("Could not save", { description: error?.messages?.join(", ") || error?.message })
 	} finally {

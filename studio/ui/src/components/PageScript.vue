@@ -2,7 +2,7 @@
 	<div class="flex h-full flex-col gap-2">
 		<div class="flex items-center gap-1">
 			<span class="text-sm text-ink-gray-5">JavaScript</span>
-			<span v-if="dirty" class="text-sm text-ink-amber-5">· Unsaved</span>
+			<span v-if="dirty" class="text-sm text-ink-amber-5">· Not applied</span>
 			<div class="ml-auto flex items-center gap-1">
 				<Popover side="bottom" align="end" :offset="6" bare>
 					<template #trigger>
@@ -12,7 +12,7 @@
 						<PageScriptHelp />
 					</div>
 				</Popover>
-				<Button :loading="saving" :disabled="!dirty" label="Save" icon-left="lucide-check" @click="saveScript" />
+				<Button :loading="saving" :disabled="!dirty" label="Apply" icon-left="lucide-check" @click="saveScript" />
 			</div>
 		</div>
 		<ErrorMessage v-if="scriptError" :message="scriptError" />
@@ -82,7 +82,7 @@ async function saveScript() {
 		await store.updateActivePage("script", script.value)
 		// keep the runtime bindings in sync with the saved script
 		pageScope.setPageScript(store.activePage!)
-		toast.success("Saved the page script")
+		toast.success("Applied the page script")
 	} catch (error: any) {
 		toast.error("Failed to save the page script", { description: error?.messages?.join(", ") })
 	} finally {
