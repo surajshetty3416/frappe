@@ -3,7 +3,7 @@
 		"frappe": {
 			"repo": "https://github.com/frappe/frappe.git",
 			"branch": "develop",
-			"commit": "c8d85d6356ca4ef3ec8edfa3340985c3007bfa55"
+			"commit": "13331b953c695823a7706e7138a9a4a521eaa140"
 		},
 		"builder": {
 			"repo": "https://github.com/frappe/builder.git",
@@ -26,7 +26,9 @@
 				"frappe/insights/": "frappe/analytics/",
 				"frontend/insights/": "studio/analytics/"
 			},
-			"regenerate": ["python3 -I frappe/analytics/tests/features.py generate"]
+			"regenerate": [
+				"python3 -I frappe/analytics/tests/features.py generate"
+			]
 		},
 		"flow": {
 			"repo": "https://github.com/frappe/flow.git",
