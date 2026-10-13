@@ -74,20 +74,16 @@ export function recordTitle(doctype: string, name: string) {
 
 export interface ArtifactInfo {
 	title: string
+	// the person who made it, by full name
 	owner: string
 	creation: string
 	modified: string
+	// the chat that made it, when one did
+	chat: { name: string; title: string } | null
 }
 
-export async function getArtifactInfo(doctype: string, name: string): Promise<ArtifactInfo> {
-	const titleField = window.studio_artifacts?.[doctype]?.title_field ?? "name"
-	const doc = await call("frappe.client.get_value", {
-		doctype,
-		filters: name,
-		fieldname: JSON.stringify([titleField, "owner", "creation", "modified"]),
-	})
-	return { title: doc?.[titleField] || name, owner: doc?.owner, creation: doc?.creation, modified: doc?.modified }
-}
+export const getArtifactInfo = (doctype: string, name: string): Promise<ArtifactInfo> =>
+	call("frappe.ai.artifacts.get_artifact_info", { reference_doctype: doctype, reference_name: name })
 
 export interface Version {
 	name: string

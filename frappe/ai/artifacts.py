@@ -13,7 +13,7 @@ from typing import Any
 
 import frappe
 from frappe import _
-from frappe.utils import cint
+from frappe.utils import cint, get_fullname
 
 HISTORY_LIMIT = 100
 
@@ -206,6 +206,35 @@ def get_artifact_session(reference_doctype: str, reference_name: str) -> dict[st
 		limit=1,
 	)
 	return sessions[0] if sessions else None
+
+
+@frappe.whitelist()
+def get_artifact_info(reference_doctype: str, reference_name: str) -> dict[str, Any]:
+	"""What the Details drawer says of an artifact: its title, when it was made and changed, and the
+	chat that made it, or the person when no chat did."""
+	frappe.has_permission(reference_doctype, "read", reference_name, throw=True)
+	title_field = artifact_type(reference_doctype)["title_field"]
+	doc = frappe.db.get_value(
+		reference_doctype, reference_name, [title_field, "owner", "creation", "modified"], as_dict=True
+	)
+	first = frappe.get_all(
+		"Artifact Version",
+		filters={"reference_doctype": reference_doctype, "reference_name": reference_name},
+		fields=["source", "session"],
+		order_by="creation asc",
+		limit=1,
+	)
+	session = first[0].session if first and first[0].source == "Agent" else None
+	chat = None
+	if session and frappe.has_permission("Flow Session", "read", session):
+		chat = {"name": session, "title": frappe.db.get_value("Flow Session", session, "title") or _("Untitled chat")}
+	return {
+		"title": doc.get(title_field) or reference_name,
+		"owner": get_fullname(doc.owner),
+		"creation": doc.creation,
+		"modified": doc.modified,
+		"chat": chat,
+	}
 
 
 @frappe.whitelist()

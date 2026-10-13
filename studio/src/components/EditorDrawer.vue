@@ -74,7 +74,7 @@
 					<div v-for="row in details" :key="row.label" class="flex items-baseline gap-3 py-1.5">
 						<dt class="w-24 shrink-0 text-sm text-ink-gray-5">{{ row.label }}</dt>
 						<dd class="min-w-0 flex-1 break-words text-sm text-ink-gray-8" :title="row.title">
-							<a v-if="row.href" :href="row.href" target="_blank" class="underline decoration-outline-gray-3 underline-offset-2 hover:decoration-outline-gray-5">{{ row.value }}</a>
+							<a v-if="row.href" :href="row.href" :target="row.href.startsWith('/studio/') ? undefined : '_blank'" class="underline decoration-outline-gray-3 underline-offset-2 hover:decoration-outline-gray-5">{{ row.value }}</a>
 							<template v-else>{{ row.value }}</template>
 						</dd>
 					</div>
@@ -145,7 +145,9 @@ const details = computed(() => {
 	const rows: (ArtifactDetail & { title?: string })[] = [...(props.editor?.details() ?? [])]
 	if (info.value) {
 		rows.push(
-			{ label: "Created by", value: info.value.owner },
+			info.value.chat
+				? { label: "Made in", value: info.value.chat.title, href: `/studio/chat/${info.value.chat.name}` }
+				: { label: "Made by", value: info.value.owner },
 			{ label: "Created", value: dayjs(info.value.creation).fromNow(), title: dayjs(info.value.creation).format("D MMM YYYY, h:mm a") },
 			{ label: "Last changed", value: dayjs(info.value.modified).fromNow(), title: dayjs(info.value.modified).format("D MMM YYYY, h:mm a") }
 		)
