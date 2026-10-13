@@ -26,9 +26,8 @@
 				<TextInput
 					class="mt-2"
 					size="sm"
-					:model-value="property.value"
 					placeholder="#000000"
-					@keydown.enter="pick(($event.target as HTMLInputElement).value, close)"
+					v-bind="draftInput(close)"
 				/>
 			</div>
 		</template>
@@ -65,12 +64,7 @@
 		<template #default="{ close }">
 			<div data-layer="shell" data-selection-ui class="w-[280px] p-2">
 				<p class="px-0.5 pb-2 text-xs font-medium text-ink-gray-5">{{ property.label }}</p>
-				<TextInput
-					size="sm"
-					:model-value="property.value"
-					:placeholder="property.placeholder"
-					@keydown.enter="pick(($event.target as HTMLInputElement).value, close, true)"
-				/>
+				<TextInput size="sm" :placeholder="property.placeholder" v-bind="draftInput(close, true)" />
 			</div>
 		</template>
 	</Popover>
@@ -91,7 +85,7 @@
 
 <script setup lang="ts">
 import { Button, FileUploader, Popover, Select, TextInput, Tooltip } from "frappe-ui"
-import { computed } from "vue"
+import { computed, ref } from "vue"
 import { useRoute } from "vue-router"
 
 import type { ElementProperty } from "../editor"
@@ -107,10 +101,31 @@ const SWATCHES = [
 	"#dc2626", "#d97706", "#16a34a", "#2563eb", "#7c3aed", "#db2777", "#ea580c", "#0d9488",
 ]
 
-// a text property may be cleared; a color may not
-function pick(value: string, close: () => void, empty = false) {
-	const next = value.trim()
-	if (next || empty) props.property.set(next)
+function pick(value: string, close: () => void) {
+	props.property.set(value)
 	close()
+}
+
+// a text property may be cleared, a color may not. The typed value outlives re-renders until Enter or blur commits it; Esc drops it
+const draft = ref<string | null>(null)
+function commitDraft(empty: boolean) {
+	const next = draft.value?.trim()
+	draft.value = null
+	if (next !== undefined && next !== (props.property.value ?? "") && (next || empty)) props.property.set(next)
+}
+function draftInput(close: () => void, empty = false) {
+	return {
+		modelValue: draft.value ?? props.property.value ?? "",
+		"onUpdate:modelValue": (value: string) => (draft.value = value),
+		onKeydown: (event: KeyboardEvent) => {
+			if (event.key === "Enter") {
+				// closing hands focus back to the trigger, which the same Enter would click open again
+				event.preventDefault()
+				commitDraft(empty)
+				close()
+			} else if (event.key === "Escape") draft.value = null
+		},
+		onBlur: () => commitDraft(empty),
+	}
 }
 </script>
