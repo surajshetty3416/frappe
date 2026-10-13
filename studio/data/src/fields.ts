@@ -62,8 +62,8 @@ export const fieldIcon = (fieldtype: string) => ICONS[fieldtype] ?? "lucide-type
 
 export const fieldLabel = (field: DocField) => field.label || field.fieldname || field.fieldtype
 
-// dates read as Studio writes them elsewhere, "15 June 2027"
-export const DATE_FORMATS: Record<string, string> = { Date: "D MMMM YYYY", Datetime: "D MMMM YYYY, h:mm a" }
+// dates read as Studio writes them elsewhere, "15 June 2027"; a time beside one shortens it, "20 Aug 2027, 16:17"
+export const DATE_FORMATS: Record<string, string> = { Date: "D MMMM YYYY", Datetime: "D MMM YYYY, HH:mm" }
 
 export function formatValue(field: DocField | undefined, value: unknown): string {
 	if (value === null || value === undefined || value === "") return ""
