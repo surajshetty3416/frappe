@@ -104,7 +104,8 @@ function clear() {
 </script>
 
 <template>
-	<div class="relative w-full">
+	<!-- the chip fits its name, past its cell when the name is longer -->
+	<div class="relative w-max min-w-full max-w-64 shrink-0">
 		<FilterPicker
 			v-model="filters"
 			class="w-full"
