@@ -51,16 +51,16 @@
 					@keydown.esc.stop="renaming = false"
 					@blur="commitRename"
 				/>
+				<!-- the title stays whole; the status truncates, and a title wider than the bar truncates last -->
 				<Tooltip v-else :text="editor ? 'Rename' : undefined" :disabled="!editor">
 					<span
-						class="block min-w-0 truncate rounded-4 px-1 py-0.5 text-base font-medium text-ink-gray-8"
+						class="block max-w-full shrink-0 truncate rounded-4 px-1 py-0.5 text-base font-medium text-ink-gray-8"
 						:class="editor ? 'cursor-text hover:bg-surface-gray-2' : ''"
 						@click="startRename"
 						>{{ title }}</span
 					>
 				</Tooltip>
-				<!-- the status gives way before the title does -->
-				<span v-if="status" class="flex min-w-0 shrink-[100] items-center gap-1.5 whitespace-nowrap text-sm text-ink-gray-5">
+				<span v-if="status" class="flex min-w-0 items-center gap-1.5 whitespace-nowrap text-sm text-ink-gray-5">
 					<span class="size-1.5 shrink-0 rounded-full" :class="STATUS_DOT[status.theme]" />
 					<span class="truncate">{{ status.label }}</span>
 				</span>
