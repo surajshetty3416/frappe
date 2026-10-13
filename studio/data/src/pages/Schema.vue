@@ -43,7 +43,7 @@
 				:elements-selectable="false"
 				:min-zoom="0.2"
 				:max-zoom="1.25"
-				@nodes-initialized="fit"
+				@nodes-initialized="place"
 				class="size-full"
 				@node-click="({ node }) => openDocType(node.id)"
 			>
@@ -94,7 +94,7 @@ import { TABLE_TYPES } from "../fields"
 const IDEAS = ["An event with tickets and attendees", "A CRM with leads, deals and companies", "A library of books and loans"]
 
 const router = useRouter()
-const { fitView, zoomIn, zoomOut } = useVueFlow()
+const { fitView, setViewport, zoomIn, zoomOut } = useVueFlow()
 
 const schema = ref<SchemaNode[]>([])
 const loading = ref(true)
@@ -105,11 +105,15 @@ async function load() {
 load()
 // a DocType the assistant makes shows up as it lands
 const fit = () => fitView({ padding: 0.2, maxZoom: 1 })
-const reload = useDebounceFn(async () => {
-	await load()
-	await nextTick()
-	fit()
-}, 500)
+// the diagram opens readable, at 100% with its first card under the heading; Fit shows it whole
+let opened = false
+function place() {
+	if (opened || !nodes.value.length) return
+	opened = true
+	const [first] = [...nodes.value].sort((a, b) => a.position.x - b.position.x || a.position.y - b.position.y)
+	setViewport({ x: 24 - first.position.x, y: 120 - first.position.y, zoom: 1 })
+}
+const reload = useDebounceFn(load, 500)
 const stop = onListUpdate("DocType", reload)
 onBeforeUnmount(stop)
 
