@@ -72,6 +72,8 @@
 			v-if="!stick && !blank"
 			class="absolute bottom-3 left-1/2 z-10 -translate-x-1/2 rounded-full shadow-md"
 			icon="lucide-arrow-down"
+		<!-- text scrolled under the composer's chips fades instead of stopping at a hard edge -->
+		<div class="pointer-events-none absolute inset-x-0 bottom-0 h-4 bg-gradient-to-t from-surface-base" />
 			variant="outline"
 			tooltip="Scroll to bottom"
 			@click="toBottom"
