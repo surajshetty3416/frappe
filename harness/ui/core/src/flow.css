@@ -74,19 +74,8 @@
 	}
 }
 .flow-shimmer {
-	background: linear-gradient(
-		90deg,
-		var(--ink-gray-4) 0%,
-		var(--ink-gray-4) 35%,
-		var(--ink-gray-8) 50%,
-		var(--ink-gray-4) 65%,
-		var(--ink-gray-4) 100%
-	);
-	background-size: 200% 100%;
-	-webkit-background-clip: text;
-	background-clip: text;
-	color: transparent;
-	animation: flow-shimmer 1.6s linear infinite;
+	color: var(--ink-gray-4);
+	animation: flow-shimmer 1.6s ease-in-out infinite;
 }
 @media (prefers-reduced-motion: reduce) {
 	.flow-shimmer {
