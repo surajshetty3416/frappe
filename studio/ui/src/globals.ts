@@ -78,7 +78,6 @@ import {
 } from "frappe-ui/charts"
 import {
 	List,
-	ListRows,
 	ListRow,
 	ListCell,
 	ListHeader,
@@ -91,6 +90,7 @@ import Container from "@ui/components/AppLayout/Container.vue"
 import FitContainer from "@ui/components/AppLayout/FitContainer.vue"
 import SplitView from "@ui/components/AppLayout/SplitView.vue"
 import Repeater from "@ui/components/AppLayout/Repeater.vue"
+import ListRows from "@ui/components/AppLayout/ListRows.vue"
 import HTML from "@ui/components/AppLayout/HTML.vue"
 import CardList from "@ui/components/AppLayout/CardList.vue"
 import AvatarCard from "@ui/components/AppLayout/AvatarCard.vue"
