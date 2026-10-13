@@ -5,12 +5,15 @@
 			v-if="store.pageBlocks[0]"
 			ref="pageCanvas"
 			class="canvas-container absolute inset-0 flex justify-center overflow-hidden transition-opacity duration-150"
-			:class="fitted && !store.settingPage ? 'opacity-100' : 'opacity-0'"
+			:class="fitted && !store.settingPage && !scope.failedDocument ? 'opacity-100' : 'opacity-0'"
 			:componentTree="store.pageBlocks[0]"
 			:canvasStyles="frameStyles"
 		/>
 		<div v-if="!fitted || store.settingPage" class="absolute inset-0 grid place-items-center">
 			<LoadingIndicator class="size-5 text-ink-gray-4" />
+		</div>
+		<div v-else-if="scope.failedDocument" class="absolute inset-0 grid place-items-center text-sm text-ink-gray-7">
+			{{ scope.failedDocument }}
 		</div>
 	</div>
 </template>
@@ -23,12 +26,14 @@ import { LoadingIndicator, toast } from "frappe-ui"
 import StudioCanvas from "@ui/components/StudioCanvas.vue"
 import useStudioStore from "@ui/stores/studioStore"
 import useCanvasStore from "@ui/stores/canvasStore"
+import { usePageScope } from "@ui/stores/codeStore"
 
 // One app page rendered with its data, editable by selection. The shell mounts this as the preview.
 const props = defineProps<{ appID: string; pageID: string }>()
 
 const store = useStudioStore()
 const canvasStore = useCanvasStore()
+const scope = usePageScope()
 
 const PAD = 24
 const PHONE = { width: 390, height: 844, bezel: 10 }

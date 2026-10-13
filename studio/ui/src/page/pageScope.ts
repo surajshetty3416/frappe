@@ -751,9 +751,21 @@ export function createPageScope(
 		}
 	}
 
+	// a page bound to one record has nothing to show without it, so the record's fetch error stands in for the page
+	const failedDocument = computed(() => {
+		for (const resource of Object.values(resources.value) as any[]) {
+			const error = resource?.get?.error
+			if (!resource?.doctype || !error) continue
+			const record = `${resource.doctype} ${resource.name}`
+			return error.exc_type === "DoesNotExistError" ? `${record} not found` : `Could not load ${record}`
+		}
+		return null
+	})
+
 	return reactive({
 		// resources
 		resources,
+		failedDocument,
 		setPageResources,
 		teardownPage,
 		// variables
