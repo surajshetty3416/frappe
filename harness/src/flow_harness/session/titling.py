@@ -47,9 +47,15 @@ async def generate_title(model: Model, first_message: str) -> str | None:
 
 
 def sanitize_title(text: str) -> str | None:
-	"""First non-empty line, whitespace-collapsed, unquoted, bounded."""
+	"""First non-empty line, whitespace-collapsed, unquoted, cut at a word within the limit."""
 	for line in _THINK_RE.sub("", text).splitlines():
 		cleaned = " ".join(line.split()).strip("\"'` ")
-		if cleaned:
-			return cleaned[:MAX_TITLE_CHARS]
+		if not cleaned:
+			continue
+		if len(cleaned) <= MAX_TITLE_CHARS:
+			return cleaned
+		room = cleaned[: MAX_TITLE_CHARS - 1]
+		if cleaned[MAX_TITLE_CHARS - 1] != " ":
+			room = room.rsplit(" ", 1)[0] if " " in room else room
+		return room.rstrip() + "…"
 	return None
