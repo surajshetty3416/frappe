@@ -1,4 +1,5 @@
 @import "./styles/codemirror.css";
+@import "./styles/scrollFade.css";
 
 @config "../tailwind.editor.config.js";
 @tailwind components;

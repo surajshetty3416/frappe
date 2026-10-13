@@ -55,6 +55,16 @@ export function desktopDefaults(block: Block): BlockStyleMap {
 	return {}
 }
 
+// the edge a strip clips fades while there is more past it, by the keyframes in styles/scrollFade.css
+const SCROLL_FADE = {
+	maskImage: "linear-gradient(to right, transparent, #000 var(--scroll-fade-start), #000 calc(100% - var(--scroll-fade-end)), transparent)",
+	animationName: "scroll-fade-x",
+	animationDuration: "auto",
+	animationTimingFunction: "linear",
+	animationFillMode: "both",
+	animationTimeline: "scroll(self inline)",
+} as BlockStyleMap
+
 // Below the tablet breakpoint main and side stack, a strip of cards scrolls inside itself, and a
 // table too wide for a phone shows each row as its first cell over a muted line of the others.
 export function smallDefaults(block: Block, breakpoint: string): BlockStyleMap {
@@ -62,7 +72,7 @@ export function smallDefaults(block: Block, breakpoint: string): BlockStyleMap {
 	const parent = block.getParentBlock()
 	const styles: BlockStyleMap = {}
 	if (isSplit(block)) Object.assign(styles, { flexDirection: "column", alignItems: "stretch" })
-	if (isStrip(block)) Object.assign(styles, { overflowX: "auto" })
+	if (isStrip(block)) Object.assign(styles, { overflowX: "auto", ...SCROLL_FADE })
 	if (block.isContainer() && parent?.isContainer() && isRow(parent.baseStyles) && parent.getRenderStyles(breakpoint).flexDirection === "column")
 		Object.assign(styles, { width: "100%", maxWidth: "100%", flexShrink: 1 })
 
