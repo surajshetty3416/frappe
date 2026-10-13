@@ -2,7 +2,7 @@
 	<div class="relative min-h-0 flex-1">
 		<div ref="scroller" class="h-full overflow-y-auto px-4" @scroll="onScroll" @mousedown="onMouseDown">
 			<LoadingState v-if="loading" class="h-full justify-center text-sm text-ink-gray-5" />
-			<div v-else-if="!blank" ref="thread" class="flow-thread mx-auto flex max-w-[760px] flex-col gap-3 pb-8 pt-12">
+			<div v-else-if="!blank" ref="thread" class="flow-thread mx-auto flex max-w-[760px] flex-col gap-3 pb-16 pt-12">
 				<template v-for="(item, i) in items" :key="item.key">
 					<!-- 12px between the rows of a turn, 24px between turns -->
 					<UserBubble v-if="item.kind === 'user'" :class="i ? 'mt-3' : ''" :entry="item.entry" />
@@ -79,11 +79,12 @@
 			</div>
 		</div>
 
-		<!-- text scrolled under the bar or the composer fades out over more than a line, so no cut line peeks at the edge -->
-		<div class="pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-surface-base" />
+		<!-- text scrolled toward the bar or the composer fades out into an empty band that holds the scroll button,
+		     so neither a cut line nor the button sits on text; the thread's bottom padding clears the band -->
+		<div class="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-surface-base from-[40px]" />
 		<Button
 			v-if="!stick && !blank"
-			class="absolute bottom-3 left-1/2 z-10 -translate-x-1/2 rounded-full shadow-md"
+			class="absolute bottom-1.5 left-1/2 z-10 -translate-x-1/2 rounded-full shadow-md"
 			icon="lucide-arrow-down"
 			variant="outline"
 			tooltip="Scroll to bottom"
