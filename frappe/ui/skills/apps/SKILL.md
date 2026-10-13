@@ -34,6 +34,8 @@ A Studio App is served at `/<app route>`. Each Studio Page is one screen at a pa
 ## Rows
 
 - A table is the List family: `List` (props `columns`, one CSS grid track per column, and `rowHeight`) holding a `ListHeader` of `ListHeaderCell`s and a `ListRows`. `ListRows` has `items: "{{ name.data }}"`, `rowKey: "name"`, and one `ListRow` in `slots.default`, with one `ListCell` per column. Inside the row, `item` is the record.
+- Columns: text that varies, such as a title or a name, is `minmax(0, Nfr)`, and the title gets the largest weight. A short value, such as a badge, a Select value or a number, gets a fixed rem width that fits its longest value. Header labels are one or two words.
+- A table of short columns, such as counts per track, has only fixed columns after the first and stops at its content: `"props": {"columns": ["minmax(0, 1fr)", "7rem", "7rem", "7rem"]}, "style": {"maxWidth": "640px"}`.
 - To open a record from a row, set the ListRow's `route` to a path in the app: `"/proposal/{{ item.name }}"`.
 - Cards or any other repeated layout: `Repeater` with `data: "{{ name.data }}"` and `dataKey: "name"`, and one child as the template. Inside it, `dataItem` is the record. A Repeater lays its items out in a wrapping row, so set `style.flexDirection: "column"` for a stack.
 
@@ -58,7 +60,15 @@ Pages must look finished with nothing added by hand.
 - Card: `padding: "20px"`, `gap: "16px"`, `borderRadius: "0.75rem"`, `borderWidth: "1px"`, `borderStyle: "solid"`, `borderColor: "var(--outline-gray-2)"`. Never hex colors; use `--surface-*`, `--ink-*` and `--outline-*` tokens.
 - Status as a Badge with a theme per value: `"{{ { Accepted: 'green', Rejected: 'red', Shortlisted: 'blue' }[x] || 'gray' }}"`.
 - One solid Button per screen, for the main action. The others are subtle. A destructive one is subtle with `theme: "red"`.
-- Desktop side panels: a row with a flexible main column (`flex: "1"`, `minWidth: "0"`) and a fixed side column (`width: "340px"`), and `tablet: {"flexDirection": "column"}` on the row, `tablet: {"width": "100%"}` on the side column.
+- Side panels: a row with a flexible main column (`flex: "1"`, `minWidth: "0"`) and a fixed side column (`width: "340px"`, `flexShrink: "0"`).
+- App header: the first child of every page's frame, the same on each page, in place of back links: the app's name, then a Button per top-level page, `subtle` for the current page or its parent and `ghost` for the rest. See the examples.
+- Record page: the buttons that change the record sit in the title row, so they are on screen without scrolling. See the record example.
+- Totals: NumberCards in a wrapping row, each sized to its content. A string `value` shows as is, so format money yourself:
+  `{"name": "container", "style": {"flexDirection": "row", "flexWrap": "wrap", "gap": "12px"}, "children": [{"name": "NumberCard", "props": {"title": "Total paid", "value": "{{ '₹' + sponsors.data.filter(s => s.stage === 'Paid').reduce((t, s) => t + s.amount, 0).toLocaleString('en-IN') }}"}, "style": {"width": "auto", "minWidth": "200px"}}]}`
+- Editable fields save on `change` and confirm with a toast. A currency field shows its symbol in the `prefix` slot:
+  `{"name": "TextInput", "props": {"label": "Amount", "type": "number", "modelValue": "{{ sponsor.doc.amount }}"}, "slots": {"prefix": [{"name": "TextBlock", "props": {"text": "₹"}}]}, "events": {"change": [{"save": "sponsor", "values": {"amount": "{{ Number(eventArgs[0].target.value) }}"}}, {"toast": "Saved"}]}}`
+- Buttons that step through a sequence, such as stages, hide at its ends instead of showing disabled. With `function stageAfter(stage, n) { const stages = ['Lead', 'Contacted', 'Paid']; return stages[stages.indexOf(stage) + n] }` in the page script:
+  `{"name": "Button", "visible": "{{ stageAfter(sponsor.doc.stage, -1) }}", "props": {"label": "{{ 'Back to ' + stageAfter(sponsor.doc.stage, -1) }}", "variant": "subtle", "iconLeft": "lucide-arrow-left"}, "events": {"click": [{"save": "sponsor", "values": {"stage": "{{ stageAfter(sponsor.doc.stage, -1) }}"}}]}}`, and the same with `1` and `Move to` for the next stage.
 - Phone screens: one column with `maxWidth: "480px"`, `padding: "16px"`, `gap: "16px"`. Inputs and buttons `size: "lg"`, buttons full width with `height: "48px"`, names in `text-2xl`.
 
 ## Example: a list with filters
@@ -72,13 +82,17 @@ Pages must look finished with nothing added by hand.
     "sort_field": "screener_score", "sort_order": "DESC", "limit": 200}},
   "variables": {"track": "", "format": ""},
   "blocks": [{"name": "container", "style": {"width": "100%", "maxWidth": "1120px", "margin": "0 auto", "padding": "32px 24px", "gap": "20px"}, "mobile": {"padding": "16px"}, "children": [
+    {"name": "container", "style": {"flexDirection": "row", "alignItems": "center", "gap": "4px", "paddingBottom": "12px", "borderWidth": "0px 0px 1px 0px", "borderStyle": "solid", "borderColor": "var(--outline-gray-1)"}, "children": [
+      {"name": "TextBlock", "props": {"text": "Proposal Review", "fontSize": "text-base"}, "style": {"flex": "1", "fontWeight": "600", "color": "var(--ink-gray-9)"}},
+      {"name": "Button", "props": {"label": "Queue", "variant": "subtle", "route": "/queue"}},
+      {"name": "Button", "props": {"label": "Summary", "variant": "ghost", "route": "/summary"}}]},
     {"name": "container", "style": {"gap": "4px"}, "children": [
       {"name": "TextBlock", "props": {"text": "Review queue", "tag": "h1", "fontSize": "text-3xl"}, "style": {"fontWeight": "600", "color": "var(--ink-gray-9)"}},
       {"name": "TextBlock", "props": {"text": "{{ proposals.data.length }} proposals waiting, highest screener score first", "fontSize": "text-p-sm"}, "style": {"color": "var(--ink-gray-6)"}}]},
     {"name": "container", "style": {"flexDirection": "row", "gap": "8px", "flexWrap": "wrap"}, "children": [
       {"name": "Select", "props": {"modelValue": {"$var": "track"}, "options": [{"label": "All tracks", "value": ""}, {"label": "Build", "value": "Build"}, {"label": "Run", "value": "Run"}, {"label": "Grow", "value": "Grow"}]}, "style": {"width": "160px"}},
       {"name": "Select", "props": {"modelValue": {"$var": "format"}, "options": [{"label": "All formats", "value": ""}, {"label": "Talk", "value": "Talk 25 min"}, {"label": "Lightning", "value": "Lightning 10 min"}, {"label": "Workshop", "value": "Workshop 90 min"}]}, "style": {"width": "160px"}}]},
-    {"name": "List", "props": {"columns": ["minmax(0, 3fr)", "minmax(0, 2fr)", "6rem", "9rem", "8rem", "5rem"], "rowHeight": 52}, "children": [
+    {"name": "List", "props": {"columns": ["minmax(0, 4fr)", "minmax(0, 2fr)", "6rem", "8rem", "7rem", "4rem"], "rowHeight": 52}, "children": [
       {"name": "ListHeader", "children": [
         {"name": "ListHeaderCell", "children": [{"name": "TextBlock", "props": {"text": "Title"}}]},
         {"name": "ListHeaderCell", "children": [{"name": "TextBlock", "props": {"text": "Speaker"}}]},
@@ -104,11 +118,20 @@ Pages must look finished with nothing added by hand.
   "title": "Proposal", "route": "/proposal/:name",
   "resources": {"proposal": {"resource_type": "Document", "document_type": "Talk Proposal", "filters": {"name": "{{ route.params.name }}"}}},
   "blocks": [{"name": "container", "style": {"width": "100%", "maxWidth": "1120px", "margin": "0 auto", "padding": "32px 24px", "gap": "24px"}, "mobile": {"padding": "16px"}, "children": [
-    {"name": "Button", "props": {"label": "Queue", "variant": "ghost", "iconLeft": "lucide-arrow-left", "route": "/queue"}, "style": {"alignSelf": "flex-start"}},
-    {"name": "container", "style": {"flexDirection": "row", "gap": "32px", "alignItems": "flex-start"}, "tablet": {"flexDirection": "column"}, "children": [
-      {"name": "container", "style": {"flex": "1", "minWidth": "0", "gap": "16px"}, "children": [
+    {"name": "container", "style": {"flexDirection": "row", "alignItems": "center", "gap": "4px", "paddingBottom": "12px", "borderWidth": "0px 0px 1px 0px", "borderStyle": "solid", "borderColor": "var(--outline-gray-1)"}, "children": [
+      {"name": "TextBlock", "props": {"text": "Proposal Review", "fontSize": "text-base"}, "style": {"flex": "1", "fontWeight": "600", "color": "var(--ink-gray-9)"}},
+      {"name": "Button", "props": {"label": "Queue", "variant": "subtle", "route": "/queue"}},
+      {"name": "Button", "props": {"label": "Summary", "variant": "ghost", "route": "/summary"}}]},
+    {"name": "container", "style": {"flexDirection": "row", "flexWrap": "wrap", "gap": "16px", "alignItems": "flex-end"}, "children": [
+      {"name": "container", "style": {"flex": "1 1 320px", "minWidth": "0", "gap": "8px"}, "children": [
         {"name": "Badge", "props": {"label": "{{ proposal.doc.status }}", "theme": "{{ { Accepted: 'green', Rejected: 'red', Shortlisted: 'blue' }[proposal.doc.status] || 'gray' }}"}, "style": {"alignSelf": "flex-start"}},
-        {"name": "TextBlock", "props": {"text": "{{ proposal.doc.title }}", "tag": "h1", "fontSize": "text-4xl"}, "style": {"fontWeight": "600", "color": "var(--ink-gray-9)"}},
+        {"name": "TextBlock", "props": {"text": "{{ proposal.doc.title }}", "tag": "h1", "fontSize": "text-4xl"}, "style": {"fontWeight": "600", "color": "var(--ink-gray-9)"}}]},
+      {"name": "container", "style": {"flexDirection": "row", "gap": "8px"}, "children": [
+        {"name": "Button", "props": {"label": "Shortlist", "variant": "subtle"}, "events": {"click": [{"save": "proposal", "values": {"status": "Shortlisted"}}, {"route": "Queue"}]}},
+        {"name": "Button", "props": {"label": "Reject", "variant": "subtle", "theme": "red"}, "events": {"click": [{"save": "proposal", "values": {"status": "Rejected"}}, {"route": "Queue"}]}},
+        {"name": "Button", "props": {"label": "Accept", "variant": "solid"}, "events": {"click": [{"save": "proposal", "values": {"status": "Accepted"}}, {"route": "Queue"}]}}]}]},
+    {"name": "container", "style": {"flexDirection": "row", "gap": "32px", "alignItems": "flex-start"}, "children": [
+      {"name": "container", "style": {"flex": "1", "minWidth": "0", "gap": "16px"}, "children": [
         {"name": "TextBlock", "props": {"text": "{{ proposal.doc.abstract }}", "tag": "p", "fontSize": "text-p-lg"}, "style": {"color": "var(--ink-gray-8)"}},
         {"name": "container", "style": {"flexDirection": "row", "gap": "12px", "alignItems": "center", "paddingTop": "16px", "borderWidth": "1px 0px 0px 0px", "borderStyle": "solid", "borderColor": "var(--outline-gray-1)"}, "children": [
           {"name": "Avatar", "props": {"label": "{{ proposal.doc.speaker_name }}", "size": "2xl"}},
@@ -116,7 +139,7 @@ Pages must look finished with nothing added by hand.
             {"name": "TextBlock", "props": {"text": "{{ proposal.doc.speaker_name }}", "fontSize": "text-lg"}, "style": {"fontWeight": "600", "color": "var(--ink-gray-9)"}},
             {"name": "TextBlock", "props": {"text": "{{ proposal.doc.speaker_company }}", "fontSize": "text-sm"}, "style": {"color": "var(--ink-gray-6)"}}]}]},
         {"name": "TextBlock", "props": {"text": "{{ proposal.doc.speaker_bio }}", "fontSize": "text-p-base"}, "style": {"color": "var(--ink-gray-7)"}}]},
-      {"name": "container", "style": {"width": "340px", "flexShrink": "0", "gap": "16px", "padding": "20px", "borderRadius": "0.75rem", "borderWidth": "1px", "borderStyle": "solid", "borderColor": "var(--outline-gray-2)"}, "tablet": {"width": "100%"}, "children": [
+      {"name": "container", "style": {"width": "340px", "flexShrink": "0", "gap": "16px", "padding": "20px", "borderRadius": "0.75rem", "borderWidth": "1px", "borderStyle": "solid", "borderColor": "var(--outline-gray-2)"}, "children": [
         {"name": "container", "style": {"flexDirection": "row", "justifyContent": "space-between", "alignItems": "baseline"}, "children": [
           {"name": "TextBlock", "props": {"text": "Screener score", "fontSize": "text-sm"}, "style": {"color": "var(--ink-gray-6)"}},
           {"name": "TextBlock", "props": {"text": "{{ proposal.doc.screener_score }}", "fontSize": "text-3xl"}, "style": {"fontWeight": "600", "color": "var(--ink-gray-9)"}}]},
@@ -124,11 +147,7 @@ Pages must look finished with nothing added by hand.
         {"name": "TextBlock", "props": {"text": "{{ proposal.doc.screener_summary }}", "fontSize": "text-p-sm"}, "style": {"color": "var(--ink-gray-8)"}},
         {"name": "Divider"},
         {"name": "Rating", "props": {"label": "Your rating", "modelValue": "{{ proposal.doc.review_score || 0 }}"}, "events": {"update:modelValue": [{"save": "proposal", "values": {"review_score": "{{ eventArgs[0] }}"}}]}},
-        {"name": "Textarea", "props": {"label": "Notes", "placeholder": "What should the committee know?", "rows": 4, "modelValue": "{{ proposal.doc.reviewer_notes }}"}, "events": {"change": [{"save": "proposal", "values": {"reviewer_notes": "{{ eventArgs[0].target.value }}"}}]}},
-        {"name": "container", "style": {"flexDirection": "row", "gap": "8px"}, "children": [
-          {"name": "Button", "props": {"label": "Shortlist", "variant": "subtle"}, "style": {"flex": "1"}, "events": {"click": [{"save": "proposal", "values": {"status": "Shortlisted"}}, {"route": "Queue"}]}},
-          {"name": "Button", "props": {"label": "Reject", "variant": "subtle", "theme": "red"}, "style": {"flex": "1"}, "events": {"click": [{"save": "proposal", "values": {"status": "Rejected"}}, {"route": "Queue"}]}},
-          {"name": "Button", "props": {"label": "Accept", "variant": "solid"}, "style": {"flex": "1"}, "events": {"click": [{"save": "proposal", "values": {"status": "Accepted"}}, {"route": "Queue"}]}}]}]}]}]}]
+        {"name": "Textarea", "props": {"label": "Notes", "placeholder": "What should the committee know?", "rows": 4, "modelValue": "{{ proposal.doc.reviewer_notes }}"}, "events": {"change": [{"save": "proposal", "values": {"reviewer_notes": "{{ eventArgs[0].target.value }}"}}, {"toast": "Saved"}]}}]}]}]}]
 }
 ```
 
@@ -143,6 +162,10 @@ Pages must look finished with nothing added by hand.
   "variables": {"query": ""},
   "script": "function eventDay() {\n  return new Date() < new Date('2027-08-21') ? 'Day 1' : 'Day 2'\n}\nfunction pad(n) {\n  return String(n).padStart(2, '0')\n}\nfunction stamp() {\n  const d = new Date()\n  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`\n}\nfunction halfHour() {\n  const d = new Date()\n  return `${pad(d.getHours())}:${d.getMinutes() < 30 ? '00' : '30'}`\n}",
   "blocks": [{"name": "container", "style": {"width": "100%", "maxWidth": "480px", "margin": "0 auto", "padding": "16px", "gap": "16px"}, "children": [
+    {"name": "container", "style": {"flexDirection": "row", "alignItems": "center", "gap": "4px", "paddingBottom": "12px", "borderWidth": "0px 0px 1px 0px", "borderStyle": "solid", "borderColor": "var(--outline-gray-1)"}, "children": [
+      {"name": "TextBlock", "props": {"text": "Check-in", "fontSize": "text-base"}, "style": {"flex": "1", "fontWeight": "600", "color": "var(--ink-gray-9)"}},
+      {"name": "Button", "props": {"label": "Scan", "variant": "subtle", "route": "/scan"}},
+      {"name": "Button", "props": {"label": "Today", "variant": "ghost", "route": "/today"}}]},
     {"name": "TextBlock", "props": {"text": "Check in", "tag": "h1", "fontSize": "text-3xl"}, "style": {"fontWeight": "600", "color": "var(--ink-gray-9)"}},
     {"name": "TextInput", "props": {"modelValue": {"$var": "query"}, "placeholder": "Ticket code, email or name", "size": "lg"}, "slots": {"prefix": [{"name": "Icon", "props": {"icon": "lucide-search"}}]}},
     {"name": "Repeater", "visible": "{{ query }}", "props": {"data": "{{ matches.data }}", "dataKey": "name", "emptyStateMessage": "No attendee found"}, "style": {"flexDirection": "column", "gap": "12px"}, "children": [
