@@ -306,7 +306,19 @@ export function defineOutputEditor(spec: OutputSpec) {
 			const name = block.blockName && !DEFAULT_NAMES.has(block.blockName) ? block.blockName : null
 			return { id: block.blockId, label: name ?? label, icon, hasText: editable(block) }
 		},
-		elementRect: (id) => nodeOf(id)?.getBoundingClientRect() ?? null,
+		elementRect(id) {
+			const node = nodeOf(id)
+			if (!node) return null
+			const block = findBlock(id)
+			const style = getComputedStyle(node)
+			const boxed = style.backgroundColor !== "rgba(0, 0, 0, 0)" || parseFloat(style.borderTopWidth) > 0
+			if (block?.children?.length || boxed || block === state.tree) return node.getBoundingClientRect()
+			// a text block fills its row; what a person sees, and means to select, is its text
+			const range = document.createRange()
+			range.selectNodeContents(node)
+			const text = range.getBoundingClientRect()
+			return text.width ? text : node.getBoundingClientRect()
+		},
 		textNode: (id) => (editable(findBlock(id)) ? nodeOf(id) : null),
 		setText(id, html) {
 			const block = findBlock(id)
