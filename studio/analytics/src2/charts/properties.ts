@@ -37,7 +37,7 @@ function numberFormat(chart: Chart): ElementProperty {
 	if (!preset) options.unshift({ label: __('Custom'), value: 'custom' })
 	return {
 		name: 'number_format',
-		label: __('Number format'),
+		label: __('Format'),
 		icon: 'lucide-hash',
 		type: 'select',
 		value: preset?.value ?? 'custom',
