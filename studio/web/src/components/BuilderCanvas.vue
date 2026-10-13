@@ -1,7 +1,10 @@
 <template>
 	<div ref="canvasContainer" :data-builder-canvas="canvasId" class="h-full overflow-y-auto overflow-x-hidden">
 		<component :is="'style'" v-if="blockClientStyles" v-text="blockClientStyles" />
-		<div class="canvas relative min-h-full bg-white" :data-breakpoint="activeBreakpoint">
+		<div
+			class="canvas relative min-h-full bg-white"
+			:style="{ width: `${frameWidth}px`, zoom: scale }"
+			:data-breakpoint="activeBreakpoint">
 			<BuilderBlock
 				class="min-h-[inherit]"
 				:block="block"
@@ -24,6 +27,7 @@ import {
 	executeClientScriptUnrestricted,
 } from "@web/utils/scriptSandbox";
 import { useBuilderToken } from "@web/utils/useBuilderToken";
+import { useElementSize } from "@vueuse/core";
 import { Ref, computed, provide, reactive, ref, useId, watchEffect } from "vue";
 import BuilderBlock from "./BuilderBlock.vue";
 
@@ -40,6 +44,12 @@ const canvasContainer = ref(null) as Ref<HTMLElement | null>;
 const block = ref(props.blockData) as Ref<Block>;
 // the preview shows the base styles every breakpoint inherits
 const activeBreakpoint = ref("desktop");
+// desktop lays out at its own width and zooms to fit the panel, so a narrow panel never reflows the page
+const DESKTOP_WIDTH = 1280;
+const { width: panelWidth } = useElementSize(canvasContainer);
+const frameWidth = computed(() => Math.max(DESKTOP_WIDTH, panelWidth.value));
+const scale = computed(() => (panelWidth.value ? panelWidth.value / frameWidth.value : 1));
+
 const blockStyles = reactive(new Map<string, string>());
 const blockClientStyles = computed(() => Array.from(blockStyles.values()).join("\n"));
 
