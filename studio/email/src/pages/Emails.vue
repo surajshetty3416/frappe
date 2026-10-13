@@ -18,7 +18,7 @@
 							<ListCell>
 								<div class="flex min-w-0 flex-col gap-0.5 text-left">
 									<span class="truncate text-base text-ink-gray-8">{{ item.name }}</span>
-									<span class="truncate text-sm text-ink-gray-5">{{ senders[item.name]?.join(", ") || item.subject }}</span>
+									<span class="truncate text-sm text-ink-gray-5">{{ senders[item.name]?.join(", ") || readable(item.subject) }}</span>
 								</div>
 							</ListCell>
 							<ListCell class="text-sm text-ink-gray-5"><span class="truncate">{{ item.reference_doctype }}</span></ListCell>
@@ -70,6 +70,13 @@ import { onActivated, ref } from "vue"
 
 // both sections share one grid, so their columns line up
 const COLUMNS = ["24px", "minmax(0, 1fr)", "160px", "180px"]
+
+// the fields a subject reads, named instead of shown as Jinja: "You're in, [Full name]"
+const readable = (subject: string) =>
+	(subject || "").replace(/\{\{\s*(?:doc\.)?(\w+)[^}]*\}\}/g, (_, field: string) => {
+		const words = field.replace(/_/g, " ")
+		return `[${words[0].toUpperCase()}${words.slice(1)}]`
+	})
 
 const templates = createListResource({
 	doctype: "Email Template",
