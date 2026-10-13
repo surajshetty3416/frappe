@@ -217,9 +217,12 @@ const styles = computed(() => {
 		styleMap.pointerEvents = "none";
 	}
 
-	// escape space in font family
+	// a family name's spaces are escaped, the commas between families are not
 	if (styleMap.fontFamily && typeof styleMap.fontFamily === "string") {
-		styleMap.fontFamily = (styleMap.fontFamily as string).replace(/ /g, "\\ ");
+		styleMap.fontFamily = styleMap.fontFamily
+			.split(",")
+			.map((family) => family.trim().replace(/^['"]|['"]$/g, "").replace(/ /g, "\\ "))
+			.join(", ");
 	}
 
 	Object.keys(styleMap).forEach((key) => {
