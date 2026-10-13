@@ -68,6 +68,21 @@ function textProp(block: Block) {
 	return typeof value === "string" && !value.includes("{{") ? prop : null
 }
 
+// A block stretched by its parent, such as a list in a full-height row, shows no more than its
+// content: the outline ends where its children end, unless it paints a background or border.
+function contentRect(node: HTMLElement | null) {
+	if (!node) return null
+	const rect = node.getBoundingClientRect()
+	const children = Array.from(node.children).map((child) => child.getBoundingClientRect()).filter((child) => child.height)
+	const style = getComputedStyle(node)
+	const painted = style.backgroundColor !== "rgba(0, 0, 0, 0)" || parseFloat(style.borderBottomWidth) > 0
+	if (!children.length || painted) return rect
+	const bottom = Math.max(...children.map((child) => child.bottom)) + parseFloat(style.paddingBottom)
+	return bottom < rect.bottom ? new DOMRect(rect.x, rect.y, rect.width, bottom - rect.y) : rect
+}
+
+const RESIZABLE = new Set(["ImageView", "Avatar", "Card"])
+
 // Select has no empty value, so "none" stands for an unset one
 const NONE = "none"
 const options = (values: (string | number)[], label = (value: string) => value) =>
@@ -314,7 +329,7 @@ export default defineArtifactEditor({
 		const copy = Math.max(0, copiesOf(componentId).indexOf(element))
 		return { id: elementId(componentId, copy), label, icon, hasText: Boolean(textProp(block)) }
 	},
-	elementRect: (id) => nodeOf(id)?.getBoundingClientRect() ?? null,
+	elementRect: (id) => contentRect(nodeOf(id)),
 	textNode(id) {
 		const node = nodeOf(id)
 		if (!node) return null
@@ -346,7 +361,10 @@ export default defineArtifactEditor({
 			{ name: "delete", label: "Delete", icon: "lucide-trash-2", run: () => canvas()?.removeBlock(block) },
 		]
 	},
-	resizable: (id) => Boolean(blockOf(id) && !blockOf(id)?.isRoot()),
+	resizable(id) {
+		const block = blockOf(id)
+		return Boolean(block && !block.isRoot() && (block.isContainer() || RESIZABLE.has(block.componentName)))
+	},
 	resize(id, size) {
 		const block = blockOf(id)
 		// the preview may be scaled to fit the panel
