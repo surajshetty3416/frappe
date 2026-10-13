@@ -239,8 +239,14 @@ standard_queries = {
 # what the AI layer (flow) can do with Insights
 flow_tools = [
     "frappe.analytics.flow_tools.list_dashboards",
+    "frappe.analytics.flow_tools.read_dashboard",
+    "frappe.analytics.flow_tools.run_query",
     "frappe.analytics.flow_tools.create_dashboard",
+    "frappe.analytics.flow_tools.add_chart",
+    "frappe.analytics.flow_tools.update_chart",
+    "frappe.analytics.flow_tools.update_dashboard",
 ]
+flow_skills = ["analytics/skills/dashboards/SKILL.md"]
 
 # what Studio opens beside the chat for an artifact of this layer
 studio_artifacts = {

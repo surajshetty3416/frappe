@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 import importlib
+import os
 from typing import TYPE_CHECKING
 
 import frappe
@@ -52,6 +53,34 @@ def sync_tools(_app: str | None = None) -> None:
 	Flow Tool, for any agent to attach. Runs after migrate and app installs."""
 	for path in frappe.get_hooks("flow_tools"):
 		_ensure_tool(frappe.get_attr(path))
+
+
+def sync_skills(_app: str | None = None) -> None:
+	"""Write each skill the installed apps list under the `flow_skills` hook as a locked global
+	Flow Skill, so every agent with load_skill can load it. An entry is a SKILL.md path inside
+	its app: front matter with `name` and `description`, then the instructions. Runs after
+	migrate and app installs."""
+	for app in frappe.get_installed_apps():
+		for path in frappe.get_hooks("flow_skills", app_name=app):
+			_ensure_skill(os.path.join(frappe.get_app_path(app), path))
+
+
+def _ensure_skill(path: str) -> None:
+	import yaml
+
+	_, front, instructions = frappe.read_file(path).split("---", 2)
+	meta = yaml.safe_load(front)
+	if frappe.db.exists("Flow Skill", meta["name"]):
+		doc = frappe.get_doc("Flow Skill", meta["name"])
+		if not doc.is_system_generated:
+			frappe.throw(
+				_("Flow Skill {0} already exists and is not owned by code.").format(meta["name"]),
+				title=_("Skill Conflict"),
+			)
+	else:
+		doc = frappe.get_doc({"doctype": "Flow Skill", "title": meta["name"], "enabled": 1, "is_global": 1})
+	doc.update({"description": meta["description"], "instructions": instructions.strip(), "is_system_generated": 1})
+	doc.save(ignore_permissions=True)
 
 
 class Agent:
