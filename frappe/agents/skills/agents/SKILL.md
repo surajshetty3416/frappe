@@ -1,6 +1,6 @@
 ---
 name: Agents
-description: Make or change a Flow Agent, and an Automation Flow that runs it with the RunAgent action when a record is created or changed, or on a schedule, or run an automation on records that already exist. Load it before you create or update either DocType. Use for any request for an agent, an assistant, a bot, a screener, a digest, or work that should happen by itself.
+description: Make or change a Flow Agent, and an Automation Flow that runs it with the RunAgent action when a record is created or changed, or on a schedule, run an automation on records that already exist, or try an agent. Load it before you create or update either DocType. Use for any request for an agent, an assistant, a bot, a screener, a digest, or work that should happen by itself.
 ---
 
 # Agents and automations
@@ -73,6 +73,12 @@ An agent is a `Flow Agent`: instructions, a model and tools. An automation is an
 ## Records that already exist
 
 An automation on a document event runs only when a record is created or changed. To process records that already exist, find them with `read_records`, then run the automation on them with `run_automation`, passing their names. Never write the agent's output yourself, and never make a temporary automation for them.
+
+## Try an agent
+
+To show that an agent works, send it the question with `ask_agent` and report its reply. The trial runs with the person's permissions, so say so when you report it: a public agent's visitors run as Guest and may see less. A status of `Running` means the reply took too long: read it later with `read_records` on `Flow Session Message`, filters `{"run": "<run>", "role": "assistant"}`, `parent_doctype` `Flow Session`.
+
+Never make an automation, a page or any other artifact only to try something. Delete anything you made for a trial.
 
 ## Check
 

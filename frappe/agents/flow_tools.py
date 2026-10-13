@@ -1,13 +1,16 @@
-"""Tools that let the AI layer (flow) run automations. Listed under the `flow_tools` hook, so every
+"""Tools that let the AI layer (flow) run automations and try agents. Listed under the `flow_tools` hook, so every
 flow agent can attach them. The Agents skill says how to use them."""
 
+import time
 from typing import Annotated, Any
 
+import frappe
 from frappe import _
 from frappe.ai import tool
 from frappe.ai.lib.tool import ToolContext
 from frappe.ai.tools.builtins import _error_text
 from frappe.agents.api import run_now
+from frappe.ai.orchestrator import last_reply
 
 
 @tool(
@@ -34,3 +37,33 @@ def run_automation(
 	if failures:
 		result["failures"] = failures
 	return result
+
+
+# The site's callback waits on this call: stop waiting before the flow server stops waiting for us.
+CALLBACK_TIMEOUT = 120  # the flow server's default when the site sets no flow_callback_timeout
+
+
+@tool
+def ask_agent(
+	agent: Annotated[str, "The Flow Agent's name"],
+	message: Annotated[str, "The question or task, as a visitor would send it"],
+	*,
+	ctx: ToolContext,
+) -> dict[str, Any]:
+	"""Send a message to an agent in a new session of its own and return its reply, to show that it works. It runs as you, with your permissions; a public agent's visitors run as Guest. A reply that takes too long comes back as status Running: read it later from the session."""
+	run = frappe.get_doc("Flow Agent", agent).run(message)
+	# the agent's tool calls come back to this site as other requests, and need its rows now
+	frappe.db.commit()
+	deadline = time.monotonic() + (frappe.conf.flow_callback_timeout or CALLBACK_TIMEOUT) - 20
+	status = run.status
+	while status == "Running" and time.monotonic() < deadline:
+		time.sleep(1)
+		frappe.db.commit()  # a fresh snapshot, to see the run end
+		status = frappe.db.get_value("Flow Run", run.name, "status")
+	return {
+		"agent": agent,
+		"session": run.session,
+		"run": run.name,
+		"status": status,
+		"reply": last_reply(run.name) or frappe.db.get_value("Flow Run", run.name, "error"),
+	}
