@@ -8,7 +8,7 @@
 			<p v-else-if="!formats.data?.length" class="py-12 text-center text-base text-ink-gray-5">
 				No print formats yet. Ask the chat for a badge, an invoice or a certificate.
 			</p>
-			<List v-else class="-mx-3" :columns="['24px', 'minmax(0, 1fr)', '160px', '180px']">
+			<List v-else class="-mx-3" :columns="['24px', 'minmax(0, 1fr)', '176px', '160px']">
 				<ListRows :items="formats.data" v-slot="{ item }">
 					<ListRow :route="{ name: 'print-format', params: { format: item.name } }">
 						<ListCell><span class="lucide-printer size-4 text-ink-gray-5" /></ListCell>
@@ -18,7 +18,7 @@
 								<span class="truncate text-sm text-ink-gray-5">{{ [item.doc_type, item.canvas_blocks && item.page_size].filter(Boolean).join(" · ") }}</span>
 							</div>
 						</ListCell>
-						<ListCell class="gap-1.5 text-sm text-ink-gray-5">
+						<ListCell class="justify-end gap-1.5 text-sm text-ink-gray-5">
 							<span class="size-1.5 shrink-0 rounded-full" :class="item.disabled ? 'bg-surface-gray-5' : 'bg-surface-green-7'" />
 							{{ item.disabled ? "Disabled" : "Enabled" }}
 						</ListCell>

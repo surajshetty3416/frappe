@@ -21,7 +21,7 @@
 									<span class="truncate text-sm text-ink-gray-5">{{ senders[item.name]?.join(", ") || readable(item.subject) }}</span>
 								</div>
 							</ListCell>
-							<ListCell class="text-sm text-ink-gray-5"><span class="truncate">{{ item.reference_doctype }}</span></ListCell>
+							<ListCell class="justify-end text-sm text-ink-gray-5"><span class="truncate">{{ item.reference_doctype }}</span></ListCell>
 							<ListCell class="justify-end text-sm text-ink-gray-5">
 								<UseTimeAgo v-slot="{ timeAgo }" :time="item.modified">
 									<span class="whitespace-nowrap">Edited {{ timeAgo }}</span>
@@ -47,7 +47,7 @@
 									<span class="truncate text-sm text-ink-gray-5">Email group</span>
 								</div>
 							</ListCell>
-							<ListCell class="text-sm text-ink-gray-5">
+							<ListCell class="justify-end text-sm text-ink-gray-5">
 								{{ item.total_subscribers }} {{ item.total_subscribers === 1 ? "member" : "members" }}
 							</ListCell>
 							<ListCell class="justify-end text-sm text-ink-gray-5">
@@ -69,7 +69,7 @@ import { List, ListCell, ListRow, ListRows } from "frappe-ui/list"
 import { onActivated, ref } from "vue"
 
 // both sections share one grid, so their columns line up
-const COLUMNS = ["24px", "minmax(0, 1fr)", "160px", "180px"]
+const COLUMNS = ["24px", "minmax(0, 1fr)", "176px", "160px"]
 
 // the fields a subject reads, named instead of shown as Jinja: "You're in, [Full name]"
 const readable = (subject: string) =>
