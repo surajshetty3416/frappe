@@ -108,7 +108,9 @@ const expandedTurnKeys = ref(new Set())
 // rows (tool calls, thoughts) the user has open, by id
 const openPanels = reactive(new Set())
 provide("openPanels", openPanels)
-const items = computed(() => buildItems(conversation.value, expandedTurnKeys.value, openPanels))
+const items = computed(() =>
+	buildItems(conversation.value, expandedTurnKeys.value, openPanels, { openLatest: Boolean(flow.options.openTurn?.()) }),
+)
 
 const blank = computed(() => !items.value.length && !conversation.value.running && !conversation.value.liveLabel)
 const loading = computed(() => blank.value && flow.state.loading)

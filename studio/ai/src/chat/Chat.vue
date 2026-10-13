@@ -88,6 +88,11 @@ function createStore() {
 		openArtifact: (artifact) => store === shown.value && emit("artifact", artifact),
 		artifactLayer: (artifact) => props.artifactLayer?.(artifact),
 		artifactIcon: (artifact) => props.artifactIcon?.(artifact),
+		// a replay keeps its turn open from step to step, and folds it once it finished
+		openTurn: () => {
+			const replay = replays.get(store.state.sessionId);
+			return Boolean(replay && !replay.live && replay.status !== "Done");
+		},
 		context: props.context,
 		agents: AGENTS,
 		taskCard: TaskCard,

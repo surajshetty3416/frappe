@@ -525,8 +525,8 @@ function foldLabel(turn) {
 // Consecutive tool steps merge into one group; only a text/user item seals it.
 // Thinking never splits a group: a thought adjacent to tool calls becomes a
 // {thought} row inside the group, and stands alone only when no tools surround
-// it (a pure thinking + text turn).
-export function buildItems(conversation, expandedTurnKeys = new Set(), openPanels = new Set()) {
+// it (a pure thinking + text turn). `openLatest` keeps the latest turn open, as if it still ran.
+export function buildItems(conversation, expandedTurnKeys = new Set(), openPanels = new Set(), { openLatest = false } = {}) {
 	const items = []
 	const stepsById = new Map()
 	const pending = conversation.pendingApproval
@@ -655,7 +655,7 @@ export function buildItems(conversation, expandedTurnKeys = new Set(), openPanel
 	// settles the one before it right away: its run_started lands before the server's copy
 	// of the message, and reading that as the old turn resuming unfolds a finished turn.
 	const opensNewTurn = (conversation.sending ?? []).length > 0
-	const unsettledTurnKey = !opensNewTurn && (conversation.running || pending) ? latestTurnKey : null
+	const unsettledTurnKey = !opensNewTurn && (conversation.running || pending || openLatest) ? latestTurnKey : null
 
 	// Only the terminal assistant message is the response. Earlier assistant
 	// text is commentary and belongs inside the completed-work fold.
