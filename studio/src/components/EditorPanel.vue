@@ -40,7 +40,7 @@
 				/>
 				<Tooltip v-else :text="editor ? 'Rename' : undefined" :disabled="!editor">
 					<span
-						class="block min-w-0 max-w-[240px] truncate rounded-4 px-1 py-0.5 text-base font-medium text-ink-gray-8"
+						class="block min-w-0 truncate rounded-4 px-1 py-0.5 text-base font-medium text-ink-gray-8"
 						:class="editor ? 'cursor-text hover:bg-surface-gray-2' : ''"
 						@click="startRename"
 						>{{ title }}</span
@@ -50,39 +50,8 @@
 					<span class="size-1.5 shrink-0 rounded-full" :class="STATUS_DOT[status.theme]" />
 					<span>{{ status.label }}</span>
 				</span>
-				<TabButtons
-					v-if="views.length"
-					class="ml-2 shrink-0"
-					:options="views.map((view) => ({ value: view.name, label: view.label }))"
-					:model-value="views.find((view) => view.active)?.name"
-					@update:model-value="(name) => views.find((view) => view.name === name)?.open()"
-				/>
-				<LayerComponent v-if="barControls" :mount="barControls" :layer="layerName" />
 			</div>
 			<div class="flex shrink-0 items-center gap-0.5">
-				<div v-if="modes.length > 1" role="radiogroup" aria-label="Mode" class="mr-1 flex items-center gap-0.5">
-					<Button
-						v-for="mode in MODES"
-						:key="mode.value"
-						role="radio"
-						variant="ghost"
-						:icon="mode.icon"
-						:tooltip="mode.label"
-						:aria-label="mode.label"
-						:aria-checked="editorMode === mode.value"
-						:class="editorMode === mode.value ? '!bg-surface-gray-3 !text-ink-gray-8' : ''"
-						@click="setMode(mode.value)"
-					/>
-				</div>
-				<Button
-					variant="ghost"
-					icon="lucide-message-square-plus"
-					:tooltip="editor ? (commenting ? 'Stop commenting' : 'Comment') : 'This artifact takes no comments yet'"
-					aria-label="Comment"
-					:disabled="!editor"
-					:class="commenting ? '!bg-surface-gray-3' : ''"
-					@click="toggleCommenting"
-				/>
 				<Button
 					v-for="drawer in drawers"
 					:key="drawer.name"
@@ -108,21 +77,60 @@
 			</div>
 		</div>
 
-		<div class="relative min-h-0 flex-1">
-			<SelectionLayer :editor="editor" :artifact="artifactKey" :covered="!!openDrawer" :data-layer="layerName">
-				<slot />
-			</SelectionLayer>
-			<EditorDrawer
-				v-if="artifact"
-				:drawer="openDrawer"
-				:doctype="artifact.doctype"
-				:name="artifact.name"
-				:editor="editor"
-				:layer="layerName"
-				:label="drawers.find((drawer) => drawer.name === openDrawer)?.label ?? ''"
-				@close="openDrawer = null"
-			/>
-		</div>
+		<SelectionLayer class="min-h-0 flex-1" :editor="editor" :artifact="artifactKey" :covered="!!openDrawer" :layer="layerName">
+			<template #idle>
+				<div class="flex min-w-0 flex-1 items-center gap-2">
+					<TabButtons
+						v-if="views.length"
+						class="shrink-0"
+						:options="views.map((view) => ({ value: view.name, label: view.label }))"
+						:model-value="views.find((view) => view.active)?.name"
+						@update:model-value="(name) => views.find((view) => view.name === name)?.open()"
+					/>
+					<LayerComponent v-if="barControls" :mount="barControls" :layer="layerName" />
+					<span v-if="!views.length && !barControls && editorMode === 'edit'" class="truncate text-sm text-ink-gray-5">
+						Select an element to change it
+					</span>
+				</div>
+				<div class="flex shrink-0 items-center gap-0.5">
+					<div v-if="modes.length > 1" role="radiogroup" aria-label="Mode" class="flex items-center gap-0.5">
+						<Button
+							v-for="mode in MODES"
+							:key="mode.value"
+							role="radio"
+							variant="ghost"
+							:icon="mode.icon"
+							:tooltip="mode.label"
+							:aria-label="mode.label"
+							:aria-checked="editorMode === mode.value"
+							:class="editorMode === mode.value ? '!bg-surface-gray-3 !text-ink-gray-8' : ''"
+							@click="setMode(mode.value)"
+						/>
+					</div>
+					<Button
+						variant="ghost"
+						icon="lucide-message-square-plus"
+						:tooltip="commenting ? 'Stop commenting' : 'Comment'"
+						aria-label="Comment"
+						:class="commenting ? '!bg-surface-gray-3' : ''"
+						@click="toggleCommenting"
+					/>
+				</div>
+			</template>
+			<slot />
+			<template #over>
+				<EditorDrawer
+					v-if="artifact"
+					:drawer="openDrawer"
+					:doctype="artifact.doctype"
+					:name="artifact.name"
+					:editor="editor"
+					:layer="layerName"
+					:label="drawers.find((drawer) => drawer.name === openDrawer)?.label ?? ''"
+					@close="openDrawer = null"
+				/>
+			</template>
+		</SelectionLayer>
 	</section>
 </template>
 

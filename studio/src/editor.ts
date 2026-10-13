@@ -1,7 +1,7 @@
 import { type Component, ref, shallowRef } from "vue"
 
 // What a layer implements to open its artifact in the shell. The shell draws the tabs, the
-// artifact bar, the drawers and the selection; the layer renders the preview and answers
+// artifact bar, the context row under it, the drawers and the selection; the layer renders the preview and answers
 // questions about it. Methods are read inside computeds, so reactive state they read updates the shell.
 // The optional members are version 2: an editor without them keeps version 1's behaviour.
 export interface ArtifactEditor {
@@ -25,20 +25,20 @@ export interface ArtifactEditor {
 	// the node holding the element's text, which the shell edits in place
 	textNode(id: string): HTMLElement | null
 	setText(id: string, html: string): void
-	// at most four, shown on the selection's toolbar
+	// at most four, on the context row while the element is selected
 	properties(id: string): ElementProperty[]
 
 	// the modes the artifact offers, the first one it opens in; both when absent. One mode hides the switch.
 	modes?: EditorMode[]
-	// the artifact's views, a switch on the artifact bar
+	// the artifact's views, a switch on the context row
 	views?(): ArtifactView[]
-	// the layer's own controls on the artifact bar, after the title
+	// the layer's own controls on the context row, after the views
 	barControls?(): LayerComponent | null
 	// an editable form at the top of the Details drawer
 	detailsForm?(): LayerComponent | null
 	// the Code drawer, a tab per part; replaces `code`
 	codeTabs?(): CodeTab[]
-	// on the selection's toolbar; "delete" also runs on Delete and Backspace, "duplicate" on Cmd+D
+	// on the context row while the element is selected; "delete" also runs on Delete and Backspace, "duplicate" on Cmd+D
 	actions?(id: string): ElementAction[]
 	// the shell's selection changed
 	select?(id: string | null): void

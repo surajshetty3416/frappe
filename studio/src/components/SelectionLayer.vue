@@ -1,80 +1,91 @@
 <template>
-	<div
-		ref="host"
-		class="relative isolate h-full overflow-hidden"
-		:data-commenting="commenting && editor ? '' : undefined"
-		@mouseover.capture="onPointer"
-		@mousemove.capture="onPointer"
-		@mousedown.capture="onMouseDown"
-		@click.capture="onClick"
-		@dblclick.capture="onDoubleClick"
-		@contextmenu.capture="onContextMenu"
-		@mouseleave="hovered = null"
-	>
-		<slot />
-		<div v-if="shellEditor" data-layer="shell" class="pointer-events-none absolute inset-0 z-[1000]">
-			<div
-				v-if="hoverBox && hovered?.id !== selected?.id"
-				class="absolute rounded-[2px] border border-outline-blue-4"
-				:style="boxStyle(hoverBox, OUTLINE_OFFSET)"
-			/>
-			<div
-				v-if="selectBox"
-				class="absolute rounded-[2px] border-2 border-outline-blue-5"
-				:style="boxStyle(selectBox, OUTLINE_OFFSET + 1)"
-			/>
-			<div
-				v-if="resizeBox"
-				class="absolute rounded-[2px] border border-dashed border-outline-blue-5"
-				:style="boxStyle(resizeBox, OUTLINE_OFFSET)"
-			/>
-			<span
-				v-if="selectBox && canResize && !editing && !commenting"
-				data-selection-ui
-				class="pointer-events-auto absolute size-3 cursor-se-resize rounded-[2px] border-2 border-outline-blue-5 bg-surface-base"
-				:style="{ top: `${(resizeBox ?? selectBox).top + (resizeBox ?? selectBox).height + OUTLINE_OFFSET - 5}px`, left: `${(resizeBox ?? selectBox).left + (resizeBox ?? selectBox).width + OUTLINE_OFFSET - 5}px` }"
-				@pointerdown.stop.prevent="startResize"
-			/>
-		</div>
-		<PreviewComments v-if="shellEditor" :editor="editor!" :artifact="artifact" :host="host" />
-		<div
-			v-if="shellEditor && commenting"
-			data-selection-ui
-			data-layer="shell"
-			class="absolute left-1/2 top-3 z-[1002] flex h-9 -translate-x-1/2 items-center gap-2 rounded-full border border-outline-gray-2 bg-surface-base pl-3 pr-1 shadow-lg"
-		>
-			<span class="lucide-message-square-plus size-4 text-ink-gray-5" />
-			<span class="whitespace-nowrap text-sm text-ink-gray-7">Click an element to comment on it</span>
-			<Button size="sm" variant="subtle" label="Done" class="!rounded-full" @click="commenting = false" />
-		</div>
-		<div
-			v-if="shellEditor && selected && selectBox && !editing && !commenting && !covered && !resizeBox"
-			ref="toolbar"
-			data-selection-ui
-			data-layer="shell"
-			class="absolute z-[1002] flex h-9 items-center gap-0.5 overflow-x-auto rounded-6 border border-outline-gray-2 bg-surface-base p-1 shadow-lg [scrollbar-width:none] [&>*]:shrink-0"
-			:style="toolbarStyle"
-		>
-			<span class="flex max-w-[160px] shrink-0 items-center gap-1.5 px-1.5 text-sm text-ink-gray-6">
-				<span :class="selected.icon" class="size-4 shrink-0 text-ink-gray-5" />
-				<span class="truncate">{{ selected.label }}</span>
-			</span>
-			<div class="mx-0.5 h-4 w-px bg-surface-gray-3" />
-			<Button variant="ghost" icon="lucide-message-square-plus" tooltip="Comment" @click="commentOnSelected" />
-			<Button v-if="selected.hasText" variant="ghost" icon="lucide-type" tooltip="Edit text" @click="startEdit" />
-			<Button
-				v-for="action in actions"
-				:key="action.name"
-				variant="ghost"
-				:icon="action.icon"
-				:tooltip="ACTION_KEYS[action.name] ? `${action.label} (${ACTION_KEYS[action.name]})` : action.label"
-				:aria-label="action.label"
-				@click="runAction(action)"
-			/>
-			<template v-if="properties.length">
-				<div class="mx-0.5 h-4 w-px bg-surface-gray-3" />
-				<PropertyControl v-for="property in properties" :key="property.name" :property="property" />
+	<div class="flex flex-col">
+		<!-- one height in every state, so the preview never moves -->
+		<div v-if="editor" data-context-row data-layer="shell" class="flex h-9 shrink-0 items-center gap-1 border-b border-outline-gray-1 pl-3 pr-2">
+			<template v-if="shellEditor && commenting">
+				<span class="flex min-w-0 flex-1 items-center gap-2 text-sm text-ink-gray-7">
+					<span class="lucide-message-square-plus size-4 shrink-0 text-ink-gray-5" />
+					<span class="truncate">Click an element to comment on it</span>
+				</span>
+				<Button size="sm" variant="subtle" label="Done" @click="commenting = false" />
 			</template>
+			<template v-else-if="shellEditor && selected">
+				<div class="flex min-w-0 flex-1 items-center gap-0.5">
+					<span class="flex max-w-[160px] shrink-0 items-center gap-1.5 pr-1 text-sm font-medium text-ink-gray-8">
+						<span :class="selected.icon" class="size-4 shrink-0 text-ink-gray-5" />
+						<span class="truncate">{{ selected.label }}</span>
+					</span>
+					<template v-if="properties.length && !editing">
+						<div class="mx-0.5 h-4 w-px shrink-0 bg-surface-gray-3" />
+						<div
+							ref="propertyRow"
+							class="flex min-w-0 items-center gap-0.5 overflow-x-auto [scrollbar-width:none] [&>*]:shrink-0"
+							:class="propertiesOverflow ? '[mask-image:linear-gradient(to_right,black_calc(100%-32px),transparent)]' : ''"
+						>
+							<PropertyControl v-for="property in properties" :key="property.name" :property="property" />
+						</div>
+					</template>
+				</div>
+				<span v-if="editing" class="shrink-0 whitespace-nowrap text-sm text-ink-gray-5">Enter to save, Esc to cancel</span>
+				<div v-else class="flex shrink-0 items-center gap-0.5">
+					<Button v-if="selected.hasText" variant="ghost" icon="lucide-type" tooltip="Edit text" aria-label="Edit text" @click="startEdit" />
+					<Button variant="ghost" icon="lucide-message-square-plus" tooltip="Comment" aria-label="Comment" @click="commentOnSelected" />
+					<Button
+						v-for="action in actions"
+						:key="action.name"
+						variant="ghost"
+						:icon="action.icon"
+						:tooltip="ACTION_KEYS[action.name] ? `${action.label} (${ACTION_KEYS[action.name]})` : action.label"
+						:aria-label="action.label"
+						@click="runAction(action)"
+					/>
+					<Button variant="ghost" icon="lucide-x" tooltip="Clear selection (Esc)" aria-label="Clear selection" @click="selected = null" />
+				</div>
+			</template>
+			<slot v-else name="idle" />
+		</div>
+		<div class="relative min-h-0 flex-1">
+			<div
+				ref="host"
+				class="relative isolate h-full overflow-hidden"
+				:data-layer="layer"
+				:data-commenting="commenting && editor ? '' : undefined"
+				@mouseover.capture="onPointer"
+				@mousemove.capture="onPointer"
+				@mousedown.capture="onMouseDown"
+				@click.capture="onClick"
+				@dblclick.capture="onDoubleClick"
+				@contextmenu.capture="onContextMenu"
+				@mouseleave="hovered = null"
+			>
+				<slot />
+				<div v-if="shellEditor" data-layer="shell" class="pointer-events-none absolute inset-0 z-[1000]">
+					<div
+						v-if="hoverBox && hovered?.id !== selected?.id"
+						class="absolute rounded-[2px] border border-outline-blue-4"
+						:style="boxStyle(hoverBox, OUTLINE_OFFSET)"
+					/>
+					<div
+						v-if="selectBox"
+						class="absolute rounded-[2px] border-2 border-outline-blue-5"
+						:style="boxStyle(selectBox, OUTLINE_OFFSET + 1)"
+					/>
+					<div
+						v-if="resizeBox"
+						class="absolute rounded-[2px] border border-dashed border-outline-blue-5"
+						:style="boxStyle(resizeBox, OUTLINE_OFFSET)"
+					/>
+					<span
+						v-if="selectBox && canResize && !editing && !commenting"
+						data-selection-ui
+						class="pointer-events-auto absolute size-3 cursor-se-resize rounded-[2px] border-2 border-outline-blue-5 bg-surface-base"
+						:style="{ top: `${(resizeBox ?? selectBox).top + (resizeBox ?? selectBox).height + OUTLINE_OFFSET - 5}px`, left: `${(resizeBox ?? selectBox).left + (resizeBox ?? selectBox).width + OUTLINE_OFFSET - 5}px` }"
+						@pointerdown.stop.prevent="startResize"
+					/>
+				</div>
+				<PreviewComments v-if="shellEditor" :editor="editor!" :artifact="artifact" :host="host" />
+			</div>
+			<slot name="over" />
 		</div>
 	</div>
 </template>
@@ -88,13 +99,15 @@ import { type ArtifactEditor, type ElementAction, type PreviewElement, editorMod
 import PreviewComments from "./PreviewComments.vue"
 import PropertyControl from "./PropertyControl.vue"
 
-// `covered`: a drawer lies over the preview
-const props = defineProps<{ editor: ArtifactEditor | null; artifact: string; covered?: boolean }>()
+// `covered`: a drawer lies over the preview. `layer`: whose styles reach the preview
+const props = defineProps<{ editor: ArtifactEditor | null; artifact: string; covered?: boolean; layer?: string }>()
 
 type Box = { top: number; left: number; width: number; height: number }
 
 const host = ref<HTMLElement | null>(null)
-const toolbar = ref<HTMLElement | null>(null)
+const propertyRow = ref<HTMLElement | null>(null)
+// properties wider than the row scroll sideways, and fade at the edge to say so
+const propertiesOverflow = ref(false)
 const hovered = shallowRef<PreviewElement | null>(null)
 const selected = shallowRef<PreviewElement | null>(null)
 const hoverBox = ref<Box | null>(null)
@@ -314,6 +327,8 @@ let frame = 0
 function track() {
 	hoverBox.value = boxOf(hovered.value)
 	selectBox.value = boxOf(selected.value)
+	const row = propertyRow.value
+	propertiesOverflow.value = Boolean(row && row.scrollWidth > row.clientWidth + 1 && row.scrollLeft + row.clientWidth < row.scrollWidth - 1)
 	// the agent removed the selected element
 	if (selected.value && !selectBox.value && !editing.value) selected.value = null
 	frame = requestAnimationFrame(track)
@@ -333,60 +348,7 @@ const boxStyle = (box: Box, inset = 0) => ({
 
 const OUTLINE_OFFSET = 4
 
-// whether preview content other than the selection and its containers shows in the band
-function bandHasContent(top: number, bottom: number, left: number, right: number, origin: DOMRect) {
-	const editor = props.editor
-	const box = selectBox.value
-	if (!editor || !box) return false
-	for (let y = top; y <= bottom; y += 8) {
-		for (const x of [left, (left + right) / 2, right]) {
-			const found = document
-				.elementsFromPoint(origin.left + x, origin.top + y)
-				.map((node) => editor.elementAt(node))
-				.find(Boolean)
-			if (!found || found.id === selected.value?.id) continue
-			const rect = editor.elementRect(found.id)
-			const contains = rect && rect.top <= origin.top + box.top && rect.bottom >= origin.top + box.top + box.height
-			if (!contains) return true
-		}
-	}
-	return false
-}
-
-// the toolbar sits above the selection, clear of its outline and the line above it, else below it
-let placed: { key: string; style: Record<string, string> } | null = null
-const toolbarStyle = computed(() => {
-	const box = selectBox.value
-	const room = host.value
-	if (!box || !room) return {}
-	const width = toolbar.value?.offsetWidth ?? 280
-	const height = 36
-	const gap = 8
-	// the preview insets its sheet; the toolbar stays inside it
-	const inset = 24
-	const centered = box.left + box.width / 2 - width / 2
-	const left = Math.max(Math.min(Math.max(centered, inset), room.clientWidth - width - inset), gap)
-	const key = [box.top, box.left, box.width, box.height, width, room.clientWidth, room.clientHeight].join()
-	if (placed?.key === key) return placed.style
-	const outlineTop = box.top - OUTLINE_OFFSET
-	const outlineBottom = box.top + box.height + OUTLINE_OFFSET
-	const above = outlineTop - gap - height
-	const below = outlineBottom + gap
-	const origin = room.getBoundingClientRect()
-	const fitsAbove = above >= gap && !bandHasContent(above, outlineTop - 1, left, left + width, origin)
-	const fitsBelow = below + height <= room.clientHeight - gap
-	const top = fitsAbove || !fitsBelow ? Math.max(above, gap) : below
-	const style = { top: `${top}px`, left: `${left}px`, maxWidth: `${room.clientWidth - gap * 2}px` }
-	placed = { key, style }
-	return style
-})
-
 function onKeydown(event: KeyboardEvent) {
-	if (event.key === "Escape" && commenting.value && !event.defaultPrevented) {
-		commenting.value = false
-		event.preventDefault()
-		return
-	}
 	const element = selected.value
 	const typing = event.target instanceof HTMLElement && event.target.closest('input, textarea, select, [contenteditable="true"], .cm-editor')
 	if (element && !editing.value && !typing && !event.defaultPrevented && shellEditor.value) {
@@ -403,12 +365,24 @@ function onKeydown(event: KeyboardEvent) {
 			return
 		}
 	}
-	if (event.key !== "Escape" || !selected.value || editing.value || event.defaultPrevented) return
-	// an open drawer closes first
-	if (document.querySelector("[data-editor-drawer]")) return
-	selected.value = null
-	event.preventDefault()
 }
-onMounted(() => window.addEventListener("keydown", onKeydown))
-onBeforeUnmount(() => window.removeEventListener("keydown", onKeydown))
+// Esc reaches the selection before the focused composer, which would stop the agent's turn with it.
+// A drawer, popover, dialog, draft comment or text edit open on top takes Esc first.
+function onEscape(event: KeyboardEvent) {
+	if (event.key !== "Escape" || event.defaultPrevented || editing.value || draft.value) return
+	if (!commenting.value && !selected.value) return
+	if (document.querySelector("[data-editor-drawer], [data-reka-popper-content-wrapper]:not(:has([role=tooltip])), [role=dialog]")) return
+	if (commenting.value) commenting.value = false
+	else selected.value = null
+	event.preventDefault()
+	event.stopPropagation()
+}
+onMounted(() => {
+	window.addEventListener("keydown", onKeydown)
+	window.addEventListener("keydown", onEscape, true)
+})
+onBeforeUnmount(() => {
+	window.removeEventListener("keydown", onKeydown)
+	window.removeEventListener("keydown", onEscape, true)
+})
 </script>
