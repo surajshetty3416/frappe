@@ -34,11 +34,14 @@ const PAD = 24
 const PHONE = { width: 390, height: 844, bezel: 10 }
 const TABLET_WIDTH = 768
 const TABLET_INSET = 20
+// desktop lays out at its own width and zooms to fit the panel, so a narrow panel never reflows the page
+const DESKTOP_WIDTH = 1280
 
 const room = ref<HTMLElement | null>(null)
 const pageCanvas = ref<InstanceType<typeof StudioCanvas> | null>(null)
 const fitted = ref(false)
 const minHeight = ref(0)
+const zoom = ref(1)
 watchEffect(() => (canvasStore.activeCanvas = pageCanvas.value))
 
 const device = computed(
@@ -59,11 +62,12 @@ const frameStyles = computed(() => {
 		}
 	// a tablet narrower than its own width still reads as one by its frame
 	if (device.value === "tablet") return { minHeight: `${minHeight.value}px`, borderRadius: "20px", padding: `${TABLET_INSET}px 0`, boxShadow: bezel }
-	return { minHeight: `${minHeight.value}px`, boxShadow: "0 0 0 1px var(--outline-gray-2)" }
+	// CSS zoom, not a transform, so the page's rects stay true for selection
+	return { minHeight: `${minHeight.value / zoom.value}px`, zoom: zoom.value, boxShadow: `0 0 0 ${1 / zoom.value}px var(--outline-gray-2)` }
 })
 
-// desktop and tablet render at 100%, desktop at the panel's width and tablet at its own or narrower;
-// the phone frame scales down to fit
+// desktop renders at 1280px or the panel's width and zooms to the panel, tablet at its own width or
+// narrower; the phone frame scales down to fit
 async function fit() {
 	const el = room.value
 	const canvas = pageCanvas.value
@@ -76,7 +80,8 @@ async function fit() {
 
 	let scale = 1
 	if (breakpoint.device === "desktop") {
-		breakpoint.width = width
+		breakpoint.width = Math.max(DESKTOP_WIDTH, width)
+		zoom.value = width / breakpoint.width
 		minHeight.value = height
 	} else if (breakpoint.device === "tablet") {
 		breakpoint.width = Math.min(TABLET_WIDTH, width - PHONE.bezel * 2)
