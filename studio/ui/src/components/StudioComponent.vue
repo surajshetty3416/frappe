@@ -34,6 +34,7 @@
 						v-for="slotBlock in slot.slotContent"
 						:key="slotBlock.componentId"
 						:block="slotBlock"
+						:breakpoint="breakpoint"
 						v-bind="forwardedAttrs"
 						:class="slotClasses"
 						:data-slot-id="slot.slotId"
