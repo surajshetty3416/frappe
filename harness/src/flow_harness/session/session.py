@@ -7,8 +7,11 @@ and the sink. When the loop raises instead of finishing its protocol, `_drive` s
 the run in one place: stand-in results close the interrupted turn (before any newer
 message, so position keeps them attached), then the terminal events.
 
-State is derived, not tracked: a session is RUNNING while its task is alive, PAUSED
-while the transcript holds an undecided approval, else IDLE.
+State is derived, not tracked: a session is RUNNING from admitting an operation until
+it commits its `RunEnded`, PAUSED while the transcript holds an undecided approval, else
+IDLE. A runner may still be shutting down after its run ended (Claude Code waits for its
+CLI to exit); the next operation is admitted then, and its task waits for that shutdown
+before it starts.
 
 A sub-agent the `subagent` tool starts runs inside the session's own task, driven by
 `SubagentRunner`: its events go through the same `_commit`, tagged with its id, and an
@@ -237,6 +240,7 @@ class Session:
 		self._budget = loop.TokenBudget(config.token_budget)
 		self._operation_lock = asyncio.Lock()
 		self._task: asyncio.Task[None] | None = None
+		self._run_open = False  # the admitted operation has not committed its RunEnded yet
 		self._title_task: asyncio.Task[None] | None = None
 		self._operation_type: Literal["run", "compact"] = "run"
 		self._steering_queue: deque[_QueuedSteering] = deque()
@@ -256,7 +260,7 @@ class Session:
 
 	@property
 	def state(self) -> SessionState:
-		if self._task is not None and not self._task.done():
+		if self._run_open and self._task is not None and not self._task.done():
 			return SessionState.RUNNING
 		if self.transcript.pending_approval is not None:
 			return SessionState.PAUSED
@@ -271,7 +275,7 @@ class Session:
 		"""Something in this process still needs the object itself: a run, a live
 		stream, or a title being written. Anything else can be rebuilt from the log."""
 		return (
-			self.is_running
+			(self._task is not None and not self._task.done())
 			or bool(self._subscribers)
 			or (self._title_task is not None and not self._title_task.done())
 		)
@@ -543,6 +547,8 @@ class Session:
 			self.log.append(event)
 			if event.subagent_id is None and isinstance(event, (RunStarted, AssistantMessage, RunEnded)):
 				self._preview_replay.clear()
+			if event.subagent_id is None and isinstance(event, RunEnded):
+				self._run_open = False
 			self.transcript.record(event)
 		elif event.subagent_id is None:  # a sub-agent's preview is not replayed
 			self._retain_preview(event)
@@ -597,7 +603,8 @@ class Session:
 	) -> RunHandle:
 		from_seq = self.log.latest_seq
 		self._operation_type = operation_type
-		task = asyncio.create_task(self._drive(events, operation_type=operation_type))
+		self._run_open = True
+		task = asyncio.create_task(self._drive(events, self._task, operation_type=operation_type))
 		task.add_done_callback(_mark_retrieved)
 		task.add_done_callback(self._settled)
 		self._task = task
@@ -698,10 +705,17 @@ class Session:
 				pass  # attachment cleanup must never prevent the run protocol from settling
 
 	async def _drive(
-		self, events: AsyncIterator[AnyEvent], *, operation_type: Literal["run", "compact"]
+		self,
+		events: AsyncIterator[AnyEvent],
+		previous: asyncio.Task[None] | None,
+		*,
+		operation_type: Literal["run", "compact"],
 	) -> None:
 		"""Commit the loop's events; when it raises instead, settle the run here."""
+		if previous is not None:
+			await asyncio.wait({previous})  # two Claude Code processes must not write one session
 		aborted_terminal = False
+		ended = False
 		partial = _PartialAssistant()
 		try:
 			async for event in events:
@@ -709,7 +723,12 @@ class Session:
 				if isinstance(event, AssistantMessage) and event.stop_reason == "aborted":
 					aborted_terminal = True
 				self._commit(event)
+				ended = ended or (isinstance(event, RunEnded) and event.subagent_id is None)
 		except (ModelCancelled, asyncio.CancelledError) as cancelled:
+			if ended:  # the next operation may already be admitted; this run is settled
+				if isinstance(cancelled, asyncio.CancelledError):
+					raise
+				return
 			self._settle(
 				reason="aborted",
 				needs_aborted_message=operation_type == "run" and not aborted_terminal,
@@ -718,7 +737,8 @@ class Session:
 			if isinstance(cancelled, asyncio.CancelledError):
 				raise
 		except Exception as error:
-			self._settle(reason="error", error=error)
+			if not ended:
+				self._settle(reason="error", error=error)
 		finally:
 			self.report_run_end()
 
