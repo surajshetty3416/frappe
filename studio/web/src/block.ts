@@ -2,7 +2,7 @@ import useCanvasStore from "@web/stores/canvasStore";
 import useComponentStore from "@web/stores/componentStore";
 import { findBlockInTree } from "@web/utils/block/tree";
 import type { SpacingType } from "@web/utils/cssUtils";
-import { cssUrl, dataURLFileName, dataURLtoFile, generateId, getBlockInstance, getSpacing, getTextContent, handleBase64Attribute, isHTMLString, kebabToCamelCase, parseAndSetBackground, setSpacing, toStyleProperty, uploadBuilderAsset } from "@web/utils/helpers";
+import { cssUrl, dataURLFileName, dataURLtoFile, generateId, getBlockInstance, getSpacing, getTextContent, handleBase64Attribute, isHTMLString, kebabToCamelCase, setSpacing, toStyleProperty, uploadBuilderAsset } from "@web/utils/helpers";
 import { computed, reactive } from "vue";
 
 const TEXT_ELEMENTS = new Set([
@@ -177,10 +177,6 @@ class Block implements BlockOptions {
 			this.draggable = false;
 			this.removeStyle("minHeight");
 		}
-
-		parseAndSetBackground(this.baseStyles);
-		parseAndSetBackground(this.mobileStyles);
-		parseAndSetBackground(this.tabletStyles);
 
 		if (this.isImage()) {
 			handleBase64Attribute(this, "src", "image");
