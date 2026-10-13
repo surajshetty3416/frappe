@@ -1,6 +1,6 @@
 <template>
 	<div>
-		<CodeBlock :code="arguments.sql ?? ''" lang="sql" bare />
+		<CodeBlock :code="sql" lang="sql" bare />
 		<RecordTable v-if="query" :columns="columns" :rows="rows" />
 	</div>
 </template>
@@ -17,6 +17,7 @@ const props = defineProps({
 	result: { type: Object, default: null },
 });
 
+const sql = computed(() => props.arguments.sql ?? "");
 const query = computed(() => parseResult(props.result));
 const columns = computed(() => (query.value?.columns ?? []).map((column) => column.name));
 // a row is a list of cells in column order, or a record
