@@ -1,7 +1,7 @@
 <template>
 	<div class="flex flex-col">
 		<!-- one height in every state, so the preview never moves -->
-		<div v-if="editor" data-context-row data-layer="shell" class="flex h-9 shrink-0 items-center gap-1 border-b border-outline-gray-1 pl-3 pr-2">
+		<div v-if="editor && !(hideIdle && !(shellEditor && (commenting || selected)))" data-context-row data-layer="shell" class="flex h-9 shrink-0 items-center gap-1 border-b border-outline-gray-1 pl-3 pr-2">
 			<template v-if="shellEditor && commenting">
 				<span class="flex min-w-0 flex-1 items-center gap-2 text-sm text-ink-gray-7">
 					<span class="lucide-message-square-plus size-4 shrink-0 text-ink-gray-5" />
@@ -100,7 +100,8 @@ import PreviewComments from "./PreviewComments.vue"
 import PropertyControl from "./PropertyControl.vue"
 
 // `covered`: a drawer lies over the preview. `layer`: whose styles reach the preview
-const props = defineProps<{ editor: ArtifactEditor | null; artifact: string; covered?: boolean; layer?: string }>()
+// `hideIdle`: the idle row would be empty, so the row shows only for a selection or a comment
+const props = defineProps<{ editor: ArtifactEditor | null; artifact: string; covered?: boolean; layer?: string; hideIdle?: boolean }>()
 
 type Box = { top: number; left: number; width: number; height: number }
 

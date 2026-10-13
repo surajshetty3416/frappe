@@ -80,6 +80,15 @@
 					:class="openDrawer === drawer.name ? '!bg-surface-gray-3' : ''"
 					@click="toggleDrawer(drawer.name)"
 				/>
+				<Button
+					v-if="editor && !contextRow"
+					variant="ghost"
+					icon="lucide-message-square-plus"
+					:tooltip="commenting ? 'Stop commenting' : 'Comment'"
+					aria-label="Comment"
+					:class="commenting ? '!bg-surface-gray-3' : ''"
+					@click="toggleCommenting"
+				/>
 				<template v-if="action">
 					<div class="mx-1.5 h-4 w-px bg-surface-gray-3" />
 					<Button
@@ -94,7 +103,14 @@
 			</div>
 		</div>
 
-		<SelectionLayer class="min-h-0 flex-1" :editor="editor" :artifact="artifactKey" :covered="!!openDrawer" :layer="layerName">
+		<SelectionLayer
+			class="min-h-0 flex-1"
+			:editor="editor"
+			:artifact="artifactKey"
+			:covered="!!openDrawer"
+			:layer="layerName"
+			:hide-idle="!contextRow"
+		>
 			<template #idle>
 				<div class="flex min-w-0 flex-1 items-center gap-2">
 					<TabButtons
@@ -226,6 +242,8 @@ const action = computed(() => editor.value?.primaryAction() ?? null)
 const views = computed(() => editor.value?.views?.() ?? [])
 const barControls = computed(() => editor.value?.barControls?.() ?? null)
 
+// an editor with nothing to switch, set or select has no idle context row; its Comment sits in the artifact bar
+const contextRow = computed(() => views.value.length > 0 || Boolean(barControls.value) || modes.value.includes("edit"))
 const modes = computed<EditorMode[]>(() => (editor.value ? (editor.value.modes ?? ["edit", "preview"]) : []))
 // each artifact opens in its layer's first mode
 watch(
