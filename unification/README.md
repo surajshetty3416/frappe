@@ -235,26 +235,30 @@ yarn --cwd ../apps/frappe/studio install && yarn --cwd ../apps/frappe/studio bui
 
 Then open `/studio`, the touched layer's screens and an artifact editor in the browser.
 
-### The daily PR
+### The sync PR
 
-On the devbox, `systemd/unification-sync.timer` runs [`sync_pr.sh`](sync_pr.sh) at 01:47 UTC
-(07:17 IST). It works in a bench of its own, `/home/t3run/unification-sync`, whose `apps/frappe`
-is a worktree of the unified bench's repo, so the bench serving unified.surajshetty.tech is never
-touched. Each run:
+On the devbox, `systemd/unification-sync.timer` runs [`sync_pr.sh`](sync_pr.sh) every hour at :17.
+It works in a bench of its own, `/home/t3run/unification-sync`, whose `apps/frappe` is a worktree
+of the unified bench's repo, so the bench serving unified.surajshetty.tech is never touched. Each
+run:
 
-1. skips the day if a `sync/upstream` PR is still open;
-2. resets the worktree to `origin/unified` and runs `sync.py merge --skip-conflicts` on a
-   `sync/upstream` branch;
+1. starts from the open sync PR's branch, `sync/upstream`, with `unified` merged in (so the PR
+   stays mergeable and the run uses the current tooling), or from `unified` when no sync PR is
+   open;
+2. runs `sync.py merge --skip-conflicts`, and stops there if nothing new merged;
 3. checks the result: reinstalls the sync bench's env from the merged `pyproject.toml` (with
    frappe's dev dependencies), imports every layer module, builds the SPA, then migrates
    `unified-test.localhost` and runs every layer test on it;
-4. pushes and opens a PR into `unified`, as a draft if a check failed. The PR sums up each
-   source, then the checks, then lists every commit: when it landed upstream, a link to it, and
-   the folders it touched here ("not carried over" for tooling the unification dropped);
+4. pushes, then rewrites the open PR's description (`sync.py report`: everything the PR carries)
+   or opens a new PR. The description sums up each source, then the checks, then lists every
+   commit: when it landed upstream, a link to it, and the folders it touched here ("not carried
+   over" for tooling the unification dropped). A failed check turns the PR into a draft, and a
+   later passing run makes it ready again;
 5. lists the sources it set aside in an "Upstream sync needs a hand" issue on the fork, updated
    each run and closed once everything merges. Merge those by hand with `sync.py merge <source>`
    and push to `unified`; the next run carries on from there.
 
+A run that is still checking when the next hour comes round makes systemd skip that hour.
 `systemctl start unification-sync` runs it now, `journalctl -u unification-sync` shows the run,
 and `DRY_RUN=1` prints the PR and issue instead of pushing.
 

@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Merge the upstream changes that merge cleanly, check them, and open a PR into $BASE. A source
+# Merge the upstream changes that merge cleanly onto the open sync PR, or into a new PR against
+# $BASE when none is open, check the result, and describe everything the PR carries. A source
 # that conflicts is set aside and listed in one "Upstream sync needs a hand" issue.
 #
-# Starts in a worktree already reset to origin/$BASE. systemd/unification-sync.service does that
-# before running this, so the script is never rewritten while it runs.
+# Starts in a worktree reset to origin/$BASE (systemd/unification-sync.service does that).
 #
 #   REPO       owner/name of the repo behind the remote "origin", where the PR goes
 #   BASE       the branch to merge into (unified)
@@ -11,7 +11,13 @@
 #              from the worktree, and TEST_SITE in its sites/ is one the tests may change
 #   DRY_RUN=1  print the PR and issue instead of pushing
 set -uo pipefail
-ROOT=$(cd "$(dirname "$0")/.." && pwd)
+# switching to the open PR's branch rewrites this file, and bash reads a script as it runs
+if [[ -z ${SYNC_PR_COPY:-} ]]; then
+	copy=$(mktemp)
+	cp "$0" "$copy"
+	SYNC_PR_COPY=1 exec bash "$copy" "$@"
+fi
+ROOT=$(git rev-parse --show-toplevel)
 cd "$ROOT"
 BASE=${BASE:-unified}
 BENCH=${BENCH:-$(cd "$ROOT/../.." && pwd)}
@@ -93,13 +99,22 @@ check() {
 	{ echo; echo "<details><summary>$name</summary>"; echo; echo '```'; tail -60 "$OUT/$name.log"; echo '```'; echo "</details>"; } >> "$OUT/failures.md"
 }
 
-# a failed lookup must not read as "no PR": the force-push below would overwrite its branch
+# start from the open PR's branch with $BASE merged in, so it stays mergeable and runs the
+# current tooling; a failed lookup must not read as "no PR", or the force-push would drop its commits
 pr=$(open_pr) || exit 1
 if [[ -n $pr ]]; then
-	echo "$pr is still open; merge or close it first."
-	exit 0
+	git fetch --quiet origin "$BRANCH" || exit 1
+	git switch --quiet -C "$BRANCH" "origin/$BRANCH"
+	if ! git merge --quiet --no-edit -m "chore(unification): bring $BRANCH up to $BASE" "origin/$BASE" > /dev/null; then
+		git merge --abort
+		echo "$pr no longer merges with $BASE: merge $BASE into $BRANCH by hand." > "$OUT/merge.md"
+		ask_for_a_hand "The sync can't add to the open PR"
+		exit 1
+	fi
+else
+	git switch --quiet -C "$BRANCH" "origin/$BASE"
 fi
-git switch --quiet -C "$BRANCH"
+start=$(git rev-parse HEAD)
 python3 unification/sync.py merge --skip-conflicts > "$OUT/merge.md" 2>&1
 status=$?
 cat "$OUT/merge.md"
@@ -108,7 +123,7 @@ case $status in
 	2) ask_for_a_hand "These sources conflict, so the sync set them aside" ;;
 	*) ask_for_a_hand "The sync stopped with an error"; exit 1 ;;
 esac
-if [[ $(git rev-parse HEAD) == $(git rev-parse "origin/$BASE") ]]; then
+if [[ $(git rev-parse HEAD) == "$start" ]]; then
 	echo "Nothing new merged."
 	exit 0
 fi
@@ -122,23 +137,32 @@ check build bash -c "yarn --cwd studio install --frozen-lockfile --non-interacti
 check migrate in_bench -m frappe.utils.bench_helper frappe --site "$TEST_SITE" migrate
 check tests layer_tests
 
+python3 unification/sync.py report "origin/$BASE" > "$OUT/report.md" 2>&1
 {
-	echo "Upstream changes merged by \`unification/sync.py\` on $(date -u +%F)."
-	if ((status == 2)); then echo "Sources that conflict were set aside: see the \"$ISSUE\" issue."; fi
+	echo "Upstream changes merged by \`unification/sync.py\`, last added $(date -u '+%F %H:%M') UTC."
+	if ((status == 2)); then echo "Sources that conflict wait in the \"$ISSUE\" issue."; fi
 	echo
-	sed '/^## Changes$/,$d' "$OUT/merge.md"
-	printf '## Checks\n\n'
+	sed '/^## Changes$/,$d' "$OUT/report.md"
+	printf '## Checks\n\nOn the branch as of the last addition.\n\n'
 	cat "$OUT/checks.md" "$OUT/failures.md"
 	echo
-	sed -n '/^## Changes$/,$p' "$OUT/merge.md"
+	sed -n '/^## Changes$/,$p' "$OUT/report.md"
 } | head -c 60000 > "$OUT/pr.md"
 
 if [[ -n ${DRY_RUN:-} ]]; then
 	cat "$OUT/pr.md"
 	exit 0
 fi
+if [[ -n $pr ]]; then
+	git push --quiet origin "$BRANCH"
+	gh pr edit "$pr" --repo "$REPO" --body-file "$OUT/pr.md" > /dev/null
+	ready=()
+	if ((FAILED)); then ready=(--undo); fi
+	gh pr ready "$pr" --repo "$REPO" "${ready[@]}" > /dev/null 2>&1
+	exit 0
+fi
 git push --quiet --force origin "$BRANCH"
 draft=()
 if ((FAILED)); then draft=(--draft); fi
 gh pr create --repo "$REPO" --base "$BASE" --head "$BRANCH" "${draft[@]}" \
-	--title "chore(unification): sync upstream $(date -u +%F)" --body-file "$OUT/pr.md"
+	--title "chore(unification): sync upstream" --body-file "$OUT/pr.md"

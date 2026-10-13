@@ -4,12 +4,14 @@ From the frappe repo root, on the branch to update, with a clean tree:
 
 	python3 unification/sync.py status             what each source has that isn't merged yet
 	python3 unification/sync.py merge [source ...]  merge it, one merge commit per source
+	python3 unification/sync.py report [base]       what the branch merged since base (origin/unified)
 
 `merge` stops at the first source that conflicts, with everything else (and the new sources.json)
 staged: resolve, commit, and run it again for the rest. With --skip-conflicts it sets that source
 aside and goes on with the others. Exit codes: 0 done, 2 conflicts.
 """
 
+import functools
 import json
 import os
 import shlex
@@ -78,6 +80,7 @@ def key(commit, repo):
 	return git("log", "-1", f"--format={KEY}", commit, cwd=repo)
 
 
+@functools.cache
 def keyed(head, repo):
 	lines = git("log", f"--format=%H%x1f{KEY}", head, cwd=repo).splitlines()
 	return {line.split("\x1f", 1)[1]: line.split("\x1f", 1)[0] for line in lines}
@@ -142,9 +145,11 @@ class Source:
 
 	def pending(self):
 		"""The upstream commits not merged yet, oldest first."""
-		pending = f"{self.config['commit']}..{self.head()}"
-		log = git("log", "--no-merges", "--reverse", "--format=%H%x1f%cs%x1f%s", pending, cwd=self.repo)
-		return [Commit(*line.split("\x1f", 2)) for line in log.splitlines()]
+		return self.log(self.config["commit"], self.head())
+
+	def log(self, start, end):
+		lines = git("log", "--no-merges", "--reverse", "--format=%H%x1f%cs%x1f%s", f"{start}..{end}", cwd=self.repo)
+		return [Commit(*line.split("\x1f", 2)) for line in lines.splitlines()]
 
 	def paths(self, commit):
 		"""What an upstream commit touched, at its paths here."""
@@ -199,11 +204,10 @@ class App(Source):
 		self.config.update(commit=self.head(), rewritten=rewritten)
 
 	def paths(self, commit):
-		lines = (self.work / ".git" / "filter-repo" / "commit-map").read_text().splitlines()[1:]
-		copy = dict(line.split() for line in lines).get(commit, "0" * 40)
-		if set(copy) == {"0"}:
+		copy = keyed(self.config["rewritten"], ROOT).get(key(commit, self.repo))
+		if not copy:
 			return []
-		names = git("diff-tree", "--no-commit-id", "--name-only", "-r", copy, cwd=self.work).splitlines()
+		names = git("diff-tree", "--no-commit-id", "--name-only", "-r", copy).splitlines()
 		return [self.moved(name) or name for name in names if not self.ignored(name)]
 
 	def clone(self):
@@ -359,7 +363,7 @@ def merge(data, source, skip_conflicts):
 		entry.result = f"set aside: run `sync.py merge {source.name}`"
 		return entry
 	save(data)
-	Path(git("rev-parse", "--path-format=absolute", "--git-path", "MERGE_MSG")).write_text(message(data, source, commits))
+	Path(git("rev-parse", "--path-format=absolute", "--git-path", "MERGE_MSG")).write_text(message(data, source, commits, review))
 	if conflicts:
 		entry.result = "conflicts, merge in progress"
 		return entry
@@ -382,15 +386,50 @@ def stop(source):
 	sys.exit(2)
 
 
-def message(data, source, commits):
-	body = "\n".join(f"- {report.qualified(commit.subject, source.slug)}" for commit in commits)
-	trailers = "\n".join(data["commit_trailers"])
-	return f"chore(unification): merge {source.title} up to {source.config['commit'][:10]}\n\n{body}\n\n{trailers}\n"
+def message(data, source, commits, review):
+	lines = [f"{subject(source)} {source.config['commit'][:10]}", ""]
+	lines += [f"- {report.qualified(commit.subject, source.slug)}" for commit in commits]
+	if review:
+		lines += ["", "Look at:"] + [f"- {line}" for line in review]
+	return "\n".join([*lines, "", *data["commit_trailers"], ""])
+
+
+def subject(source):
+	return f"chore(unification): merge {source.title} up to"
+
+
+def describe(sources, base):
+	"""One report entry per source for everything merged since base, read back from git."""
+	before = json.loads(git("show", f"{base}:{SOURCES.relative_to(ROOT)}"))["sources"]
+	log = git("log", "--merges", "--format=%h%x1f%B%x1e", f"{base}..HEAD")
+	merges = [entry.strip().split("\x1f", 1) for entry in log.split("\x1e") if entry.strip()]
+	entries = []
+	for name, source in sources.items():
+		start = before.get(name, {}).get("commit")
+		if start in (None, source.config["commit"]):
+			continue
+		source.fetch()
+		ours = [(sha, body) for sha, body in merges if body.startswith(subject(source))]
+		entry = report.Entry(source, source.log(start, source.config["commit"]), looked_at(ours))
+		entry.result = "merged as " + ", ".join(sha for sha, _ in ours)
+		entries.append(entry)
+	return entries
+
+
+def looked_at(merges):
+	lines = []
+	for _, body in merges:
+		if "\nLook at:\n" in body:
+			block = body.split("\nLook at:\n", 1)[1].split("\n\n", 1)[0]
+			lines += [line.removeprefix("- ") for line in block.splitlines()]
+	return lines
 
 
 def main(command="status", *args):
 	data, sources = load()
 	names = [arg for arg in args if not arg.startswith("--")]
+	if command == "report":
+		return print(report.render(describe(sources, names[0] if names else "origin/unified")))
 	chosen = [sources[name] for name in names] if names else list(sources.values())
 	if command == "status":
 		return status(chosen)

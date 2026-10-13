@@ -1,4 +1,4 @@
-# The devbox's daily upstream sync. Copy both units to /etc/systemd/system and
+# The devbox's hourly upstream sync. Copy both units to /etc/systemd/system and
 # `systemctl enable --now unification-sync.timer`; README.md has the one-time setup.
 [Unit]
 Description=Merge upstream frappe, builder, insights, flow and studio into the unified branch, and open a PR
