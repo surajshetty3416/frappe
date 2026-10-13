@@ -5,10 +5,16 @@
 
 from __future__ import annotations
 
-from typing import Any
+import time
+from typing import TYPE_CHECKING, Any
 
 import frappe
 from frappe import _
+
+if TYPE_CHECKING:
+	from frappe.ai.daemon.client import DaemonClient
+
+PING_TIMEOUT = 30
 
 
 def model_config(model: str) -> dict[str, Any]:
@@ -36,6 +42,50 @@ def served_by_flow_server(model_id: str) -> bool:
 
 	spec = provider_for_model(model_id)
 	return spec is not None and spec.id not in {p.value for p in litellm.provider_list}
+
+
+def ping_through_flow_server(model: str) -> None:
+	"""Send one message to `model` on a throwaway flow server session, the only place a
+	model the server serves itself can be reached. Throws the run's error."""
+	from frappe.ai.daemon import lifecycle
+	from frappe.ai.lib.session import flow_server
+
+	sid = f"ping-{frappe.generate_hash(length=10)}"
+	config = {
+		"session_id": sid,
+		"title": "Connection test",  # a titled session skips the titling call
+		**model_config(model),
+		"max_turns": 1,
+		"cwd": str(lifecycle.session_root()),
+	}
+	with flow_server() as client:
+		client.create_session(config)
+		try:
+			client.run(sid, "ping")
+			error = run_error(client, sid)
+		finally:
+			client.delete_session(sid)
+	if error:
+		frappe.throw(error, title=_("Connection Failed"))
+
+
+def run_error(client: DaemonClient, sid: str) -> str | None:
+	"""Wait for the session's run to end, aborting it past PING_TIMEOUT so the session can
+	be deleted; its error message, if it failed."""
+	error, since = None, 0
+	started = time.monotonic()
+	while time.monotonic() - started < PING_TIMEOUT * 2:
+		for entry in client.entries(sid, since=since, path="all")["entries"]:
+			since = entry["seq"]
+			if entry["type"] == "run_error":
+				error = entry["message"]
+			elif entry["type"] == "run_ended":
+				return error
+		if error is None and time.monotonic() - started > PING_TIMEOUT:
+			client.abort(sid)
+			error = _("The model did not answer within {0} seconds.").format(PING_TIMEOUT)
+		time.sleep(0.5)
+	return error
 
 
 def resolve_provider_credentials(model_id: str) -> dict[str, Any]:

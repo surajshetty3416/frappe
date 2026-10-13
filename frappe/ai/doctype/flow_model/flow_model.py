@@ -119,6 +119,12 @@ class FlowModel(Document):
 	def test_connection(self):
 		self.check_permission("write")
 
+		from frappe.ai.lib.model import ping_through_flow_server, served_by_flow_server
+
+		if served_by_flow_server(self.model_id):
+			ping_through_flow_server(self.name)
+			return {"ok": True, "message": _("Connection OK")}
+
 		try:
 			import litellm
 		except ImportError:

@@ -5,7 +5,9 @@ from typing import Any
 from unittest.mock import patch
 
 import frappe
+from frappe.ai.daemon.client import DaemonClient
 from frappe.ai.doctype.flow_model.flow_model import _detect_context_window
+from frappe.ai.tests.test_fake_daemon import FakeDaemon, row
 from frappe.tests import IntegrationTestCase
 
 
@@ -138,6 +140,50 @@ class TestFlowModelExtraParams(IntegrationTestCase):
 		with patch("litellm.completion") as completion:
 			doc.test_connection()
 		self.assertEqual(completion.call_args.kwargs["provider"], {"zdr": True})
+
+
+def failed_turn(seq, run_id, message):
+	return [
+		row(seq, "run_started", run_id=run_id),
+		row(seq + 1, "run_error", message="AuthError: not signed in"),
+		row(seq + 2, "run_ended", reason="error"),
+	]
+
+
+class TestFlowServerConnection(IntegrationTestCase):
+	"""A ChatGPT subscription model is reached only through the flow server."""
+
+	def setUp(self):
+		self.enterContext(patch.dict(frappe.local.conf, {"flow_server_secret": "site-token"}))
+		self.daemon = FakeDaemon()
+		self.enterContext(patch.object(DaemonClient, "for_site", return_value=self.daemon))
+		self.doc = frappe.get_doc(_model(model_id="codex/gpt-5.5")).insert()
+
+	def tearDown(self):
+		frappe.db.rollback()
+
+	def test_test_connection_pings_a_throwaway_session(self):
+		with patch("litellm.completion") as completion:
+			self.assertTrue(self.doc.test_connection()["ok"])
+
+		completion.assert_not_called()
+		sid = self.daemon.calls[0][1]
+		self.assertEqual(
+			self.daemon.calls,
+			[
+				("create_session", sid),
+				("run", sid, "ping"),
+				("entries", sid, 0, "all"),
+				("delete_session", sid),
+			],
+		)
+
+	def test_test_connection_throws_the_runs_error(self):
+		self.daemon.answer = failed_turn
+
+		with self.assertRaisesRegex(frappe.ValidationError, "not signed in"):
+			self.doc.test_connection()
+		self.assertEqual(self.daemon.calls[-1][0], "delete_session")
 
 
 class TestContextWindow(IntegrationTestCase):
