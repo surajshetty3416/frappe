@@ -16,23 +16,23 @@
 			<div
 				v-if="hoverBox && hovered?.id !== selected?.id"
 				class="absolute rounded-[2px] border border-outline-blue-4"
-				:style="boxStyle(hoverBox)"
+				:style="boxStyle(hoverBox, OUTLINE_OFFSET)"
 			/>
 			<div
 				v-if="selectBox"
 				class="absolute rounded-[2px] border-2 border-outline-blue-5"
-				:style="boxStyle(selectBox, 1)"
+				:style="boxStyle(selectBox, OUTLINE_OFFSET + 1)"
 			/>
 			<div
 				v-if="resizeBox"
 				class="absolute rounded-[2px] border border-dashed border-outline-blue-5"
-				:style="boxStyle(resizeBox)"
+				:style="boxStyle(resizeBox, OUTLINE_OFFSET)"
 			/>
 			<span
 				v-if="selectBox && canResize && !editing && !commenting"
 				data-selection-ui
 				class="pointer-events-auto absolute size-3 cursor-se-resize rounded-[2px] border-2 border-outline-blue-5 bg-surface-base"
-				:style="{ top: `${(resizeBox ?? selectBox).top + (resizeBox ?? selectBox).height - 5}px`, left: `${(resizeBox ?? selectBox).left + (resizeBox ?? selectBox).width - 5}px` }"
+				:style="{ top: `${(resizeBox ?? selectBox).top + (resizeBox ?? selectBox).height + OUTLINE_OFFSET - 5}px`, left: `${(resizeBox ?? selectBox).left + (resizeBox ?? selectBox).width + OUTLINE_OFFSET - 5}px` }"
 				@pointerdown.stop.prevent="startResize"
 			/>
 		</div>
@@ -331,6 +331,30 @@ const boxStyle = (box: Box, inset = 0) => ({
 	height: `${box.height + inset * 2}px`,
 })
 
+const OUTLINE_OFFSET = 4
+
+// whether preview content other than the selection and its containers shows in the band
+function bandHasContent(top: number, bottom: number, left: number, right: number, origin: DOMRect) {
+	const editor = props.editor
+	const box = selectBox.value
+	if (!editor || !box) return false
+	for (let y = top; y <= bottom; y += 8) {
+		for (const x of [left, (left + right) / 2, right]) {
+			const found = document
+				.elementsFromPoint(origin.left + x, origin.top + y)
+				.map((node) => editor.elementAt(node))
+				.find(Boolean)
+			if (!found || found.id === selected.value?.id) continue
+			const rect = editor.elementRect(found.id)
+			const contains = rect && rect.top <= origin.top + box.top && rect.bottom >= origin.top + box.top + box.height
+			if (!contains) return true
+		}
+	}
+	return false
+}
+
+// the toolbar sits above the selection, clear of its outline and the line above it, else below it
+let placed: { key: string; style: Record<string, string> } | null = null
 const toolbarStyle = computed(() => {
 	const box = selectBox.value
 	const room = host.value
@@ -340,11 +364,21 @@ const toolbarStyle = computed(() => {
 	const gap = 8
 	// the preview insets its sheet; the toolbar stays inside it
 	const inset = 24
-	// above the element; with no room above it overlaps the element's own top, never a sibling below it
-	const top = Math.min(Math.max(box.top - height - gap, gap), room.clientHeight - height - gap)
 	const centered = box.left + box.width / 2 - width / 2
 	const left = Math.max(Math.min(Math.max(centered, inset), room.clientWidth - width - inset), gap)
-	return { top: `${top}px`, left: `${left}px`, maxWidth: `${room.clientWidth - gap * 2}px` }
+	const key = [box.top, box.left, box.width, box.height, width, room.clientWidth, room.clientHeight].join()
+	if (placed?.key === key) return placed.style
+	const outlineTop = box.top - OUTLINE_OFFSET
+	const outlineBottom = box.top + box.height + OUTLINE_OFFSET
+	const above = outlineTop - gap - height
+	const below = outlineBottom + gap
+	const origin = room.getBoundingClientRect()
+	const fitsAbove = above >= gap && !bandHasContent(above, outlineTop - 1, left, left + width, origin)
+	const fitsBelow = below + height <= room.clientHeight - gap
+	const top = fitsAbove || !fitsBelow ? Math.max(above, gap) : below
+	const style = { top: `${top}px`, left: `${left}px`, maxWidth: `${room.clientWidth - gap * 2}px` }
+	placed = { key, style }
+	return style
 })
 
 function onKeydown(event: KeyboardEvent) {
