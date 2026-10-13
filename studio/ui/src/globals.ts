@@ -172,95 +172,89 @@ export function registerGlobalComponents(app: App) {
 	register("RadioGroup", RadioGroup)
 	register("Radio", Radio)
 
-	// @framework/ui components — only on frappe versions that ship apps/frappe/ui.
-	// __FRAMEWORK_UI_AVAILABLE__ is a build-time constant; when false, production
-	// builds DCE this whole block away. The dev server doesn't tree-shake, so it still
-	// resolves these specifiers — vite.config aliases @framework/ui/* to a stub when the
-	// package is absent so resolution succeeds (the branch is dead, never executed).
-	if (__FRAMEWORK_UI_AVAILABLE__) {
-		register(
-			"FormLayout",
-			defineAsyncComponent(() => import("@framework/ui/components/FormLayout/FormLayout.vue")),
-		)
-		register(
-			"Link",
-			defineAsyncComponent(() => import("@framework/ui/components/Link/Link.vue")),
-		)
-		register(
-			"Grid",
-			defineAsyncComponent(() => import("@framework/ui/components/Grid/Grid.vue")),
-		)
-		register(
-			"Phone",
-			defineAsyncComponent(() => import("@framework/ui/components/Phone/Phone.vue")),
-		)
-		register(
-			"TableMultiSelect",
-			defineAsyncComponent(() => import("@framework/ui/components/TableMultiSelect/TableMultiSelect.vue")),
-		)
-		register(
-			"NotificationPanel",
-			defineAsyncComponent(() => import("@framework/ui/components/Notifications/NotificationPanel.vue")),
-		)
-		register(
-			"NotificationItem",
-			defineAsyncComponent(() => import("@framework/ui/components/Notifications/NotificationItem.vue")),
-		)
-		register(
-			"ActivityTimeline",
-			defineAsyncComponent(() => import("@framework/ui/components/ActivityTimeline/ActivityTimeline.vue")),
-		)
-		register(
-			"EmailItem",
-			defineAsyncComponent(() => import("@framework/ui/components/ActivityTimeline/EmailItem.vue")),
-		)
-		register(
-			"CommentItem",
-			defineAsyncComponent(() => import("@framework/ui/components/ActivityTimeline/CommentItem.vue")),
-		)
-		register(
-			"EmailComposer",
-			defineAsyncComponent(() => import("@framework/ui/components/Composer/EmailComposer/EmailComposer.vue")),
-		)
-		register(
-			"CommentComposer",
-			defineAsyncComponent(
-				() => import("@framework/ui/components/Composer/CommentComposer/CommentComposer.vue"),
-			),
-		)
-		register(
-			"Filter",
-			defineAsyncComponent(() => import("@framework/ui/components/Filter/Filter.vue")),
-		)
-		register(
-			"SortBy",
-			defineAsyncComponent(() => import("@framework/ui/components/SortBy/SortBy.vue")),
-		)
-		register(
-			"QuickFilter",
-			defineAsyncComponent(() => import("@framework/ui/components/QuickFilter/QuickFilter.vue")),
-		)
-		register(
-			"ColumnSettings",
-			defineAsyncComponent(() => import("@framework/ui/components/ColumnSettings/ColumnSettings.vue")),
-		)
-		register(
-			"ListViewShell",
-			defineAsyncComponent(() => import("@framework/ui/components/ListView/ListViewShell.vue")),
-		)
-		register(
-			"FileUploadDialog",
-			defineAsyncComponent(() => import("@framework/ui/components/FileUpload/FileUploadDialog.vue")),
-		)
-		register(
-			"AttachmentsList",
-			defineAsyncComponent(() => import("@framework/ui/components/FileUpload/AttachmentsList.vue")),
-		)
-		register(
-			"UploadTray",
-			defineAsyncComponent(() => import("@framework/ui/components/FileUpload/UploadTray.vue")),
-		)
-	}
+	// @framework/ui components
+	register(
+		"FormLayout",
+		defineAsyncComponent(() => import("@framework/ui/components/FormLayout/FormLayout.vue")),
+	)
+	register(
+		"Link",
+		defineAsyncComponent(() => import("@framework/ui/components/Link/Link.vue")),
+	)
+	register(
+		"Grid",
+		defineAsyncComponent(() => import("@framework/ui/components/Grid/Grid.vue")),
+	)
+	register(
+		"Phone",
+		defineAsyncComponent(() => import("@framework/ui/components/Phone/Phone.vue")),
+	)
+	register(
+		"TableMultiSelect",
+		defineAsyncComponent(() => import("@framework/ui/components/TableMultiSelect/TableMultiSelect.vue")),
+	)
+	register(
+		"NotificationPanel",
+		defineAsyncComponent(() => import("@framework/ui/components/Notifications/NotificationPanel.vue")),
+	)
+	register(
+		"NotificationItem",
+		defineAsyncComponent(() => import("@framework/ui/components/Notifications/NotificationItem.vue")),
+	)
+	register(
+		"ActivityTimeline",
+		defineAsyncComponent(() => import("@framework/ui/components/ActivityTimeline/ActivityTimeline.vue")),
+	)
+	register(
+		"EmailItem",
+		defineAsyncComponent(() => import("@framework/ui/components/ActivityTimeline/EmailItem.vue")),
+	)
+	register(
+		"CommentItem",
+		defineAsyncComponent(() => import("@framework/ui/components/ActivityTimeline/CommentItem.vue")),
+	)
+	register(
+		"EmailComposer",
+		defineAsyncComponent(() => import("@framework/ui/components/Composer/EmailComposer/EmailComposer.vue")),
+	)
+	register(
+		"CommentComposer",
+		defineAsyncComponent(
+			() => import("@framework/ui/components/Composer/CommentComposer/CommentComposer.vue"),
+		),
+	)
+	register(
+		"Filter",
+		defineAsyncComponent(() => import("@framework/ui/components/Filter/Filter.vue")),
+	)
+	register(
+		"SortBy",
+		defineAsyncComponent(() => import("@framework/ui/components/SortBy/SortBy.vue")),
+	)
+	register(
+		"QuickFilter",
+		defineAsyncComponent(() => import("@framework/ui/components/QuickFilter/QuickFilter.vue")),
+	)
+	register(
+		"ColumnSettings",
+		defineAsyncComponent(() => import("@framework/ui/components/ColumnSettings/ColumnSettings.vue")),
+	)
+	register(
+		"ListViewShell",
+		defineAsyncComponent(() => import("@framework/ui/components/ListView/ListViewShell.vue")),
+	)
+	register(
+		"FileUploadDialog",
+		defineAsyncComponent(() => import("@framework/ui/components/FileUpload/FileUploadDialog.vue")),
+	)
+	register(
+		"AttachmentsList",
+		defineAsyncComponent(() => import("@framework/ui/components/FileUpload/AttachmentsList.vue")),
+	)
+	register(
+		"UploadTray",
+		defineAsyncComponent(() => import("@framework/ui/components/FileUpload/UploadTray.vue")),
+	)
 
 	// studio components
 	register("Container", Container)
