@@ -46,7 +46,7 @@
 					<span class="lucide-circle-alert ml-1 size-4 flex-none text-ink-red-4" />
 					<span class="min-w-0 flex-1 truncate text-ink-red-6" :title="replay.error">{{ replay.error }}</span>
 				</template>
-				<span v-else class="ml-1 min-w-0 flex-1 truncate text-ink-gray-5">{{ replay.title }}</span>
+				<span v-else class="flex-1" />
 				<Dropdown :options="speedOptions" align="end">
 					<Button variant="ghost" :label="`${speed}x`" icon-right="lucide-chevron-down" tooltip="Replay speed" />
 				</Dropdown>
