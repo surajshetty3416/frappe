@@ -118,3 +118,21 @@ div:has(> [role='switch']) label[data-slot='label'] {
 body {
 	@apply selection:bg-gray-500/30;
 }
+
+/* a block that scrolls sideways fades the edge it clips while there is more past it; the
+   published page carries the same rules in webpage.html */
+@property --scroll-fade-start {
+	syntax: "<length>";
+	inherits: false;
+	initial-value: 0px;
+}
+@property --scroll-fade-end {
+	syntax: "<length>";
+	inherits: false;
+	initial-value: 0px;
+}
+@keyframes scroll-fade-x {
+	from { --scroll-fade-start: 0px; --scroll-fade-end: 48px; }
+	10%, 90% { --scroll-fade-start: 48px; --scroll-fade-end: 48px; }
+	to { --scroll-fade-start: 48px; --scroll-fade-end: 0px; }
+}

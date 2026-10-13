@@ -204,6 +204,16 @@ const target = computed(() => {
 	}
 });
 
+// the published page's get_style adds the same, for the scroll-fade-x keyframes in index.css
+const SCROLL_FADE = {
+	maskImage: "linear-gradient(to right, transparent, #000 var(--scroll-fade-start), #000 calc(100% - var(--scroll-fade-end)), transparent)",
+	animationName: "scroll-fade-x",
+	animationDuration: "auto",
+	animationTimingFunction: "linear",
+	animationFillMode: "both",
+	animationTimeline: "scroll(self inline)",
+};
+
 const styles = computed(() => {
 	const dynamicStyles = valueResolver.applyDynamicValues("style", {}) as BlockStyleMap;
 
@@ -229,6 +239,8 @@ const styles = computed(() => {
 		if (key.startsWith("hover:")) delete styleMap[key];
 	});
 
+	if ([styleMap.overflowX, styleMap.overflow].some((value) => value === "auto" || value === "scroll"))
+		return { ...SCROLL_FADE, ...styleMap } as BlockStyleMap;
 	return styleMap;
 });
 

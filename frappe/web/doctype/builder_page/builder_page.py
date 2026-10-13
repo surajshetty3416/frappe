@@ -1595,7 +1595,22 @@ def wrap_with_media_query(style_string, device):
 	return style_string
 
 
+# a block that scrolls sideways fades the edge it clips, by the scroll-fade-x keyframes in webpage.html;
+# the canvas's BuilderBlock adds the same
+SCROLL_FADE = {
+	"maskImage": "linear-gradient(to right, transparent, #000 var(--scroll-fade-start), #000 calc(100% - var(--scroll-fade-end)), transparent)",
+	"animationName": "scroll-fade-x",
+	"animationDuration": "auto",
+	"animationTimingFunction": "linear",
+	"animationFillMode": "both",
+	"animationTimeline": "scroll(self inline)",
+}
+
+
 def get_style(style_obj):
+	if style_obj and any(style_obj.get(key) in ("auto", "scroll") for key in ("overflowX", "overflow")):
+		style_obj = {**SCROLL_FADE, **style_obj}
+
 	def _css_value(key, value):
 		if key == "fontFamily" and isinstance(value, str):
 			# a family name's spaces are escaped, the commas between families are not
