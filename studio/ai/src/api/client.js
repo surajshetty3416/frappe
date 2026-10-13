@@ -102,6 +102,10 @@ export class FrappeClient {
 		return data;
 	}
 
+	runArtifacts(sid) {
+		return this.transport.call("frappe.ai.artifacts.get_run_artifacts", { session: sid });
+	}
+
 	// `context` is what the editor beside the chat shows (see the shell's context.ts); the agent
 	// reads it as JSON after the message, and events.js turns it back into chips
 	async run(sid, message, attachments = [], context = null) {

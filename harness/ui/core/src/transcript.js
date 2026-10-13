@@ -14,8 +14,11 @@ export function initialConversation() {
 		steering: [],
 		// seqs of the messages steered into a run already under way: each joins that run's turn
 		steeredSeqs: [],
-		// where the current run's entries begin in `entries`
+		// where the current run's entries begin in `entries`, and each run's, by run id
 		runStart: 0,
+		runStarts: {},
+		// the artifacts each run saved, as the host reports them: [{run_id, doctype, name, label, title, route}]
+		runArtifacts: [],
 		// Ordered, presentation-only assistant blocks accumulated from streaming
 		// deltas. The terminal assistant_message atomically replaces this preview.
 		partial: [],
@@ -91,6 +94,7 @@ function foldEvent(s, e) {
 			s.partial = []
 			s.pendingApproval = null // a new run consumes the batch (resume) — same as the server reducer
 			s.runStart = s.entries.length
+			if (e.run_id) s.runStarts[e.run_id] = s.entries.length
 			break
 		case "user_message":
 		case "assistant_message":
@@ -440,20 +444,28 @@ function deriveTurns(entries, steeredSeqs = []) {
 	return { turns, turnByEntry, latestTurnKey: [...turns.keys()].at(-1) ?? null }
 }
 
-// The artifacts a turn's tools made or changed, keyed by turn, newest change last. A layer
-// tool returns the artifact it touched as `artifact` in its JSON result.
-function deriveArtifacts(entries, turnByEntry) {
+// The artifacts a turn made or changed, keyed by turn: those its tools returned as `artifact` in
+// their JSON result, newest last, then those its runs saved through any other tool, such as code.
+function deriveArtifacts(conversation, turnByEntry) {
 	const byTurn = new Map()
-	for (const entry of entries) {
+	const turnArtifacts = (turnKey) => {
+		if (!byTurn.has(turnKey)) byTurn.set(turnKey, new Map())
+		return byTurn.get(turnKey)
+	}
+	const keyOf = (artifact) => `${artifact.doctype}:${artifact.name}`
+	for (const entry of conversation.entries) {
 		if (entry.type !== "tool_result" || entry.is_error) continue
 		const artifact = resultArtifact(entry)
 		if (!artifact) continue
-		const turnKey = turnByEntry.get(entry)
-		const artifacts = byTurn.get(turnKey) ?? new Map()
-		const key = `${artifact.doctype}:${artifact.name}`
-		artifacts.delete(key)
-		artifacts.set(key, artifact)
-		byTurn.set(turnKey, artifacts)
+		const artifacts = turnArtifacts(turnByEntry.get(entry))
+		artifacts.delete(keyOf(artifact))
+		artifacts.set(keyOf(artifact), artifact)
+	}
+	for (const { run_id, ...artifact } of conversation.runArtifacts) {
+		const turnKey = turnByEntry.get(conversation.entries[conversation.runStarts[run_id]])
+		if (!turnKey) continue
+		const artifacts = turnArtifacts(turnKey)
+		if (!artifacts.has(keyOf(artifact))) artifacts.set(keyOf(artifact), artifact)
 	}
 	return byTurn
 }
@@ -684,7 +696,7 @@ export function buildItems(conversation, expandedTurnKeys = new Set(), openPanel
 	const lastKeyByTurn = new Map(
 		filtered.filter((item) => item.kind !== "compaction").map((item) => [item.turnKey, item.key]),
 	)
-	const artifactsByTurn = deriveArtifacts(conversation.entries, turnByEntry)
+	const artifactsByTurn = deriveArtifacts(conversation, turnByEntry)
 	const tasksByTurn = deriveTasks(conversation.entries, turnByEntry)
 	const withCopyRows = []
 	for (const item of filtered) {

@@ -146,10 +146,17 @@ export function createFlowStore(client, options = {}) {
 		state.conversation.contextWindow ??= info.context_window ?? null
 		state.loading = false
 		startStream(sid, seed.latest_seq)
+		void loadRunArtifacts(sid)
 		// a run that ran its course while this chat was closed still hands the next waiting message a turn
 		const next = state.queued[0]
 		if (next && !state.conversation.running && ranItsCourse(lastRunEnd) && lastEnded.seq > next.afterSeq)
 			void sendWaiting(next)
+	}
+
+	// the artifacts each run saved, so a change through a tool that returns no artifact has its card too
+	async function loadRunArtifacts(sid) {
+		const found = await client.runArtifacts?.(sid).catch(() => null)
+		if (found && state.sessionId === sid) state.conversation.runArtifacts = found
 	}
 
 	function startStream(sid, since) {
@@ -199,6 +206,7 @@ export function createFlowStore(client, options = {}) {
 		if (event.type === "run_ended" && ["aborted", "error"].includes(event.reason)) state.conversation.steering = []
 		if (event.type === "run_ended") lastRunEnd = event.reason
 		const live = event.seq > (state.session?.latest_seq ?? 0)
+		if (event.type === "run_ended" && live) void loadRunArtifacts(state.sessionId)
 		if (event.type === "run_ended" && ranItsCourse(event.reason) && live && state.queued.length)
 			void sendWaiting(state.queued[0])
 		if ((event.type === "run_started" || event.type === "run_ended") && live && state.session)
