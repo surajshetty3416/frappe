@@ -224,7 +224,8 @@ def render_for(doc, doctype: str, record: str) -> dict:
 
 def recipient(doctype: str, values: dict) -> str | None:
 	"""The record's email address, labelled with the person it belongs to, as a sender would
-	address it: `speaker_name` labels `speaker_email`, and only a plain `email` takes the title."""
+	address it: `speaker_name` labels `speaker_email`, and only a plain `email` takes the title.
+	A record with no title field is named by its ID, which labels nobody."""
 	meta = frappe.get_meta(doctype)
 	field = next((df.fieldname for df in meta.fields if df.fieldtype == "Data" and df.options == "Email"), None)
 	field = field if values.get(field) else ("email" if values.get("email") else "email_id")
@@ -232,10 +233,11 @@ def recipient(doctype: str, values: dict) -> str | None:
 	if not address:
 		return None
 	if field in ("email", "email_id"):
-		label = values.get(meta.get_title_field())
+		title = meta.get_title_field()
+		label = values.get(title) if title != "name" else None
 	else:
 		label = values.get(field.removesuffix("email") + "name") if field.endswith("_email") else None
-	return f"{label} <{address}>" if label and label != address and label != values.get("name") else address
+	return f"{label} <{address}>" if label and label != address else address
 
 
 @frappe.whitelist()
