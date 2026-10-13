@@ -11,7 +11,6 @@
 					:rows="rows"
 					row-key="name"
 					class="!w-full shrink-0"
-					:style="{ minWidth }"
 					:options="{ selectable: false, showTooltip: true, rowHeight: 36, onRowClick: (row: Row) => openForm(row.name) }"
 				>
 					<ListHeader class="sticky top-0 z-10">
@@ -44,8 +43,6 @@
 						</span>
 					</template>
 				</ListView>
-				<div v-show="clipped.start" class="pointer-events-none absolute inset-y-0 left-0 z-20 w-4 shadow-[inset_12px_0_8px_-8px_rgb(0_0_0/0.12)]" />
-				<div v-show="clipped.end" class="pointer-events-none absolute inset-y-0 right-0 z-20 w-4 shadow-[inset_-12px_0_8px_-8px_rgb(0_0_0/0.12)]" />
 			</div>
 			<p v-if="rows.length < (doctype.count ?? 0)" class="px-2 pt-3 text-sm text-ink-gray-5">
 				Latest {{ rows.length }} of {{ doctype.count?.toLocaleString() }}
@@ -55,11 +52,11 @@
 </template>
 
 <script setup lang="ts">
-import { useDebounceFn, useEventListener, useResizeObserver } from "@vueuse/core"
+import { useDebounceFn, useElementSize } from "@vueuse/core"
 import { onListUpdate } from "@shell/realtime"
 import { Skeleton, Tooltip } from "frappe-ui"
 import { ListHeader, ListHeaderItem, ListRows, ListView } from "frappe-ui/experimental"
-import { computed, nextTick, onBeforeUnmount, reactive, ref, watch } from "vue"
+import { computed, onBeforeUnmount, ref, watch } from "vue"
 import { useRoute, useRouter } from "vue-router"
 
 import { type DocField, type Row, getLinkTitles, getRecords } from "../api"
@@ -85,7 +82,7 @@ const listed = computed(() => {
 	const chosen = fields.filter((field) => field.in_list_view)
 	return (chosen.length ? chosen : fields).slice(0, MAX_COLUMNS)
 })
-// columns share the panel's width, the title most; below their minimums the table scrolls sideways
+// columns share the panel's width, the title most; the fields whose minimums do not fit stay in the form
 const NUMERIC = new Set(["Int", "Float", "Currency", "Percent"])
 const NARROW = new Set([...NUMERIC, "Check", "Date", "Time", "Color", "Rating"])
 const sizeOf = (field: DocField): [number, number] => {
@@ -94,7 +91,7 @@ const sizeOf = (field: DocField): [number, number] => {
 	return [6, 1]
 }
 const grid = ([min, share]: [number, number]) => `minmax(${min}rem, ${share}fr)`
-const columns = computed(() => [
+const all = computed(() => [
 	naming.value
 		? { key: "name", label: fieldLabel(naming.value), size: [8, 1.5] as [number, number], field: naming.value as DocField | null }
 		: { key: "name", label: "ID", size: [6, 0.8] as [number, number], field: null },
@@ -106,22 +103,13 @@ const columns = computed(() => [
 		field,
 	})),
 ].map((column) => ({ ...column, width: grid(column.size) })))
-// the minimums, the 1rem gaps between columns and the row's 1rem of padding
-const minWidth = computed(() => `${columns.value.reduce((sum, column) => sum + column.size[0] + 1, 0)}rem`)
-
-// a shadow marks each edge the panel clips
+// each column takes its minimum and a 1rem gap, the row 1rem of padding
 const frame = ref<HTMLElement | null>(null)
-const clipped = reactive({ start: false, end: false })
-const scroller = computed(() => frame.value?.querySelector<HTMLElement>(":scope > div") ?? null)
-function measure() {
-	const element = scroller.value
-	if (!element) return
-	clipped.start = element.scrollLeft > 0
-	clipped.end = element.scrollLeft + element.clientWidth < element.scrollWidth - 1
-}
-useEventListener(scroller, "scroll", measure, { passive: true })
-useResizeObserver(scroller, measure)
-watch(columns, () => nextTick(measure))
+const { width } = useElementSize(frame)
+const columns = computed(() => {
+	let room = width.value / 16 - 1
+	return all.value.filter((column, index) => (room -= column.size[0] + 1) >= 0 || index === 0)
+})
 
 const rows = ref<Row[]>([])
 const titles = ref<Record<string, string>>({})
