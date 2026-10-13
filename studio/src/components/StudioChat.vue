@@ -137,7 +137,8 @@ const artifactLayer = (made: Artifact) => layers.find((layer) => layer.name === 
 const openTitle = computed(() => (artifact.value && findTab(artifact.value.doctype, artifact.value.name)?.title) || "this artifact")
 const ideas = computed(() => {
 	const layer = route.matched[0]?.meta.layer
-	return (artifact.value && typeof layer === "string" && CHANGES[layer]) || IDEAS
+	if (!artifact.value) return IDEAS
+	return (typeof layer === "string" && CHANGES[layer]) || []
 })
 
 // a new chat starts from the artifacts the latest chats made
@@ -205,6 +206,20 @@ const CHANGES: Record<string, { icon: string; text: string }[]> = {
 	ui: [
 		{ icon: "lucide-plus", text: "Add a page to " },
 		{ icon: "lucide-text-cursor-input", text: "Add a form for " },
+	],
+	print: [
+		{ icon: "lucide-qr-code", text: "Add a QR code of " },
+		{ icon: "lucide-file", text: "Change the page size to " },
+		{ icon: "lucide-palette", text: "Restyle it to " },
+	],
+	email: [
+		{ icon: "lucide-heading", text: "Change the subject to " },
+		{ icon: "lucide-panel-bottom", text: "Add a footer with " },
+		{ icon: "lucide-type", text: "Rewrite the message to " },
+	],
+	agents: [
+		{ icon: "lucide-wrench", text: "Let it " },
+		{ icon: "lucide-pencil", text: "Change it to " },
 	],
 }
 </script>
