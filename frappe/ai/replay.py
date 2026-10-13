@@ -17,7 +17,7 @@ from typing import Any
 
 import frappe
 from frappe import _
-from frappe.utils import cint
+from frappe.utils import cint, flt
 
 from frappe.ai.daemon.client import DaemonClient, DaemonError
 from frappe.ai.lib.session import _default_agent_name, flow_server, new_session
@@ -38,14 +38,24 @@ BLOCK_KEYS = {
 ON_COMPLETE = "frappe.ai.replay.settle_run"
 NAME_LIMIT = 140  # a Data field's length
 
+# Pace, in seconds at 1x: a step keeps the recorded time of its message and of each call,
+# divided by the speed. A recording without times takes these per word and per call.
+SPEED = 4
+WORD_SECONDS = 0.12
+CALL_SECONDS = 1.6
+MESSAGE_CEILING = 20.0
+CALL_CEILING = 6.0
+FLOOR = 0.4  # at any speed, so a tool row never flashes by
+
 
 @frappe.whitelist()
 def export_session(session: str) -> dict[str, Any]:
 	"""A chat as a recording: its messages in order, with each tool call's arguments and
-	result, the artifacts it linked, its agent and approval mode."""
+	result, the artifacts it linked, its agent and approval mode. An assistant message and
+	a tool result keep the seconds they took, from the row before them."""
 	doc = frappe.get_doc("Flow Session", session)
 	doc.check_permission("read")
-	messages = []
+	messages, last = [], None
 	for row in doc.entries(path="active")["entries"]:
 		if row.get("subagent_id"):
 			continue
@@ -62,6 +72,11 @@ def export_session(session: str) -> dict[str, Any]:
 			messages.append(
 				{key: row.get(key) for key in ("type", "tool_call_id", "name", "content", "is_error")}
 			)
+		else:
+			continue
+		if messages[-1]["type"] != "user_message" and last and row.get("ts"):
+			messages[-1]["seconds"] = round(row["ts"] - last, 2)
+		last = row.get("ts")
 	return {
 		"format": FORMAT,
 		"title": doc.title,
@@ -135,9 +150,9 @@ def get_replay(session: str) -> dict[str, Any] | None:
 
 
 @frappe.whitelist()
-def play_step(session: str, delay: float | str | None = None) -> dict[str, Any]:
+def play_step(session: str, speed: float | str | None = None) -> dict[str, Any]:
 	"""Play the next step and answer at once; the step's run ends like a live one, with a
-	run_ended event. `delay` is the seconds between streamed words."""
+	run_ended event. `speed` divides the recorded times."""
 	replay = _load(session, "write")
 	settle(replay)
 	if replay.status == "Playing":
@@ -156,6 +171,7 @@ def play_step(session: str, delay: float | str | None = None) -> dict[str, Any]:
 	message = mapped(step["message"], names)
 	reply = mapped(step["reply"], names)
 	results = [mapped(result, names) for result in step["results"] if never_ran(result, step["reply"])]
+	seconds, calls = pace(step, flt(speed) or SPEED)
 
 	with flow_server() as client:
 		from_seq = client.get_session(session)["latest_seq"]
@@ -175,7 +191,7 @@ def play_step(session: str, delay: float | str | None = None) -> dict[str, Any]:
 	frappe.db.commit()  # the flow server's callbacks are other requests
 	try:
 		with DaemonClient.for_site() as client:
-			client.replay(session, reply, message=message, results=results, delay=_delay(delay))
+			client.replay(session, reply, message=message, results=results, seconds=seconds, calls=calls)
 	except DaemonError as exc:
 		run.reload()
 		run.update({"status": "Failed", "error": str(exc), "on_complete": None})
@@ -263,19 +279,44 @@ def recording_steps(recording: str) -> list[dict[str, Any]]:
 
 
 def steps(messages: list[dict]) -> list[dict[str, Any]]:
-	"""One step per assistant message, with the user messages before it and the results of
-	its calls."""
+	"""One step per assistant message, with the user messages before it, the results of its
+	calls and the recorded seconds of the message and of each call."""
 	found, waiting = [], []
 	for message in messages:
 		if message["type"] == "user_message":
 			waiting.append(message["content"])
 		elif message["type"] == "assistant_message":
-			reply = {"content": message["content"]}
-			found.append({"message": "\n\n".join(waiting) or None, "reply": reply, "results": []})
+			found.append(
+				{
+					"message": "\n\n".join(waiting) or None,
+					"reply": {"content": message["content"]},
+					"results": [],
+					"seconds": message.get("seconds"),
+					"calls": {},
+				}
+			)
 			waiting = []
 		elif message["type"] == "tool_result" and found:
-			found[-1]["results"].append(message)
+			result = {key: value for key, value in message.items() if key != "seconds"}
+			found[-1]["results"].append(result)
+			if message.get("seconds") is not None:
+				found[-1]["calls"][result["tool_call_id"]] = message["seconds"]
 	return found
+
+
+def pace(step: dict, speed: float) -> tuple[float, dict[str, float]]:
+	"""The seconds the step's message takes and each of its calls stays running."""
+	content = step["reply"]["content"]
+	seconds = step["seconds"]
+	if seconds is None:
+		words = sum(len(block["text"].split()) for block in content if block.get("type") == "text")
+		seconds = words * WORD_SECONDS
+	calls = {
+		block["id"]: max(min(step["calls"].get(block["id"], CALL_SECONDS), CALL_CEILING) / speed, FLOOR)
+		for block in content
+		if block.get("type") == "tool_call"
+	}
+	return max(min(seconds, MESSAGE_CEILING) / speed, FLOOR), calls
 
 
 def never_ran(result: dict, reply: dict) -> bool:
@@ -365,7 +406,3 @@ def _json(value: Any) -> Any:
 		return json.loads(value)
 	except ValueError:
 		return value
-
-
-def _delay(delay: float | str | None) -> float | None:
-	return None if delay in (None, "") else float(delay)

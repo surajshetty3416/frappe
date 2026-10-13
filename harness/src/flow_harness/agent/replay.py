@@ -2,12 +2,14 @@
 
 The text streams as the model's would, then each tool call runs as a live call does:
 a client tool calls back to the client. A recorded call that never ran (denied,
-redirected) is answered with its recorded result instead.
+redirected) is answered with its recorded result instead. The caller sets the pace:
+how long the message takes and how long each call stays running.
 """
 
 from __future__ import annotations
 
 import asyncio
+import time
 import uuid
 from collections.abc import AsyncIterator
 
@@ -26,7 +28,6 @@ from flow_harness.events import (
 from flow_harness.model.tool_display import tool_call_display_ready_event, with_tool_call_displays
 
 PROVIDER = "replay"
-STREAM_SECONDS = 4.0  # the longest a message's text takes to stream
 
 
 async def step(
@@ -34,18 +35,20 @@ async def step(
 	reply: AssistantMessage,
 	results: dict[str, ToolResult],
 	inputs: LoopInputs,
-	delay: float,
+	seconds: float,
+	calls: dict[str, float],
 ) -> AsyncIterator[AnyEvent]:
 	yield RunStarted(run_id=uuid.uuid4().hex[:12])
 	if message is not None:
 		yield message
 	templates = _display_templates(inputs)
 	words = _words(reply.text)
-	delay = min(delay, STREAM_SECONDS / len(words)) if words else 0
 	for word in words:
 		loop._raise_if_aborted(inputs.abort)
 		yield TextDelta(text=word)
-		await asyncio.sleep(delay)
+		await asyncio.sleep(seconds / len(words))
+	if not words:
+		await _wait(seconds, inputs)
 	for call in reply.tool_calls:
 		yield ToolCallStarted(id=call.id, name=call.name)
 		ready = tool_call_display_ready_event(
@@ -59,11 +62,22 @@ async def step(
 	yield with_tool_call_displays(reply, templates)
 	tools, ctx = inputs.server_tools or {}, loop._tool_context(inputs)
 	for call in reply.tool_calls:
+		started = time.monotonic()
 		if call.id in results:
-			yield results[call.id]
+			result = results[call.id]
 		else:
-			yield await loop._run_call(call, False, tools, ctx, inputs)
+			result = await loop._run_call(call, False, tools, ctx, inputs)
+		await _wait(calls.get(call.id, 0) - (time.monotonic() - started), inputs)
+		yield result
 	yield RunEnded(reason="done")
+
+
+async def _wait(seconds: float, inputs: LoopInputs) -> None:
+	end = time.monotonic() + seconds
+	while (left := end - time.monotonic()) > 0:
+		loop._raise_if_aborted(inputs.abort)
+		await asyncio.sleep(min(left, 0.2))
+	loop._raise_if_aborted(inputs.abort)
 
 
 def _display_templates(inputs: LoopInputs) -> dict[str, str]:

@@ -1,3 +1,4 @@
+import { useStorage } from "@vueuse/core"
 import { call } from "frappe-ui"
 import { reactive, watch } from "vue"
 
@@ -30,6 +31,10 @@ export const replays = reactive(new Map<string, Replay | null>())
 const playing = reactive(new Set<string>())
 const stepping = reactive(new Set<string>())
 
+// how many times faster than recorded a replay plays
+export const speeds = [1, 2, 4, 8]
+export const speed = useStorage("studio-replay-speed", 4)
+
 export const isPlaying = (session: string) => playing.has(session)
 export const isStepping = (session: string) => stepping.has(session)
 export const isReplaying = (session: string) => playing.has(session) || stepping.has(session)
@@ -60,7 +65,7 @@ export async function stepReplay(session: string, chat: ChatState) {
 	if (stepping.has(session)) return false
 	stepping.add(session)
 	try {
-		replays.set(session, await call<Replay>("frappe.ai.replay.play_step", { session }))
+		replays.set(session, await call<Replay>("frappe.ai.replay.play_step", { session, speed: speed.value }))
 		await runEnded(session, chat)
 		return true
 	} catch {

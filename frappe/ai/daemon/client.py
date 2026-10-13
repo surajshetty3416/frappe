@@ -97,12 +97,17 @@ class DaemonClient:
 		*,
 		message: str | None = None,
 		results: list[dict] | None = None,
-		delay: float | None = None,
+		seconds: float = 0,
+		calls: dict[str, float] | None = None,
 	) -> dict:
 		"""Run one recorded assistant message without a model; see the daemon's replay verb."""
-		body = {"reply": reply, "message": message, "results": results or []}
-		if delay is not None:
-			body["delay"] = delay
+		body = {
+			"reply": reply,
+			"message": message,
+			"results": results or [],
+			"seconds": seconds,
+			"calls": calls or {},
+		}
 		return self._call("POST", f"/sessions/{sid}/replay", json=body)
 
 	def abort(self, sid: str) -> dict:

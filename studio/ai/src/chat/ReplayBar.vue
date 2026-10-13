@@ -39,6 +39,9 @@
 					<span class="min-w-0 flex-1 truncate text-ink-red-6" :title="replay.error">{{ replay.error }}</span>
 				</template>
 				<span v-else class="ml-1 min-w-0 flex-1 truncate text-ink-gray-5">{{ replay.title }}</span>
+				<Dropdown :options="speedOptions" align="end">
+					<Button variant="ghost" :label="`${speed}x`" icon-right="lucide-chevron-down" tooltip="Replay speed" />
+				</Dropdown>
 			</template>
 		</div>
 	</div>
@@ -47,7 +50,7 @@
 <script setup>
 import { computed, inject, ref, watch } from "vue";
 import { useRouter } from "vue-router";
-import { Button } from "frappe-ui";
+import { Button, Dropdown } from "frappe-ui";
 
 import {
 	isPlaying,
@@ -57,6 +60,8 @@ import {
 	pauseReplay,
 	playReplay,
 	replays,
+	speed,
+	speeds,
 	startReplay,
 	stepReplay,
 } from "@shell/replay";
@@ -73,6 +78,14 @@ const inFlight = computed(() => stepping.value || replay.value?.status === "Play
 const ready = computed(() => replay.value?.status === "Ready" && !inFlight.value);
 const spoke = computed(() => flow.state.queued.length > 0 || flow.state.conversation.sending.length > 0);
 const shown = computed(() => replay.value && !replay.value.live && !(spoke.value && !stepping.value));
+
+const speedOptions = computed(() =>
+	speeds.map((value) => ({
+		label: `${value}x`,
+		icon: speed.value === value ? "lucide-check" : undefined,
+		onClick: () => (speed.value = value),
+	}))
+);
 
 const progress = computed(() => {
 	const { step, steps } = replay.value;

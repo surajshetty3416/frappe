@@ -370,17 +370,21 @@ class Session:
 		*,
 		message: str | None = None,
 		results: list[ToolResult] | None = None,
-		delay: float = 0.03,
+		seconds: float = 0,
+		calls: dict[str, float] | None = None,
 	) -> RunHandle:
 		"""Run one recorded assistant message without a model, after `message` when it
-		opens a turn. `results` answer the recorded calls that never ran."""
+		opens a turn. `results` answer the recorded calls that never ran. The message takes
+		`seconds`, and each call stays running for at least its seconds in `calls`."""
 		async with self._operation_lock:
 			if self.state is not SessionState.IDLE:
 				raise SessionConflict(f"session is {self.state}")
 			user_message = self._user_message(message, [])[0] if message else None
 			inputs = self._loop_inputs(None, None, None)
 			answered = {result.tool_call_id: result for result in results or []}
-			return self._start_operation(replay.step(user_message, reply, answered, inputs, delay))
+			return self._start_operation(
+				replay.step(user_message, reply, answered, inputs, seconds, calls or {})
+			)
 
 	def abort(self) -> bool:
 		"""Signal the active run to stop; steering that never became durable dies with it."""

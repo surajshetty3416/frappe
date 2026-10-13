@@ -76,7 +76,8 @@ class ReplayRequest(BaseModel):
 	message: str | None = None
 	reply: AssistantMessage
 	results: list[ToolResult] = Field(default_factory=list)
-	delay: float = Field(default=0.03, ge=0, le=1)
+	seconds: float = Field(default=0, ge=0, le=120)
+	calls: dict[str, float] = Field(default_factory=dict)
 
 
 class ToolResultRequest(BaseModel):
@@ -343,7 +344,9 @@ def create_sessions_router(
 	@router.post("/sessions/{sid}/replay")
 	async def replay(request: Request, sid: str, req: ReplayRequest, wait: bool = False):
 		session = _get(resolve_store(request), sid)
-		handle = await session.replay(req.reply, message=req.message, results=req.results, delay=req.delay)
+		handle = await session.replay(
+			req.reply, message=req.message, results=req.results, seconds=req.seconds, calls=req.calls
+		)
 		return await _finish(session, handle, wait)
 
 	@router.post("/sessions/{sid}/abort")
