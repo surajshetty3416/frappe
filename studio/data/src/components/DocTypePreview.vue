@@ -2,7 +2,15 @@
 	<div ref="root" class="flex h-full flex-col bg-surface-base">
 		<div data-selection-ui class="flex h-11 shrink-0 items-center gap-2 border-b border-outline-gray-1 px-3">
 			<TabButtons :options="views" :model-value="view" @update:model-value="setView" />
-			<div id="data-view-actions" class="flex min-w-0 flex-1 items-center justify-end gap-2" />
+			<div class="flex min-w-0 flex-1 items-center justify-end gap-2">
+				<Transition leave-active-class="transition-opacity duration-150 ease-out" leave-to-class="opacity-0">
+					<span v-if="doctype.saved" class="flex shrink-0 items-center gap-1 text-xs text-ink-gray-5">
+						<span class="lucide-check size-3.5" />
+						Saved
+					</span>
+				</Transition>
+				<div id="data-view-actions" class="flex min-w-0 items-center justify-end gap-2" />
+			</div>
 		</div>
 
 		<div v-if="doctype.error" class="flex flex-1 flex-col items-center justify-center px-6 text-center">

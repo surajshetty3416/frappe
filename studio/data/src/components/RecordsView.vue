@@ -18,13 +18,13 @@
 				<Button label="New record" icon-left="lucide-plus" @click="openForm('new')" />
 			</div>
 		</div>
-		<div v-else class="min-h-0 flex-1 overflow-auto px-3 pt-3">
+		<div v-else class="min-h-0 flex-1 overflow-auto px-3 pb-6 pt-3">
 			<ListView
 				:columns="columns"
 				:rows="rows"
 				row-key="name"
 				class="!w-full"
-				:options="{ selectable: false, showTooltip: true, onRowClick: (row: Row) => openForm(row.name) }"
+				:options="{ selectable: false, showTooltip: true, rowHeight: 36, onRowClick: (row: Row) => openForm(row.name) }"
 			>
 				<ListHeader class="sticky top-0 z-10">
 					<ListHeaderItem
@@ -34,14 +34,18 @@
 						:data-element="column.field ? elementId(column.field) : undefined"
 					>
 						<span class="flex min-w-0 items-center gap-1.5">
-							<span v-if="column.field" :class="fieldIcon(column.field.fieldtype)" class="size-3.5 shrink-0" />
+							<span :class="column.field ? fieldIcon(column.field.fieldtype) : 'lucide-hash'" class="size-3.5 shrink-0" />
 							<span data-text class="truncate">{{ column.label }}</span>
 						</span>
 					</ListHeaderItem>
 				</ListHeader>
 				<ListRows data-selection-ui />
 				<template #cell="{ column, item }">
-					<span class="block truncate text-base" :class="column.key === 'name' ? 'text-ink-gray-8' : 'text-ink-gray-7'">
+					<span v-if="column.field?.fieldtype === 'Color' && item" class="flex min-w-0 items-center gap-2">
+						<span class="size-3 shrink-0 rounded-full border border-outline-gray-2" :style="{ background: String(item) }" />
+						<span class="truncate text-sm text-ink-gray-5">{{ item }}</span>
+					</span>
+					<span v-else class="block truncate text-sm" :class="column.key === 'name' ? 'text-ink-gray-8' : 'text-ink-gray-7'">
 						{{ column.field ? formatValue(column.field, item) : item }}
 					</span>
 				</template>
@@ -80,9 +84,18 @@ const listed = computed(() => {
 	const chosen = fields.filter((field) => field.in_list_view)
 	return (chosen.length ? chosen : fields).slice(0, MAX_COLUMNS)
 })
+// the title takes the room; short values stay narrow
+const NARROW = new Set(["Int", "Float", "Currency", "Percent", "Check", "Date", "Time", "Color", "Rating"])
+const widthOf = (field: DocField) => {
+	if (field.fieldname === doctype.doc?.title_field) return "minmax(12rem, 2fr)"
+	if (NARROW.has(field.fieldtype)) return "minmax(6rem, 0.7fr)"
+	return "minmax(10rem, 1fr)"
+}
 const columns = computed(() => [
-	{ key: "name", label: naming.value ? fieldLabel(naming.value) : "ID", width: "10rem", field: naming.value as DocField | null },
-	...listed.value.map((field) => ({ key: field.fieldname!, label: fieldLabel(field), width: "minmax(8rem, 1fr)", field })),
+	naming.value
+		? { key: "name", label: fieldLabel(naming.value), width: "minmax(12rem, 2fr)", field: naming.value as DocField | null }
+		: { key: "name", label: "ID", width: "7rem", field: null },
+	...listed.value.map((field) => ({ key: field.fieldname!, label: fieldLabel(field), width: widthOf(field), field })),
 ])
 
 const rows = ref<Row[]>([])

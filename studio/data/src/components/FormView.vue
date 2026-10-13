@@ -1,21 +1,5 @@
 <template>
 	<div class="flex flex-col">
-		<Teleport defer to="#data-view-actions">
-			<span v-if="saving" class="text-sm text-ink-gray-5">Saving…</span>
-			<Select
-				v-if="!isNew && options.length"
-				class="w-56"
-				:model-value="record"
-				:options="options"
-				@update:model-value="(value) => pick(String(value))"
-			>
-				<template #prefix><span class="lucide-file-text size-4 text-ink-gray-5" /></template>
-			</Select>
-			<Button v-if="isNew" variant="solid" label="Create" :loading="saving" @click="create" />
-			<Button v-if="isNew && options.length" label="Cancel" @click="pick(options[0].value)" />
-			<Button v-else-if="!isNew" icon-left="lucide-plus" label="New" @click="pick('new')" />
-		</Teleport>
-
 		<div v-if="loading" class="grid grid-cols-2 gap-4 p-5">
 			<Skeleton v-for="i in 8" :key="i" class="h-12 w-full rounded-4" />
 		</div>
@@ -26,6 +10,24 @@
 			<Button data-selection-ui class="mt-4" label="New record" icon-left="lucide-plus" @click="pick('new')" />
 		</div>
 		<div v-else class="min-h-0 flex-1 overflow-y-auto">
+			<div data-selection-ui class="mx-auto flex max-w-3xl items-center gap-2 px-6 pt-4">
+				<template v-if="isNew">
+					<span class="flex-1 text-sm font-medium text-ink-gray-8">New {{ doctype.name }}</span>
+					<Button v-if="options.length" label="Cancel" @click="pick(options[0].value)" />
+					<Button variant="solid" label="Create" :loading="creating" @click="create" />
+				</template>
+				<template v-else>
+					<Select class="w-auto min-w-0 max-w-80" :model-value="record" :options="options" @update:model-value="(value) => pick(String(value))">
+						<template #trigger="{ selectedOption }">
+							<span class="lucide-file-text size-4 shrink-0 text-ink-gray-5" />
+							<span class="min-w-0 truncate text-ink-gray-8">{{ selectedOption?.label }}</span>
+							<span v-if="selectedOption?.description" class="shrink-0 text-ink-gray-5">{{ selectedOption.description }}</span>
+							<span class="lucide-chevron-down ml-auto size-4 shrink-0 text-ink-gray-4" />
+						</template>
+					</Select>
+					<Button class="ml-auto" icon-left="lucide-plus" label="New record" @click="pick('new')" />
+				</template>
+			</div>
 			<div class="mx-auto grid max-w-3xl grid-cols-2 gap-x-5 gap-y-4 px-6 py-5">
 				<template v-for="(field, index) in layout" :key="field.fieldname ?? index">
 					<h3
@@ -38,7 +40,7 @@
 					<div
 						v-else
 						:data-element="elementId(field)"
-						class="flex min-w-0 flex-col gap-1.5"
+						class="-m-2 flex min-w-0 flex-col gap-1.5 rounded-4 p-2"
 						:class="WIDE.has(field.fieldtype) ? 'col-span-2' : ''"
 					>
 						<span class="flex items-center gap-1 text-sm text-ink-gray-6">
@@ -62,7 +64,7 @@ import { computed, reactive, ref, watch } from "vue"
 import { useRoute, useRouter } from "vue-router"
 
 import { type DocField, type Row, getRecord, getRecords, insertRecord, setValues } from "../api"
-import { doctype, elementId, errorText, refreshCount } from "../doctype"
+import { doctype, elementId, errorText, refreshCount, saving } from "../doctype"
 import { TABLE_TYPES, fieldLabel, hasValue } from "../fields"
 import RecordField from "./RecordField.vue"
 
@@ -78,7 +80,7 @@ const layout = computed(() =>
 	)
 )
 
-const options = ref<{ label: string; value: string }[]>([])
+const options = ref<{ label: string; value: string; description?: string }[]>([])
 const record = computed(() => {
 	const wanted = route.query.record
 	return typeof wanted === "string" && wanted ? wanted : (options.value[0]?.value ?? null)
@@ -90,6 +92,7 @@ async function loadOptions() {
 	const rows = await getRecords(doctype.name, ["name", ...(titleField.value ? [titleField.value] : [])], 50)
 	options.value = rows.map((row) => ({
 		label: titleField.value && row[titleField.value] ? `${row[titleField.value]}` : row.name,
+		description: titleField.value && row[titleField.value] ? row.name : undefined,
 		value: row.name,
 	}))
 	if (typeof route.query.record === "string" && !["new", ...rows.map((row) => row.name)].includes(route.query.record)) {
@@ -119,19 +122,16 @@ const pick = (value: string) => router.replace({ query: { ...route.query, view: 
 
 // each change saves a moment after the last keystroke, as one write
 const dirty = new Set<string>()
-const saving = ref(false)
 const save = useDebounceFn(async () => {
 	if (isNew.value || !record.value || !dirty.size) return
 	const values = Object.fromEntries([...dirty].map((key) => [key, draft[key]]))
+	const name = record.value
 	dirty.clear()
-	saving.value = true
 	try {
-		await setValues(doctype.name, record.value, values)
+		await saving(() => setValues(doctype.name, name, values))
 	} catch (error) {
 		toast.error(errorText(error))
 		await load()
-	} finally {
-		saving.value = false
 	}
 }, 600)
 
@@ -142,8 +142,9 @@ function set(field: DocField, value: unknown) {
 	save()
 }
 
+const creating = ref(false)
 async function create() {
-	saving.value = true
+	creating.value = true
 	try {
 		const made = await insertRecord(doctype.name, { ...draft })
 		await loadOptions()
@@ -152,7 +153,7 @@ async function create() {
 	} catch (error) {
 		toast.error(errorText(error))
 	} finally {
-		saving.value = false
+		creating.value = false
 	}
 }
 </script>

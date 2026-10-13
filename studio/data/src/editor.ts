@@ -19,6 +19,7 @@ import {
 	open,
 	permissionSummary,
 	preview,
+	titleFieldLabel,
 } from "./doctype"
 import { fieldIcon, fieldLabel, fieldTypes, optionsKind } from "./fields"
 import { doctypeNames } from "./names"
@@ -36,7 +37,7 @@ function fieldProperties(id: string): ElementProperty[] {
 		{
 			name: "fieldtype",
 			label: "Type",
-			icon: fieldIcon(field.fieldtype),
+			icon: "lucide-shapes",
 			type: "select",
 			value: field.fieldtype,
 			options: choices(fieldTypes()),
@@ -62,7 +63,7 @@ function fieldProperties(id: string): ElementProperty[] {
 		properties.push({
 			name: "options",
 			label: kind === "table" ? "Rows of" : "Links to",
-			icon: kind === "table" ? "lucide-table" : "lucide-link",
+			icon: "lucide-arrow-right",
 			type: "select",
 			value,
 			options: choices(value && !names.includes(value) ? [value, ...names] : names),
@@ -102,14 +103,16 @@ export default defineArtifactEditor({
 	details() {
 		const doc = doctype.doc
 		if (!doc) return []
+		const permissions = doc.permissions.filter((perm) => !perm.permlevel)
 		return [
 			{ label: "Module", value: doc.module },
 			{ label: "Naming", value: namingRule(doc) },
-			{ label: "Title field", value: doc.title_field || "None" },
+			{ label: "Title field", value: titleFieldLabel(doc) },
 			{ label: "Track changes", value: doc.track_changes ? "On" : "Off" },
-			...doc.permissions
-				.filter((perm) => !perm.permlevel)
-				.map((perm) => ({ label: perm.role, value: permissionSummary(perm) })),
+			{
+				label: "Permissions",
+				value: permissions.map((perm) => `${perm.role}: ${permissionSummary(perm)}`).join("; ") || "Nobody",
+			},
 		]
 	},
 	code: () => ({ language: "json", content: doctype.doc ? docTypeJSON(doctype.doc) : "" }),

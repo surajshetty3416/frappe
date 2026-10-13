@@ -8,12 +8,14 @@
 		<span class="min-w-0 flex-1 truncate text-sm font-medium text-ink-gray-7">{{ data.doctype.name }}</span>
 		<span class="shrink-0 text-xs text-ink-gray-5">Core</span>
 	</div>
-	<div v-else class="w-[260px] cursor-pointer rounded-6 border border-outline-gray-2 bg-surface-base hover:border-outline-gray-4">
+	<div v-else class="relative w-[260px] cursor-pointer rounded-6 border border-outline-gray-2 bg-surface-base transition-colors hover:border-outline-gray-3">
+		<Handle id="in" type="target" :position="Position.Left" :class="HANDLE" />
 		<div class="relative flex h-10 items-center gap-2 border-b border-outline-gray-1 px-3">
-			<Handle id="in" type="target" :position="Position.Left" :class="HANDLE" />
-			<span class="lucide-table-2 size-4 shrink-0 text-ink-gray-6" />
+			<span class="lucide-database size-4 shrink-0 text-ink-gray-6" />
 			<span class="min-w-0 flex-1 truncate text-sm font-medium text-ink-gray-8">{{ data.doctype.name }}</span>
-			<span v-if="data.doctype.count !== null" class="shrink-0 text-xs tabular-nums text-ink-gray-5">{{ data.doctype.count.toLocaleString() }}</span>
+			<span v-if="data.doctype.count !== null" class="shrink-0 text-xs tabular-nums text-ink-gray-5">
+				{{ data.doctype.count === 1 ? "1 record" : `${data.doctype.count.toLocaleString()} records` }}
+			</span>
 		</div>
 		<div class="py-1">
 			<FieldRow v-for="field in rows(data.doctype)" :key="field.fieldname" :field="field" :handle="field.fieldname" />

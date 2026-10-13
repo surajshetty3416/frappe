@@ -1,18 +1,19 @@
 <template>
-	<Dialog
-		v-model:open="doctype.demoData"
-		title="Demo data"
-		icon="lucide-sparkles"
-		size="sm"
-		:actions="[{ label: 'Ask the assistant', variant: 'solid', disabled: !valid, onClick: ask }]"
-	>
-		<p class="mb-4 text-p-base text-ink-gray-6">The assistant writes realistic {{ doctype.name }} records in the chat, linked to records that already exist.</p>
+	<Dialog v-model:open="doctype.demoData" title="Demo data" icon="lucide-sparkles" size="sm">
+		<p class="mb-4 text-p-base text-ink-gray-6">
+			The assistant adds {{ valid ? Number(count) : "" }} realistic {{ doctype.name }} records, linking only to records that exist.
+		</p>
 		<FormControl v-model="count" type="number" label="How many records" :min="1" :max="1000" autofocus @keydown.enter="valid && ask()" />
+		<template #actions>
+			<div class="flex justify-end">
+				<Button variant="solid" label="Ask the assistant" :disabled="!valid" @click="ask" />
+			</div>
+		</template>
 	</Dialog>
 </template>
 
 <script setup lang="ts">
-import { Dialog, FormControl } from "frappe-ui"
+import { Button, Dialog, FormControl } from "frappe-ui"
 import { computed, ref } from "vue"
 import { useRouter } from "vue-router"
 

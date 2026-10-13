@@ -53,7 +53,11 @@
 			:model-value="(modelValue as string | number) ?? ''"
 			:disabled="readonly || field.fieldtype === 'Read Only'"
 			@update:model-value="(value) => emit('update:modelValue', NUMBER_TYPES.has(field.fieldtype) && value !== '' ? Number(value) : value)"
-		/>
+		>
+			<template v-if="field.fieldtype === 'Color'" #prefix>
+				<span class="block size-3 rounded-full border border-outline-gray-2" :style="{ background: String(modelValue || 'transparent') }" />
+			</template>
+		</TextInput>
 	</div>
 </template>
 

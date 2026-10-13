@@ -11,6 +11,8 @@ export const doctype = reactive({
 	loading: false,
 	error: "",
 	saving: 0,
+	// a save finished a moment ago
+	saved: false,
 	count: null as number | null,
 	demoData: false,
 })
@@ -52,6 +54,23 @@ export async function refreshCount() {
 	if (doctype.name === name) doctype.count = count
 }
 
+let savedTimer = 0
+export async function saving<T>(work: () => Promise<T>) {
+	doctype.saving++
+	doctype.saved = false
+	try {
+		const result = await work()
+		if (doctype.saving === 1) {
+			doctype.saved = true
+			clearTimeout(savedTimer)
+			savedTimer = window.setTimeout(() => (doctype.saved = false), 2000)
+		}
+		return result
+	} finally {
+		doctype.saving--
+	}
+}
+
 // Each change applies at once and saves in order, each save carrying every change made so far.
 let queue: Promise<void> = Promise.resolve()
 let pending = 0
@@ -64,9 +83,8 @@ export function change(mutate: (doc: DocTypeDoc) => void) {
 	doc.permissions.forEach((perm, index) => (perm.idx = index + 1))
 	pending++
 	queue = queue.then(async () => {
-		doctype.saving++
 		try {
-			const saved = await saveDocType(JSON.parse(JSON.stringify(doctype.doc)))
+			const saved = await saving(() => saveDocType(JSON.parse(JSON.stringify(doctype.doc))))
 			if (doctype.name !== saved.name || !doctype.doc) return
 			if (pending === 1) doctype.doc = saved
 			else adoptNames(doctype.doc, saved)
@@ -75,7 +93,6 @@ export function change(mutate: (doc: DocTypeDoc) => void) {
 			await open(doctype.name)
 		} finally {
 			pending--
-			doctype.saving--
 		}
 	})
 	return queue
@@ -95,35 +112,41 @@ function adoptNames(local: DocTypeDoc, saved: DocTypeDoc) {
 export const elementId = (field: DocField) => `field:${field.fieldname}`
 export const fieldOf = (id: string) => doctype.doc?.fields.find((field) => elementId(field) === id) ?? null
 
+const labelOf = (doc: DocTypeDoc, fieldname: string) => {
+	const field = doc.fields.find((field) => field.fieldname === fieldname)
+	return field?.label || fieldname
+}
+
+// how a record gets its ID, shown as the first ID it gives
 export function namingRule(doc: DocTypeDoc) {
 	const rule = doc.autoname || ""
-	if (rule.startsWith("field:")) return `From ${rule.slice(6)}`
-	if (rule.startsWith("format:")) return `Series ${rule.slice(7)}`
-	if (rule === "autoincrement") return "Number, counting up"
+	if (rule.startsWith("field:")) return `From ${labelOf(doc, rule.slice(6))}`
+	if (rule.startsWith("format:")) return firstOfSeries(rule.slice(7).replace(/\{(#+)\}/g, ".$1"))
+	if (rule === "autoincrement") return "1, 2, 3…"
 	if (rule === "Prompt") return "Typed in when created"
 	if (!rule || rule === "hash") return "Random"
-	return `Series ${rule}`
+	return firstOfSeries(rule)
 }
+const firstOfSeries = (series: string) => series.replace(/\.?(#+)/g, (_, hashes: string) => "1".padStart(hashes.length, "0")).replace(/\.$/, "")
 
-const capitalize = (text: string) => text[0].toUpperCase() + text.slice(1)
+export const titleFieldLabel = (doc: DocTypeDoc) => (doc.title_field ? labelOf(doc, doc.title_field) : "None")
+
 export const permissionSummary = (perm: DocTypeDoc["permissions"][number]) =>
 	PERM_TYPES.filter((type) => perm[type])
-		.map(capitalize)
-		.join(", ") || "No access"
+		.join(", ") || "no access"
 
-const SKIPPED = new Set(["owner", "creation", "modified", "modified_by", "docstatus", "idx", "parent", "parentfield", "parenttype"])
-const ROW_SKIPPED = new Set([...SKIPPED, "name", "doctype"])
+const FIELD_KEYS = ["fieldname", "label", "fieldtype", "options", "reqd", "unique", "default", "in_list_view", "hidden", "read_only", "description"]
+const PERM_KEYS = ["role", "permlevel", ...PERM_TYPES]
 
-function compact(record: Record<string, unknown>, skipped: Set<string>) {
-	return Object.fromEntries(
-		Object.entries(record).filter(([key, value]) => !skipped.has(key) && !key.startsWith("_") && ![null, 0, ""].includes(value as never) && !(Array.isArray(value) && !value.length))
-	)
-}
+const pick = (row: Record<string, unknown>, keys: string[]) =>
+	Object.fromEntries(keys.filter((key) => ![null, undefined, 0, ""].includes(row[key] as never)).map((key) => [key, row[key]]))
 
-// the DocType as its JSON file would hold it, without the bookkeeping and the empty values
+// the DocType as someone exports it: what it is called, how it names its records, its fields and who can use it
 export function docTypeJSON(doc: DocTypeDoc) {
-	const out: Record<string, unknown> = compact(doc, SKIPPED)
-	out.fields = doc.fields.map((field) => compact(field, ROW_SKIPPED))
-	out.permissions = doc.permissions.map((perm) => compact(perm, ROW_SKIPPED))
+	const out = {
+		...pick(doc, ["name", "module", "autoname", "title_field", "istable", "issingle", "is_submittable"]),
+		fields: doc.fields.map((field) => pick(field, FIELD_KEYS)),
+		permissions: doc.permissions.map((perm) => pick(perm, PERM_KEYS)),
+	}
 	return JSON.stringify(out, null, 2)
 }

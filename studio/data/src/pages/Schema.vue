@@ -26,7 +26,7 @@
 						@keydown.enter.exact.prevent="start"
 					/>
 					<div class="flex justify-end px-3 pb-3">
-						<Button variant="solid" icon="lucide-arrow-up" :disabled="!prompt.trim()" type="submit" tooltip="Start" />
+						<Button variant="solid" icon="lucide-arrow-up" class="!rounded-full" :disabled="!prompt.trim()" type="submit" tooltip="Start" />
 					</div>
 				</form>
 				<div class="mt-3 flex flex-wrap justify-center gap-1.5">
@@ -51,8 +51,12 @@
 					<DocTypeNode :data="data" />
 				</template>
 			</VueFlow>
-			<div class="pointer-events-none absolute inset-x-0 top-0 flex items-center px-4 py-3">
-				<span class="text-sm text-ink-gray-5">{{ summary }}</span>
+			<div class="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between gap-4 px-6 py-5">
+				<div class="flex flex-col gap-1">
+					<h1 class="text-xl font-semibold text-ink-gray-9">Data</h1>
+					<span class="text-sm text-ink-gray-5">{{ summary }}</span>
+				</div>
+				<Button class="pointer-events-auto" variant="solid" icon-left="lucide-plus" label="New DocType" @click="newDocType" />
 			</div>
 			<div class="absolute bottom-4 right-4 flex flex-col rounded-4 border border-outline-gray-2 bg-surface-base">
 				<Button variant="ghost" icon="lucide-plus" tooltip="Zoom in" @click="zoomIn()" />
@@ -64,11 +68,12 @@
 				@submit.prevent="start"
 			>
 				<input
+					ref="ask"
 					v-model="prompt"
 					class="min-w-0 flex-1 border-0 bg-transparent p-0 text-base text-ink-gray-8 placeholder-ink-gray-4 focus:ring-0"
 					placeholder="Ask for a new DocType, a field or a link…"
 				/>
-				<Button variant="solid" icon="lucide-arrow-up" :disabled="!prompt.trim()" type="submit" tooltip="Ask" />
+				<Button variant="solid" icon="lucide-arrow-up" class="!rounded-full" :disabled="!prompt.trim()" type="submit" tooltip="Ask" />
 			</form>
 		</template>
 	</div>
@@ -200,6 +205,12 @@ const openDocType = (name: string) => router.push({ name: "data-doctype", params
 
 const prompt = ref("")
 const input = ref<HTMLTextAreaElement | null>(null)
+const ask = ref<HTMLInputElement | null>(null)
+// a new DocType starts as a request to the assistant, like every other change here
+function newDocType() {
+	prompt.value = "Add a DocType for "
+	nextTick(() => ask.value?.focus())
+}
 function usePrompt(idea: string) {
 	prompt.value = idea
 	input.value?.focus()
