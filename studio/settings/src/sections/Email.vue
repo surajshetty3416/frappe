@@ -25,11 +25,11 @@
 			<SettingsRow title="Security">
 				<Select v-model="form.security" class="w-64" :options="securityOptions" />
 			</SettingsRow>
-			<SettingsRow title="Login" description="Leave empty to sign in with the email address.">
-				<TextInput v-model="form.login_id" class="w-64" :placeholder="form.email_id || 'Email address'" />
+			<SettingsRow title="Login">
+				<TextInput v-model="form.login_id" class="w-64" placeholder="Same as the email address" />
 			</SettingsRow>
 			<SettingsRow title="Password" :description="saved ? 'Leave empty to keep the saved one.' : 'Studio checks the connection when you save.'">
-				<Password v-model="form.password" class="w-64" :placeholder="saved ? 'Saved' : ''" />
+				<Password v-model="form.password" class="w-64" :class="{ '[&_button]:hidden': !form.password }" :placeholder="saved ? '••••••••' : ''" />
 			</SettingsRow>
 		</div>
 	</SettingsBody>
@@ -39,7 +39,7 @@
 import { Button, LoadingIndicator, Password, Select, SettingsBody, SettingsHeader, SettingsRow, TextInput, call, toast } from "frappe-ui"
 import { computed, reactive, ref } from "vue"
 
-import { errorMessage } from "./people"
+import { errorMessage, toastOptions } from "./people"
 
 const securityOptions = [
 	{ label: "STARTTLS", value: "tls" },
@@ -117,11 +117,11 @@ async function save() {
 			await call("frappe.client.insert", { doc: { doctype: "Email Account", ...values } })
 		}
 	} catch (error) {
-		return toast.error(errorMessage(error))
+		return toast.error(errorMessage(error), toastOptions)
 	} finally {
 		saving.value = false
 	}
-	toast.success("Email account saved")
+	toast.success("Email account saved", toastOptions)
 	load()
 }
 
@@ -129,9 +129,9 @@ async function sendTest() {
 	sending.value = true
 	try {
 		const recipient = await call("frappe.settings.api.send_test_email", { email_account: saved.value })
-		toast.success(`Sent a test email to ${recipient}`)
+		toast.success(`Sent a test email to ${recipient}`, toastOptions)
 	} catch (error) {
-		toast.error(errorMessage(error))
+		toast.error(errorMessage(error), toastOptions)
 	} finally {
 		sending.value = false
 	}

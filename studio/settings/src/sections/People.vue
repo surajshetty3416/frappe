@@ -10,13 +10,14 @@
 		</div>
 		<ul v-else class="mt-6 divide-y divide-outline-gray-1 rounded-6 border border-outline-gray-1">
 			<li v-for="user in users" :key="user.name" class="flex h-14 items-center gap-3 px-3">
-				<Avatar :label="user.full_name || user.name" :image="user.user_image" size="lg" />
+				<Avatar :label="displayName(user)" :image="user.user_image" size="lg" />
 				<div class="min-w-0 flex-1">
 					<div class="flex items-center gap-2">
-						<span class="truncate text-base font-medium text-ink-gray-8">{{ user.full_name || user.name }}</span>
+						<span class="truncate text-sm font-medium text-ink-gray-8">{{ displayName(user) }}</span>
 						<Badge v-if="!user.enabled" label="Disabled" size="sm" />
+						<Badge v-else-if="!user.last_login" label="Invited" size="sm" />
 					</div>
-					<div class="mt-0.5 truncate text-sm text-ink-gray-5">{{ user.email }}</div>
+					<div v-if="user.last_login" class="mt-0.5 truncate text-sm text-ink-gray-5">{{ user.email }}</div>
 				</div>
 				<Tooltip :text="user.roles.join(', ')" :disabled="user.roles.length < 3">
 					<span class="max-w-[240px] truncate text-sm text-ink-gray-6">{{ rolesSummary(user) }}</span>
@@ -24,11 +25,11 @@
 				<Dropdown v-if="user.name !== 'Administrator'" :options="menu(user)" align="end">
 					<Button variant="ghost" icon="lucide-ellipsis" :aria-label="`Actions for ${user.name}`" />
 				</Dropdown>
-				<span v-else class="w-7" />
+				<div v-else class="w-7 shrink-0" />
 			</li>
 		</ul>
 	</SettingsBody>
-	<RolesDialog v-if="dialog" :user="dialog.user" @close="dialog = null" @saved="load" />
+	<RolesDialog v-if="dialog" :user="dialog.user" :roles="roles" @close="dialog = null" @saved="load" />
 </template>
 
 <script setup lang="ts">
@@ -47,15 +48,17 @@ import {
 import { ref } from "vue"
 
 import RolesDialog from "./RolesDialog.vue"
-import { type Person, getPeople } from "./people"
+import { type Person, displayName, getPeople, getRoles, toastOptions } from "./people"
 
 const users = ref<Person[] | null>(null)
+const roles = ref<string[]>([])
 const dialog = ref<{ user: Person | null } | null>(null)
 
 async function load() {
 	users.value = await getPeople()
 }
 load()
+getRoles().then((names) => (roles.value = names))
 
 function rolesSummary(user: Person) {
 	if (user.name === "Administrator") return "All roles"
@@ -75,7 +78,7 @@ function menu(user: Person) {
 
 async function setEnabled(user: Person, enabled: 0 | 1) {
 	await call("frappe.client.set_value", { doctype: "User", name: user.name, fieldname: "enabled", value: enabled })
-	toast.success(enabled ? `${user.name} can sign in again` : `${user.name} can no longer sign in`)
+	toast.success(`${enabled ? "Enabled" : "Disabled"} ${user.email}`, toastOptions)
 	load()
 }
 </script>

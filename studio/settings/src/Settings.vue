@@ -3,6 +3,7 @@
 		:model-value="section"
 		orientation="vertical"
 		activation-mode="manual"
+		data-layer="settings"
 		class="flex h-full min-h-0"
 		@update:model-value="open"
 	>

@@ -1,3 +1,16 @@
 @config "../tailwind.config.js";
 @tailwind components;
 @tailwind utilities;
+
+/* frappe-ui's settings parts and inputs are 14px, the shell's UI text is 13px */
+[data-layer="settings"] .text-base {
+	@apply text-sm;
+}
+[data-layer="settings"] .text-base-medium {
+	@apply text-sm font-medium;
+}
+
+/* a selected section is a flat fill, as in the shell's sidebar, not frappe-ui's raised card */
+[data-layer="settings"] [role="tablist"] [role="tab"][data-state="active"] {
+	@apply bg-surface-gray-3 text-ink-gray-8 shadow-none;
+}

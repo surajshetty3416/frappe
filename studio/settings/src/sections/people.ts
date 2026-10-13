@@ -6,6 +6,7 @@ export interface Person {
 	full_name: string
 	user_image: string | null
 	enabled: 0 | 1
+	last_login: string | null
 	roles: string[]
 }
 
@@ -16,7 +17,7 @@ export async function getPeople(): Promise<Person[]> {
 	const [users, roles] = await Promise.all([
 		call("frappe.client.get_list", {
 			doctype: "User",
-			fields: ["name", "email", "full_name", "user_image", "enabled"],
+			fields: ["name", "email", "full_name", "user_image", "enabled", "last_login"],
 			filters: { name: ["!=", "Guest"] },
 			order_by: "creation asc",
 			limit_page_length: 0,
@@ -65,6 +66,12 @@ export async function setRoles(user: string, roles: string[]) {
 	doc.roles = [...automatic, ...roles.map((role) => ({ role }))]
 	await call("frappe.client.save", { doc })
 }
+
+// an invited person has no name of their own until they sign in
+export const displayName = (person: Person) => (person.last_login ? person.full_name || person.name : person.email)
+
+// one toast slot for the page, so a new message replaces the last instead of stacking on it
+export const toastOptions = { id: "settings" }
 
 // the server's own message, without the HTML it wraps names in
 export function errorMessage(error: unknown) {

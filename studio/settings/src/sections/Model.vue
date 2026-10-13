@@ -28,7 +28,8 @@
 					<Password
 						v-model="form.token"
 						class="w-64"
-						:placeholder="hasToken ? 'Saved' : isClaudeCode ? 'Uses the CLI login' : ''"
+						:class="{ '[&_button]:hidden': !form.token }"
+						:placeholder="hasToken ? '••••••••' : isClaudeCode ? 'Uses the CLI login' : ''"
 					/>
 				</div>
 			</SettingsRow>
@@ -40,7 +41,7 @@
 import { Button, LoadingIndicator, Password, Select, SettingsBody, SettingsHeader, SettingsRow, TextInput, call, toast } from "frappe-ui"
 import { computed, reactive, ref } from "vue"
 
-import { errorMessage } from "./people"
+import { errorMessage, toastOptions } from "./people"
 
 // the assistant's Flow Agent, made on install
 const ASSISTANT = "Flow"
@@ -117,7 +118,7 @@ const setToken = (value: string) =>
 
 async function removeToken() {
 	await setToken("")
-	toast.success(isClaudeCode.value ? "Token removed. The assistant uses the CLI login." : "API key removed")
+	toast.success(isClaudeCode.value ? "Token removed. The assistant uses the CLI login." : "API key removed", toastOptions)
 	loadToken()
 }
 
@@ -139,11 +140,11 @@ async function save() {
 			value: form.effort,
 		})
 	} catch (error) {
-		return toast.error(errorMessage(error))
+		return toast.error(errorMessage(error), toastOptions)
 	} finally {
 		saving.value = false
 	}
-	toast.success("AI model saved")
+	toast.success("AI model saved", toastOptions)
 	load()
 }
 </script>
