@@ -45,8 +45,9 @@
 						:class="resizing ? 'bg-surface-gray-3' : ''"
 						@pointerdown="startResize"
 					/>
-					<!-- the panel lays out at its final width and the slide only uncovers it, so nothing squashes on the way -->
-					<div class="absolute inset-y-0 right-0" :style="{ width: `${panelPixels}px` }">
+					<!-- the panel lays out at its final width and slides in whole from the window's edge, so nothing squashes or
+					     clips at its left on the way -->
+					<div class="absolute inset-y-0 left-0" :style="{ width: `${panelPixels}px` }">
 						<EditorPanel>
 							<RouterView />
 						</EditorPanel>
