@@ -27,7 +27,7 @@
 						</span>
 						<span :data-element="elementId(field)" class="col-span-4 truncate">{{ field.label || field.fieldtype }}</span>
 					</div>
-					<div v-else :data-element="elementId(field)" :class="grid" class="group h-11 border-b border-outline-gray-1 px-2">
+					<div v-else :data-element="elementId(field)" :class="grid" class="group min-h-11 border-b border-outline-gray-1 px-2">
 						<span v-if="editable" data-selection-ui data-drag-handle class="flex h-7 cursor-grab items-center text-ink-gray-4 hover:text-ink-gray-6">
 							<span class="lucide-grip-vertical size-4" />
 						</span>
@@ -39,9 +39,7 @@
 							</span>
 						</div>
 						<span class="truncate text-sm text-ink-gray-7">{{ field.fieldtype }}</span>
-						<Tooltip :text="choices(field).join(', ')">
-							<span class="line-clamp-2 text-sm text-ink-gray-7">{{ choices(field).join(", ") }}</span>
-						</Tooltip>
+						<span class="py-1 text-sm text-ink-gray-7">{{ choices(field).join(", ") }}</span>
 						<span v-if="field.reqd" class="lucide-check size-4 text-ink-gray-5" />
 						<span v-else class="text-sm text-ink-gray-4">–</span>
 					</div>
@@ -52,7 +50,6 @@
 </template>
 
 <script setup lang="ts">
-import { Tooltip } from "frappe-ui"
 import { computed } from "vue"
 import Draggable from "vuedraggable"
 
