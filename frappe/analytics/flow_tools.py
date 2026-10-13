@@ -65,8 +65,12 @@ class ChartSpec(BaseModel):
     measures: list[Measure] = Field(description="One per series, card reading or table value")
     split_by: str | None = Field(default=None, description="Bar or Line: one series per value of this column")
     table_columns: list[str] | None = Field(default=None, description="Table: more columns to group rows by, after x")
-    sort: Literal["value desc", "value asc", "x asc", "x desc"] | None = Field(
-        default=None, description="Default: a date x runs forwards, categories by value desc"
+    sort: str | None = Field(
+        default=None,
+        pattern=r"^.+ (asc|desc)$",
+        description="value desc, value asc, x asc or x desc. To run categories in an order of "
+        "their own, a column of the SQL the chart does not show, e.g. status_order asc. "
+        "Default: a date x runs forwards, categories by value desc",
     )
     limit: int | None = Field(default=None, description="Rows to plot. Row defaults to 10, categories to 30")
     span: str | None = Field(default=None, description="Number only: the period it reads, e.g. Last 7 days")
@@ -176,13 +180,18 @@ def number_formats(measures: list[Measure]) -> dict:
     return formats
 
 
-def sort_order(spec: ChartSpec, x_is_date: bool) -> list | None:
+def sort_order(spec: ChartSpec, columns: dict, x_is_date: bool) -> list | None:
     sort = spec.sort or (None if x_is_date else "value desc")
     if not sort:
         return None
-    key, direction = sort.split()
-    column = spec.x if key == "x" else spec.measures[0].label
-    return [{"column": {"type": "column", "column_name": column}, "direction": direction}]
+    key, direction = sort.rsplit(" ", 1)
+    if key in ("x", "value"):
+        column = spec.x if key == "x" else spec.measures[0].label
+        return [{"column": {"type": "column", "column_name": column}, "direction": direction}]
+    column_type(spec, columns, key, "sort column")
+    if spec.split_by:
+        frappe.throw(_("{0}: a chart with split_by sorts by x or value, not by {1}").format(spec.title, key))
+    return [{"column": {"type": "column", "column_name": key}, "direction": direction, "hidden": True}]
 
 
 def chart_config(spec: ChartSpec, columns: dict) -> dict:
@@ -232,7 +241,7 @@ def chart_config(spec: ChartSpec, columns: dict) -> dict:
     if spec.chart_type == "Table":
         rows = [x] + [dimension(spec, columns, c, "table column") for c in spec.table_columns or []]
         config.update({"rows": rows, "columns": [], "values": measures, "limit": spec.limit or 100})
-        if sort := sort_order(spec, x_is_date):
+        if sort := sort_order(spec, columns, x_is_date):
             config["order_by"] = sort
         return config
 
@@ -243,7 +252,7 @@ def chart_config(spec: ChartSpec, columns: dict) -> dict:
         config["split_by"] = {"dimension": split, "max_split_values": 8}
         if spec.chart_type == "Bar":
             config["y_axis"]["stack"] = True
-    if sort := sort_order(spec, x_is_date):
+    if sort := sort_order(spec, columns, x_is_date):
         config["order_by"] = sort
     config["limit"] = spec.limit or (10 if spec.chart_type == "Row" else 1000 if x_is_date else 30)
     return config
@@ -310,7 +319,8 @@ def spec_of(chart) -> dict:
         spec["grain"] = x["granularity"]
     spec["measures"] = [measure_spec(m) for m in measures]
     if sort := (config.get("order_by") or [None])[0]:
-        key = "x" if sort["column"]["column_name"] == spec["x"] else "value"
+        column = sort["column"]["column_name"]
+        key = column if sort.get("hidden") else "x" if column == spec["x"] else "value"
         spec["sort"] = f"{key} {sort['direction']}"
     if config.get("limit"):
         spec["limit"] = config["limit"]

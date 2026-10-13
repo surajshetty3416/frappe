@@ -67,8 +67,10 @@ def derive_operations(chart_type: str, query: str, config: dict | None) -> list[
     _add_filters(operations, config)
     _add_chart_operation(operations, chart_type, config)
     _add_axis_time_order(operations, chart_type, config)
-    _add_order_by_from_config(operations, config)
+    hidden = _add_order_by_from_config(operations, config)
     _add_period_order(operations, chart_type, config)
+    if hidden:
+        operations.append({"type": "remove", "column_names": hidden})
     return operations
 
 
@@ -938,11 +940,39 @@ def _add_axis_time_order(operations: list[dict], chart_type: str, config: dict):
     _add_order_by(operations, column_name, "asc")
 
 
-def _add_order_by_from_config(operations: list[dict], config: dict):
+def _add_order_by_from_config(operations: list[dict], config: dict) -> list[str]:
+    """The config's sorts. Answers the hidden columns carried for them, for the caller
+    to remove once every sort is in."""
+    hidden = []
     for sort in config.get("order_by") or []:
         column_name = (sort.get("column") or {}).get("column_name")
         if column_name and sort.get("direction"):
+            if sort.get("hidden") and _carry_sort_column(operations, column_name):
+                hidden.append(column_name)
             _add_order_by(operations, column_name, sort["direction"])
+    return hidden
+
+
+def _carry_sort_column(operations: list[dict], column_name: str) -> bool:
+    """A sort on a source column the chart does not show, such as a status's place in
+    a review, so categories run in an order their labels do not hold. The summarize
+    carries its smallest value per group, which the sort reads before it is removed.
+
+    Only a stored config says `hidden`: `reader_order` drops it, so a reader cannot
+    rank the rows by a column the chart never published."""
+    summarize = next((op for op in reversed(operations) if op["type"] == "summarize"), None)
+    if not summarize:
+        return False
+    shown = {m.get("measure_name") for m in summarize["measures"]} | {
+        d.get("dimension_name") or d.get("column_name") for d in summarize["dimensions"]
+    }
+    if column_name in shown:
+        return False
+    summarize["measures"] = [
+        *summarize["measures"],
+        {"measure_name": column_name, "column_name": column_name, "aggregation": "min"},
+    ]
+    return True
 
 
 def _add_order_by(operations: list[dict], column_name: str, direction: str):

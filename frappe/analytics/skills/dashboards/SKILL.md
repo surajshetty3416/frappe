@@ -35,6 +35,7 @@ A chart is a SQL query plus a spec. The query returns one row per record; the sp
 | Stages people drop out of | Funnel, or Row sorted by value | `x` the stage |
 | The records themselves | Table | `x` plus `table_columns` |
 
+- Categories with an order of their own, such as statuses in review order: return the order as a column, `CASE p.status WHEN 'Submitted' THEN 1 WHEN 'Under Review' THEN 2 ... END AS status_order`, and sort by it with `sort: "status_order asc"`. The chart does not show that column, so `x` keeps the plain labels. Never put the order into the labels.
 - Count the distinct values of a column before you pick: one value is no chart, more than 15 is a Row with a limit.
 - Readings the reader compares side by side are one Number chart with several measures. Each measure is its own card.
 - A target is `target` on the measure: the card shows the value, the target and a bar. `compare: "previous"` adds the change against the period before; it needs `x` with a `grain` or `span`, or a Date filter set to a `within` value.
