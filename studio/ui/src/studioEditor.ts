@@ -279,11 +279,16 @@ export default defineArtifactEditor({
 	},
 	primaryAction() {
 		const store = useStudioStore()
-		const live = publishState() === "published"
+		// a live app's status already says so; the action opens it
+		if (publishState() === "published" && app.value)
+			return {
+				label: "Open",
+				icon: "lucide-external-link",
+				run: async () => void window.open(`${siteURL()}/${app.value!.route}`, "_blank"),
+			}
 		return {
-			label: live ? "Published" : "Publish",
-			icon: live ? "lucide-check" : undefined,
-			disabled: live || !store.activeApp || store.savingPage,
+			label: "Publish",
+			disabled: !store.activeApp || store.savingPage,
 			// publishApp reports its own success and failure
 			run: () => store.publishApp() ?? Promise.resolve(),
 		}
