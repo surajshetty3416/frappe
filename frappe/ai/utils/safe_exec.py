@@ -206,6 +206,7 @@ def get_flow_safe_globals(*, tool_context: ToolContext | None = None) -> Namespa
 			errprint=frappe.errprint,
 			bold=frappe.bold,
 			parse_json=frappe.utils.parse_json,
+			as_json=frappe.as_json,
 			safe_json_loads=frappe.utils.safe_json_loads,
 			generate_hash=frappe.generate_hash,
 			sanitize_html=frappe.utils.sanitize_html,
