@@ -3,7 +3,7 @@
 		<PanelResizer
 			:dimension="builderStore.fittedLeftPanelWidth"
 			side="right"
-			:minDimension="200"
+			:minDimension="minWidth"
 			:maxDimension="Math.min(500, builderStore.leftPanelRoom)"
 			@resize="(width) => (builderStore.builderLayout.leftPanelWidth = width)" />
 		<div
@@ -51,7 +51,7 @@ import TokenManager from "@web/components/Modals/TokenManager.vue";
 import { editorDemo } from "@web/utils/editorDemo";
 import useBuilderStore from "@web/stores/builderStore";
 import { KeyboardShortcut, Tooltip, useKeyboardShortcut } from "frappe-ui";
-import { reactive, Ref, ref, watch, watchEffect } from "vue";
+import { computed, reactive, Ref, ref, watch, watchEffect } from "vue";
 import { useRoute } from "vue-router";
 import PanelResizer from "./PanelResizer.vue";
 
@@ -59,6 +59,19 @@ const builderStore = useBuilderStore();
 const route = useRoute();
 
 const tabs = leftPanelTabs.visible;
+
+const PANEL_MIN_WIDTH = 200;
+const activeTab = computed(() => tabs.value.find((tab) => tab.name === builderStore.leftPanelActiveTab));
+const minWidth = computed(() => Math.max(PANEL_MIN_WIDTH, activeTab.value?.minWidth ?? 0));
+
+// widen the stored width rather than only the drawn one: the canvas is laid out from it
+watch(
+	minWidth,
+	(min) => {
+		if (builderStore.builderLayout.leftPanelWidth < min) builderStore.builderLayout.leftPanelWidth = min;
+	},
+	{ immediate: true },
+);
 
 const miniSidebar = ref(null) as Ref<HTMLElement | null>;
 const mountedTabs = reactive(new Set<string>());

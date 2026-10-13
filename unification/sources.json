@@ -8,8 +8,8 @@
 		"builder": {
 			"repo": "https://github.com/frappe/builder.git",
 			"branch": "develop",
-			"commit": "477481ff78aaae7ef1c7318258f2b3aa159ff6fd",
-			"rewritten": "c587875347a7014d16b4f7dc9f9d875c00dd0949",
+			"commit": "acb6d17a9c24e4b9b6bf4ed502eb07471f492e68",
+			"rewritten": "463ed63cf2799c9b9199d0ef6a1663fc0bb19e11",
 			"moves": {
 				"frappe/builder/public/": "frappe/public/web/",
 				"frappe/builder/": "frappe/web/",
