@@ -14,6 +14,8 @@ export interface Replay {
 	recording: string
 	title: string
 	step: number
+	// the recording's first message, until the first step plays
+	message: string | null
 	steps: number
 	status: "Ready" | "Playing" | "Done" | "Failed"
 	error: string | null

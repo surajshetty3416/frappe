@@ -255,6 +255,7 @@ def state(replay) -> dict[str, Any]:
 		"session": replay.session,
 		"recording": replay.recording,
 		"title": recording.title,
+		"message": first_message(replay.recording) if not replay.step else None,
 		"step": replay.step,
 		"steps": recording.steps,
 		"status": replay.status,
@@ -262,6 +263,12 @@ def state(replay) -> dict[str, Any]:
 		"names": json.loads(replay.names or "{}"),
 		"live": went_live(replay),
 	}
+
+
+def first_message(recording: str) -> str | None:
+	"""What the person said first, which a replay not yet played shows."""
+	found = recording_steps(recording)
+	return found[0]["message"] if found else None
 
 
 def went_live(replay) -> bool:

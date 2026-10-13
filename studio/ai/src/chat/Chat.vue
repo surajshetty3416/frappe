@@ -11,6 +11,7 @@
 		<div v-if="blank" class="flex min-h-0 flex-1 flex-col justify-end overflow-hidden px-4 pb-6">
 			<slot name="intro" />
 		</div>
+		<ReplayIntro v-else-if="replayIntro" :key="viewKey" :replay="replayIntro" />
 		<MessageList v-else :key="viewKey" />
 		<ReplayBar v-if="!readOnly" :key="viewKey" />
 		<Composer v-if="!readOnly" ref="composer" :key="viewKey" />
@@ -37,8 +38,9 @@ import { resultArtifact } from "@flow/ui-core/transcript.js";
 import { FrappeClient } from "../api/client.js";
 import * as transport from "../api/frappe.js";
 import { connectSocket } from "../api/socket.js";
-import { replays } from "@shell/replay";
+import { isReplaying, replays } from "@shell/replay";
 import ReplayBar from "./ReplayBar.vue";
+import ReplayIntro from "./ReplayIntro.vue";
 import TaskCard from "./TaskCard.vue";
 import { presentTool } from "./toolMeta.js";
 
@@ -160,6 +162,14 @@ const unsent = (store) =>
 const blank = computed(
 	() => !props.initialMessage && (props.session ? unsent(shown.value) && !replays.get(props.session) : isBlank(shown.value))
 );
+
+// a replay not yet played shows what it will replay, over its Play
+const replayIntro = computed(() => {
+	const id = shown.value.state.sessionId;
+	const replay = id && replays.get(id);
+	const waiting = replay && !replay.step && replay.status === "Ready" && !replay.live;
+	return waiting && unsent(shown.value) && !isReplaying(id) ? replay : null;
+});
 
 // the shown chat got its session, or lost it
 watch(
