@@ -80,6 +80,7 @@
 		"@vitejs/plugin-vue": "^6.0.10",
 		"@vitejs/plugin-vue-jsx": "^5.1.6",
 		"autoprefixer": "^10.4.20",
+		"esbuild": "^0.28.1",
 		"mdn-data": "2.35.0",
 		"patch-package": "^8.0.1",
 		"postcss": "^8.4.49",
