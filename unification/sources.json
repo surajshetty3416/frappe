@@ -33,8 +33,8 @@
 		"flow": {
 			"repo": "https://github.com/frappe/flow.git",
 			"branch": "main",
-			"commit": "a7d03e29ed118528933e3afcad12016696400818",
-			"rewritten": "bc26028de4e2628ae68a85f30349c0d508026848",
+			"commit": "80af5422a369679ac0a6d61df5af6cc15f23456e",
+			"rewritten": "aae3162af0d7904577ac2078bee9d9d408504d91",
 			"moves": {
 				"frappe/flow/harness/": "harness/",
 				"frappe/flow/realtime/handlers.js": "realtime/flow_handlers.js",
