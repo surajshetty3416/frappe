@@ -3,7 +3,7 @@
 		"frappe": {
 			"repo": "https://github.com/frappe/frappe.git",
 			"branch": "develop",
-			"commit": "13331b953c695823a7706e7138a9a4a521eaa140"
+			"commit": "df4a628c7e61144fa15113079e33a7f1191054ee"
 		},
 		"builder": {
 			"repo": "https://github.com/frappe/builder.git",
@@ -46,8 +46,8 @@
 		"studio": {
 			"repo": "https://github.com/frappe/studio.git",
 			"branch": "develop",
-			"commit": "45e9f7c0ac9c75c9ec051104abaa8203c57b4fa9",
-			"rewritten": "d02a1b7169dd37f0351b0d36b7e522897dc36988",
+			"commit": "8a4839c97c284736b052900092c7faddae144ef6",
+			"rewritten": "99f6d3308c25be3914d8a02af6415d982d40bc46",
 			"moves": {
 				"frappe/studio/": "frappe/ui/",
 				"frontend/studio/": "studio/ui/"
