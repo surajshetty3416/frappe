@@ -31,9 +31,7 @@ import {
 	operatorOf,
 	type Filter,
 } from '../components/filter_picker/filter_picker'
-import { showErrorToast } from '../helpers'
 import type { FilterType } from '../helpers/constants'
-import { navigate } from '../helpers/navigation'
 import { stableStringify } from '../helpers/stable_stringify'
 import type { NumberChartConfig } from '../types/chart.types'
 import type { FilterOperator, FilterValue } from '../types/query.types'
@@ -207,23 +205,13 @@ export type DashboardAction = { label: string; icon?: string } & (
 	| { href: string }
 )
 
-/**
- * Edit actions. Only the builder has them.
- *
- * The edit header is not here. The builder renders its own header and imports
- * `DashboardEditActions`.
- */
+/** What the editor adds to a dashboard: a grid that is always editable. */
 export type DashboardBuilderActions = {
-	editing: boolean
-	menuOptions: DashboardAction[]
 	/** The breakpoint the grid is rendered and dragged at. */
 	arranging: BreakpointKey
 	// `before` is the layout when the drag started. A moved cell is measured
 	// against it
 	moveItems: (key: BreakpointKey, layouts: Layout[], before: Layout[]) => void
-	// a chart dragged in from the workbook's sidebar
-	dragOver: (event: DragEvent) => void
-	drop: (event: DragEvent) => void
 }
 
 /**
@@ -273,15 +261,8 @@ export type DashboardView = {
 	loadChart: (chart: string) => void
 	// reload the dashboard and all its cards
 	refresh: (force?: boolean) => void
-	// the SPA route of this dashboard's builder. Absent when the reader may not
-	// edit, and in the builder itself. Each page resolves it the way its own
-	// links resolve
-	builderRoute?: string
-	// the SPA route where a chart is edited. Absent when the reader may not edit it
+	// the route where a chart opens. Absent when the reader may not edit it
 	chartRoute?: (chart: string) => string | undefined
-	// copy the dashboard's workbook and open the copy. Absent when the reader may
-	// not copy it
-	duplicate?: () => void
 	builder?: DashboardBuilderActions
 }
 
@@ -389,11 +370,8 @@ function makeDashboardPage(
 		verticalCompact: true,
 		filters: {} as FilterValues,
 		cardFilters: {} as Record<string, Filter[]>,
-		builderRoute: undefined as string | undefined,
-		// set only when the reader may edit. Chart routes use it
-		workbook: undefined as string | undefined,
-		// the workbook to duplicate, when the reader may
-		copyable: undefined as string | undefined,
+		// whether the reader may edit. Chart routes use it
+		editable: false,
 	})
 
 	// One read per chart, shared by its cells. Reactive, because a cell's height
@@ -539,12 +517,7 @@ function makeDashboardPage(
 				state.verticalCompact = doc.vertical_compact_layout
 				// the reader's last choice overrides the owner's defaults
 				state.filters = readFilters(doc.name, defaultFilterStates(doc.items))
-				const editable = doc.can_write && doc.workbook
-				state.builderRoute = editable
-					? appPath(`/workbook/${doc.workbook}/dashboard/${doc.name}`)
-					: undefined
-				state.workbook = editable ? doc.workbook! : undefined
-				state.copyable = doc.can_copy && doc.workbook ? doc.workbook : undefined
+				state.editable = Boolean(doc.can_write)
 				openReads(doc.charts, force)
 			})
 			.catch((error) => {
@@ -597,14 +570,7 @@ function makeDashboardPage(
 		chartView: (chart: string) => reads.get(chart),
 		loadChart: (chart: string) => reads.get(chart)?.load(),
 		refresh,
-		builderRoute: computed(() => state.builderRoute),
-		chartRoute: (chart: string) =>
-			state.workbook ? appPath(`/workbook/${state.workbook}/chart/${chart}`) : undefined,
-		duplicate: computed(() => {
-			const workbook = state.copyable
-			if (!workbook) return undefined
-			return () => duplicateWorkbook(workbook)
-		}),
+		chartRoute: (chart: string) => (state.editable ? appPath(`/charts/${chart}`) : undefined),
 	}) as DashboardView
 
 	return {
@@ -646,10 +612,4 @@ function fetchFilterValues(
 		search_term,
 		filters,
 	})
-}
-
-function duplicateWorkbook(workbook: string) {
-	return call('run_doc_method', { dt: 'Insights Workbook', dn: workbook, method: 'duplicate' })
-		.then((copy) => navigate(appPath(`/workbook/${copy}`)))
-		.catch((err) => showErrorToast(err, false))
 }

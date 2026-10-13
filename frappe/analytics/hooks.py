@@ -244,10 +244,10 @@ flow_tools = [
 
 # what Studio opens beside the chat for an artifact of this layer
 studio_artifacts = {
-    "Insights Workbook": {"label": "Workbook", "route": "/studio/analytics/workbook/{name}", "title_field": "title"},
     "Insights Dashboard v3": {
         "label": "Dashboard",
         "route": "/studio/analytics/dashboards/{name}",
         "title_field": "title",
     },
+    "Insights Chart v3": {"label": "Chart", "route": "/studio/analytics/charts/{name}", "title_field": "title"},
 }

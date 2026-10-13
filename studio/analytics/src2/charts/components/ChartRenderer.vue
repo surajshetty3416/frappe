@@ -1,10 +1,8 @@
 <script setup lang="ts">
 import ChartView from '../ChartView.vue'
-import BuilderDrillDown from '../drill/BuilderDrillDown.vue'
 import type { ChartRead } from '../chart_view'
 
-// The author's drill adds "open as query", which needs the workbook. A View
-// must not import that code, so this is a separate component and not a flag.
+// A chart the person can change: a sort on it is saved to the chart.
 const props = defineProps<{
 	chart?: ChartRead
 	reading?: string
@@ -34,16 +32,6 @@ const emit = defineEmits<{
 		</template>
 		<template v-if="$slots.hoverActions" #hoverActions>
 			<slot name="hoverActions" />
-		</template>
-
-		<!-- `v-if` unmounts it on close, so every drill starts from an empty stack -->
-		<template #drill="{ clicked, close }">
-			<BuilderDrillDown
-				v-if="clicked && props.chart"
-				:subject="props.chart.drillSubject"
-				:clicked="clicked"
-				@close="close()"
-			/>
 		</template>
 	</ChartView>
 </template>

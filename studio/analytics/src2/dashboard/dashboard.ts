@@ -1,7 +1,6 @@
 import { useWindowSize } from '@vueuse/core'
 import { call } from 'frappe-ui'
 import { computed, effectScope, reactive, ref, shallowRef, toRefs, watch, watchEffect } from 'vue'
-import { numberCardRows, numberReadings } from '../charts/adapter/number'
 import useChart, { type Chart } from '../charts/chart'
 import {
 	FILTER_TYPE_KINDS,
@@ -10,32 +9,26 @@ import {
 } from '../components/filter_picker/filter_picker'
 import useChartPreview, { type ChartPreviewContext } from '../charts/chart_preview'
 import { type DashboardFilterContext } from '../charts/chart_view'
-import { getUniqueId, safeJSONParse, showErrorToast, waitUntil } from '../helpers'
-import { confirmDialog } from '../helpers/confirm_dialog'
-import { __ } from '../translation'
+import { safeJSONParse, showErrorToast, waitUntil } from '../helpers'
 import useDocumentResource from '../helpers/resource'
 import router from '../router'
-import { useTelemetry } from '../telemetry'
-import type { NumberChartConfig } from '../types/chart.types'
 import { FilterOperator, FilterValue } from '../types/query.types'
 import {
 	BreakpointKey,
 	FilterValues,
 	InsightsDashboardv3,
 	Layout,
-	WorkbookChart,
 	WorkbookDashboardFilter,
 	WorkbookDashboardItem,
 } from '../types/workbook.types'
 import {
 	BASE_BREAKPOINT,
 	derivedPlacement,
-	GRID_COLUMNS,
 	layoutRank,
 	sameBox,
 	writePlacement,
 } from './grid_placement'
-import { cellRulesFor, defaultFilterStates, FILTER_ROWS, invalidateDashboard } from './view'
+import { cellRulesFor, defaultFilterStates, invalidateDashboard } from './view'
 
 /**
  * A filter link, `` `query`.`column` ``, split back into its two halves.
@@ -55,12 +48,6 @@ export function parseFilterLink(link: string) {
  * derived one, which is not the author's to save.
  */
 const ARRANGEABLE_WIDTH = 1058
-
-/** Columns a Number cell is dropped at: a fifth of the grid, so five read as a row of cards. */
-const NUMBER_CARD_COLUMNS = 4
-
-/** Columns a filter cell takes. */
-const FILTER_WIDTH = 4
 
 const dashboards = new Map<string, Dashboard>()
 
@@ -82,35 +69,19 @@ export default function useDashboard(name: string) {
 }
 
 function makeDashboard(name: string) {
-	const { capture } = useTelemetry()
 	const dashboard = getDashboardResource(name)
 
-	const editing = ref(false)
-	const editingItemIndex = ref<number>()
+	// The tile a person selected. The selection toolbar reads it, and the next
+	// chat message carries it.
+	const selectedIndex = ref<number>()
+	// the text tile whose text is being edited in place
+	const editingTextIndex = ref<number>()
 
-	// Which breakpoint's layout the author is arranging. Every edit session starts
-	// at the widest, because that is the layout every item has and the one the
-	// others are derived from.
-	const arranging = ref<BreakpointKey>(BASE_BREAKPOINT.key)
-	watch(editing, (on) => {
-		if (!on) arranging.value = BASE_BREAKPOINT.key
-	})
-
-	function isEditingItem(item: WorkbookDashboardItem) {
-		return editing.value && editingItemIndex.value === dashboard.doc.items.indexOf(item)
-	}
-
-	// When the document saves itself, derived from the state that answers it.
-	//
-	// A reader never writes, an author mid-edit saves when they are done, and a
-	// window too narrow to arrange the grid in would save a layout the author
-	// never laid out. Held here because every one of those is this store's own
-	// state — a host that set the flag was one more writer of it, and a host that
-	// forgot to unset it turned autosave back on for a reader.
+	// A reader never writes, and a window too narrow to arrange the grid in would
+	// save a layout the author never laid out.
 	const { width: windowWidth } = useWindowSize()
 	watchEffect(() => {
-		dashboard.autoSave =
-			!dashboard.doc.read_only && !editing.value && windowWidth.value >= ARRANGEABLE_WIDTH
+		dashboard.autoSave = !dashboard.doc.read_only && windowWidth.value >= ARRANGEABLE_WIDTH
 	})
 
 	const filterStates = ref<FilterValues>({})
@@ -127,73 +98,6 @@ function makeDashboard(name: string) {
 	function setCardFilters(chart_name: string, filters: Filter[]) {
 		cardFilters.value[chart_name] = filters
 		refreshChart(chart_name)
-	}
-
-	async function addChart(charts: WorkbookChart[], via: 'selector' | 'drag') {
-		const maxY = getMaxY()
-		let added = 0
-		for (const chart of charts) {
-			const placed = dashboard.doc.items.some(
-				(item) => item.type === 'chart' && item.chart === chart.name,
-			)
-			if (placed) continue
-			dashboard.doc.items.push(...(await cellsFor(chart, maxY)))
-			added++
-		}
-		if (added) {
-			capture('dashboard_chart_added', { via, count: added })
-		}
-	}
-
-	/**
-	 * The cells a chart is dropped as.
-	 *
-	 * Every type is one cell except a Number chart: a cell renders one card, so a
-	 * chart stating five readings arrives as five cells side by side, each at the
-	 * height its own card needs. How many there are is in the config and not in
-	 * the list entry, so the chart's document is waited for rather than guessed
-	 * at.
-	 */
-	async function cellsFor(chart: WorkbookChart, y: number): Promise<WorkbookDashboardItem[]> {
-		if (chart.chart_type !== 'Number') {
-			return [
-				{
-					type: 'chart',
-					chart: chart.name,
-					layout: { i: getUniqueId(), x: 0, y, w: 10, h: 20 },
-				},
-			]
-		}
-
-		const doc = useChart(chart.name)
-		await waitUntil(() => doc.isloaded)
-		const config = doc.doc.config as NumberChartConfig
-		// A chart nobody has configured yet is one cell, which is the cell it keeps
-		// once its first reading is named.
-		const readings: (string | undefined)[] = numberReadings(config)
-		if (!readings.length) readings.push(undefined)
-
-		const cells: WorkbookDashboardItem[] = []
-		let x = 0
-		let rowY = y
-		let rowHeight = 0
-		for (const reading of readings) {
-			if (x + NUMBER_CARD_COLUMNS > GRID_COLUMNS) {
-				x = 0
-				rowY += rowHeight
-				rowHeight = 0
-			}
-			const h = numberCardRows(config, reading)
-			cells.push({
-				type: 'chart',
-				chart: chart.name,
-				...(reading ? { reading } : {}),
-				layout: { i: getUniqueId(), x, y: rowY, w: NUMBER_CARD_COLUMNS, h },
-			})
-			x += NUMBER_CARD_COLUMNS
-			rowHeight = Math.max(rowHeight, h)
-		}
-		return cells
 	}
 
 	// A chart store registers itself when it is made (a document resource, an
@@ -230,92 +134,10 @@ function makeDashboard(name: string) {
 		cellRulesFor(dashboard.doc.items, (chart) => chartsByName.value[chart]?.doc),
 	)
 
-	function getMaxY() {
-		return Math.max(...dashboard.doc.items.map((item) => item.layout.y + item.layout.h), 0)
-	}
-
-	function addText() {
-		const maxY = getMaxY()
-		dashboard.doc.items.push({
-			type: 'text',
-			text: '',
-			layout: {
-				i: getUniqueId(),
-				x: 0,
-				y: maxY,
-				w: 10,
-				h: 5,
-			},
-		})
-		editingItemIndex.value = dashboard.doc.items.length - 1
-	}
-
-	function addFilter() {
-		const newFilter: WorkbookDashboardItem = {
-			type: 'filter',
-			filter_name: '',
-			filter_type: 'String',
-			links: {},
-			layout: {
-				i: getUniqueId(),
-				x: 0,
-				y: 0,
-				w: FILTER_WIDTH,
-				h: FILTER_ROWS,
-			},
-		}
-		dashboard.doc.items.push(newFilter)
-		positionNewFilter(newFilter)
-		editingItemIndex.value = dashboard.doc.items.length - 1
-	}
-
-	function positionNewFilter(newFilter: WorkbookDashboardItem) {
-		const items = dashboard.doc.items
-		const existingFilters = items.filter((item) => item.type === 'filter' && item !== newFilter)
-
-		if (existingFilters.length === 0) {
-			newFilter.layout.x = 0
-			newFilter.layout.y = 0
-			return
-		}
-
-		const topRowY = Math.min(...existingFilters.map((item) => item.layout.y))
-		const topRowFilters = existingFilters.filter((item) => item.layout.y === topRowY)
-		const rightmostX = Math.max(
-			...topRowFilters.map((item) => item.layout.x + (item.layout.w || FILTER_WIDTH)),
-			0,
-		)
-
-		if (rightmostX + newFilter.layout.w <= GRID_COLUMNS) {
-			newFilter.layout.x = rightmostX
-			newFilter.layout.y = topRowY
-		} else {
-			newFilter.layout.x = 0
-			newFilter.layout.y = 0
-
-			existingFilters.forEach((item) => {
-				item.layout.y += FILTER_ROWS
-			})
-
-			const otherItems = items.filter((item) => item.type !== 'filter')
-			if (otherItems.length > 0) {
-				const minOtherY = Math.min(...otherItems.map((item) => item.layout.y))
-				if (minOtherY <= FILTER_ROWS) {
-					otherItems.forEach((item) => {
-						item.layout.y = Math.max(0, item.layout.y + FILTER_ROWS)
-					})
-				}
-			}
-		}
-	}
-
 	function removeItem(index: number) {
 		dashboard.doc.items.splice(index, 1)
-		// The edit cursor is an index into the same list, so a cell removed at or
-		// before it leaves it pointing at the cell that moved up.
-		if (editingItemIndex.value !== undefined && index <= editingItemIndex.value) {
-			editingItemIndex.value = undefined
-		}
+		selectedIndex.value = undefined
+		editingTextIndex.value = undefined
 	}
 
 	// A drag names the breakpoint it arranged. Every breakpoint is dragged on the
@@ -562,28 +384,6 @@ function makeDashboard(name: string) {
 			.then(() => dashboard.load())
 	}
 
-	// Done. Edit mode ends only after the save returns. Autosave starts as soon
-	// as edit mode ends, and a save refused under autosave reverts what was sent.
-	// So a refused save keeps edit mode open with every edit.
-	async function finishEditing() {
-		await dashboard.save()
-		editing.value = false
-	}
-
-	// Reset Layout. Edit mode ends only after the confirm and the reload of the
-	// stored document. Ending it first would start autosave, which would save the
-	// edits the author is about to discard. Cancel keeps edit mode open.
-	function discardEditing() {
-		confirmDialog({
-			title: __('Discard Changes'),
-			message: __('Are you sure you want to discard changes?'),
-			onSuccess: async () => {
-				await dashboard.load()
-				editing.value = false
-			},
-		})
-	}
-
 	// The owner sees the defaults they set, not their last choice. A default
 	// belongs to the document, and the owner is here to check it. A default fills
 	// only a filter that has no state yet.
@@ -598,12 +398,8 @@ function makeDashboard(name: string) {
 	return reactive({
 		...toRefs(dashboard),
 
-		editing,
-		editingItemIndex,
-		isEditingItem,
-		finishEditing,
-		discardEditing,
-		arranging,
+		selectedIndex,
+		editingTextIndex,
 
 		filterStates,
 		cardFilters,
@@ -615,9 +411,6 @@ function makeDashboard(name: string) {
 		getCardColumnRange,
 		getFilterColumnRange,
 
-		addChart,
-		addText,
-		addFilter,
 		removeItem,
 		moveItems,
 
@@ -675,8 +468,4 @@ function getDashboardResource(name: string) {
 	)
 	dashboard.onAfterSave(() => invalidateDashboard(String(dashboard.doc.name)))
 	return dashboard
-}
-
-export function newDashboard() {
-	return getDashboardResource('new-dashboard-' + getUniqueId())
 }

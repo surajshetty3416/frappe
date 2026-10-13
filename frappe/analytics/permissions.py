@@ -1184,10 +1184,11 @@ def check_dashboard_publishes(dashboard):
     them.
 
     A guest has no permissions of their own, so a Public dashboard may show
-    only charts that run as their owner. Only a chart's owner may set that, so
-    the save is refused with the charts named, and no chart is changed. A chart
-    that runs as its owner shows the owner's rows to the dashboard's readers,
-    so `check_owner_publishes` checks the user who saves.
+    only charts that run as their owner. Share is the one place a dashboard
+    goes Public, so the save sets that on each chart whose owner is the user
+    who saves (or the user is an admin), and is refused with the other charts
+    named. A chart that runs as its owner shows the owner's rows to the
+    dashboard's readers, so `check_owner_publishes` checks the user who saves.
     """
     if not reaches_anybody(dashboard):
         return
@@ -1202,9 +1203,13 @@ def check_dashboard_publishes(dashboard):
             continue
 
         if not chart.run_as_owner:
-            if dashboard.visibility == PUBLIC:
+            if dashboard.visibility != PUBLIC:
+                continue
+            if not may_move_run_as_owner(chart):
                 runs_as_reader.append(chart.title or chart.name)
-            continue
+                continue
+            chart.run_as_owner = 1
+            chart.save()
 
         check_owner_publishes(chart, through=dashboard)
 

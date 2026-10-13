@@ -42,8 +42,16 @@ const emit = defineEmits<{
 // them is something the card is handed.
 const reading = computed(() => {
 	// eslint-disable-next-line no-unused-vars
-	const { column, missing, height, info, ...card } = props.card
+	const { column, missing, height, info, progress, ...card } = props.card
 	return card
+})
+
+// The reading against its target, as a bar under the value line. Past the target
+// the bar is full and the percent says by how much.
+const progress = computed(() => {
+	const share = props.card.progress
+	if (share === undefined || props.loading || props.empty || failure.value) return
+	return { width: `${Math.min(Math.max(share, 0), 1) * 100}%`, label: `${Math.round(share * 100)}%` }
 })
 
 // A cell naming a reading the chart no longer states is the card's own failure,
@@ -68,7 +76,7 @@ const drillable = computed(() => props.drillable !== false && !props.card.missin
 	<!-- `NumberCard` cuts its title to one line and shows no tooltip for it, so the
 	     whole card shows the title on hover -->
 	<div
-		class="min-w-0"
+		class="relative min-w-0"
 		:class="[
 			preview ? 'shrink-0 basis-[calc(20%-0.8rem)]' : 'flex-1',
 			drillable ? 'cursor-pointer' : undefined,
@@ -139,5 +147,14 @@ const drillable = computed(() => props.drillable !== false && !props.card.missin
 				</Button>
 			</template>
 		</NumberCard>
+		<div
+			v-if="progress"
+			class="pointer-events-none absolute inset-x-4 bottom-2.5 flex items-center gap-2"
+		>
+			<div class="h-1.5 flex-1 overflow-hidden rounded-full bg-surface-gray-3">
+				<div class="h-full rounded-full bg-surface-gray-7" :style="{ width: progress.width }" />
+			</div>
+			<span class="text-sm tabular-nums text-ink-gray-6">{{ progress.label }}</span>
+		</div>
 	</div>
 </template>

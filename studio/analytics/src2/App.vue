@@ -1,30 +1,18 @@
 <template>
 	<div class="flex h-full w-full overflow-hidden bg-surface-base text-base antialiased">
-		<div v-if="!hideSidebar" class="h-full border-r bg-surface-gray-1">
-			<AppSidebar />
-		</div>
-
 		<div class="flex h-full flex-1 flex-col overflow-auto">
 			<RouterView />
 		</div>
 
-		<template>
-			<component v-for="dialog in dialogs" :is="dialog" :key="dialog.id" />
-		</template>
+		<component v-for="dialog in dialogs" :is="dialog" :key="dialog.id" />
 	</div>
 </template>
 
 <script setup lang="ts">
 import { toast } from 'frappe-ui'
-import { computed } from 'vue'
-import { useRoute } from 'vue-router'
-import AppSidebar from './components/AppSidebar.vue'
 import { dialogs } from './helpers/confirm_dialog'
 import { attachRealtimeListener } from './helpers/index.ts'
 import session from './session'
-
-const route = useRoute()
-const hideSidebar = computed(() => Boolean(route.meta.hideSidebar))
 
 const notifiers = {
 	success: toast.success,

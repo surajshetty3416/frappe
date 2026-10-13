@@ -183,48 +183,6 @@ describe('a run in flight', () => {
 	})
 })
 
-describe('the record a row names', () => {
-	// The server says which column names a document. The grid renders the link in
-	// that column's own cells, and nowhere else.
-	const withLink = (input: ChartAdapterInput) => ({
-		...input,
-		recordLinks: { category: 'Sales Order' },
-	})
-
-	// @feature charts.table-record-link
-	it('links the named column to the document the raw row names', () => {
-		const input = tableChart({ rows: ['category'], values: ['revenue'] })
-		const props = adapt(withLink(input)).props
-
-		expect(props.cellLink(input.result.columns[0], input.result.formattedRows[0])).toBe(
-			`/desk/sales-order/${encodeURIComponent(input.result.rows[0].category as string)}`,
-		)
-	})
-
-	// @feature charts.table-record-link
-	it('leaves every other column a value', () => {
-		const input = tableChart({ rows: ['category'], values: ['revenue'] })
-		const props = adapt(withLink(input)).props
-
-		expect(
-			props.cellLink(input.result.columns[1], input.result.formattedRows[0]),
-		).toBeUndefined()
-	})
-
-	// @feature charts.table-record-link
-	it('shows no link at all where the server named no column', () => {
-		expect(propsOf({ rows: ['category'], values: ['revenue'] }).cellLink).toBeUndefined()
-	})
-
-	// @feature charts.table-record-link
-	it('names no record from a row the result does not include', () => {
-		const input = tableChart({ rows: ['category'], values: ['revenue'] })
-		const props = adapt(withLink(input)).props
-
-		expect(props.cellLink(input.result.columns[0], { category: 'elsewhere' })).toBeUndefined()
-	})
-})
-
 describe('drilling into a cell', () => {
 	// @feature charts.drill-segment
 	it('names the column and the row behind it', () => {

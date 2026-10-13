@@ -93,22 +93,6 @@ def import_workbook(workbook: dict | str):
 
 
 @insights_whitelist()
-def is_workbook_file(workbook: dict | str):
-    """Whether a pasted file is an importable workbook."""
-    from frappe.analytics.doctype.insights_workbook.insights_workbook import is_workbook_file
-
-    return is_workbook_file(workbook)
-
-
-@insights_whitelist(role="Insights Admin")
-def get_export_modules():
-    """Modules the "Export to app…" dialog can export a workbook into."""
-    from frappe.analytics import standard
-
-    return standard.export_modules()
-
-
-@insights_whitelist()
 def get_share_permissions(workbook_name: str):
     if not frappe.has_permission("Insights Workbook", ptype="share", doc=workbook_name):
         frappe.throw(_("You do not have permission to share this workbook"), frappe.PermissionError)
@@ -244,37 +228,6 @@ def access_level(share) -> int:
 
 
 @insights_whitelist()
-def create_folder(workbook: str, title: str, folder_type: str):
-    """Create a new folder in workbook"""
-    if not frappe.has_permission("Insights Workbook", ptype="write", doc=workbook):
-        frappe.throw(_("You do not have permission to modify this workbook"), frappe.PermissionError)
-
-    current_folders = frappe.db.count("Insights Folder", filters={"workbook": workbook, "type": folder_type})
-
-    folder = frappe.new_doc("Insights Folder")
-    folder.workbook = workbook
-    folder.title = title
-    folder.type = folder_type
-    folder.sort_order = current_folders
-    folder.insert()
-
-    return folder.name
-
-
-@insights_whitelist()
-def rename_folder(folder_name: str, new_title: str):
-    """Rename a folder"""
-    folder = frappe.get_doc("Insights Folder", folder_name)
-    if not frappe.has_permission("Insights Workbook", ptype="write", doc=folder.workbook):
-        frappe.throw(_("You do not have permission to modify this workbook"), frappe.PermissionError)
-
-    folder.title = new_title
-    folder.save()
-
-    return folder.name
-
-
-@insights_whitelist()
 def delete_folder(folder_name: str, move_items_to_root: bool = True):
     """Delete folder and move items to root"""
     folder = frappe.get_doc("Insights Folder", folder_name)
@@ -302,106 +255,3 @@ def delete_folder(folder_name: str, move_items_to_root: bool = True):
     frappe.delete_doc("Insights Folder", folder_name)
 
 
-@insights_whitelist()
-def toggle_folder_expanded(folder_name: str, is_expanded: bool):
-    """Toggle folder expanded state"""
-    folder = frappe.get_doc("Insights Folder", folder_name)
-    if not frappe.has_permission("Insights Workbook", ptype="read", doc=folder.workbook):
-        frappe.throw(_("You do not have permission to modify this workbook"), frappe.PermissionError)
-
-    folder.db_set("is_expanded", is_expanded, update_modified=False)
-
-
-ITEM_DOCTYPES = {
-    "folder": "Insights Folder",
-    "query": "Insights Query v3",
-    "chart": "Insights Chart v3",
-}
-
-
-def item_workbook(doctype: str, name) -> str | None:
-    """The workbook holding this row, or None if the row is gone.
-
-    The write goes straight to the row, so the permission query that scopes the
-    read never sees it - this read is what scopes the write. A dict is not a
-    name: `frappe.db` reads one as a filter set and would match every row.
-
-    Gone and held by someone else are different answers, and the callers want
-    different things from each, so this reports and they decide.
-    """
-    if not isinstance(name, str):
-        frappe.throw(_("{0} is not the name of a {1}").format(name, doctype))
-
-    return frappe.db.get_value(doctype, name, "workbook")
-
-
-def refuse_another_workbooks_item(doctype: str, name, holder: str | None, workbook: str) -> None:
-    """A row this workbook does not hold is not this caller's to write."""
-    if holder != workbook:
-        frappe.throw(
-            _("{0} {1} does not belong to this workbook").format(doctype, name),
-            frappe.PermissionError,
-        )
-
-
-@insights_whitelist()
-def move_item_to_folder(item_type: str, item_name: str, folder_name: str | None = None):
-    """Move a query/chart to a folder"""
-    doctype = ITEM_DOCTYPES.get(item_type)
-    if not doctype or doctype == "Insights Folder":
-        frappe.throw(_("{0} is not a movable item type").format(item_type))
-
-    item = frappe.get_doc(doctype, item_name)
-
-    if not frappe.has_permission("Insights Workbook", ptype="write", doc=item.workbook):
-        frappe.throw(_("You do not have permission to modify this workbook"), frappe.PermissionError)
-
-    if folder_name:
-        holder = item_workbook("Insights Folder", folder_name)
-        if holder is None:
-            frappe.throw(_("Insights Folder {0} not found").format(folder_name))
-        refuse_another_workbooks_item("Insights Folder", folder_name, holder, item.workbook)
-
-    item.db_set("folder", folder_name, update_modified=False)
-
-
-@insights_whitelist(methods=["POST"])
-def update_sort_orders(workbook: str, items: list):
-    """Order a workbook's own queries, charts and folders"""
-    if not frappe.has_permission("Insights Workbook", ptype="write", doc=workbook):
-        frappe.throw(_("You do not have permission to modify this workbook"), frappe.PermissionError)
-
-    for item in items:
-        doctype = ITEM_DOCTYPES.get(item.get("type"))
-        if not doctype:
-            frappe.throw(_("{0} is not a workbook item type").format(item.get("type")))
-
-        sort_order = item.get("sort_order")
-        if not isinstance(sort_order, int):
-            frappe.throw(_("{0} is not a sort order").format(sort_order))
-
-        # the client sends the whole list after a drag, so it can name an item
-        # someone else has since deleted. That item has nothing to order.
-        holder = item_workbook(doctype, item.get("name"))
-        if holder is None:
-            continue
-
-        refuse_another_workbooks_item(doctype, item["name"], holder, workbook)
-
-        values = {"sort_order": sort_order}
-        if doctype != "Insights Folder":
-            folder = item.get("folder")
-            if folder:
-                # a deleted folder leaves its items at the root, which is what
-                # `delete_folder` does. One held by another workbook is refused,
-                # because dropping the item at the root would hide the refusal.
-                folder_holder = item_workbook("Insights Folder", folder)
-                if folder_holder is None:
-                    folder = None
-                else:
-                    refuse_another_workbooks_item("Insights Folder", folder, folder_holder, workbook)
-            values["folder"] = folder
-
-        frappe.db.set_value(doctype, item["name"], values, update_modified=False)
-
-    frappe.db.commit()

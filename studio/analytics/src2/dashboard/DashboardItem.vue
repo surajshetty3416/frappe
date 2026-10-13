@@ -1,42 +1,42 @@
 <script setup lang="ts">
 import { computed, inject } from 'vue'
-import {
-	WorkbookDashboardFilter,
-	WorkbookDashboardItem,
-	WorkbookDashboardText,
-} from '../types/workbook.types'
+import { WorkbookDashboardItem, WorkbookDashboardText } from '../types/workbook.types'
 import { Dashboard } from './dashboard'
 import DashboardChart from './DashboardChart.vue'
 import DashboardFilter from './DashboardFilter.vue'
-import DashboardFilterEditor from './DashboardFilterEditor.vue'
 import DashboardItemActions from './DashboardItemActions.vue'
 import DashboardText from './DashboardText.vue'
 import type { DashboardCellProps } from './view'
 
-// A grid cell in the builder: the card a reader sees, rendered from the config
-// being edited, with the controls to change it.
-//
-// It edits through the store the builder provides. The store holds the whole
-// document, not only what a reader gets.
+// A grid cell in the editor: the card a reader sees, rendered from the config
+// being edited. A press selects it; the grid around it moves and resizes it.
 const props = defineProps<DashboardCellProps>()
 
-// The editors below write to the document item itself. The page passes it in
-// the reader's shape, because both the view and the builder use that shape.
+// The page passes the item in the reader's shape, because both the view and
+// the editor use that shape.
 const item = computed(() => props.item as unknown as WorkbookDashboardItem)
 
 const dashboard = inject('dashboard') as Dashboard
+
+const selected = computed(() => dashboard.selectedIndex === props.index)
+
+function editText() {
+	if (item.value.type === 'text') dashboard.editingTextIndex = props.index
+}
 </script>
 
 <template>
-	<div class="group relative flex h-full w-full p-2">
-		<!-- A card fills its cell. Nothing is centered in it: a Number cell is as
-		     tall as its card, and every other type renders into the whole box. -->
+	<div
+		class="group relative flex h-full w-full p-2"
+		@pointerdown.capture="dashboard.selectedIndex = props.index"
+		@dblclick="editText"
+	>
 		<div
-			class="flex h-full w-full justify-start"
+			class="flex h-full w-full justify-start rounded-4 outline-offset-2"
 			:class="
-				dashboard.editing
-					? 'pointer-events-none  [&>div:first-child]:rounded-4 [&>div:first-child]:group-hover:outline [&>div:first-child]:group-hover:outline-outline-gray-3'
-					: ''
+				selected
+					? 'outline outline-2 outline-outline-gray-4'
+					: 'group-hover:outline group-hover:outline-1 group-hover:outline-outline-gray-3'
 			"
 		>
 			<DashboardChart
@@ -45,7 +45,12 @@ const dashboard = inject('dashboard') as Dashboard
 				:dashboard="props.dashboard"
 			/>
 
-			<DashboardText v-else-if="item.type === 'text'" :item="item as WorkbookDashboardText" />
+			<DashboardText
+				v-else-if="item.type === 'text'"
+				:item="item as WorkbookDashboardText"
+				:editing="dashboard.editingTextIndex === props.index"
+				@done="dashboard.editingTextIndex = undefined"
+			/>
 
 			<DashboardFilter
 				v-else-if="item.type === 'filter'"
@@ -53,13 +58,9 @@ const dashboard = inject('dashboard') as Dashboard
 				:dashboard="props.dashboard"
 			/>
 		</div>
-		<DashboardFilterEditor
-			v-if="item.type === 'filter' && dashboard.isEditingItem(item)"
-			:item="item as WorkbookDashboardFilter"
-		/>
 		<DashboardItemActions
-			v-if="dashboard.editing"
-			class="absolute top-0 right-0 opacity-0 group-hover:opacity-100"
+			v-if="selected"
+			class="absolute top-0 right-0"
 			:item-index="props.index"
 		/>
 	</div>

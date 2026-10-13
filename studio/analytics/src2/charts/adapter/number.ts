@@ -37,6 +37,8 @@ export type NumberCardEntry = NumberCardProps & {
 	height: number
 	/** The reading's info, behind a mark beside its name. */
 	info?: string
+	/** The reading as a share of its target, 1 at the target. Set only when it has one. */
+	progress?: number
 }
 
 export type NumberCardClickEvent = { column: string }
@@ -173,7 +175,11 @@ function readingOf(
 	// The raw number: it prints on the value line, in the value's own units, so
 	// v2 formats it with the props the value is already formatted by.
 	const aim = scale(targetNumber(target, rows) ?? null)
-	if (aim !== null) card.target = aim
+	if (aim !== null) {
+		card.target = aim
+		const value = scale(latest)
+		if (aim && value !== null) card.progress = value / aim
+	}
 
 	if (comparison) {
 		const against = comparisonNumber(comparison, rows, readings, comparisonRows)
@@ -349,6 +355,8 @@ const CARD = {
 	delta: 13 * 1.35,
 	/** `pb-10`, the band the sparkline is plotted into. */
 	sparkline: 40,
+	/** The progress row against a target: a 6px bar beside a `text-sm` percent. */
+	progress: 13 * 1.35,
 }
 
 /**
@@ -371,6 +379,7 @@ export function numberCardRows(config: NumberChartConfig, reading?: string): num
 	let height = CARD.cellPadding + CARD.chrome + CARD.title + CARD.gap + CARD.value
 	if (comparison || sparkline) height += CARD.gap + CARD.delta
 	if (sparkline) height += CARD.sparkline
+	if (options.target) height += CARD.gap + CARD.progress
 
 	return Math.ceil(height / ROW_HEIGHT)
 }

@@ -3,10 +3,3 @@
 // from a column name — a miss renders no link rather than a link that lands on
 // the wrong document.
 export type RecordLinks = Record<string, string>
-
-/** Where the desk opens that document, or nothing when the cell names none. */
-export function recordUrl(doctype: string, value: unknown): string | undefined {
-	if (value === null || value === undefined || value === '') return
-	const route = doctype.toLowerCase().replace(/ /g, '-')
-	return `/desk/${route}/${encodeURIComponent(String(value))}`
-}

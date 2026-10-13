@@ -1,13 +1,10 @@
 <script setup lang="ts">
-import { useTimeAgo } from '@vueuse/core'
 import { Button, LoadingIndicator } from 'frappe-ui'
 import { Search, Table2Icon, TriangleAlert } from 'lucide-vue-next'
 import { computed, provide, ref, watch } from 'vue'
 import { usePagination } from '../../composables/usePagination'
 import type { ResultTable } from '../../query/result_table'
-import session from '../../session'
 import { __ } from '../../translation'
-import ExportDialog from '../ExportDialog.vue'
 import { findRows } from './find'
 import ResultFind from './ResultFind.vue'
 import ResultFooter from './ResultFooter.vue'
@@ -118,8 +115,6 @@ const pageRange = computed(() => (bodyState.value ? undefined : pagination))
 // no rows, and the way back off it is the pager.
 const pager = computed(() => (columns.value.length ? pagination : undefined))
 
-const timeAgo = useTimeAgo(() => props.query.result.lastExecutedAt)
-const lastRun = computed(() => (props.query.result.executedSQL ? timeAgo.value : ''))
 const timing = computed(() => fetchTiming(props.query.result))
 // Only a find on the loaded rows needs this. After a find on the source, the
 // paging line already prints the full count.
@@ -129,21 +124,6 @@ const narrowed = computed(() =>
 		: undefined,
 )
 
-const canExport = computed(
-	() => session.user.can_download && Boolean(props.query.exportResults) && !failed.value,
-)
-const showExportDialog = ref(false)
-const exportDefaultName = computed(() => {
-	const now = new Date()
-	return `export_${now.getDate()}_${now.getMonth() + 1}_${now.getFullYear()}`
-})
-
-watch(
-	() => props.query.downloading,
-	(downloading, wasDownloading) => {
-		if (wasDownloading && !downloading) showExportDialog.value = false
-	},
-)
 </script>
 
 <template>
@@ -230,10 +210,7 @@ watch(
 				/>
 			</div>
 
-			<ResultFooter
-				:pagination="pager"
-				:on-export="canExport ? () => (showExportDialog = true) : undefined"
-			>
+			<ResultFooter :pagination="pager">
 				<template #left>
 					<ResultStatus
 						:running="running"
@@ -244,7 +221,6 @@ watch(
 						:total-row-count="props.query.result.totalRowCount || undefined"
 						:on-fetch-count="props.query.fetchResultCount"
 						:timing="timing"
-						:last-run="lastRun"
 						:narrowed="narrowed"
 					/>
 				</template>
@@ -252,11 +228,4 @@ watch(
 		</div>
 	</div>
 
-	<ExportDialog
-		v-model="showExportDialog"
-		:downloading="props.query.downloading"
-		:default-filename="exportDefaultName"
-		@export="(format, filename) => props.query.exportResults?.(format, filename)"
-		@cancel="props.query.cancelDownload?.()"
-	/>
 </template>

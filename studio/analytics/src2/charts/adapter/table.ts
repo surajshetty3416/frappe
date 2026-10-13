@@ -3,7 +3,6 @@ import { column, rawRowOf } from '../../query/helpers'
 import type { FormatGroupArgs } from '../../query/components/formatting_utils'
 import type { NumberFormat, TableChartConfig } from '../../types/chart.types'
 import { readNumberFormat } from '../number_format'
-import { recordUrl } from '../record_link'
 import type {
 	DataFormat,
 	OrderByArgs,
@@ -12,7 +11,7 @@ import type {
 	SortDirection,
 	SortOrder,
 } from '../../types/query.types'
-import type { ChartAdapterInput, ChartFiller, ResultDownload, ResultPage } from './types'
+import type { ChartAdapterInput, ChartFiller, ResultPage } from './types'
 
 const TableChart = defineAsyncComponent(() => import('../components/TableChart.vue'))
 
@@ -69,7 +68,6 @@ export type TableChartProps = {
 	// eslint-disable-next-line no-unused-vars
 	cellLink?: (column: QueryResultColumn, row: QueryResultRow) => string | undefined
 	page?: ResultPage
-	download?: ResultDownload
 }
 
 export function adaptTableChart(input: ChartAdapterInput): ChartFiller | undefined {
@@ -92,7 +90,6 @@ export function adaptTableChart(input: ChartAdapterInput): ChartFiller | undefin
 		: (column_name, direction) => sortBy(config, column_name, direction)
 	if (input.drillable ?? true) props.drillable = true
 	if (input.page) props.page = input.page
-	if (input.download) props.download = input.download
 
 	if (config.show_column_totals) props.showColumnTotals = true
 	if (config.show_row_totals) props.showRowTotals = true
@@ -110,20 +107,6 @@ export function adaptTableChart(input: ChartAdapterInput): ChartFiller | undefin
 	const numberFormat = readNumberFormat({ ...config, ...config.number_format })
 	if (Object.keys(numberFormat).length) props.numberFormat = numberFormat
 	if (config.number_formats) props.numberFormats = config.number_formats
-
-	// A cell of a grid holds a document as often as it holds a value, and only
-	// the server can tell which. The link is rendered in the cell itself: a grid has
-	// no room for a column of controls, and no row to put one on when the row is
-	// a group.
-	const links = input.recordLinks
-	if (links && Object.keys(links).length) {
-		props.cellLink = (column, formattedRow) => {
-			const doctype = links[column.name]
-			if (!doctype) return
-			const row = rawRowOf(result, formattedRow)
-			return row ? recordUrl(doctype, row[column.name]) : undefined
-		}
-	}
 
 	return {
 		component: TableChart,

@@ -4,8 +4,6 @@ import type { Filter } from '../../components/filter_picker/filter_picker'
 import FilterPicker from '../../components/filter_picker/FilterPicker.vue'
 import ResultPane from '../../components/result_pane/ResultPane.vue'
 import QueryDataTable from '../../query/components/QueryDataTable.vue'
-import type { QueryResultColumn, QueryResultRow } from '../../types/query.types'
-import { recordUrl } from '../record_link'
 import type { DrillLevel, DrillLevelData, DrillSubject } from './drill_stack'
 import { makeDrillRows } from './rows_view'
 
@@ -20,11 +18,6 @@ const props = defineProps<{
 const rows = makeDrillRows(props.answer, props.subject.rows!(props.levels))
 defineExpose({ rows })
 
-// The server says which columns name a desk document, on every answer for this
-// level. Nothing here guesses a doctype from a column name: a missed column gets
-// no link, not a link to the wrong document.
-const links = computed(() => rows.recordLinks)
-
 // A filter can name only the columns in the answer, and the server checks each
 // filter against the same columns.
 const columns = computed(() => rows.result.columns || [])
@@ -33,10 +26,6 @@ const filters = computed<Filter[]>({
 	set: (own) => rows.setFilters(own),
 })
 
-function recordLink(column: QueryResultColumn, row: QueryResultRow) {
-	const doctype = links.value?.[column.name]
-	return doctype ? recordUrl(doctype, row[column.name]) : undefined
-}
 </script>
 
 <template>
@@ -51,7 +40,6 @@ function recordLink(column: QueryResultColumn, row: QueryResultRow) {
 					:current-page="currentPage"
 					:page-size="pageSize"
 					:enable-sort="true"
-					:get-cell-link="links ? recordLink : undefined"
 				/>
 			</template>
 		</ResultPane>

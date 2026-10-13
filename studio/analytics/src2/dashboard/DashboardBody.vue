@@ -1,10 +1,7 @@
 <script setup lang="ts">
-import { computed, ref, type Component } from 'vue'
-import { downloadImage } from '../helpers'
-import { resolveHref } from '../helpers/navigation'
+import { computed, type Component } from 'vue'
 import { __ } from '../translation'
 import type { BreakpointKey, Layout } from '../types/workbook.types'
-import { BASE_BREAKPOINT, BREAKPOINTS } from './grid_placement'
 import type { DashboardAction, DashboardView } from './view'
 
 // A dashboard's content on every page that shows one: the grid, with its filter
@@ -25,59 +22,17 @@ const props = defineProps<{
 	cell: Component
 }>()
 
-// When an owner arranges a narrower breakpoint, the box gets that real width.
-// The grid then measures the breakpoint itself, the cards lay out at their real
-// width, and a drag lands where the reader will see it.
-const arrangedBox = computed(() => {
-	const key = props.dashboard.builder?.arranging
-	const breakpoint = BREAKPOINTS.find((item) => item.key === key)
-	if (!breakpoint || breakpoint === BASE_BREAKPOINT) return undefined
-	return { maxWidth: `${breakpoint.maxWidth}px` }
-})
+// a press on the grid's empty space, which clears the editor's selection
+const emit = defineEmits<{ backgroundPress: [] }>()
 
-// Every action a reader may take, in one list. An action shows only if the
-// dashboard has the capability for it, never because of which page this is.
-// Nothing outside adds to the list. A page only renders it.
-//
-// An `href` is resolved for the current page, because the SPA's router and the
-// island's Insights base resolve the same route differently.
-const actions = computed(() => {
-	const builderRoute = props.dashboard.builderRoute
-	// While the owner rearranges the grid, there is nothing to re-run, and a PNG
-	// of half-placed cards is not useful.
-	const reading = !props.dashboard.builder?.editing
-	return [
-		reading ? { label: __('Refresh'), icon: 'refresh-cw', onClick: refresh } : null,
-		reading && !props.dashboard.failed
-			? { label: __('Export as PNG'), icon: 'download', onClick: exportImage }
-			: null,
-		builderRoute
-			? { label: __('Edit'), icon: 'pencil', href: resolveHref(builderRoute) }
-			: null,
-		reading && props.dashboard.duplicate
-			? { label: __('Duplicate'), icon: 'copy', onClick: props.dashboard.duplicate }
-			: null,
-		...(props.dashboard.builder?.menuOptions || []),
-	].filter(Boolean) as DashboardAction[]
-})
-
-// the scrolling box of cards, which is also what an export captures
-const scroller = ref<HTMLElement>()
-
-// Forced, because each card's request is unchanged and a normal load would skip.
-function refresh() {
-	props.dashboard.refresh(true)
-}
+// Every action a reader may take, in one list. A page only renders it.
+const actions = computed<DashboardAction[]>(() => [
+	{ label: __('Refresh'), icon: 'refresh-cw', onClick: () => props.dashboard.refresh(true) },
+])
 
 // A page reads this through a template ref. The island reads the same ref and
 // reports the actions to its host.
 defineExpose({ actions })
-
-// Only the cards are exported. The page's header is outside this component.
-function exportImage() {
-	if (!scroller.value) return
-	return downloadImage(scroller.value, `${props.dashboard.title}.png`)
-}
 </script>
 
 <template>
@@ -102,13 +57,7 @@ function exportImage() {
 
 		<!-- The only scroller on the page. An empty dashboard keeps it, because a
 		     chart is dropped onto the grid here. -->
-		<div
-			v-else
-			ref="scroller"
-			class="flex-1 overflow-y-auto p-2"
-			@dragover="dashboard.builder?.dragOver($event)"
-			@drop="dashboard.builder?.drop($event)"
-		>
+		<div v-else class="flex-1 overflow-y-auto p-2" @pointerdown.self="emit('backgroundPress')">
 			<div
 				v-if="!dashboard.items.length"
 				class="flex h-full w-full items-center justify-center text-p-base text-ink-gray-5"
@@ -119,11 +68,10 @@ function exportImage() {
 			<component
 				:is="props.grid"
 				v-else
-				class="mx-auto h-fit w-full"
-				:style="arrangedBox"
+				class="mx-auto h-fit w-full max-w-6xl"
 				:breakpoint="dashboard.builder?.arranging"
-				:class="dashboard.builder?.editing ? 'mb-[20rem] !select-none' : ''"
-				:disabled="!dashboard.builder?.editing"
+				:class="dashboard.builder ? 'mb-[20rem] !select-none' : ''"
+				:disabled="!dashboard.builder"
 				:verticalCompact="dashboard.verticalCompact"
 				:items="dashboard.items"
 				:rules="dashboard.cellRules"

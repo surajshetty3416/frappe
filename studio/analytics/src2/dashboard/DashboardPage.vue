@@ -32,7 +32,7 @@ const pageTitle = computed(() => props.dashboard.title || __('Dashboard'))
 
 const crumbs = computed(() => [...(props.breadcrumbs || []), { label: pageTitle.value }])
 
-watch(pageTitle, (title) => (document.title = `${title} | Insights`), { immediate: true })
+watch(pageTitle, (title) => (document.title = title), { immediate: true })
 </script>
 
 <template>
