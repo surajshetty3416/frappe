@@ -31,7 +31,11 @@
 						<component :is="flow.options.taskCard" v-for="task in item.tasks" :key="task.key" :task="task" />
 					</div>
 					<div v-else-if="item.kind === 'turn-artifacts'" class="flow-turn-artifacts flex flex-col gap-2">
-						<ArtifactCard v-for="artifact in item.artifacts" :key="artifact.route" :artifact="artifact" />
+						<!-- more than three cards fold into one row that opens to them -->
+						<ArtifactGroup v-if="item.artifacts.length > 3" :artifacts="item.artifacts" />
+						<template v-else>
+							<ArtifactCard v-for="artifact in item.artifacts" :key="artifact.route" :artifact="artifact" />
+						</template>
 					</div>
 					<!-- a turn's copy action reveals on hover -->
 					<div v-else-if="item.kind === 'turn-copy'" class="flow-turn-copy -mt-1 flex items-center gap-1">
@@ -97,6 +101,7 @@ import { approvalToAnswer, buildItems, formatDuration, panelIds } from "../trans
 import AddToChat from "./AddToChat.vue"
 import ApprovalCard from "./ApprovalCard.vue"
 import ArtifactCard from "./ArtifactCard.vue"
+import ArtifactGroup from "./ArtifactGroup.vue"
 import AssistantText from "./AssistantText.vue"
 import CopyButton from "./CopyButton.vue"
 import LoadingState from "./LoadingState.vue"
