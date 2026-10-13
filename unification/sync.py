@@ -24,8 +24,8 @@ import port_rewrite
 ROOT = port_rewrite.ROOT
 SOURCES = Path(__file__).with_name("sources.json")
 CACHE = Path(os.environ.get("UNIFICATION_CACHE", Path.home() / ".cache" / "frappe-unification"))
-# the rewrite's output must match the merged history hash for hash, so its version is pinned
 FILTER_REPO = ["uvx", "git-filter-repo==2.47.0"] if shutil.which("uvx") else ["git-filter-repo"]
+# where the first merge put each upstream path; sources.json "moves" says where they are now
 CALLBACK = """
 A = b'{app}'
 if filename == b'.gitmodules' or filename == b'frappe-ui' or filename.startswith(b'frappe-ui/'):
@@ -65,6 +65,19 @@ def stage(path, number):
 def added_lines(path):
 	diff = git("diff", "-U0", "HEAD", "--", path).splitlines()
 	return [line[1:].strip() for line in diff if line.startswith("+") and not line.startswith("+++")]
+
+
+KEY = "%ae%x1f%at%x1f%ct%x1f%s"
+
+
+def key(commit, repo):
+	"""What a commit and its rewritten copy share: author, both times and subject."""
+	return git("log", "-1", f"--format={KEY}", commit, cwd=repo)
+
+
+def keyed(head, repo):
+	lines = git("log", f"--format=%H%x1f{KEY}", head, cwd=repo).splitlines()
+	return {line.split("\x1f", 1)[1]: line.split("\x1f", 1)[0] for line in lines}
 
 
 def ported(data, path):
@@ -132,25 +145,44 @@ class App(Source):
 		return git("rev-parse", self.config["branch"], cwd=self.repo)
 
 	def prepare(self):
-		head, commits = self.head(), self.rewrite()
-		if commits.get(self.config["commit"]) != self.config["rewritten"]:
-			sys.exit(
-				f"{self.name}: the rewrite no longer turns {self.config['commit'][:10]} into "
-				f"{self.config['rewritten'][:10]}, so merging would bring its history in a second time. "
-				"Check the git-filter-repo version and CALLBACK."
-			)
-		git("fetch", "--quiet", self.work, f"+refs/heads/{self.config['branch']}:{self.ref}")
-		self.config.update(commit=head, rewritten=commits[head])
+		"""Rewrite the commits since the last merge onto their parents' copies in the merged history."""
+		branch, parents = self.config["branch"], self.merged_parents()
+		self.clone()
+		parents_callback = f"PARENTS = {parents!r}\ncommit.parents = [PARENTS.get(p, p) for p in commit.parents]"
+		subprocess.run(
+			[*FILTER_REPO, "--force", "--quiet", "--refs", f"{self.config['commit']}..{branch}"]
+			+ ["--filename-callback", CALLBACK.format(app=self.name), "--commit-callback", parents_callback],
+			cwd=self.work,
+			check=True,
+		)
+		rewritten = git("rev-parse", branch, cwd=self.work)
+		git("merge-base", "--is-ancestor", self.config["rewritten"], rewritten, cwd=self.work)
+		git("fetch", "--quiet", self.work, f"+refs/heads/{branch}:{self.ref}")
+		self.config.update(commit=self.head(), rewritten=rewritten)
 
-	def rewrite(self):
-		"""Rewrite a fresh copy of the branch to the paths it was merged at; returns {old: new} commits."""
+	def clone(self):
+		"""A scratch copy of the upstream branch that also holds the merged history to build on."""
 		shutil.rmtree(self.work, ignore_errors=True)
-		branch = self.config["branch"]
-		git("clone", "--quiet", "--no-local", "--no-tags", "--branch", branch, self.repo, self.work, cwd=CACHE)
-		callback = CALLBACK.format(app=self.name)
-		subprocess.run([*FILTER_REPO, "--force", "--quiet", "--filename-callback", callback], cwd=self.work, check=True)
-		lines = (self.work / ".git" / "filter-repo" / "commit-map").read_text().splitlines()[1:]
-		return dict(line.split() for line in lines)
+		git("clone", "--quiet", "--no-local", "--no-tags", "--branch", self.config["branch"], self.repo, self.work, cwd=CACHE)
+		git("update-ref", f"{self.ref}-merged", self.config["rewritten"])
+		git("fetch", "--quiet", "--no-tags", ROOT, f"{self.ref}-merged:refs/merged", cwd=self.work)
+
+	def merged_parents(self):
+		"""{upstream commit: its copy here} for each commit outside the new ones that they build on."""
+		merged = keyed(self.config["rewritten"], ROOT)
+		anchor = self.config["commit"]
+		if merged.get(key(anchor, self.repo)) != self.config["rewritten"]:
+			sys.exit(f"{self.name}: {self.config['rewritten'][:10]} isn't the merged copy of {anchor[:10]}.")
+		lines = git("rev-list", "--parents", f"{anchor}..{self.head()}", cwd=self.repo).splitlines()
+		new = {line.split()[0] for line in lines}
+		outside = {parent for line in lines for parent in line.split()[1:] if parent not in new}
+		return {parent.encode(): self.merged_copy(parent, merged).encode() for parent in outside}
+
+	def merged_copy(self, commit, merged):
+		# the first rewrite dropped commits left empty (submodule bumps); their children sit on their parent
+		while key(commit, self.repo) not in merged:
+			commit = git("rev-parse", f"{commit}^", cwd=self.repo)
+		return merged[key(commit, self.repo)]
 
 	def settle(self):
 		carried = []
