@@ -164,6 +164,8 @@ const attributes = computed(() => {
 	}
 
 	if (
+		props.block.form ||
+		props.block.chat ||
 		props.block.isText() ||
 		props.block.isHTML() ||
 		props.block.isInlineSVG() ||
