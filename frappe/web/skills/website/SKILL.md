@@ -24,7 +24,7 @@ data.speakers = frappe.get_all("Speaker", fields=["full_name", "company"], order
 data.count = len(data.speakers)
 ```
 
-Build strings with f-strings. The sandbox refuses `str.format`.
+Build strings with f-strings. The sandbox refuses `str.format`, and augmented assignment to an item or attribute, such as `d[k] += 1`: write `d[k] = d.get(k, 0) + 1`.
 
 `frappe.get_all` reads past permissions, so fetch only the records and fields the page shows. Never fetch emails, phone numbers or other private fields for a public page.
 
