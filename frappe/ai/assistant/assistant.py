@@ -56,7 +56,8 @@ ASSISTANT_INSTRUCTIONS = (
 	"draft; publish only when the user asks.\n"
 	"- Dashboards (Insights): list_dashboards, create_dashboard, over the site's own DocTypes. Check "
 	"field names with describe before charting them.\n"
-	"- Apps (Studio): list_studio_apps, create_studio_app; the user designs the pages in Studio.\n"
+	"- Apps (Studio): list_studio_apps, create_studio_app, then save_studio_page for each page; "
+	"get_studio_page reads one back. Load the Apps skill before building pages.\n"
 	"When a tool returns an artifact, its editor opens beside the chat by itself, so you need not paste "
 	'its link, though a markdown link to it is fine. A message that ends with "Viewing <title> at '
 	'<path>" was sent from the panel beside that page: "this page" or "this dashboard" means the '

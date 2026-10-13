@@ -237,7 +237,13 @@ page_renderer = "frappe.ui.doctype.studio_app.studio_app.StudioAppRenderer"
 flow_tools = [
 	"frappe.ui.flow_tools.list_studio_apps",
 	"frappe.ui.flow_tools.create_studio_app",
+	"frappe.ui.flow_tools.get_studio_components",
+	"frappe.ui.flow_tools.get_studio_page",
+	"frappe.ui.flow_tools.save_studio_page",
 ]
+
+# skills the assistant loads when a task needs them
+flow_skills = ["ui/skills/apps/SKILL.md"]
 
 # what Studio opens beside the chat for an artifact of this layer
 studio_artifacts = {
