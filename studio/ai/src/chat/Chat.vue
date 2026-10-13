@@ -1,5 +1,6 @@
 <template>
-	<div class="relative flex h-full min-h-0 flex-col bg-surface-base text-base text-ink-gray-8">
+	<!-- a new chat scrolls as one page, so a long list under the composer pushes nothing out of view -->
+	<div class="relative flex h-full min-h-0 flex-col bg-surface-base text-base text-ink-gray-8" :class="blank ? 'overflow-y-auto' : ''">
 		<!-- the shell's top bar carries the open chat's menu -->
 		<Teleport to="#studio-chat-menu" defer>
 			<!-- this layer's styles stop at the shell's top bar, so the menu carries its own mark -->
@@ -8,7 +9,7 @@
 			</div>
 		</Teleport>
 		<!-- a new chat: the host's intro over the composer, its starters under it -->
-		<div v-if="blank" class="flex min-h-0 flex-1 flex-col justify-end overflow-hidden px-4 pb-6">
+		<div v-if="blank" class="flex flex-[1_0_auto] flex-col justify-end px-4 pb-6 pt-12">
 			<slot name="intro" />
 		</div>
 		<ReplayIntro v-else-if="replayIntro" :key="viewKey" :replay="replayIntro" />
@@ -26,7 +27,7 @@
 		<p v-else class="flex-none px-4 pb-4 text-center text-sm text-ink-gray-5">
 			Only the owner of this chat can send messages.
 		</p>
-		<div v-if="blank" class="min-h-0 flex-1 overflow-y-auto px-4 pb-6">
+		<div v-if="blank" class="flex-[1_0_auto] px-4 pb-6">
 			<slot name="starters" :prefill="(text) => composer?.prefill(text)" />
 		</div>
 		<TranscriptDialog :key="viewKey" />
