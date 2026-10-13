@@ -11,7 +11,7 @@
 			<p v-else-if="!webPages.data?.length" class="py-12 text-center text-base text-ink-gray-5">
 				No pages yet. Ask the chat for one, or start a new page.
 			</p>
-			<List v-else class="-mx-3">
+			<List v-else class="-mx-3" :row-height="56">
 				<ListRows :items="webPages.data" v-slot="{ item }">
 					<ListRow :route="{ name: 'builder-editor', params: { pageId: item.name } }">
 						<ListCell><span class="lucide-globe size-4 text-ink-gray-5" /></ListCell>

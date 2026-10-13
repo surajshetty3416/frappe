@@ -8,7 +8,7 @@
 			<p v-else-if="!formats.data?.length" class="py-12 text-center text-base text-ink-gray-5">
 				No print formats yet. Ask the chat for a badge, an invoice or a certificate.
 			</p>
-			<List v-else class="-mx-3" :columns="['24px', 'minmax(0, 1fr)', '176px', '160px']">
+			<List v-else class="-mx-3" :columns="['24px', 'minmax(0, 1fr)', '176px', '160px']" :row-height="56">
 				<ListRows :items="formats.data" v-slot="{ item }">
 					<ListRow :route="{ name: 'print-format', params: { format: item.name } }">
 						<ListCell><span class="lucide-printer size-4 text-ink-gray-5" /></ListCell>
