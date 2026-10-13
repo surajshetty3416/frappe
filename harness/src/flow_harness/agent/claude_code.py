@@ -180,7 +180,7 @@ def _options(
 	return ClaudeAgentOptions(
 		model=inputs.model_name.partition("/")[2] or None,
 		cwd=config.cwd,
-		system_prompt=config.system_prompt or "",
+		system_prompt=_system_prompt(config.system_prompt),
 		tools=[],
 		setting_sources=[],
 		strict_mcp_config=True,
@@ -196,6 +196,14 @@ def _options(
 		effort=_EFFORT.get(inputs.reasoning_effort) if inputs.reasoning_effort else None,
 		**_resume_options(_anchor(inputs), config.cwd),
 	)
+
+
+def _system_prompt(prompt: str | None) -> str:
+	note = (
+		f"Your tools are named `{TOOL_PREFIX}<name>`. "
+		f"A tool that skills or messages call `execute` is `{TOOL_PREFIX}execute`."
+	)
+	return f"{prompt}\n\n{note}" if prompt else note
 
 
 def _flow_server(inputs: LoopInputs) -> McpSdkServerConfig:
@@ -275,7 +283,7 @@ def _history(current: UserMessage, inputs: LoopInputs) -> str:
 			if message.text:
 				lines.append(f"Assistant: {message.text}")
 			lines.extend(
-				f"Tool call {call.id}: {call.name}({json.dumps(call.arguments, default=str)})"
+				f"Tool call {call.id}: {TOOL_PREFIX}{call.name}({json.dumps(call.arguments, default=str)})"
 				for call in message.tool_calls
 			)
 		elif isinstance(message, ToolResult):
