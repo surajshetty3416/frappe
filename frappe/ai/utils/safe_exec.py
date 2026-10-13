@@ -182,6 +182,7 @@ def get_flow_safe_globals(*, tool_context: ToolContext | None = None) -> Namespa
 		html2text=html2text,
 		guess_mimetype=mimetypes.guess_type,
 		frappe=NamespaceDict(
+			_dict=frappe._dict,
 			call=call_whitelisted_function,
 			enqueue=safe_enqueue,
 			is_job_queued=is_job_queued,

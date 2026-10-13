@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING, Any
 import orjson
 import RestrictedPython.Guards
 from RestrictedPython import PrintCollector, compile_restricted, safe_globals
-from RestrictedPython.transformer import RestrictingNodeTransformer
+from RestrictedPython.transformer import RestrictingNodeTransformer, copy_locations
 
 import frappe
 import frappe.exceptions
@@ -66,6 +66,18 @@ class NamespaceDict(frappe._dict):
 
 
 class FrappeTransformer(RestrictingNodeTransformer):
+	def visit_Attribute(self, node):
+		if node.attr == "_dict" and isinstance(node.ctx, ast.Load):
+			node = self.node_contents_visit(node)
+			call = ast.Call(
+				func=ast.Name("_getattr_", ast.Load()),
+				args=[node.value, ast.Constant(node.attr)],
+				keywords=[],
+			)
+			copy_locations(call, node)
+			return call
+		return super().visit_Attribute(node)
+
 	def check_name(self, node, name, *args, **kwargs):
 		if name == "_dict":
 			return
@@ -547,6 +559,7 @@ def render_safe_globals():
 		_dict=frappe._dict,
 		args=form_dict,
 		frappe=NamespaceDict(
+			_dict=frappe._dict,
 			flags=frappe._dict(),
 			format=frappe.format_value,
 			format_value=frappe.format_value,
@@ -934,6 +947,9 @@ def _getattr_for_safe_exec(object, name, default=None):
 	# 2. it is not an UNSAFE_ATTRIBUTES
 	_validate_attribute_read(object, name)
 
+	if name == "_dict":
+		return getattr(object, name, default)
+
 	ret = RestrictedPython.Guards.safer_getattr(object, name, default=default)
 	if isinstance(ret, types.ModuleType | types.CodeType | types.TracebackType | types.FrameType):
 		raise SyntaxError(f"Reading {type(ret)} is not allowed")
@@ -956,7 +972,7 @@ def _validate_attribute_read(object, name):
 	if isinstance(object, types.ModuleType | types.CodeType | types.TracebackType | types.FrameType):
 		raise SyntaxError(f"Reading {object} attributes is not allowed")
 
-	if name.startswith("_"):
+	if name.startswith("_") and name != "_dict":
 		raise AttributeError(f'"{name}" is an invalid attribute name because it starts with "_"')
 
 

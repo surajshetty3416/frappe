@@ -298,6 +298,7 @@ def get_safer_globals():
 		# must stay top-level: safe_exec's _getattr_ guard rejects `frappe._`
 		_=frappe._,
 		frappe=NamespaceDict(
+			_dict=frappe._dict,
 			db=NamespaceDict(
 				count=frappe.db.count,
 				exists=frappe.db.exists,
