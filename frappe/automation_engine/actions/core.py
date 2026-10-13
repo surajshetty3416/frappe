@@ -271,9 +271,7 @@ class SendNotification(AutomationAction):
 			return (
 				# The template body is an Email Template, already an authored artefact.
 				frappe.render_template(template.subject, render_context(doc, context)),  # nosemgrep
-				frappe.render_template(  # nosemgrep
-					template.response or template.response_html or "", render_context(doc, context)
-				),
+				frappe.render_template(template.response_ or "", render_context(doc, context)),  # nosemgrep
 			)
 		return render_value(params.get("subject") or "", doc, context), render_value(
 			params.get("message") or "", doc, context
