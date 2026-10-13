@@ -58,13 +58,13 @@ export function routeArtifact(route: RouteLocationNormalizedLoaded) {
 
 export const artifactLabel = (doctype: string) => window.studio_artifacts?.[doctype]?.label ?? doctype
 
-// a record's title, by its DocType's title field; its name until the title arrives. Reactive, so a row that shows it updates.
+// a record's title, by its artifact's title field or the one given; its name until the title arrives. Reactive, so a row that shows it updates.
 const titles = reactive(new Map<string, string>())
-export function recordTitle(doctype: string, name: string) {
+export function recordTitle(doctype: string, name: string, titleField?: string) {
 	const key = `${doctype}/${name}`
 	if (!titles.has(key)) {
 		titles.set(key, name)
-		const field = window.studio_artifacts?.[doctype]?.title_field ?? "name"
+		const field = titleField ?? window.studio_artifacts?.[doctype]?.title_field ?? "name"
 		call("frappe.client.get_value", { doctype, filters: name, fieldname: field })
 			.then((doc) => doc?.[field] && titles.set(key, doc[field]))
 			.catch(() => {})

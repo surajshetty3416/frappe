@@ -24,11 +24,13 @@ const TOOLS = {
 	describe: {
 		icon: "lucide-layers",
 		label: "Reading DocType Meta",
+		subject: (args) => noun(args.doctype) ?? subject(args),
 		stat: (result) => count(result.fields?.length ?? 0, "field"),
 	},
 	read_records: {
 		icon: "lucide-database",
-		label: "Reading Records",
+		label: (args) => recordsLabel("Reading", args.doctype) ?? "Reading Records",
+		subject: (args) => (noun(args.doctype) ? "" : subject(args)),
 		view: ReadView,
 		stat: (result) => count(result.length, "record"),
 	},
@@ -43,21 +45,24 @@ const TOOLS = {
 	},
 	create: {
 		icon: "lucide-file-plus",
-		label: "Creating Records",
+		label: (args) => recordsLabel("Creating", args.doctype, args.records?.length) ?? "Creating Records",
+		subject: (args) => (noun(args.doctype) ? createdTitles(args) : subject(args)),
 		view: CreateView,
 		asks: true,
 		stat: (result) => outcome(result.created, result.failures, "created"),
 	},
 	update: {
 		icon: "lucide-pencil",
-		label: "Updating Records",
+		label: (args) => recordsLabel("Updating", args.doctype, args.names?.length) ?? "Updating Records",
+		subject: (args) => (noun(args.doctype) ? titles(args.doctype, args.names) : subject(args)),
 		view: NamesView,
 		asks: true,
 		stat: (result) => outcome(result.updated, result.failures, "updated"),
 	},
 	delete: {
 		icon: "lucide-trash-2",
-		label: "Deleting Records",
+		label: (args) => recordsLabel("Deleting", args.doctype, args.names?.length) ?? "Deleting Records",
+		subject: (args) => (noun(args.doctype) ? titles(args.doctype, args.names) : subject(args)),
 		view: NamesView,
 		asks: true,
 		stat: (result) => outcome(result.deleted, result.failures, "deleted"),
@@ -102,9 +107,22 @@ const TOOLS = {
 	run_automation: {
 		icon: "lucide-zap",
 		label: "Running Automation",
-		subject: (args) => (args.automation ? recordTitle("Automation Flow", args.automation) : ""),
+		subject: (args) => titles("Automation Flow", [args.automation]),
 		view: JsonView,
 	},
+	// the layers' tools keep their own names and name the record they take by its title
+	publish_web_page: { subject: (args) => titles("Builder Page", [args.page]), view: JsonView },
+	add_form_block: { subject: (args) => titles("Builder Page", [args.page]), view: JsonView },
+	add_chat_block: { subject: (args) => titles("Builder Page", [args.page]), view: JsonView },
+	set_page_data_script: { subject: (args) => titles("Builder Page", [args.page]), view: JsonView },
+	get_studio_page: { subject: (args) => titles("Studio Page", [args.page], "page_title"), view: JsonView },
+	save_studio_page: { subject: (args) => args.title ?? "", view: JsonView },
+	read_dashboard: { subject: (args) => titles("Insights Dashboard v3", [args.dashboard]), view: JsonView },
+	add_chart: { subject: (args) => titles("Insights Dashboard v3", [args.dashboard]), view: JsonView },
+	update_dashboard: { subject: (args) => titles("Insights Dashboard v3", [args.dashboard]), view: JsonView },
+	update_chart: { subject: (args) => titles("Insights Chart v3", [args.chart]), view: JsonView },
+	ask_agent: { subject: (args) => titles("Flow Agent", [args.agent]), view: JsonView },
+	preview_output: { subject: (args) => args.name ?? "", view: JsonView },
 	list_chats: { icon: "lucide-messages-square", label: "Reading Chats", stat: (result) => count(result.length, "chat") },
 	start_chat: { icon: "lucide-message-square-plus", label: "Starting Chat", subject: (args) => subject({ name: args.title }) },
 	send_to_chat: { icon: "lucide-send", label: "Sending to Chat", subject: (args) => subject({ content: args.message }) },
@@ -143,6 +161,33 @@ export function presentTool(name, args = {}, result = null) {
 		argsComponent: tool.asks ? tool.view : undefined,
 		resultComponent: cut ? JsonView : tool.view,
 	};
+}
+
+// what a DocType is called where people see it: an artifact's label, or the word for an internal one
+const NOUNS = {
+	"Flow Model": "Model",
+	"Flow Run": "Agent run",
+	"Flow Tool": "Tool",
+	"Flow Agent Tool": "Agent tool",
+	"Automation Run": "Automation run",
+};
+const noun = (doctype) => window.studio_artifacts?.[doctype]?.label ?? NOUNS[doctype];
+
+function recordsLabel(verb, doctype, n) {
+	const word = noun(doctype);
+	if (!word) return null;
+	return `${verb} ${n === 1 ? word : `${word}s`}`;
+}
+
+function titles(doctype, names, titleField) {
+	const shown = (names ?? []).filter(Boolean).map((name) => recordTitle(doctype, name, titleField));
+	return subject({ name: shown.join(", ") });
+}
+
+// a new record's title, from the field its artifact titles it by
+function createdTitles(args) {
+	const field = window.studio_artifacts?.[args.doctype]?.title_field ?? "title";
+	return subject({ name: (args.records ?? []).map((record) => record[field]).filter(Boolean).join(", ") });
 }
 
 function subject(args) {
