@@ -15,6 +15,12 @@ A web page is a Builder Page at a route. Its blocks render on the server, so a v
 4. Add forms with add_form_block and chats with add_chat_block.
 5. Publish with publish_web_page when the user asks.
 
+## Changing a page
+
+To change a page, call create_web_page again with its route and the whole new page_yaml. It replaces that page's draft blocks, and the page keeps its name and data script. Forms and chats are blocks, so add them again with add_form_block and add_chat_block. list_web_pages gives each page's name and route.
+
+To read a page's blocks, use read_records on Builder Page with the fields `draft_blocks` and `blocks`. They are Builder's block JSON, not page YAML. `draft_blocks` is empty when the page has no changes since it was published, and then `blocks` has them. A Builder Page is not a Studio Page, so the Apps tools, such as get_studio_page, cannot read it.
+
 ## Live records
 
 The data script is Python that fills the dict `data` on every visit:
