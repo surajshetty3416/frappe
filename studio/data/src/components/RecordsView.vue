@@ -1,11 +1,5 @@
 <template>
 	<div class="flex flex-col">
-		<Teleport defer to="#data-view-actions">
-			<span v-if="rows.length < (doctype.count ?? 0)" class="truncate text-sm text-ink-gray-5">
-				Latest {{ rows.length }} of {{ doctype.count?.toLocaleString() }}
-			</span>
-		</Teleport>
-
 		<div v-if="loading && !rows.length" class="flex flex-col gap-3 p-4">
 			<Skeleton v-for="i in 8" :key="i" class="h-8 w-full rounded-4" />
 		</div>
@@ -13,7 +7,7 @@
 			<span class="lucide-rows-3 size-5 text-ink-gray-4" />
 			<p class="mt-3 text-base font-medium text-ink-gray-8">No {{ doctype.name }} records yet</p>
 			<p class="mt-1 max-w-sm text-p-sm text-ink-gray-5">Fill it with realistic demo data, or add the first record in the form.</p>
-			<div data-selection-ui class="mt-4 flex gap-2">
+			<div class="mt-4 flex gap-2">
 				<Button v-if="editable" variant="solid" label="Demo data" icon-left="lucide-sparkles" @click="doctype.demoData = true" />
 				<Button label="New record" icon-left="lucide-plus" @click="openForm('new')" />
 			</div>
@@ -39,7 +33,7 @@
 						</span>
 					</ListHeaderItem>
 				</ListHeader>
-				<ListRows data-selection-ui />
+				<ListRows />
 				<template #cell="{ column, item }">
 					<span v-if="column.field?.fieldtype === 'Color' && item" class="flex min-w-0 items-center gap-2">
 						<span class="size-3 shrink-0 rounded-full border border-outline-gray-2" :style="{ background: String(item) }" />
@@ -50,6 +44,9 @@
 					</span>
 				</template>
 			</ListView>
+			<p v-if="rows.length < (doctype.count ?? 0)" class="px-2 pt-3 text-sm text-ink-gray-5">
+				Latest {{ rows.length }} of {{ doctype.count?.toLocaleString() }}
+			</p>
 		</div>
 	</div>
 </template>

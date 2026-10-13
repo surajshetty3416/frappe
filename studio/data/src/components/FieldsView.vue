@@ -1,18 +1,12 @@
 <template>
 	<div class="flex flex-col">
-		<Teleport defer to="#data-view-actions">
-			<span class="truncate text-sm text-ink-gray-5">{{ fields.length }} fields</span>
-			<Button v-if="editable" icon-left="lucide-plus" label="Add field" @click="addField" />
-		</Teleport>
-
-		<div class="min-h-0 flex-1 overflow-y-auto px-3 pb-6 pt-3" @mousemove="dropped = false">
+		<div class="min-h-0 flex-1 overflow-y-auto px-3 pb-6 pt-3">
 			<div :class="grid" class="h-8 rounded-4 bg-surface-gray-2 px-2 text-sm text-ink-gray-5">
 				<span v-if="editable" />
 				<span>Label</span>
 				<span>Type</span>
 				<span>Options</span>
 				<span>Required</span>
-				<span />
 			</div>
 			<Draggable
 				v-model="fields"
@@ -21,7 +15,6 @@
 				:animation="150"
 				:disabled="!editable"
 				ghost-class="opacity-40"
-				@end="dropped = true"
 			>
 				<template #item="{ element: field }">
 					<div
@@ -33,9 +26,6 @@
 							<span class="lucide-grip-vertical size-4" />
 						</span>
 						<span :data-element="elementId(field)" class="col-span-4 truncate">{{ field.label || field.fieldtype }}</span>
-						<div data-selection-ui class="flex justify-end">
-							<Button v-if="editable" variant="ghost" icon="lucide-trash-2" tooltip="Remove" :class="TRASH" @click="removeField(field)" />
-						</div>
 					</div>
 					<div v-else :class="grid" class="group h-11 border-b border-outline-gray-1 px-2">
 						<span v-if="editable" data-selection-ui data-drag-handle class="flex h-7 cursor-grab items-center text-ink-gray-4 hover:text-ink-gray-6">
@@ -89,9 +79,6 @@
 							<span v-else-if="field.reqd" class="lucide-check size-4 text-ink-gray-5" />
 							<span v-else class="text-sm text-ink-gray-4">–</span>
 						</div>
-						<div data-selection-ui class="flex justify-end">
-							<Button v-if="editable" variant="ghost" icon="lucide-trash-2" tooltip="Remove field" :class="TRASH" @click="removeField(field)" />
-						</div>
 					</div>
 				</template>
 			</Draggable>
@@ -101,7 +88,7 @@
 
 <script setup lang="ts">
 import { Button, Checkbox, Popover, Select, Textarea } from "frappe-ui"
-import { computed, reactive, ref } from "vue"
+import { computed, reactive } from "vue"
 import Draggable from "vuedraggable"
 
 import type { DocField } from "../api"
@@ -112,14 +99,10 @@ import { doctypeNames } from "../names"
 // read-only DocTypes cannot reorder, so they drop the grip column
 const grid = computed(() =>
 	editable.value
-		? "grid grid-cols-[20px_minmax(0,1.3fr)_minmax(0,1fr)_minmax(0,1.2fr)_72px_32px] items-center gap-3"
-		: "grid grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_minmax(0,1.2fr)_72px_32px] items-center gap-3"
+		? "grid grid-cols-[20px_minmax(0,1.3fr)_minmax(0,1fr)_minmax(0,1.2fr)_72px] items-center gap-3"
+		: "grid grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_minmax(0,1.2fr)_72px] items-center gap-3"
 )
 const BREAKS = new Set(["Section Break", "Column Break", "Tab Break"])
-
-// right after a drop the pointer rests on the moved row; its trash waits for the pointer to move
-const dropped = ref(false)
-const TRASH = computed(() => ["opacity-0 focus-visible:opacity-100", dropped.value ? "" : "group-hover:opacity-100"])
 
 const fields = computed({
 	get: () => doctype.doc?.fields ?? [],
@@ -154,13 +137,4 @@ function commitChoices(field: DocField) {
 		.join("\n")
 	if (options !== (field.options || "")) set(field, "options", options)
 }
-
-function addField() {
-	const labels = new Set(fields.value.map((field) => field.label))
-	let label = "New field"
-	for (let n = 2; labels.has(label); n++) label = `New field ${n}`
-	change((doc) => doc.fields.push({ label, fieldtype: "Data" }))
-}
-
-const removeField = (field: DocField) => change((doc) => (doc.fields = doc.fields.filter((other) => other !== field)))
 </script>

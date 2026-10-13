@@ -13,11 +13,11 @@
 </template>
 
 <script setup lang="ts">
+import { sendToChat } from "@shell/editor"
 import { Button, Dialog, FormControl } from "frappe-ui"
 import { computed, ref } from "vue"
 import { useRouter } from "vue-router"
 
-import { askChat } from "../chat"
 import { doctype } from "../doctype"
 
 const router = useRouter()
@@ -27,7 +27,7 @@ const valid = computed(() => Number(count.value) >= 1 && Number(count.value) <= 
 function ask() {
 	const message = `Add ${Number(count.value)} realistic demo records to ${doctype.name}. Fill every field with believable, varied values, and link only to records that exist.`
 	doctype.demoData = false
-	if (askChat(message)) return
+	if (sendToChat(message)) return
 	router.push({ name: "studio-chat", params: { session: "new" }, query: { prompt: message } })
 }
 </script>

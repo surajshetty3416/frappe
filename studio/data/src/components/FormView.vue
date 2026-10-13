@@ -7,10 +7,10 @@
 			<span class="lucide-square-pen size-5 text-ink-gray-4" />
 			<p class="mt-3 text-base font-medium text-ink-gray-8">No record to show</p>
 			<p class="mt-1 max-w-sm text-p-sm text-ink-gray-5">Add the first {{ doctype.name }} record, or ask for demo data.</p>
-			<Button data-selection-ui class="mt-4" label="New record" icon-left="lucide-plus" @click="pick('new')" />
+			<Button class="mt-4" label="New record" icon-left="lucide-plus" @click="pick('new')" />
 		</div>
 		<div v-else class="min-h-0 flex-1 overflow-y-auto">
-			<div data-selection-ui class="mx-auto flex max-w-3xl items-center gap-2 px-6 pt-4">
+			<div class="mx-auto flex max-w-3xl items-center gap-2 px-6 pt-4">
 				<template v-if="isNew">
 					<span class="flex-1 text-sm font-medium text-ink-gray-8">New {{ doctype.name }}</span>
 					<Button v-if="options.length" label="Cancel" @click="pick(options[0].value)" />
@@ -47,9 +47,7 @@
 							<span data-text>{{ fieldLabel(field) }}</span>
 							<span v-if="field.reqd" class="text-ink-red-4">*</span>
 						</span>
-						<div data-selection-ui>
-							<RecordField :field="field" :model-value="draft[field.fieldname!]" @update:model-value="(value) => set(field, value)" />
-						</div>
+						<RecordField :field="field" :model-value="draft[field.fieldname!]" @update:model-value="(value) => set(field, value)" />
 					</div>
 				</template>
 			</div>

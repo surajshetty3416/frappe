@@ -1,6 +1,7 @@
 // The open DocType: what the preview's views and the shell's editor contract both read.
+import type { ArtifactView, EditorMode } from "@shell/editor"
 import { toast } from "frappe-ui"
-import { computed, reactive } from "vue"
+import { computed, reactive, shallowReactive } from "vue"
 import type { Router } from "vue-router"
 
 import { type DocField, type DocTypeDoc, PERM_TYPES, countRecords, getDocType, saveDocType } from "./api"
@@ -18,11 +19,38 @@ export const doctype = reactive({
 })
 
 // set by the preview: where the shell finds the elements it selects, and the router it navigates with
-export const preview: { host: HTMLElement | null; router: Router | null } = { host: null, router: null }
+export const preview = shallowReactive<{ host: HTMLElement | null; router: Router | null }>({ host: null, router: null })
 
 // core DocTypes belong to the framework; Studio shows them and changes only the site's own
 export const editable = computed(() => Boolean(doctype.doc?.custom))
 export const hasRecords = computed(() => Boolean(doctype.doc && !doctype.doc.istable && !doctype.doc.issingle))
+
+export type View = "records" | "form" | "fields" | "permissions"
+const VIEWS: { name: View; label: string; records?: boolean }[] = [
+	{ name: "records", label: "Records", records: true },
+	{ name: "form", label: "Form", records: true },
+	{ name: "fields", label: "Fields" },
+	{ name: "permissions", label: "Permissions" },
+]
+// Records and Form are the DocType in use, so clicks reach rows and inputs until Edit selects a field.
+// Fields is where a field is selected, and Permissions has nothing to select.
+export const VIEW_MODES: Record<View, EditorMode[]> = {
+	records: ["preview", "edit"],
+	form: ["preview", "edit"],
+	fields: ["edit"],
+	permissions: ["preview"],
+}
+const shown = computed(() => VIEWS.filter((option) => !option.records || hasRecords.value || !doctype.doc))
+export const view = computed<View>(() => {
+	const wanted = preview.router?.currentRoute.value.query.view
+	return shown.value.find((option) => option.name === wanted)?.name ?? shown.value[0].name
+})
+export const openView = (name: View) => {
+	const route = preview.router?.currentRoute.value
+	if (route) preview.router!.replace({ query: { ...route.query, view: name } })
+}
+export const views = (): ArtifactView[] =>
+	shown.value.map((option) => ({ ...option, active: option.name === view.value, open: () => openView(option.name) }))
 
 export const errorText = (error: unknown) => {
 	const messages = (error as { messages?: string[] })?.messages
@@ -37,6 +65,7 @@ export async function open(name: string) {
 	try {
 		const doc = await getDocType(name)
 		if (doctype.name !== name) return
+		if (doctype.doc?.name !== doc.name) clearHistory()
 		doctype.doc = doc
 		refreshCount()
 	} catch (error) {
@@ -75,9 +104,13 @@ export async function saving<T>(work: () => Promise<T>) {
 let queue: Promise<void> = Promise.resolve()
 let pending = 0
 
-export function change(mutate: (doc: DocTypeDoc) => void) {
+export function change(mutate: (doc: DocTypeDoc) => void, record = true) {
 	const doc = doctype.doc
 	if (!doc || !editable.value) return queue
+	if (record) {
+		undone.length = 0
+		done.push(snapshot(doc))
+	}
 	mutate(doc)
 	doc.fields.forEach((field, index) => (field.idx = index + 1))
 	doc.permissions.forEach((perm, index) => (perm.idx = index + 1))
@@ -98,6 +131,30 @@ export function change(mutate: (doc: DocTypeDoc) => void) {
 	return queue
 }
 
+// Undo and redo walk the DocType's settings, fields and permissions as a person changed them here.
+const SETTINGS = ["title_field", "track_changes", "fields", "permissions"] as const
+type Snapshot = Pick<DocTypeDoc, (typeof SETTINGS)[number]>
+const done: Snapshot[] = []
+const undone: Snapshot[] = []
+const snapshot = (doc: DocTypeDoc) => JSON.parse(JSON.stringify(Object.fromEntries(SETTINGS.map((key) => [key, doc[key]])))) as Snapshot
+export function clearHistory() {
+	done.length = undone.length = 0
+}
+function step(from: Snapshot[], to: Snapshot[]) {
+	const doc = doctype.doc
+	const state = from.pop()
+	if (!doc || !state) return
+	to.push(snapshot(doc))
+	// a row removed since is saved again as new: the server only updates rows it still has
+	for (const key of ["fields", "permissions"] as const) {
+		const names = new Set(doc[key].map((row) => row.name))
+		state[key].forEach((row) => row.name && !names.has(row.name) && delete row.name)
+	}
+	change((doc) => Object.assign(doc, state), false)
+}
+export const undo = () => step(done, undone)
+export const redo = () => step(undone, done)
+
 // a later change is still waiting: keep it, and take what the server gave the rows it saved
 function adoptNames(local: DocTypeDoc, saved: DocTypeDoc) {
 	local.modified = saved.modified
@@ -111,6 +168,21 @@ function adoptNames(local: DocTypeDoc, saved: DocTypeDoc) {
 
 export const elementId = (field: DocField) => `field:${field.fieldname}`
 export const fieldOf = (id: string) => doctype.doc?.fields.find((field) => elementId(field) === id) ?? null
+
+const freeLabel = (doc: DocTypeDoc, label: string) => {
+	const labels = new Set(doc.fields.map((field) => field.label))
+	let free = label
+	for (let n = 2; labels.has(free); n++) free = `${label} ${n}`
+	return free
+}
+export const addField = () => change((doc) => doc.fields.push({ label: freeLabel(doc, "New field"), fieldtype: "Data" }))
+export const removeField = (field: DocField) => change((doc) => (doc.fields = doc.fields.filter((other) => other !== field)))
+// the server names the copy's column from its label
+export const duplicateField = (field: DocField) =>
+	change((doc) => {
+		const { name, fieldname, idx, ...copy } = JSON.parse(JSON.stringify(field)) as DocField
+		doc.fields.splice(doc.fields.indexOf(field) + 1, 0, { ...copy, label: freeLabel(doc, `${field.label || fieldname} copy`) })
+	})
 
 const labelOf = (doc: DocTypeDoc, fieldname: string) => {
 	const field = doc.fields.find((field) => field.fieldname === fieldname)

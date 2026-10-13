@@ -1,18 +1,5 @@
 <template>
 	<div ref="root" class="flex h-full flex-col bg-surface-base">
-		<div data-selection-ui class="flex h-11 shrink-0 items-center gap-2 border-b border-outline-gray-1 px-3">
-			<TabButtons :options="views" :model-value="view" @update:model-value="setView" />
-			<div class="flex min-w-0 flex-1 items-center justify-end gap-2">
-				<Transition leave-active-class="transition-opacity duration-150 ease-out" leave-to-class="opacity-0">
-					<span v-if="doctype.saved" class="flex shrink-0 items-center gap-1 text-xs text-ink-gray-5">
-						<span class="lucide-check size-3.5" />
-						Saved
-					</span>
-				</Transition>
-				<div id="data-view-actions" class="flex min-w-0 items-center justify-end gap-2" />
-			</div>
-		</div>
-
 		<div v-if="doctype.error" class="flex flex-1 flex-col items-center justify-center px-6 text-center">
 			<span class="lucide-triangle-alert size-5 text-ink-gray-4" />
 			<p class="mt-3 text-base font-medium text-ink-gray-8">This DocType could not open</p>
@@ -33,11 +20,12 @@
 </template>
 
 <script setup lang="ts">
-import { Skeleton, TabButtons } from "frappe-ui"
+import { editorMode } from "@shell/editor"
+import { Skeleton } from "frappe-ui"
 import { computed, onBeforeUnmount, ref, watch } from "vue"
 import { useRoute, useRouter } from "vue-router"
 
-import { doctype, hasRecords, open, preview } from "../doctype"
+import { VIEW_MODES, doctype, open, preview, view } from "../doctype"
 import { loadDoctypeNames } from "../names"
 import DemoDataDialog from "./DemoDataDialog.vue"
 import FieldsView from "./FieldsView.vue"
@@ -65,21 +53,6 @@ watch(
 )
 loadDoctypeNames()
 
-type View = "records" | "form" | "fields" | "permissions"
-const views = computed(() => [
-	...(hasRecords.value || !doctype.doc
-		? [
-				{ value: "records", label: "Records", iconLeft: "lucide-rows-3" },
-				{ value: "form", label: "Form", iconLeft: "lucide-square-pen" },
-			]
-		: []),
-	{ value: "fields", label: "Fields", iconLeft: "lucide-list" },
-	{ value: "permissions", label: "Permissions", iconLeft: "lucide-shield" },
-])
-const view = computed<View>(() => {
-	const wanted = route.query.view
-	if (views.value.some((option) => option.value === wanted)) return wanted as View
-	return views.value[0].value as View
-})
-const setView = (value: unknown) => router.replace({ query: { ...route.query, view: String(value) } })
+// each view opens in its first mode
+watch(view, (value) => (editorMode.value = VIEW_MODES[value][0]), { immediate: true })
 </script>

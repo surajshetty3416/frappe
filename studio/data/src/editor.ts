@@ -5,9 +5,14 @@ import { findTab } from "@shell/tabs"
 import { toast } from "frappe-ui"
 
 import { renameDocType } from "./api"
+import DataBarControls from "./components/DataBarControls.vue"
+import DocTypeDetails from "./components/DocTypeDetails.vue"
 import DocTypePreview from "./components/DocTypePreview.vue"
 import {
+	VIEW_MODES,
+	clearHistory,
 	docTypeJSON,
+	duplicateField,
 	doctype,
 	editable,
 	elementId,
@@ -19,7 +24,12 @@ import {
 	open,
 	permissionSummary,
 	preview,
+	redo,
+	removeField,
 	titleFieldLabel,
+	undo,
+	view,
+	views,
 } from "./doctype"
 import { fieldIcon, fieldLabel, fieldTypes, optionsKind } from "./fields"
 import { doctypeNames } from "./names"
@@ -91,6 +101,7 @@ export default defineArtifactEditor({
 	},
 	status() {
 		if (doctype.saving) return { label: "Saving…", theme: "gray" }
+		if (doctype.saved) return { label: "Saved", theme: "green" }
 		if (doctype.doc && !doctype.doc.custom) return { label: "Core, read only", theme: "gray" }
 		if (doctype.doc?.istable) return { label: "Child table", theme: "gray" }
 		if (doctype.count === null) return { label: "Counting…", theme: "gray" }
@@ -107,8 +118,13 @@ export default defineArtifactEditor({
 		return [
 			{ label: "Module", value: doc.module },
 			{ label: "Naming", value: namingRule(doc) },
-			{ label: "Title field", value: titleFieldLabel(doc) },
-			{ label: "Track changes", value: doc.track_changes ? "On" : "Off" },
+			// a DocType Studio changes edits these in the form above
+			...(editable.value
+				? []
+				: [
+						{ label: "Title field", value: titleFieldLabel(doc) },
+						{ label: "Track changes", value: doc.track_changes ? "On" : "Off" },
+					]),
 			{
 				label: "Permissions",
 				value: permissions.map((perm) => `${perm.role}: ${permissionSummary(perm)}`).join("; ") || "Nobody",
@@ -116,11 +132,20 @@ export default defineArtifactEditor({
 		]
 	},
 	code: () => ({ language: "json", content: doctype.doc ? docTypeJSON(doctype.doc) : "" }),
+	detailsForm: () => (editable.value ? { component: DocTypeDetails } : null),
 	async reload(modified) {
 		// the save this tab made itself
 		if (doctype.saving || (modified && modified === doctype.doc?.modified)) return
+		clearHistory()
 		if (doctype.name) await open(doctype.name)
 	},
+	get modes() {
+		return VIEW_MODES[view.value]
+	},
+	views,
+	barControls: () => (editable.value && (view.value === "fields" || view.value === "permissions") ? { component: DataBarControls } : null),
+	undo,
+	redo,
 
 	elementAt(node) {
 		const element = node.closest<HTMLElement>("[data-element]")
@@ -142,4 +167,12 @@ export default defineArtifactEditor({
 		if (field && label && label !== field.label) change(() => (field.label = label))
 	},
 	properties: fieldProperties,
+	actions(id) {
+		const field = fieldOf(id)
+		if (!field || !editable.value) return []
+		return [
+			{ name: "duplicate", label: "Duplicate", icon: "lucide-copy", run: () => duplicateField(field) },
+			{ name: "delete", label: "Delete", icon: "lucide-trash-2", run: () => removeField(field) },
+		]
+	},
 })

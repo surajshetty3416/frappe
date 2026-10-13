@@ -1,20 +1,5 @@
 <template>
 	<div class="flex flex-col">
-		<Teleport defer to="#data-view-actions">
-			<Combobox
-				v-if="editable"
-				:model-value="null"
-				:options="roleOptions"
-				placeholder="Find a role"
-				align="end"
-				@update:model-value="(role) => role && addRole(String(role))"
-			>
-				<template #trigger>
-					<Button icon-left="lucide-plus" label="Add role" />
-				</template>
-			</Combobox>
-		</Teleport>
-
 		<div class="min-h-0 flex-1 overflow-y-auto px-3 pb-6 pt-3">
 			<div :class="grid" class="h-8 rounded-4 bg-surface-gray-2 px-2 text-sm text-ink-gray-5">
 				<span>Role</span>
@@ -26,7 +11,7 @@
 				<p class="mt-3 text-base font-medium text-ink-gray-8">Nobody has access yet</p>
 				<p class="mt-1 max-w-sm text-p-sm text-ink-gray-5">Add a role to say who can read, write, create and delete these records.</p>
 			</div>
-			<div v-for="perm in rows" :key="perm.name ?? perm.role" :class="grid" class="group h-11 border-b border-outline-gray-1 px-2" data-selection-ui>
+			<div v-for="perm in rows" :key="perm.name ?? perm.role" :class="grid" class="group h-11 border-b border-outline-gray-1 px-2">
 				<span class="flex min-w-0 items-center gap-2">
 					<span class="lucide-users size-4 shrink-0 text-ink-gray-5" />
 					<span class="truncate text-sm text-ink-gray-8">{{ perm.role }}</span>
@@ -55,10 +40,10 @@
 </template>
 
 <script setup lang="ts">
-import { Button, Checkbox, Combobox } from "frappe-ui"
-import { computed, ref } from "vue"
+import { Button, Checkbox } from "frappe-ui"
+import { computed } from "vue"
 
-import { type DocPerm, PERM_TYPES, type PermType, getNames } from "../api"
+import { type DocPerm, PERM_TYPES, type PermType } from "../api"
 import { change, doctype, editable } from "../doctype"
 
 // only submittable records have a submit permission
@@ -72,13 +57,6 @@ const grid = computed(() =>
 // field-level permissions (permlevel above 0) stay as they are; the agent manages those
 const rows = computed(() => (doctype.doc?.permissions ?? []).filter((perm) => !perm.permlevel))
 
-const roles = ref<string[]>([])
-getNames("Role").then((names) => (roles.value = names))
-const roleOptions = computed(() => {
-	const taken = new Set(rows.value.map((perm) => perm.role))
-	return roles.value.filter((role) => !taken.has(role)).map((role) => ({ label: role, value: role }))
-})
-
 function setPerm(perm: DocPerm, type: PermType, value: boolean) {
 	change(() => {
 		perm[type] = value ? 1 : 0
@@ -87,6 +65,5 @@ function setPerm(perm: DocPerm, type: PermType, value: boolean) {
 	})
 }
 
-const addRole = (role: string) => change((doc) => doc.permissions.push({ role, permlevel: 0, read: 1 }))
 const removeRole = (perm: DocPerm) => change((doc) => (doc.permissions = doc.permissions.filter((other) => other !== perm)))
 </script>
