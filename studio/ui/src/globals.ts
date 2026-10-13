@@ -105,8 +105,7 @@ import { vueComponents } from "@ui/data/vueComponents"
 import { CustomVueComponentMeta } from "@ui/types/vue"
 
 export function registerGlobalComponents(app: App) {
-	// the editor shares the app with other layers, which register some of the same frappe-ui components
-	const register = (name: string, component: Component) => app.component(name) || app.component(name, component)
+	const register = (name: string, component: Component) => app.component(name, component)
 
 	register("Alert", Alert)
 	register("Avatar", Avatar)

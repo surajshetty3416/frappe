@@ -102,7 +102,6 @@ import {
 	ComputedRef,
 	onErrorCaptured,
 	h,
-	getCurrentInstance,
 } from "vue"
 import type { ComponentPublicInstance } from "vue"
 import { useEventListener } from "@vueuse/core"
@@ -172,11 +171,11 @@ const componentName = computed(() => {
 		name = customVueComponentsRegistry.value[name]
 	}
 	if (!name || isUnregistered(name)) return h(MissingComponent, { componentName: props.block.componentName })
-	return name
+	return typeof name === "string" ? (registeredComponents[name] ?? name) : name
 })
 
 // e.g. a frappe-ui component that a later version removed: Vue would render it as an empty unknown element
-const registeredComponents = getCurrentInstance()?.appContext.components ?? {}
+const registeredComponents = window.__APP_COMPONENTS__ ?? {}
 const isUnregistered = (name: unknown) =>
 	typeof name === "string" && /^[A-Z]/.test(name) && !(name in registeredComponents)
 
