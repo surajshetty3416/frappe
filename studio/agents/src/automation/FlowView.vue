@@ -33,7 +33,7 @@
 							<span class="lucide-arrow-up-right size-4 text-ink-gray-5" />
 						</RouterLink>
 						<p v-if="step.prompt?.length" class="mt-2 whitespace-pre-wrap rounded-4 bg-surface-gray-1 px-3 py-2 text-sm leading-6 text-ink-gray-7">
-							<template v-for="(part, i) in step.prompt" :key="i"><span v-if="part.field" :class="CHIP">{{ part.field }}</span><template v-else>{{ part.text }}</template></template>
+							<PromptParts :parts="step.prompt" />
 						</p>
 					</template>
 					<code v-else-if="step.detail" class="mt-2 block whitespace-pre-wrap rounded-4 bg-surface-gray-2 px-2 py-1.5 font-mono text-sm text-ink-gray-7">{{ step.detail }}</code>
@@ -41,7 +41,7 @@
 						<div v-for="param in step.params" :key="param.label" class="flex gap-3 text-sm">
 							<dt class="w-28 shrink-0 text-ink-gray-5">{{ param.label }}</dt>
 							<dd class="min-w-0 break-words text-ink-gray-8">
-								<template v-for="(part, i) in partsOf(param)" :key="i"><span v-if="part.field" :class="CHIP">{{ part.field }}</span><template v-else>{{ part.text }}</template></template>
+								<PromptParts :parts="param.parts" />
 							</dd>
 						</div>
 					</dl>
@@ -60,14 +60,10 @@
 import { useRoute } from "vue-router"
 
 import type { Flow, StepCard } from "../api"
+import PromptParts from "../components/PromptParts.vue"
 
 defineProps<{ flow: Flow }>()
 const route = useRoute()
-
-// a value the run fills in from the record
-const CHIP = "rounded-4 bg-surface-gray-3 px-0.5 py-0.5 text-ink-gray-8"
-type Part = { text?: string; field?: string }
-const partsOf = (param: { value?: string; parts?: Part[] }): Part[] => param.parts ?? [{ text: param.value }]
 const ICONS: Record<string, string> = { Wait: "lucide-clock", WaitForEvent: "lucide-hourglass", If: "lucide-git-branch" }
 const iconOf = (step: StepCard) => (step.action_type === "RunAgent" ? "lucide-bot" : ICONS[step.kind] ?? "lucide-square-play")
 </script>

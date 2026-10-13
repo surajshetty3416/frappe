@@ -271,17 +271,38 @@ def param_parts(doctype: str | None, value) -> list[dict]:
 
 
 def prompt_parts(doctype: str | None, prompt: str) -> list[dict]:
-	"""The prompt as text and fields: `{{ doc.name }}` reads as the record, `{{ doc.title }}` as its Title."""
+	"""The prompt as text and chips: `{{ doc.title }}` reads as Title, `{{ nowdate() }}` as Today, other code as itself."""
 	parts, at = [], 0
-	for match in re.finditer(r"{{\s*doc\.(\w+)\s*}}", prompt):
+	for match in re.finditer(r"{{\s*(.+?)\s*}}", prompt):
 		if match.start() > at:
 			parts.append({"text": prompt[at : match.start()]})
-		fieldname = match.group(1)
-		parts.append({"field": (doctype or "Record") if fieldname == "name" else field_label(doctype, fieldname)})
+		parts.append(expression_part(doctype, match.group(1)))
 		at = match.end()
 	if at < len(prompt):
 		parts.append({"text": prompt[at:]})
 	return parts
+
+
+def expression_part(doctype: str | None, expression: str) -> dict:
+	if field := re.fullmatch(r"doc\.(\w+)", expression):
+		fieldname = field.group(1)
+		return {"field": (doctype or "Record") if fieldname == "name" else field_label(doctype, fieldname)}
+	if date := date_words(expression):
+		return {"field": date}
+	return {"code": expression}
+
+
+def date_words(expression: str) -> str | None:
+	expression = re.sub(r"\s+", "", expression).replace("frappe.utils.", "")
+	today = r"(?:nowdate|today|getdate)\(\)"
+	if re.fullmatch(today, expression):
+		return "Today"
+	offset = re.fullmatch(rf"add_days\({today},([+-]?\d+)\)", expression)
+	if not offset:
+		return None
+	days = int(offset.group(1))
+	named = {-1: "Yesterday", 0: "Today", 1: "Tomorrow"}
+	return named.get(days) or (f"{-days} days ago" if days < 0 else f"In {days} days")
 
 
 def action_words(flow) -> str:

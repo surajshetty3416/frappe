@@ -47,9 +47,15 @@ export interface StepCard {
 	detail?: string
 	agent?: string
 	agent_title?: string
-	// `field` is a value the run fills in from the record
-	prompt?: { text?: string; field?: string }[]
-	params?: { label: string; value?: string; parts?: { text?: string; field?: string }[] }[]
+	prompt?: PromptPart[]
+	params?: { label: string; parts: PromptPart[] }[]
+}
+
+// `field` is a value the run fills in, from the record or the date; `code` an expression with no words for it
+export interface PromptPart {
+	text?: string
+	field?: string
+	code?: string
 }
 
 export interface AutomationDoc {
