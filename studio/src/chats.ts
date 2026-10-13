@@ -26,7 +26,7 @@ async function load() {
 	chats.value = history
 	loaded.value = true
 	// the first visit has read everything before it, by the server's clock
-	if (!seen.value.since) seen.value.since = history[0]?.modified ?? "0"
+	if (!seen.value.since) seen.value.since = history.reduce((latest, chat) => (chat.modified > latest ? chat.modified : latest), "0")
 }
 
 export const refreshChats = useDebounceFn(load, 400)

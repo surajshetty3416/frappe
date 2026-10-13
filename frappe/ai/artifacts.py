@@ -184,13 +184,14 @@ def link_artifact(session: str, reference_doctype: str, reference_name: str) -> 
 
 @frappe.whitelist()
 def get_history(limit: int | str = 20) -> list[dict[str, Any]]:
-	"""The user's chats, newest first, each with the artifacts it made (newest last)."""
+	"""The user's chats, newest first, each with the artifacts it made (newest last). Activity
+	does not reorder them, so a running chat's row stays where the person left it."""
 	frappe.has_permission("Flow Session", "read", throw=True)
 	sessions = frappe.get_all(
 		"Flow Session",
 		filters=own_chats(),
 		fields=["name", "title", "modified"],
-		order_by="modified desc",
+		order_by="creation desc",
 		limit=min(cint(limit) or 20, HISTORY_LIMIT),
 	)
 	found = artifacts_by_session(artifact_rows([session.name for session in sessions]))
