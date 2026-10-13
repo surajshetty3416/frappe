@@ -13,7 +13,7 @@
 				<li v-for="run in runs" :key="run.name">
 					<ItemListRow as="button" type="button" size="md" class="text-left hover:bg-surface-gray-2" :selected="run.name === selected" @click="selected = run.name">
 						<template #prefix><span class="size-1.5 rounded-full" :class="STATUS_DOT[run.status]" /></template>
-						<span class="block truncate text-sm text-ink-gray-8" :title="run.status">{{ record(run) }}</span>
+						<span class="block truncate text-sm text-ink-gray-8" :title="recordTitle(run)">{{ recordTitle(run) }}</span>
 						<span class="block truncate text-sm text-ink-gray-5" :title="run.started_at ?? ''">{{ [when(run.started_at), duration(run)].filter(Boolean).join(" · ") }}</span>
 					</ItemListRow>
 				</li>
@@ -103,7 +103,9 @@ load()
 const timer = setInterval(load, 3000)
 onBeforeUnmount(() => clearInterval(timer))
 
-const record = (run: RunRow) => (run.reference_name ? `${run.reference_doctype}: ${run.reference_title || run.reference_name}` : "Run without a record")
+// the list drops the DocType, which the trigger already names
+const recordTitle = (run: RunRow) => (run.reference_name ? run.reference_title || run.reference_name : "Run without a record")
+const record = (run: RunRow) => (run.reference_name ? `${run.reference_doctype}: ${recordTitle(run)}` : recordTitle(run))
 const when = (value: string | null) => (value ? dayjs(value).fromNow() : "Not started")
 const ms = (value: number) => (value < 1000 ? `${value} ms` : `${(value / 1000).toFixed(1)} s`)
 function duration(run: RunRow) {
