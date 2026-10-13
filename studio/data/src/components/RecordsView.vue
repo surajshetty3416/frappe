@@ -4,44 +4,49 @@
 			<Skeleton v-for="i in 8" :key="i" class="h-8 w-full rounded-4" />
 		</div>
 		<NoRecords v-else-if="!rows.length" />
-		<div v-else class="min-h-0 flex-1 overflow-auto px-3 pb-6 pt-3">
-			<ListView
-				:columns="columns"
-				:rows="rows"
-				row-key="name"
-				class="!w-full"
-				:options="{ selectable: false, showTooltip: true, rowHeight: 36, onRowClick: (row: Row) => openForm(row.name) }"
-			>
-				<ListHeader class="sticky top-0 z-10">
-					<ListHeaderItem
-						v-for="column in columns"
-						:key="column.key"
-						:item="column"
-						:data-element="column.field ? elementId(column.field) : undefined"
-					>
-						<span class="flex min-w-0 items-center gap-1.5">
-							<span :class="column.field ? fieldIcon(column.field.fieldtype) : 'lucide-hash'" class="size-3.5 shrink-0" />
-							<span data-text class="truncate">{{ column.label }}</span>
+		<div v-else class="flex min-h-0 flex-1 flex-col px-3 pb-3 pt-3">
+			<div ref="frame" class="relative flex min-h-0 flex-1 flex-col">
+				<ListView
+					:columns="columns"
+					:rows="rows"
+					row-key="name"
+					class="!w-full shrink-0"
+					:style="{ minWidth }"
+					:options="{ selectable: false, showTooltip: true, rowHeight: 36, onRowClick: (row: Row) => openForm(row.name) }"
+				>
+					<ListHeader class="sticky top-0 z-10">
+						<ListHeaderItem
+							v-for="column in columns"
+							:key="column.key"
+							:item="column"
+							:data-element="column.field ? elementId(column.field) : undefined"
+						>
+							<span class="flex min-w-0 items-center gap-1.5">
+								<span :class="column.field ? fieldIcon(column.field.fieldtype) : 'lucide-hash'" class="size-3.5 shrink-0" />
+								<span data-text class="truncate">{{ column.label }}</span>
+							</span>
+						</ListHeaderItem>
+					</ListHeader>
+					<ListRows />
+					<template #cell="{ column, item }">
+						<span v-if="column.field?.fieldtype === 'Color' && item" class="flex min-w-0 items-center gap-2">
+							<span class="size-3 shrink-0 rounded-full border border-outline-gray-2" :style="{ background: String(item) }" />
+							<span class="truncate text-sm text-ink-gray-5">{{ item }}</span>
 						</span>
-					</ListHeaderItem>
-				</ListHeader>
-				<ListRows />
-				<template #cell="{ column, item }">
-					<span v-if="column.field?.fieldtype === 'Color' && item" class="flex min-w-0 items-center gap-2">
-						<span class="size-3 shrink-0 rounded-full border border-outline-gray-2" :style="{ background: String(item) }" />
-						<span class="truncate text-sm text-ink-gray-5">{{ item }}</span>
-					</span>
-					<Tooltip v-else-if="column.field?.fieldtype === 'Link' && titles[`${column.field.options}::${item}`]" :text="String(item)">
-						<span class="block truncate text-sm text-ink-gray-7">{{ titles[`${column.field.options}::${item}`] }}</span>
-					</Tooltip>
-					<span v-else-if="column.field && NUMERIC.has(column.field.fieldtype)" class="block truncate text-right text-sm tabular-nums text-ink-gray-7">
-						{{ formatValue(column.field, item) || "—" }}
-					</span>
-					<span v-else class="block truncate text-sm" :class="column.key === 'name' ? 'text-ink-gray-8' : 'text-ink-gray-7'">
-						{{ column.field ? formatValue(column.field, item) : item }}
-					</span>
-				</template>
-			</ListView>
+						<Tooltip v-else-if="column.field?.fieldtype === 'Link' && titles[`${column.field.options}::${item}`]" :text="String(item)">
+							<span class="block truncate text-sm text-ink-gray-7">{{ titles[`${column.field.options}::${item}`] }}</span>
+						</Tooltip>
+						<span v-else-if="column.field && NUMERIC.has(column.field.fieldtype)" class="block truncate text-right text-sm tabular-nums text-ink-gray-7">
+							{{ formatValue(column.field, item) || "—" }}
+						</span>
+						<span v-else class="block truncate text-sm" :class="column.key === 'name' ? 'text-ink-gray-8' : 'text-ink-gray-7'">
+							{{ column.field ? formatValue(column.field, item) : item }}
+						</span>
+					</template>
+				</ListView>
+				<div v-show="clipped.start" class="pointer-events-none absolute inset-y-0 left-0 z-20 w-4 shadow-[inset_12px_0_8px_-8px_rgb(0_0_0/0.12)]" />
+				<div v-show="clipped.end" class="pointer-events-none absolute inset-y-0 right-0 z-20 w-4 shadow-[inset_-12px_0_8px_-8px_rgb(0_0_0/0.12)]" />
+			</div>
 			<p v-if="rows.length < (doctype.count ?? 0)" class="px-2 pt-3 text-sm text-ink-gray-5">
 				Latest {{ rows.length }} of {{ doctype.count?.toLocaleString() }}
 			</p>
@@ -50,11 +55,11 @@
 </template>
 
 <script setup lang="ts">
-import { useDebounceFn } from "@vueuse/core"
+import { useDebounceFn, useEventListener, useResizeObserver } from "@vueuse/core"
 import { onListUpdate } from "@shell/realtime"
 import { Skeleton, Tooltip } from "frappe-ui"
 import { ListHeader, ListHeaderItem, ListRows, ListView } from "frappe-ui/experimental"
-import { computed, onBeforeUnmount, ref, watch } from "vue"
+import { computed, nextTick, onBeforeUnmount, reactive, ref, watch } from "vue"
 import { useRoute, useRouter } from "vue-router"
 
 import { type DocField, type Row, getLinkTitles, getRecords } from "../api"
@@ -80,26 +85,43 @@ const listed = computed(() => {
 	const chosen = fields.filter((field) => field.in_list_view)
 	return (chosen.length ? chosen : fields).slice(0, MAX_COLUMNS)
 })
-// the title takes the room; other values keep a fixed width, short ones narrow
+// columns share the panel's width, the title most; below their minimums the table scrolls sideways
 const NUMERIC = new Set(["Int", "Float", "Currency", "Percent"])
 const NARROW = new Set([...NUMERIC, "Check", "Date", "Time", "Color", "Rating"])
-const widthOf = (field: DocField) => {
-	if (field.fieldname === doctype.doc?.title_field) return "minmax(10rem, 1fr)"
-	if (NARROW.has(field.fieldtype)) return "5rem"
-	return "10rem"
+const sizeOf = (field: DocField): [number, number] => {
+	if (field.fieldname === doctype.doc?.title_field) return [8, 1.5]
+	if (NARROW.has(field.fieldtype)) return [5, 0.6]
+	return [6, 1]
 }
+const grid = ([min, share]: [number, number]) => `minmax(${min}rem, ${share}fr)`
 const columns = computed(() => [
 	naming.value
-		? { key: "name", label: fieldLabel(naming.value), width: "minmax(10rem, 1fr)", field: naming.value as DocField | null }
-		: { key: "name", label: "ID", width: "6rem", field: null },
+		? { key: "name", label: fieldLabel(naming.value), size: [8, 1.5] as [number, number], field: naming.value as DocField | null }
+		: { key: "name", label: "ID", size: [6, 0.8] as [number, number], field: null },
 	...listed.value.map((field) => ({
 		key: field.fieldname!,
 		label: fieldLabel(field),
-		width: widthOf(field),
+		size: sizeOf(field),
 		align: NUMERIC.has(field.fieldtype) ? "right" : undefined,
 		field,
 	})),
-])
+].map((column) => ({ ...column, width: grid(column.size) })))
+// the minimums, the 1rem gaps between columns and the row's 1rem of padding
+const minWidth = computed(() => `${columns.value.reduce((sum, column) => sum + column.size[0] + 1, 0)}rem`)
+
+// a shadow marks each edge the panel clips
+const frame = ref<HTMLElement | null>(null)
+const clipped = reactive({ start: false, end: false })
+const scroller = computed(() => frame.value?.querySelector<HTMLElement>(":scope > div") ?? null)
+function measure() {
+	const element = scroller.value
+	if (!element) return
+	clipped.start = element.scrollLeft > 0
+	clipped.end = element.scrollLeft + element.clientWidth < element.scrollWidth - 1
+}
+useEventListener(scroller, "scroll", measure, { passive: true })
+useResizeObserver(scroller, measure)
+watch(columns, () => nextTick(measure))
 
 const rows = ref<Row[]>([])
 const titles = ref<Record<string, string>>({})
