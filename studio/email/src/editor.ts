@@ -30,7 +30,7 @@ export default defineOutputEditor({
 	},
 	details(state) {
 		const doc = state.doc!
-		return [{ label: "Rendered against", value: String(doc.reference_doctype || "Any record") }]
+		return [{ label: "DocType", value: String(doc.reference_doctype || "Any") }]
 	},
 	detailsForm: EmailDetails,
 	code: [{ name: "html", label: "HTML" }],
