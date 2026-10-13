@@ -48,9 +48,11 @@ def record(doc, method: str | None = None) -> None:
 
 
 def delete(doc, method: str | None = None) -> None:
-	"""doc_events hook: an artifact's versions go with it."""
+	"""doc_events hook: an artifact's versions and its chats' links to it go with it."""
 	if doc.doctype in artifact_types():
-		frappe.db.delete("Artifact Version", {"reference_doctype": doc.doctype, "reference_name": doc.name})
+		ref = {"reference_doctype": doc.doctype, "reference_name": doc.name}
+		frappe.db.delete("Artifact Version", ref)
+		frappe.db.delete("Flow Session Artifact", {"parenttype": "Flow Session", "parentfield": "artifacts", **ref})
 
 
 def unlink_sessions(sessions: list[str]) -> None:
