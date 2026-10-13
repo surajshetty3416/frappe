@@ -188,7 +188,14 @@ def play_step(session: str, speed: float | str | None = None) -> dict[str, Any]:
 	# one run per recorded turn, as live: its tool calls version an artifact once
 	if message or not replay.run:
 		run = frappe.get_doc(
-			{"doctype": "Flow Run", "session": session, "source": "Manual", "status": "Running"}
+			{
+				"doctype": "Flow Run",
+				"session": session,
+				"source": "Manual",
+				"status": "Running",
+				"reference_doctype": "Flow Replay",
+				"reference_name": session,
+			}
 		)
 	else:
 		run = frappe.get_doc("Flow Run", replay.run)
@@ -276,9 +283,10 @@ def first_message(recording: str) -> str | None:
 
 
 def went_live(replay) -> bool:
-	"""A run the replay did not start is a live message, which ends the replay."""
-	latest = frappe.db.get_value("Flow Run", {"session": replay.session}, "name", order_by="creation desc")
-	return bool(latest and latest != replay.run)
+	"""A message the person sent, whose run names no Flow Replay, ends the replay."""
+	return bool(
+		frappe.db.exists("Flow Run", {"session": replay.session, "reference_doctype": ("is", "not set")})
+	)
 
 
 # --- steps ----------------------------------------------------------------
