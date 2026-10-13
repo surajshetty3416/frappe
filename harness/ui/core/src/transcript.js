@@ -503,7 +503,7 @@ export function resultTask(entry) {
 function foldLabel(turn) {
 	const elapsed =
 		turn.startedAt != null && turn.endedAt != null
-			? formatDuration(Math.max(0, turn.endedAt - turn.startedAt) * 1_000)
+			? formatDuration(Math.max(1, turn.endedAt - turn.startedAt) * 1_000)
 			: null
 	if (turn.interrupted) return elapsed ? `You stopped after ${elapsed}` : "You stopped this response"
 	return elapsed ? `Worked for ${elapsed}` : "Worked"
