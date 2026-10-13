@@ -23,7 +23,8 @@
 				@update:modelValue="(value: string) => updateApp('route', value)"
 			/>
 			<div class="flex items-center gap-3">
-				<img :src="app.favicon || defaultFavicon" alt="" class="size-6 rounded-4" />
+				<img v-if="app.favicon" :src="app.favicon" alt="" class="size-6 rounded-4" />
+				<div v-else class="size-6 rounded-4 border border-dashed border-outline-gray-3" />
 				<FileUploader
 					file-types="image/*"
 					:private="false"
@@ -34,7 +35,7 @@
 					<template #default="{ uploading, progress, openFileSelector }">
 						<div class="flex gap-2">
 							<Button @click="openFileSelector">
-								{{ uploading ? `Uploading ${progress}%` : app.favicon ? "Change Favicon" : "Upload Favicon" }}
+								{{ uploading ? `Uploading ${progress}%` : app.favicon ? "Change favicon" : "Upload favicon" }}
 							</Button>
 							<Button v-if="app.favicon" @click="updateApp('favicon', '')">Remove</Button>
 						</div>
@@ -78,7 +79,6 @@ import Input from "@ui/components/Input.vue"
 import PageMetaFields from "@ui/components/PageMetaFields.vue"
 import useStudioStore from "@ui/stores/studioStore"
 import { getRouteVariables } from "@ui/utils/helpers"
-import defaultFavicon from "/studio-favicon.png"
 
 type FileDoc = { file_url: string }
 
