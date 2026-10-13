@@ -63,6 +63,7 @@ def tool_callback(
 		return _error(_("The session's owner is disabled."))
 	user = frappe.session.user
 	frappe.set_user(session.owner)
+	frappe.flags.flow_session = session_id  # artifact versions credit the session's run
 	frappe.db.savepoint(SAVEPOINT)
 	try:
 		return _dispatch(session_id, agent, tool, args or {}, mode, result_token)
@@ -70,6 +71,7 @@ def tool_callback(
 		_rollback()
 		return _error(str(exc).strip() or type(exc).__name__)
 	finally:
+		frappe.flags.flow_session = None
 		frappe.set_user(user)
 
 

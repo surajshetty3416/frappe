@@ -4,7 +4,7 @@
 doc_events = {
 	"*": {
 		"after_insert": "frappe.ai.triggers.dispatch",
-		"on_update": "frappe.ai.triggers.dispatch",
+		"on_update": ["frappe.ai.triggers.dispatch", "frappe.ai.versions.record"],
 		"on_submit": "frappe.ai.triggers.dispatch",
 		"on_cancel": "frappe.ai.triggers.dispatch",
 		"on_trash": "frappe.ai.triggers.dispatch",
