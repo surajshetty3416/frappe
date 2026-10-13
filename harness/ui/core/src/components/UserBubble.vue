@@ -25,7 +25,12 @@
 				</span>
 			</div>
 			<!-- twelve lines of the prose's 1.6 leading -->
-			<div v-if="hasText" ref="textEl" class="overflow-hidden" :class="expanded ? '' : 'max-h-[19.2em]'">
+			<div
+				v-if="hasText"
+				ref="textEl"
+				class="overflow-hidden"
+				:class="[expanded ? '' : 'max-h-[19.2em]', clampable && !expanded ? '[mask-image:linear-gradient(to_bottom,black_calc(100%-3em),transparent)]' : '']"
+			>
 				<div v-if="quotes.length" class="flex flex-col gap-2" :class="body ? 'mb-2' : ''">
 					<blockquote
 						v-for="(quote, i) in quotes"
