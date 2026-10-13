@@ -13,7 +13,6 @@ A Studio App is served at `/<app route>`. Each Studio Page is one screen at a pa
 2. Create the app with create_studio_app, unless it exists (list_studio_apps).
 3. Save each page with save_studio_page. Save the home page first: the first page saved is the app's home. If you are not sure of a component's props or slots, call get_studio_components with its name.
 4. When the result says `"saved": false`, fix every error it lists and save again. Read the warnings too.
-5. Reply with each page's URL.
 
 ## The tree
 

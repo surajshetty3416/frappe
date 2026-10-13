@@ -13,7 +13,7 @@ A web page is a Builder Page at a route. Its blocks render on the server, so a v
 2. Create the page with create_web_page. Give the blocks you will add to later a `name`, such as `name: Register`.
 3. For live records, set the page's data script with set_page_data_script, then bind blocks to it (see Live records). Check the sample it returns before you bind.
 4. Add forms with add_form_block and chats with add_chat_block.
-5. Publish with publish_web_page when the user asks, and reply with each page's URL.
+5. Publish with publish_web_page when the user asks.
 
 ## Live records
 

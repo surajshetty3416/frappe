@@ -12,8 +12,7 @@ A chart is a SQL query plus a spec. The query returns one row per record; the sp
 1. Find the DocTypes and fields with `find_doctypes` and `describe`. A DocType's table is `` `tab<DocType>` ``. A Link field holds the `name` of the linked record, so a join is `` JOIN `tabConference` c ON c.name = a.conference ``.
 2. Write one SQL per chart and try it with `run_query`.
 3. Work out the numbers you expect in SQL with `run_query` (`COUNT(*)`, `SUM(...)` with `GROUP BY`). This is the only place a GROUP BY goes.
-4. Call `create_dashboard` once with every chart and filter. It returns each chart's rows. Compare them with step 3 before you report.
-5. Tell the user what the dashboard shows in two or three sentences, with the numbers. Say which charts a filter does not reach, and why.
+4. Call `create_dashboard` once with every chart and filter. It returns each chart's rows. Compare them with step 3.
 
 ## The SQL
 
@@ -111,4 +110,4 @@ Then one `create_dashboard` call:
 }
 ```
 
-Every chart selects `registered_on`, so the Date filter reaches all three. Compare the Number card's rows with the SQL total and the Bar's rows with the GROUP BY above, then report: "1,012 registrations against the 1,000 target; Regular tickets bring in most of the ₹38L."
+Every chart selects `registered_on`, so the Date filter reaches all three. Compare the Number card's rows with the SQL total and the Bar's rows with the GROUP BY above.
