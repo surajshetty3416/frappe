@@ -145,6 +145,7 @@ export default defineArtifactEditor({
 	barControls: () => (editable.value && (view.value === "fields" || view.value === "permissions") ? { component: DataBarControls } : null),
 	undo,
 	redo,
+	select: (id) => void (doctype.selected = id),
 
 	elementAt(node) {
 		const element = node.closest<HTMLElement>("[data-element]")

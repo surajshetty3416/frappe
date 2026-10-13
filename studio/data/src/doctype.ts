@@ -14,6 +14,8 @@ export const doctype = reactive({
 	saving: 0,
 	count: null as number | null,
 	demoData: false,
+	// the field the shell has selected
+	selected: null as string | null,
 })
 
 // set by the preview: where the shell finds the elements it selects, and the router it navigates with

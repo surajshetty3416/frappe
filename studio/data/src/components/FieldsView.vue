@@ -27,29 +27,27 @@
 						</span>
 						<span :data-element="elementId(field)" class="col-span-4 truncate">{{ field.label || field.fieldtype }}</span>
 					</div>
-					<div v-else :class="grid" class="group h-11 border-b border-outline-gray-1 px-2">
+					<div v-else :data-element="elementId(field)" :class="grid" class="group h-11 border-b border-outline-gray-1 px-2">
 						<span v-if="editable" data-selection-ui data-drag-handle class="flex h-7 cursor-grab items-center text-ink-gray-4 hover:text-ink-gray-6">
 							<span class="lucide-grip-vertical size-4" />
 						</span>
-						<div :data-element="elementId(field)" class="flex min-w-0 items-center gap-2 py-1">
+						<div class="flex min-w-0 items-center gap-2 py-1">
 							<span :class="fieldIcon(field.fieldtype)" class="size-4 shrink-0 text-ink-gray-5" />
 							<span class="flex min-w-0 flex-col">
 								<span data-text class="truncate text-sm" :class="field.label ? 'text-ink-gray-8' : 'text-ink-gray-5'">{{ fieldLabel(field) }}</span>
 								<span class="truncate font-mono text-xs text-ink-gray-5">{{ field.fieldname }}</span>
 							</span>
 						</div>
-						<div data-selection-ui class="min-w-0">
-							<Select
-								v-if="editable"
-								class="w-full"
-								:model-value="field.fieldtype"
-								:options="typeOptions(field.fieldtype)"
-								@update:model-value="(value) => set(field, 'fieldtype', value)"
-							/>
-							<span v-else class="text-sm text-ink-gray-7">{{ field.fieldtype }}</span>
-						</div>
-						<div data-selection-ui class="min-w-0">
-							<template v-if="optionsKind(field.fieldtype) && editable">
+						<template v-if="editable && doctype.selected === elementId(field)">
+							<div data-selection-ui class="min-w-0">
+								<Select
+									class="w-full"
+									:model-value="field.fieldtype"
+									:options="typeOptions(field.fieldtype)"
+									@update:model-value="(value) => set(field, 'fieldtype', value)"
+								/>
+							</div>
+							<div data-selection-ui class="min-w-0">
 								<Popover v-if="optionsKind(field.fieldtype) === 'choices'" side="bottom" align="start" @update:open="(open: boolean) => (open ? draftOf(field) : commitChoices(field))">
 									<template #trigger>
 										<Button class="w-full max-w-40 !justify-between" icon-right="lucide-chevron-down">
@@ -64,21 +62,24 @@
 									</template>
 								</Popover>
 								<Select
-									v-else
+									v-else-if="optionsKind(field.fieldtype)"
 									class="w-full"
 									:model-value="field.options || null"
 									:options="targetOptions(field)"
 									:placeholder="optionsKind(field.fieldtype) === 'table' ? 'Rows of…' : 'Links to…'"
 									@update:model-value="(value) => set(field, 'options', value)"
 								/>
-							</template>
-							<span v-else class="block truncate text-sm text-ink-gray-7">{{ choices(field).join(", ") }}</span>
-						</div>
-						<div data-selection-ui class="flex h-7 items-center">
-							<Checkbox v-if="editable" :model-value="Boolean(field.reqd)" @update:model-value="(value) => set(field, 'reqd', value ? 1 : 0)" />
-							<span v-else-if="field.reqd" class="lucide-check size-4 text-ink-gray-5" />
+							</div>
+							<div data-selection-ui class="flex h-7 items-center">
+								<Checkbox :model-value="Boolean(field.reqd)" @update:model-value="(value) => set(field, 'reqd', value ? 1 : 0)" />
+							</div>
+						</template>
+						<template v-else>
+							<span class="truncate text-sm text-ink-gray-7">{{ field.fieldtype }}</span>
+							<span class="truncate text-sm text-ink-gray-7">{{ choices(field).join(", ") }}</span>
+							<span v-if="field.reqd" class="lucide-check size-4 text-ink-gray-5" />
 							<span v-else class="text-sm text-ink-gray-4">–</span>
-						</div>
+						</template>
 					</div>
 				</template>
 			</Draggable>
