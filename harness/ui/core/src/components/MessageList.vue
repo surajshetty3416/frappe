@@ -1,236 +1,164 @@
 <template>
 	<div class="relative min-h-0 flex-1">
-	<div
-		ref="scroller"
-		class="h-full overflow-y-auto px-5"
-		:class="prompts.length > 3 ? 'md:px-10' : ''"
-		:style="{ scrollPaddingBottom: composerHeight + 24 + 'px' }"
-		@scroll="onScroll"
-		@mousedown="onMouseDown"
-	>
-		<!-- pad by the floating composer's height so "center" means the visible
-		     area above it, not the full page -->
-		<div
-			v-if="empty"
-			class="flex h-full flex-col items-center justify-center gap-5 text-center"
-			:style="{ paddingBottom: composerHeight + 'px' }"
-		>
-			<slot name="empty">
-				<BrandMark :size="52" />
-				<h2 class="max-w-xs text-6xl font-normal leading-snug tracking-[-0.01em] text-ink-gray-9 sm:max-w-none">What would you like to build?</h2>
-			</slot>
-		</div>
-		<LoadingState
-			v-else-if="loading"
-			class="h-full justify-center text-sm text-ink-gray-5"
-			:style="{ paddingBottom: composerHeight + 'px' }"
-		/>
-		<div
-			v-else
-			ref="thread"
-			class="flow-thread mx-auto flex max-w-[800px] flex-col gap-5 pt-10"
-			:style="{ paddingBottom: composerHeight + 40 + 'px' }"
-		>
-			<template v-for="(item, i) in items" :key="item.key">
-				<UserBubble
-					v-if="item.kind === 'user'"
-					:entry="item.entry"
-					:data-prompt-key="item.key"
-					class="scroll-mt-3"
-				/>
-				<TurnFold
-					v-else-if="item.kind === 'turn-fold'"
-					:data-turn-fold="item.turnKey"
-					:label="item.label"
-					:expanded="item.expanded"
-					@toggle="toggleTurn(item)"
-				/>
-				<AssistantText
-					v-else-if="item.kind === 'text'"
-					:class="tightGap(i)"
-					:block="item.block"
-				/>
-				<ThinkingBlock
-					v-else-if="item.kind === 'thinking'"
-					:id="item.key"
-					:class="tightGap(i)"
-					:block="item.block"
-					:live="item.live"
-				/>
-				<ToolGroup
-					v-else-if="item.kind === 'group'"
-					:class="tightGap(i)"
-					:steps="item.steps"
-					:sealed="i < turnEnd - 1 || !conversation.running"
-					:live-label="conversation.liveLabel"
-				/>
-				<!-- the latest turn's copy button stays visible; older ones hover-reveal -->
-				<div
-					v-else-if="item.kind === 'turn-copy'"
-					class="-mt-3 flex items-center gap-2"
-					:class="i === lastTurnCopyIndex ? '' : 'flow-turn-copy'"
-				>
-					<CopyButton
-						:text="item.text"
-						title="Copy response"
-						class="grid h-6 w-6 place-items-center rounded-5 text-ink-gray-4 hover:bg-surface-gray-2 hover:text-ink-gray-8"
+		<div ref="scroller" class="h-full overflow-y-auto px-4" @scroll="onScroll" @mousedown="onMouseDown">
+			<LoadingState v-if="loading" class="h-full justify-center text-sm text-ink-gray-5" />
+			<div v-else-if="!blank" ref="thread" class="flow-thread mx-auto flex max-w-[760px] flex-col gap-4 pb-6 pt-12">
+				<template v-for="(item, i) in items" :key="item.key">
+					<UserBubble v-if="item.kind === 'user'" :entry="item.entry" />
+					<TurnFold
+						v-else-if="item.kind === 'turn-fold'"
+						:data-turn-fold="item.turnKey"
+						:label="item.label"
+						:expanded="item.expanded"
+						@toggle="toggleTurn(item)"
 					/>
-					<!-- a host's own per-turn actions (Flow's feedback thumbs) -->
-					<component
-						:is="flow.options.turnActions"
-						v-if="flow.options?.turnActions"
-						:turn-key="item.turnKey"
-						:text="item.text"
-						:ts="item.ts"
+					<AssistantText v-else-if="item.kind === 'text'" :block="item.block" />
+					<ThoughtStep
+						v-else-if="item.kind === 'thinking'"
+						:id="item.key"
+						:class="tightGap(i)"
+						:block="item.block"
+						:live="item.live"
 					/>
-					<span v-if="formatTime(item.ts)" class="text-2xs text-ink-gray-4">{{ formatTime(item.ts) }}</span>
-				</div>
-				<TurnFiles v-else-if="item.kind === 'turn-files'" class="flow-turn-files -mt-1" :files="item.files" />
-				<div
-					v-else-if="item.kind === 'compaction'"
-					class="flex items-center gap-2.5 text-sm text-ink-gray-5"
-				>
-					<FeatherIcon name="archive" class="h-3.5 w-3.5 flex-none" />
-					<span>Context compacted ({{ item.entry.reason }})</span>
-				</div>
-				<div
-					v-else-if="item.kind === 'notice'"
-					class="flex items-center gap-3 py-1 text-2xs text-ink-gray-4"
-				>
-					<span class="h-px flex-1 bg-surface-gray-3" />
-					<span>{{ item.text }}</span>
-					<span class="h-px flex-1 bg-surface-gray-3" />
-				</div>
-				<div
-					v-else-if="item.kind === 'error'"
-					class="break-words rounded-6 border border-outline-red-1 bg-surface-red-1 px-3.5 py-2.5 text-sm text-ink-red-6"
-				>
-					{{ item.error.message }}
-				</div>
-			</template>
+					<ToolGroup
+						v-else-if="item.kind === 'group'"
+						:class="tightGap(i)"
+						:steps="item.steps"
+						:sealed="i < turnEnd - 1 || !conversation.running"
+					/>
+					<div v-else-if="item.kind === 'turn-artifacts'" class="flow-turn-artifacts flex flex-col gap-2">
+						<ArtifactCard v-for="artifact in item.artifacts" :key="artifact.route" :artifact="artifact" />
+					</div>
+					<!-- the latest turn's actions stay visible; older ones reveal on hover -->
+					<div
+						v-else-if="item.kind === 'turn-copy'"
+						class="-mt-2 flex items-center gap-1"
+						:class="i === lastTurnCopyIndex ? '' : 'flow-turn-copy'"
+					>
+						<CopyButton :text="item.text" title="Copy response" />
+						<span v-if="formatTime(item.ts)" class="text-sm text-ink-gray-5">{{ formatTime(item.ts) }}</span>
+					</div>
+					<div v-else-if="item.kind === 'compaction'" class="flex items-center gap-2 text-sm text-ink-gray-5">
+						<span class="lucide-archive size-4 flex-none" />
+						<span>Context compacted</span>
+					</div>
+					<p v-else-if="item.kind === 'notice'" class="text-sm text-ink-gray-5">{{ item.text }}</p>
+					<div
+						v-else-if="item.kind === 'error'"
+						class="break-words rounded-4 border border-outline-red-1 bg-surface-red-1 px-3 py-2 text-sm text-ink-red-6"
+					>
+						{{ item.error.message }}
+					</div>
+				</template>
 
-			<!-- Before the first streamed block (or during retry/compaction), no
-			     transcript item owns the live status, so render one fallback line.
-			     py-2.5 keeps it on the same rhythm as the rows that replace it; after
-			     a thinking block the thread gap collapses too, so the status sits
-			     exactly where the upcoming tool row will render. -->
-			<div
-				v-if="showStandaloneStatus"
-				class="py-2.5 text-sm font-medium"
-				:class="lastItem?.kind === 'thinking' ? '-mt-5' : ''"
-			>
-				<span class="flow-shimmer">{{ liveLabel }}</span>
+				<!-- a batch answers one call at a time, so the next call takes the card over -->
+				<ApprovalCard
+					v-if="approval"
+					:key="approval.call.id"
+					:call="approval.call"
+					:position="approval.position"
+					:total="approval.total"
+				/>
+
+				<!-- the turn at work: what it is doing and for how long -->
+				<div v-else-if="working" class="flex items-center gap-2 text-sm">
+					<span class="lucide-loader-circle size-4 flex-none animate-spin text-ink-gray-5" />
+					<span class="flow-shimmer">{{ liveLabel }}</span>
+					<span v-if="elapsed" class="tabular-nums text-ink-gray-5">{{ elapsed }}</span>
+				</div>
 			</div>
-
 		</div>
-	</div>
 
-	<PromptRail
-		v-if="prompts.length > 3"
-		:prompts="prompts"
-		:active-key="activePromptKey"
-		@select="scrollToPrompt"
-	/>
-
-	<button
-		v-if="!stick && !empty"
-		class="absolute left-1/2 z-10 grid h-8 w-8 -translate-x-1/2 place-items-center rounded-full border border-outline-gray-2 bg-surface-base text-ink-gray-6 shadow-md hover:text-ink-gray-9"
-		:style="{ bottom: composerHeight + 12 + 'px' }"
-		title="Scroll to bottom"
-		@click="toBottom"
-	>
-		<FeatherIcon name="arrow-down" class="h-4 w-4" />
-	</button>
-	<AddToChat :within="scroller" />
+		<Button
+			v-if="!stick && !blank"
+			class="absolute bottom-3 left-1/2 z-10 -translate-x-1/2 rounded-full shadow-md"
+			icon="lucide-arrow-down"
+			variant="outline"
+			tooltip="Scroll to bottom"
+			@click="toBottom"
+		/>
+		<AddToChat :within="scroller" />
 	</div>
 </template>
 
 <script setup>
 import { computed, inject, nextTick, onBeforeUnmount, onMounted, provide, reactive, ref, watch } from "vue"
-import FeatherIcon from "./FeatherIcon.vue"
+import { Button } from "frappe-ui"
 
-import { buildItems, formatTime, panelIds, userAttachments, userText } from "../transcript.js"
+import { approvalToAnswer, buildItems, formatDuration, formatTime, panelIds } from "../transcript.js"
 import AddToChat from "./AddToChat.vue"
+import ApprovalCard from "./ApprovalCard.vue"
+import ArtifactCard from "./ArtifactCard.vue"
 import AssistantText from "./AssistantText.vue"
-import BrandMark from "./BrandMark.vue"
 import CopyButton from "./CopyButton.vue"
 import LoadingState from "./LoadingState.vue"
-import PromptRail from "./PromptRail.vue"
-import ThinkingBlock from "./ThinkingBlock.vue"
+import ThoughtStep from "./ThoughtStep.vue"
 import ToolGroup from "./ToolGroup.vue"
-import TurnFiles from "./TurnFiles.vue"
 import TurnFold from "./TurnFold.vue"
 import UserBubble from "./UserBubble.vue"
 
-const props = defineProps({
-	// the thread to draw: a sub-agent's, else the session's
-	conversation: { type: Object, default: null },
-})
 const flow = inject("flow")
-const conversation = computed(() => props.conversation ?? flow.state.conversation)
+const conversation = computed(() => flow.state.conversation)
 const expandedTurnKeys = ref(new Set())
 // rows (tool calls, thoughts) the user has open, by id
 const openPanels = reactive(new Set())
 provide("openPanels", openPanels)
 const items = computed(() => buildItems(conversation.value, expandedTurnKeys.value, openPanels))
 
-// nothing to draw yet: the empty state, or a loading line while a session opens
 const blank = computed(() => !items.value.length && !conversation.value.running && !conversation.value.liveLabel)
-const empty = computed(() => blank.value && !flow.state.loading)
 const loading = computed(() => blank.value && flow.state.loading)
-const composerHeight = inject("composerHeight", ref(120))
-const lastTurnCopyIndex = computed(() =>
-	items.value.findLastIndex((item) => item.kind === "turn-copy"),
-)
-const lastItem = computed(() => items.value[items.value.length - 1])
+const lastTurnCopyIndex = computed(() => items.value.findLastIndex((item) => item.kind === "turn-copy"))
 // the running turn ends above the steered bubbles waiting below it
 const turnEnd = computed(() => items.value.length - (conversation.value.steering?.length ?? 0))
 
-// Tool and thought rows carry their own py-2.5, so the thread gap over-spaces
-// them: standalone thoughts stack like they do inside a group, and a row
-// meeting a text blob or the turn fold gives back most of that padding.
+// thoughts stack like they do inside a group
 function tightGap(i) {
-	const isRow = (kind) => kind === "group" || kind === "thinking"
-	const prev = items.value[i - 1]?.kind
-	const cur = items.value[i]?.kind
-	if (prev === "thinking" && cur === "thinking") return "-mt-5"
-	const meetsText = (isRow(prev) && cur === "text") || (prev === "text" && isRow(cur))
-	return meetsText || (prev === "turn-fold" && isRow(cur)) ? "-mt-1.5" : ""
+	return items.value[i - 1]?.kind === "thinking" && items.value[i]?.kind === "thinking" ? "-mt-4" : ""
 }
 
-// Streamed thinking and tool groups render their own status. The fallback is
-// reserved for statuses that have no preview item yet.
-const lastIsOpenGroup = computed(
-	() => conversation.value.running && lastItem.value?.kind === "group",
-)
-const lastIsLiveThinking = computed(
-	() => lastItem.value?.kind === "thinking" && lastItem.value.live,
-)
-// a message in flight has no server status yet, but the work has started; below a
-// steered one, the turn above keeps its own status
+const approval = computed(() => {
+	const pending = approvalToAnswer(conversation.value)
+	const index = pending?.calls.findIndex((call) => !(call.id in pending.answers)) ?? -1
+	if (index === -1) return null
+	return { call: pending.calls[index], position: index + 1, total: pending.calls.length }
+})
+
+const working = computed(() => conversation.value.running || conversation.value.sending?.length > 0)
 const liveLabel = computed(() =>
-	conversation.value.running && conversation.value.steering?.length
-		? "Working"
-		: conversation.value.liveLabel || (conversation.value.sending?.length ? "Working" : ""),
+	conversation.value.running && !conversation.value.steering?.length ? conversation.value.liveLabel || "Working" : "Working",
 )
-const showStandaloneStatus = computed(
-	() => !!liveLabel.value && !lastIsOpenGroup.value && !lastIsLiveThinking.value,
+
+// elapsed time of the turn at work, from its user message
+const now = ref(Date.now())
+let ticker = null
+watch(
+	working,
+	(on) => {
+		clearInterval(ticker)
+		now.value = Date.now()
+		if (on) ticker = setInterval(() => (now.value = Date.now()), 1000)
+	},
+	{ immediate: true },
 )
+onBeforeUnmount(() => clearInterval(ticker))
+const elapsed = computed(() => {
+	const ts = items.value.findLast((item) => item.kind === "user")?.entry?.ts
+	if (!Number.isFinite(ts)) return ""
+	const ms = Math.max(0, now.value - ts * 1000)
+	return ms < 1000 ? "" : formatDuration(ms)
+})
 
 const partialVersion = computed(() => {
 	const partial = conversation.value.partial
 	const tail = partial[partial.length - 1]
 	const streamedLength = tail?.text?.length ?? tail?.thinking?.length ?? 0
-	// tool rows render on their display_ready upgrade (arguments landing), which
-	// moves nothing else the autoscroller watches — count the upgraded calls
 	const ready = partial.filter((b) => b.type === "tool_call" && b.arguments != null).length
-	return `${partial.length}:${tail?.type ?? ""}:${tail?.id ?? ""}:${tail?.name ?? ""}:${streamedLength}:${ready}`
+	return `${partial.length}:${tail?.type ?? ""}:${tail?.id ?? ""}:${streamedLength}:${ready}`
 })
 
 const scroller = ref(null)
 const stick = ref(true)
 let lastScrollTop = 0
-// the view sat on the bottom at the last scroll or resize
 let atBottom = true
 
 function onScroll() {
@@ -240,12 +168,9 @@ function onScroll() {
 	const goingUp = el.scrollTop < lastScrollTop
 	lastScrollTop = el.scrollTop
 	atBottom = distance < 4
-	// any upward scroll unsticks; scrolling down re-sticks only once the view
-	// actually reaches the bottom — re-pinning from ~80px away yanks the page
-	// out of the user's hands mid-scroll
+	// any upward scroll unsticks; only reaching the bottom re-sticks
 	if (distance < 4) stick.value = true
 	else if (goingUp) stick.value = false
-	updateActivePrompt()
 }
 
 // a clicked button, link or summary takes no focus, so a closing dialog can't scroll the list back to it
@@ -253,10 +178,7 @@ function onMouseDown(event) {
 	if (event.target.closest("button, a[href], summary")) event.preventDefault()
 }
 
-// collapsing a fold, a tool group or a thought can leave the view at the bottom
-// without any scroll event, so the thread's height is watched as well; a panel,
-// the sidebar or the window resizing the list re-wraps the thread, so a view that
-// sat on the bottom is put back there
+// collapsing rows or resizing the column moves no scroll position; a view that sat on the bottom stays there
 const thread = ref(null)
 let resizeObserver = null
 onMounted(() => {
@@ -280,44 +202,6 @@ onMounted(() => {
 })
 onBeforeUnmount(() => resizeObserver?.disconnect())
 
-const prompts = computed(() =>
-	items.value
-		.filter((item) => item.kind === "user")
-		.map((item) => {
-			const text = userText(item.entry) || userAttachments(item.entry)[0]?.name || "Prompt"
-			return { key: item.key, text: text.length > 400 ? text.slice(0, 400) + "…" : text }
-		}),
-)
-const activePromptKey = ref(null)
-
-// the active prompt is the last one that has scrolled past the upper third of
-// the visible area — i.e. the turn currently being read
-function updateActivePrompt() {
-	const el = scroller.value
-	if (!el || !prompts.value.length) {
-		activePromptKey.value = null
-		return
-	}
-	const threshold = el.getBoundingClientRect().top + el.clientHeight / 3
-	let active = prompts.value[0].key
-	for (const bubble of el.querySelectorAll("[data-prompt-key]")) {
-		if (bubble.getBoundingClientRect().top <= threshold) active = bubble.dataset.promptKey
-	}
-	activePromptKey.value = active
-}
-
-function scrollToPrompt(key) {
-	const target = scroller.value?.querySelector(`[data-prompt-key="${CSS.escape(key)}"]`)
-	if (!target) return
-	stick.value = false // don't let the autoscroller cancel the jump mid-stream
-	target.scrollIntoView({ behavior: "smooth", block: "start" })
-}
-
-watch(
-	() => prompts.value.length,
-	() => void nextTick(updateActivePrompt),
-)
-
 function toBottom() {
 	const el = scroller.value
 	if (!el) return
@@ -335,15 +219,13 @@ function toggleTurn(item) {
 	} else next.add(turnKey)
 	expandedTurnKeys.value = next
 	if (expanded) return
-	// reveal the steps the fold just inserted below itself (no-op when visible)
 	void nextTick(() => {
 		const fold = scroller.value?.querySelector(`[data-turn-fold="${CSS.escape(turnKey)}"]`)
 		fold?.nextElementSibling?.scrollIntoView({ block: "nearest", behavior: "smooth" })
 	})
 }
 
-// your own message belongs at the live end of the thread, wherever the view was
-// when you sent or steered it
+// your own message belongs at the live end of the thread
 const sendingCount = computed(
 	() => (conversation.value.sending?.length ?? 0) + (conversation.value.steering?.length ?? 0),
 )
@@ -352,14 +234,7 @@ watch(sendingCount, (count, before) => {
 })
 
 watch(
-	() => [
-		conversation.value.entries.length,
-		sendingCount.value,
-		partialVersion.value,
-		conversation.value.liveLabel,
-		conversation.value.running,
-		composerHeight.value,
-	],
+	() => [conversation.value.entries.length, sendingCount.value, partialVersion.value, working.value, approval.value?.call.id],
 	async () => {
 		if (!stick.value) return
 		await nextTick()

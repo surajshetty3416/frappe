@@ -2,26 +2,6 @@
 // (flow_tui/client/state.py is the reference): replay and live share one code
 // path, durable entries rebuild everything, deltas are presentation-only.
 
-export const EFFORTS = ["default", "off", "minimal", "low", "medium", "high", "xhigh", "max"]
-
-// display names for the wire-level effort ids
-// the two approval modes as the composer and the general settings present them
-export const APPROVAL_MODES = [
-	{ id: "ask", label: "Ask for approval", desc: "Pauses before writes, edits and commands." },
-	{ id: "auto", label: "Auto-approve", desc: "Runs every tool without stopping to ask." },
-]
-
-export const EFFORT_LABELS = {
-	default: "Default",
-	off: "Off",
-	minimal: "Minimal",
-	low: "Low",
-	medium: "Medium",
-	high: "High",
-	xhigh: "X-High",
-	max: "Max",
-}
-
 export function initialConversation() {
 	return {
 		entries: [],
@@ -280,17 +260,17 @@ export function stepLabel(name) {
 
 // Leading row icons for the built-in tools; extension tools get the generic wrench.
 const STEP_ICONS = {
-	subagent: "bot",
-	read: "file-text",
-	grep: "search",
-	bash: "terminal",
-	edit: "edit-3",
-	write: "file-plus",
-	websearch: "globe",
+	subagent: "lucide-bot",
+	read: "lucide-file-text",
+	grep: "lucide-search",
+	bash: "lucide-terminal",
+	edit: "lucide-pencil",
+	write: "lucide-file-plus",
+	websearch: "lucide-globe",
 }
 
 export function stepIcon(name) {
-	return STEP_ICONS[name] ?? "tool"
+	return STEP_ICONS[name] ?? "lucide-wrench"
 }
 
 export function humanizeToolName(name) {
@@ -334,22 +314,6 @@ export function stepLiveLabel(call) {
 	}
 	if (name in STEP_LABELS) return label
 	return `Running ${lowerFirst(label)}`
-}
-
-// Display-only compaction for tool row argument text: cwd-relative paths,
-// no `cd <cwd> && ` command prefix, `~` for the home directory. Expanded
-// panels and copy actions keep the full text.
-export function compactDisplayText(text, cwd) {
-	let value = String(text ?? "")
-	cwd = cwd ? String(cwd).replace(/\/+$/, "") : cwd
-	if (cwd) {
-		if (value === cwd) return "."
-		const cd = `cd ${cwd} && `
-		if (value.startsWith(cd)) value = value.slice(cd.length)
-		if (value.startsWith(cwd + "/")) value = value.slice(cwd.length + 1)
-		else value = value.split(cwd + "/").join("")
-	}
-	return value.replace(/(^|[\s"'=(])\/(?:Users|home)\/[^/\s"']+/g, "$1~")
 }
 
 // The one-line summary shown next to a step label.
@@ -415,17 +379,6 @@ export function subagentId(call) {
 	return (call.arguments ?? call.args ?? {}).subagent_id || call.id
 }
 
-// what the session called a sub-agent: the description of the call that started it
-export function subagentTitle(conversation, id) {
-	const isCall = (block) => block.type === "tool_call" && block.id === id
-	for (const entry of conversation.entries) {
-		if (entry.type !== "assistant_message") continue
-		const call = (entry.content ?? []).find(isCall)
-		if (call) return call.arguments?.description ?? null
-	}
-	return conversation.partial.find(isCall)?.arguments?.description ?? null // still streaming
-}
-
 // Matches t3code's compact elapsed-time buckets without relying on wall-clock
 // timers for settled history.
 export function formatDuration(durationMs) {
@@ -487,31 +440,39 @@ function deriveTurns(entries, steeredSeqs = []) {
 	return { turns, turnByEntry, latestTurnKey: [...turns.keys()].at(-1) ?? null }
 }
 
-// Files touched by a turn's settled edit/write calls, keyed by turn, aggregated
-// per path in first-touch order. Denied/failed calls don't count; a write
-// reports its full line count as additions.
-function deriveFileChanges(entries, turnByEntry) {
-	const callTurns = new Map()
-	const filesByTurn = new Map()
+// The artifacts a turn's tools made or changed, keyed by turn, newest change last. A layer
+// tool returns the artifact it touched as `artifact` in its JSON result.
+function deriveArtifacts(entries, turnByEntry) {
+	const byTurn = new Map()
 	for (const entry of entries) {
-		if (entry.type === "assistant_message") {
-			for (const block of entry.content ?? []) {
-				if (block.type === "tool_call" && ["edit", "write"].includes(block.name))
-					callTurns.set(block.id, turnByEntry.get(entry))
-			}
-		} else if (entry.type === "tool_result" && callTurns.has(entry.tool_call_id)) {
-			const path = entry.details?.path
-			if (!path || entry.is_error || stepDecision(entry)) continue
-			const turnKey = callTurns.get(entry.tool_call_id)
-			const files = filesByTurn.get(turnKey) ?? new Map()
-			const file = files.get(path) ?? { path, added: 0, removed: 0 }
-			file.added += entry.details.lines_added ?? entry.details.lines ?? 0
-			file.removed += entry.details.lines_removed ?? 0
-			files.set(path, file)
-			filesByTurn.set(turnKey, files)
-		}
+		if (entry.type !== "tool_result" || entry.is_error) continue
+		const artifact = resultArtifact(entry)
+		if (!artifact) continue
+		const turnKey = turnByEntry.get(entry)
+		const artifacts = byTurn.get(turnKey) ?? new Map()
+		const key = `${artifact.doctype}:${artifact.name}`
+		artifacts.delete(key)
+		artifacts.set(key, artifact)
+		byTurn.set(turnKey, artifacts)
 	}
-	return filesByTurn
+	return byTurn
+}
+
+export function resultArtifact(entry) {
+	const text =
+		typeof entry.content === "string"
+			? entry.content
+			: (entry.content ?? [])
+					.filter((block) => block.type === "text")
+					.map((block) => block.text)
+					.join("")
+	if (!text.includes('"artifact"')) return null
+	try {
+		const artifact = JSON.parse(text)?.artifact
+		return artifact?.doctype && artifact?.route ? artifact : null
+	} catch {
+		return null
+	}
 }
 
 function foldLabel(turn) {
@@ -529,7 +490,7 @@ function foldLabel(turn) {
 //   {kind: "thinking", block, entry?, live?}
 //   {kind: "group", steps: [{call, result, aborted} | {thought, id, live?}]}
 //   {kind: "turn-fold", turnKey, label, expanded}
-//   {kind: "turn-files", turnKey, files: [{path, added, removed}]}
+//   {kind: "turn-artifacts", turnKey, artifacts: [{doctype, name, label, title, route}]}
 //   {kind: "compaction", entry}
 //   {kind: "error", error}
 // Every item carries a stable `key` (derived from seq / call id) so v-for
@@ -679,23 +640,23 @@ export function buildItems(conversation, expandedTurnKeys = new Set(), openPanel
 			terminalTextByTurn.set(item.turnKey, terminal)
 		}
 	}
-	// the files card and the copy/time row close the turn, below all it shows but a later compaction
+	// the artifact cards and the copy/time row close the turn, below all it shows but a later compaction
 	const lastKeyByTurn = new Map(
 		filtered.filter((item) => item.kind !== "compaction").map((item) => [item.turnKey, item.key]),
 	)
-	const fileChangesByTurn = deriveFileChanges(conversation.entries, turnByEntry)
+	const artifactsByTurn = deriveArtifacts(conversation.entries, turnByEntry)
 	const withCopyRows = []
 	for (const item of filtered) {
 		withCopyRows.push(item)
 		const terminal = terminalTextByTurn.get(item.turnKey)
 		if (!terminal || lastKeyByTurn.get(item.turnKey) !== item.key) continue
-		const changed = fileChangesByTurn.get(item.turnKey)
-		if (changed?.size) {
+		const artifacts = artifactsByTurn.get(item.turnKey)
+		if (artifacts?.size) {
 			withCopyRows.push({
-				kind: "turn-files",
-				key: `tfs:${item.turnKey}`,
+				kind: "turn-artifacts",
+				key: `ta:${item.turnKey}`,
 				turnKey: item.turnKey,
-				files: [...changed.values()],
+				artifacts: [...artifacts.values()],
 			})
 		}
 		const response = terminal.items.at(-1)
@@ -943,26 +904,6 @@ export function userAttachments(entry) {
 	return Array.isArray(entry?.content)
 		? entry.content.filter((block) => block.type === "attachment")
 		: []
-}
-
-const CODE_REF_LINE = /^@(.+):(\d+)(?:-(\d+))?$/
-
-// "Add to chat" selections travel as @path:start-end lines appended to the message;
-// split them back out so a bubble can show chips instead of the raw tokens
-export function splitCodeRefs(text) {
-	const lines = String(text ?? "").split("\n")
-	const refs = []
-	while (lines.length) {
-		const match = CODE_REF_LINE.exec(lines[lines.length - 1].trim())
-		if (!match) break
-		lines.pop()
-		refs.unshift({ path: match[1], start: Number(match[2]), end: Number(match[3] ?? match[2]) })
-	}
-	return { body: lines.join("\n").trimEnd(), refs }
-}
-
-export function codeRefLabel(ref) {
-	return `${fileName(ref.path)} (${ref.start}${ref.end !== ref.start ? `-${ref.end}` : ""})`
 }
 
 const QUOTE_LINE = /^> ?(.*)$/

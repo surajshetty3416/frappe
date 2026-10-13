@@ -143,9 +143,6 @@ class TestFlowAccess(IntegrationTestCase):
 	def test_every_endpoint_refuses_a_user_without_the_role(self):
 		agent = _agent()
 		session = frappe.get_doc({"doctype": "Flow Session", "agent": agent}).insert(ignore_permissions=True)
-		run = frappe.get_doc(
-			{"doctype": "Flow Run", "session": session.name, "source": "Manual", "status": "Completed"}
-		).insert(ignore_permissions=True)
 		calls = {
 			"boot": {},
 			"create_session": {"agent": agent},
@@ -156,12 +153,10 @@ class TestFlowAccess(IntegrationTestCase):
 			"abort": {"session": session.name},
 			"cancel_pending": {"session": session.name},
 			"entries": {"session": session.name},
-			"set_model": {"session": session.name, "model": "m"},
 			"set_title": {"session": session.name, "title": "t"},
 			"set_auto_approve": {"session": session.name, "auto_approve": 1},
 			"delete_session": {"session": session.name},
 			"sync_session": {"session": session.name},
-			"submit_feedback": {"run_name": run.name, "rating": "Up"},
 			"attach_file": {"file": "x"},
 			"cleanup_attachments": {"session": session.name},
 			"skills": {"session": session.name},

@@ -61,9 +61,8 @@
 									:aria-expanded="open.has(key(i, column))"
 									@click="toggle(i, column)"
 								>
-									<FeatherIcon
-										name="chevron-right"
-										class="h-3 w-3 transition-transform"
+									<span
+										class="lucide-chevron-right size-3 transition-transform"
 										:class="open.has(key(i, column)) ? 'rotate-90' : ''"
 									/>
 									{{ cellText(row.cells[column]) }}
@@ -121,7 +120,6 @@
 
 <script setup>
 import { computed, nextTick, reactive, ref } from "vue";
-import FeatherIcon from "@flow/ui-core/components/FeatherIcon.vue";
 
 import ValueView from "./ValueView.vue";
 import { cellText, columnsOf, deskUrl, humanize, isTable } from "./result.js";

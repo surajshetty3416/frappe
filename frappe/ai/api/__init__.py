@@ -13,10 +13,8 @@ from frappe.ai.api.api import (
 	run,
 	session,
 	set_auto_approve,
-	set_model,
 	set_title,
 	skills,
-	submit_feedback,
 	sync_session,
 )
 
@@ -34,9 +32,7 @@ __all__ = [
 	"run",
 	"session",
 	"set_auto_approve",
-	"set_model",
 	"set_title",
 	"skills",
-	"submit_feedback",
 	"sync_session",
 ]

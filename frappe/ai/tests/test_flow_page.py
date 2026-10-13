@@ -34,7 +34,7 @@ class TestFlowPage(IntegrationTestCase):
 		self.assertEqual(boot["site_name"], frappe.local.site)
 		self.assertIn("socketio_port", boot)
 		self.assertEqual(boot["flow_boot"]["user"]["name"], "Administrator")
-		self.assertIn("agents", boot["flow_boot"])
+		self.assertIn("models", boot["flow_boot"])
 
 	def test_the_dev_boot_needs_developer_mode(self):
 		with patch.dict(frappe.local.conf, {"developer_mode": 0}):

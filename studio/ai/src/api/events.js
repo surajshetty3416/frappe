@@ -2,6 +2,8 @@
 // the attachment, excerpt and memory blocks Flow appended. The bubble shows the message,
 // with the files as chips.
 const MEMORY = /\n<memory>\n[\s\S]*?\n<\/memory>$/;
+// what the user had open beside the chat, which FrappeClient.run adds for the agent
+const OPENED = /\n\nViewing [^\n]* at \/studio\/\S*$/;
 const EXCERPTS = /\n[^\n]*\n<excerpts>\n[\s\S]*?\n<\/excerpts>/;
 const FILE_BLOCK = /\n<file name="([^"]*)">\n[\s\S]*?\n<\/file>/g;
 const FILE_NOTE = /\n\[Attached file: ([^\n]+?) \(large; relevant excerpts follow\)\]/g;
@@ -11,6 +13,7 @@ export function cleanUserText(text) {
 	const files = [];
 	const value = String(text ?? "")
 		.replace(MEMORY, "")
+		.replace(OPENED, "")
 		.replace(EXCERPTS, "")
 		.replace(FILE_BLOCK, (_, name) => {
 			files.push(name.replace(/&quot;|&lt;|&gt;|&amp;/g, (entity) => XML_ENTITIES[entity]));

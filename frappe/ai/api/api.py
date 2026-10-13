@@ -13,40 +13,23 @@ import frappe
 from frappe import _
 from frappe.utils import cint
 
-from frappe.ai.lib.session import new_session, sync_with_retry
+from frappe.ai.lib.session import _default_agent_name, new_session, sync_with_retry
 
 if TYPE_CHECKING:
 	from frappe.ai.doctype.flow_session.flow_session import FlowSession
 
-FEEDBACK_COMMENT_LIMIT = 500
 TITLE_LIMIT = 140
 LIST_LIMIT = 100
 RUN_FIELDS = ["name", "daemon_run_id", "status", "error", "feedback_rating", "feedback_comment"]
-REASONING_EFFORTS = ("off", "minimal", "low", "medium", "high", "xhigh", "max")
-# What the /flow page's settings manage; boot reports the caller's rights on each.
-SETTINGS_DOCTYPES = (
-	"Flow Provider",
-	"Flow Model",
-	"Flow Agent",
-	"Flow Skill",
-	"Flow Tool",
-	"Flow Trigger",
-	"Flow Knowledge Base",
-	"Flow Knowledge Source",
-	"Flow Knowledge Settings",
-	"Flow Agent Memory",
-)
 
 
 @frappe.whitelist()
 def boot() -> dict[str, Any]:
-	"""What a client needs before its first call: agents and models to pick from, the
-	default agent, the file types it may attach, who is signed in and what they may manage."""
+	"""What a client needs before its first call: the models, the file types it may attach and
+	who is signed in."""
 	frappe.has_permission("Flow Session", "read", throw=True)
-	from frappe.ai.assistant.assistant import ASSISTANT_AGENT_TITLE
 	from frappe.ai.knowledge.extract import FILE_EXTENSIONS
 
-	agents = frappe.get_list("Flow Agent", filters={"enabled": 1}, fields=["name", "title"], order_by="title")
 	models = frappe.get_list(
 		"Flow Model",
 		filters={"enabled": 1},
@@ -54,21 +37,11 @@ def boot() -> dict[str, Any]:
 		order_by="title",
 	)
 	return {
-		"agents": agents,
-		"default_agent": next((a.name for a in agents if a.name == ASSISTANT_AGENT_TITLE), None),
 		"models": models,
 		"file_types": sorted(FILE_EXTENSIONS),
 		"user": frappe.db.get_value(
 			"User", frappe.session.user, ["name", "full_name", "user_image"], as_dict=True
 		),
-		"permissions": {
-			doctype: [
-				ptype
-				for ptype in ("read", "write", "create", "delete")
-				if frappe.has_permission(doctype, ptype)
-			]
-			for doctype in SETTINGS_DOCTYPES
-		},
 	}
 
 
@@ -129,15 +102,13 @@ def list_sessions(
 
 @frappe.whitelist()
 def skills(session: str | None = None, agent: str | None = None) -> dict[str, Any]:
-	"""The skills a user may start by typing /skill:<name>: those of `session`'s agent, or of
-	`agent` for a chat not started yet."""
+	"""The skills a user may start by typing /skill:<name>: those of `session`'s agent, of
+	`agent`, or of the Assistant a new chat starts with."""
 	if session:
 		agent = _load_session(session, "read").agent
-	elif isinstance(agent, str) and agent.strip():
-		agent = agent.strip()
-		frappe.has_permission("Flow Agent", "read", agent, throw=True)
 	else:
-		frappe.throw(_("Session or agent is required."), title=_("Invalid Request"))
+		agent = (agent or "").strip() or _default_agent_name()
+		frappe.has_permission("Flow Agent", "read", agent, throw=True)
 	return {
 		"skills": [
 			{"name": row["command"], "description": row["description"]}
@@ -191,24 +162,6 @@ def entries(session: str, since: int | str = 0, path: str = "active") -> dict[st
 
 
 @frappe.whitelist()
-def set_model(session: str, model: str, reasoning_effort: str | None = None) -> dict[str, Any]:
-	"""Switch the session's model; `reasoning_effort` sets its thinking level, empty for the default."""
-	if not isinstance(model, str) or not model.strip():
-		frappe.throw(_("Model is required."), title=_("Invalid Model"))
-	effort = (reasoning_effort or "").strip() or None
-	if effort is not None and effort not in REASONING_EFFORTS:
-		frappe.throw(
-			_("Reasoning effort must be one of {0}.").format(", ".join(REASONING_EFFORTS)),
-			title=_("Invalid Reasoning Effort"),
-		)
-	_load_session(session, "write").set_model(model.strip(), reasoning_effort=effort)
-	return {
-		"model": model.strip(),
-		"reasoning_effort": effort,
-	}
-
-
-@frappe.whitelist()
 def set_title(session: str, title: str) -> dict[str, str]:
 	title = (title or "").strip()[:TITLE_LIMIT]
 	if not title:
@@ -238,48 +191,6 @@ def sync_session(session: str) -> dict[str, Any]:
 	doc = _load_session(session, "read")
 	sync_with_retry(doc)
 	return _session_payload(doc)
-
-
-@frappe.whitelist()
-def submit_feedback(run_name: str, rating: str, comment: str | None = None) -> dict[str, Any]:
-	"""Record thumbs feedback on a finished run, or clear it with rating "None". A
-	thumbs-down comment is stored as shared agent memory when the agent has memory
-	enabled (a no-op otherwise); clearing the rating drops that memory again."""
-	from frappe.ai.memory.memory import forget_feedback_memory, save_feedback_memory
-
-	if not isinstance(run_name, str) or not run_name.strip():
-		frappe.throw(_("Run is required."), title=_("Invalid Run"))
-	if rating not in ("Up", "Down", "None"):
-		frappe.throw(_("Rating must be Up, Down, or None."), title=_("Invalid Rating"))
-	comment = (comment or "").strip()
-	if len(comment) > FEEDBACK_COMMENT_LIMIT:
-		frappe.throw(
-			_("Keep feedback under {0} characters.").format(FEEDBACK_COMMENT_LIMIT),
-			title=_("Feedback Too Long"),
-		)
-
-	run = frappe.get_doc("Flow Run", run_name.strip())
-	frappe.has_permission("Flow Run", "read", run, throw=True)
-	if run.owner != frappe.session.user:
-		frappe.has_permission("Flow Run", "write", run, throw=True)
-	if run.status not in ("Completed", "Denied", "Failed"):
-		frappe.throw(
-			_("Feedback applies to finished runs only (this run is {0}).").format(run.status),
-			title=_("Run Not Finished"),
-		)
-
-	if rating == "None":
-		forgotten = forget_feedback_memory(run)
-		run.db_set({"feedback_rating": "", "feedback_comment": None})
-		return {"rating": None, "forgotten": forgotten} if forgotten else {"rating": None}
-
-	memory = save_feedback_memory(run, comment) if rating == "Down" and comment else None
-	run.db_set({"feedback_rating": rating, "feedback_comment": comment or None})
-
-	result: dict[str, Any] = {"rating": rating}
-	if memory:
-		result["memory"] = memory
-	return result
 
 
 @frappe.whitelist()

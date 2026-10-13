@@ -1,70 +1,48 @@
 <template>
-	<!-- pb-7 reserves the button row inside this component's own box, so the
-	     absolute buttons can never overlap the next message -->
-	<div class="group relative flex justify-end pb-7">
-		<div class="flow-prose max-w-[76%] rounded-7 bg-surface-gray-2 px-3.5 py-2.5 text-ink-gray-9">
+	<div class="group flex flex-col items-end gap-1">
+		<div class="flow-prose w-full rounded-6 bg-surface-gray-1 px-3 py-2 text-ink-gray-8">
 			<div v-if="imageTiles.length" class="flex flex-wrap gap-1.5" :class="hasText || chips.length ? 'mb-2' : ''">
 				<button
 					v-for="item in imageTiles"
 					:key="item.id"
-					class="h-[72px] w-[72px] flex-none cursor-zoom-in overflow-hidden rounded-6 border border-outline-gray-2 bg-surface-base shadow-sm"
+					type="button"
+					class="size-16 flex-none cursor-zoom-in overflow-hidden rounded-4 border border-outline-gray-2 bg-surface-white"
 					:title="item.name"
-					:aria-label="`View ${item.name}`"
 					@click="viewer = item"
 				>
-					<img :src="previews[item.id]" :alt="item.name" class="h-full w-full object-cover" />
+					<img :src="previews[item.id]" :alt="item.name" class="size-full object-cover" />
 				</button>
 			</div>
 			<div v-if="chips.length" class="flex flex-wrap items-center gap-1.5" :class="hasText ? 'mb-2' : ''">
 				<span
 					v-for="chip in chips"
 					:key="chip.key"
-					class="flex h-8 max-w-full items-center gap-2 rounded-6 border border-outline-gray-2 bg-surface-base pl-1 pr-2.5"
+					class="flex h-7 max-w-full items-center gap-1.5 rounded-4 border border-outline-gray-2 bg-surface-white px-2"
 					:title="chip.title"
 				>
-					<span class="grid h-6 w-6 flex-none place-items-center rounded-5 bg-surface-gray-1 text-ink-gray-6">
-						<FeatherIcon :name="chip.icon" class="h-3.5 w-3.5" />
-					</span>
-					<span class="truncate text-xs font-medium text-ink-gray-8">{{ chip.label }}</span>
+					<span :class="chip.icon" class="size-4 flex-none text-ink-gray-5" />
+					<span class="truncate text-sm text-ink-gray-8">{{ chip.label }}</span>
 				</span>
 			</div>
-			<div
-				v-if="hasText"
-				ref="textEl"
-				class="whitespace-pre-wrap break-words"
-				:class="expanded ? '' : 'line-clamp-[12]'"
-			><div
-					v-if="quotes.length"
-					class="flex flex-col gap-2"
-					:class="body ? 'mb-2' : ''"
-				><blockquote
-						v-for="(quote, i) in quotes"
-						:key="i"
-						class="border-l-2 border-outline-gray-2 pl-3 text-ink-gray-6"
-					>{{ quote }}</blockquote></div><span v-for="(part, i) in parts" :key="i" :class="{ 'text-ink-blue-6': part.skill }">{{ part.text }}</span></div>
+			<div v-if="hasText" ref="textEl" class="whitespace-pre-wrap break-words" :class="expanded ? '' : 'line-clamp-[12]'"
+				><div v-if="quotes.length" class="flex flex-col gap-2" :class="body ? 'mb-2' : ''"
+					><blockquote v-for="(quote, i) in quotes" :key="i" class="border-l-2 border-outline-gray-2 pl-3 text-ink-gray-6">{{
+						quote
+					}}</blockquote></div
+				><span v-for="(part, i) in parts" :key="i" :class="{ 'text-ink-blue-6': part.skill }">{{ part.text }}</span></div
+			>
 			<button
 				v-if="clampable"
-				class="mt-1.5 text-xs font-medium text-ink-gray-5 hover:text-ink-gray-8"
+				type="button"
+				class="mt-1 text-sm text-ink-gray-5 hover:text-ink-gray-8"
 				@click="expanded = !expanded"
 			>
 				{{ expanded ? "Show less" : "Show more" }}
 			</button>
 		</div>
-		<span class="absolute bottom-0 right-0.5 flex items-center gap-1">
-			<span v-if="time" class="flow-hover-reveal mr-1 text-2xs text-ink-gray-4">{{ time }}</span>
-			<!-- a sub-agent's task is not a point the session can rewind to -->
-			<button
-				v-if="flow.capabilities?.rewind && !entry.subagent_id"
-				title="Rewind to this message"
-				class="flow-hover-reveal grid h-6 w-6 place-items-center rounded-5 text-ink-gray-4 hover:bg-surface-gray-2 hover:text-ink-gray-8"
-				@click="confirmRewind"
-			>
-				<FeatherIcon name="rotate-ccw" class="h-3.5 w-3.5" />
-			</button>
-			<CopyButton
-				:text="text"
-				class="flow-hover-reveal grid h-6 w-6 place-items-center rounded-5 text-ink-gray-4 hover:bg-surface-gray-2 hover:text-ink-gray-8"
-			/>
+		<span class="flow-hover-reveal flex items-center gap-1">
+			<span v-if="time" class="text-sm text-ink-gray-5">{{ time }}</span>
+			<CopyButton :text="text" />
 		</span>
 		<ImageViewer v-if="viewer" :src="previews[viewer.id]" :alt="viewer.name" @close="viewer = null" />
 	</div>
@@ -72,29 +50,17 @@
 
 <script setup>
 import { computed, inject, onBeforeUnmount, onMounted, ref } from "vue"
-import FeatherIcon from "./FeatherIcon.vue"
-import { dialog } from "frappe-ui/src/utils/dialog"
 
-import {
-	codeRefLabel,
-	formatTime,
-	invokedSkills,
-	skillSegments,
-	splitCodeRefs,
-	splitQuotes,
-	userAttachments,
-	userText,
-} from "../transcript.js"
+import { formatTime, invokedSkills, skillSegments, splitQuotes, userAttachments, userText } from "../transcript.js"
 import CopyButton from "./CopyButton.vue"
 import ImageViewer from "./ImageViewer.vue"
 
 const props = defineProps({ entry: { type: Object, required: true } })
 const flow = inject("flow")
 const time = computed(() => formatTime(props.entry.ts))
-const text = computed(() => userText(props.entry)) // full text, for copy
+const text = computed(() => userText(props.entry))
 const attachments = computed(() => userAttachments(props.entry))
-const split = computed(() => splitCodeRefs(text.value))
-const quoted = computed(() => splitQuotes(split.value.body))
+const quoted = computed(() => splitQuotes(text.value))
 const body = computed(() => quoted.value.body)
 const quotes = computed(() => quoted.value.quotes)
 const hasText = computed(() => !!body.value || quotes.value.length > 0)
@@ -103,19 +69,18 @@ const parts = computed(() => {
 	const sending = props.entry.seq == null ? (flow.state.skills ?? []).map((skill) => skill.name) : []
 	return skillSegments(body.value, invokedSkills(props.entry) ?? sending)
 })
-// images stage as full previews on their own row; code refs and files share one row of chips
+// images show as previews; other files as chips
 const imageTiles = computed(() => attachments.value.filter((item) => previews.value[item.id]))
-const chips = computed(() => [
-	...split.value.refs.map((ref) => ({
-		key: `ref:${ref.path}:${ref.start}-${ref.end}`,
-		icon: "code",
-		label: codeRefLabel(ref),
-		title: `${ref.path}:${ref.start}-${ref.end}`,
-	})),
-	...attachments.value
+const chips = computed(() =>
+	attachments.value
 		.filter((item) => !previews.value[item.id])
-		.map((item) => ({ key: item.id, icon: item.kind === "image" ? "image" : "file-text", label: item.name, title: item.name })),
-])
+		.map((item) => ({
+			key: item.id,
+			icon: item.kind === "image" ? "lucide-image" : "lucide-file-text",
+			label: item.name,
+			title: item.name,
+		})),
+)
 
 const previews = ref({}) // attachment id → object URL of the stored image
 const viewer = ref(null)
@@ -146,21 +111,4 @@ onMounted(() => {
 	const el = textEl.value
 	clampable.value = !!el && el.scrollHeight > el.clientHeight + 1
 })
-
-function confirmRewind() {
-	dialog.confirm({
-		title: "Rewind to this message?",
-		message:
-			"Everything after this point is removed from the conversation, and the message returns to the composer so you can edit and resend it.",
-		actions: [
-			{ label: "Cancel", variant: "outline" },
-			{
-				label: "Rewind",
-				variant: "solid",
-				theme: "red",
-				onClick: () => flow.rewindToMessage(props.entry),
-			},
-		],
-	})
-}
 </script>

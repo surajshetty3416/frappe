@@ -1,6 +1,6 @@
 <template>
 	<!-- a layer over the thread, up to the composer; only the pill itself takes clicks -->
-	<div ref="layer" class="pointer-events-none absolute inset-x-0 top-0 z-10" :style="{ bottom: composerHeight + 'px' }">
+	<div ref="layer" class="pointer-events-none absolute inset-0 z-10">
 		<button
 			v-if="pill"
 			type="button"
@@ -25,7 +25,6 @@ import { inject, onBeforeUnmount, onMounted, ref } from "vue"
 // selected text as a quote for the composer.
 const props = defineProps({ within: { type: Object, default: null } })
 const flow = inject("flow")
-const composerHeight = inject("composerHeight", ref(0))
 const layer = ref(null)
 const pill = ref(null)
 let timer = null

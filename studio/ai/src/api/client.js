@@ -2,13 +2,12 @@ import { presentEvent } from "./events.js";
 import { SessionStream } from "./stream.js";
 
 const IMAGE_FILE = /\.(png|jpe?g|gif|webp|bmp)$/i;
-const SESSION_PAGE = 100; // flow.api.LIST_LIMIT: a shorter page would never read as more
 
-// The store's client surface over flow.api. Sessions are Flow Session docs, models are
+// The store's client surface over frappe.ai.api. Sessions are Flow Session docs, models are
 // Flow Model docs (the daemon's provider ids are mapped back to them), attachments are
 // private Files staged through attach_file. `transport` is the page's Frappe transport
-// (frappe.js); `hooks` let the page choose the agent a new chat starts with and mirror
-// what the server reports about a session's runs and log.
+// (frappe.js); `hooks` mirror what the server reports about a session and add what the
+// user has open to each message.
 export class FrappeClient {
 	constructor({ socket, boot, transport, hooks = {} }) {
 		this.socket = socket;
@@ -16,7 +15,6 @@ export class FrappeClient {
 		this.transport = transport;
 		this.configs = new Map(); // session → the config the store last saw
 		this.fileIds = new Map(); // file name → the File it was staged as, for this page
-		this.boot = boot ?? null; // the page's own boot answers the first models() call
 		this.setModels(boot?.models ?? []);
 	}
 
@@ -37,48 +35,7 @@ export class FrappeClient {
 		});
 	}
 
-	// --- catalog ---------------------------------------------------------------
-
-	async models() {
-		const boot = this.boot ?? (await this.transport.call("frappe.ai.api.boot"));
-		this.boot = null;
-		this.setModels(boot.models);
-		this.hooks.onBoot?.(boot);
-		return {
-			models: boot.models.map((m) => ({
-				name: m.name,
-				provider: m.provider || m.model_id.split("/")[0],
-				model_id: m.model_id,
-				context_window: m.context_window || null,
-			})),
-			errors: [],
-		};
-	}
-
-	async tools() {
-		return { tools: [] };
-	}
-
 	// --- sessions --------------------------------------------------------------
-
-	// One page, newest first; `before` (the last row's modified) continues past it and
-	// `query` narrows by title. A full page means there may be more.
-	async sessions({ query = "", before = "" } = {}) {
-		const args = { limit: SESSION_PAGE };
-		if (query) args.query = query;
-		if (before) args.before = before;
-		const rows = await this.transport.call("frappe.ai.api.list_sessions", args);
-		return {
-			sessions: rows.map((row) => ({
-				session_id: row.name,
-				title: row.title,
-				agent: row.agent,
-				model: row.model,
-				modified: row.modified,
-			})),
-			more: rows.length === SESSION_PAGE,
-		};
-	}
 
 	async session(sid) {
 		const data = await this.transport.call("frappe.ai.api.session", { session: sid });
@@ -92,7 +49,6 @@ export class FrappeClient {
 			title: data.title,
 			agent: data.agent,
 			model: data.model,
-			cwd: null,
 		};
 		this.configs.set(data.name, config);
 		return {
@@ -108,8 +64,6 @@ export class FrappeClient {
 
 	async createSession(config = {}) {
 		const data = await this.transport.call("frappe.ai.api.create_session", {
-			agent: this.hooks.agent?.() ?? null,
-			model: config.model ?? null,
 			auto_approve: config.auto_approve ? 1 : 0,
 		});
 		this.hooks.onSession?.(data);
@@ -122,7 +76,6 @@ export class FrappeClient {
 	async entries(sid, since = 0, path = "active") {
 		const data = await this.transport.call("frappe.ai.api.entries", { session: sid, since, path });
 		const entries = (data.entries ?? []).map((row) => this.present(row, sid));
-		this.hooks.onRows?.(sid, entries, { replace: path === "active" });
 		return {
 			...data,
 			entries,
@@ -136,12 +89,7 @@ export class FrappeClient {
 			session: sid,
 			since,
 			fetchEntries: (cursor) => this.entries(sid, cursor, "all"),
-			present: (event) => {
-				const row = this.present(event, sid);
-				if (typeof row.seq === "number")
-					this.hooks.onRows?.(sid, [row], { replace: false });
-				return row;
-			},
+			present: (event) => this.present(event, sid),
 			onTerminal: () => this.syncSession(sid),
 		});
 	}
@@ -172,19 +120,6 @@ export class FrappeClient {
 
 	cancelPending(sid) {
 		return this.transport.call("frappe.ai.api.cancel_pending", { session: sid });
-	}
-
-	async setModel(sid, { model, reasoning_effort = null }) {
-		const data = await this.transport.call("frappe.ai.api.set_model", {
-			session: sid,
-			model,
-			reasoning_effort,
-		});
-		this.configs.set(sid, { ...this.configs.get(sid), model: data.model });
-		return {
-			model: data.model,
-			context_window: this.contextWindows.get(data.model) ?? null,
-		};
 	}
 
 	async patchConfig(sid, patch) {
@@ -256,18 +191,12 @@ export class FrappeClient {
 
 	// --- skills ----------------------------------------------------------------
 
-	// the store asks a live session, or previews the agent a new chat would start with
+	// the store asks a live session, or previews the assistant a new chat starts with
 	skills(sid) {
 		return this.transport.call("frappe.ai.api.skills", { session: sid });
 	}
 
 	previewSkills() {
-		return this.transport.call("frappe.ai.api.skills", { agent: this.hooks.agent?.() ?? null });
-	}
-
-	// --- feedback --------------------------------------------------------------
-
-	submitFeedback(run, rating, comment = "") {
-		return this.transport.call("frappe.ai.api.submit_feedback", { run_name: run, rating, comment });
+		return this.transport.call("frappe.ai.api.skills");
 	}
 }

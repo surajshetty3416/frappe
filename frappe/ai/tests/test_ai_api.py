@@ -9,12 +9,11 @@ import frappe
 from frappe.tests import IntegrationTestCase
 
 from frappe.ai import api
-from frappe.ai.api import attach_file, cleanup_attachments, submit_feedback
+from frappe.ai.api import attach_file, cleanup_attachments
 from frappe.ai.daemon.client import DaemonClient
 from frappe.ai.doctype.flow_session.flow_session import FlowSession
 from frappe.ai.doctype.flow_session_attachment.test_flow_session_attachment import png_bytes
 from frappe.ai.lib.session import new_session
-from frappe.ai.memory import store as memory_store
 from frappe.ai.permissions import FLOW_USER_ROLE
 from frappe.ai.tests.test_fake_daemon import FakeDaemon, child_pause, pause
 from frappe.ai.tests.test_live_server import LiveServerCase
@@ -130,126 +129,6 @@ def _ensure_manager() -> str:
 	return user.name
 
 
-class TestSubmitFeedback(IntegrationTestCase):
-	@classmethod
-	def setUpClass(cls):
-		super().setUpClass()
-		sync_builtin_tools()
-
-	def setUp(self):
-		self.model = frappe.get_doc(_model_doc(title="Feedback Test Model")).insert()
-		self.agent = frappe.get_doc(
-			_agent_doc(self.model.name, title="Feedback Test Agent", tools=[{"tool": "update_memory"}])
-		).insert()
-
-	def tearDown(self):
-		frappe.set_user("Administrator")
-		frappe.db.rollback()
-		memory_store.drop_table()
-
-	def _run(self, status: str = "Completed", agent: str | None = None, **fields) -> str:
-		session = frappe.get_doc({"doctype": "Flow Session", "agent": agent or self.agent.name}).insert(
-			ignore_permissions=True
-		)
-		return (
-			frappe.get_doc(
-				{
-					"doctype": "Flow Run",
-					"session": session.name,
-					"source": "Manual",
-					"status": status,
-					**fields,
-				}
-			)
-			.insert(ignore_permissions=True)
-			.name
-		)
-
-	def test_up_rating_persists(self):
-		run = self._run()
-		self.assertEqual(submit_feedback(run, "Up"), {"rating": "Up"})
-		self.assertEqual(frappe.db.get_value("Flow Run", run, "feedback_rating"), "Up")
-
-	def test_denied_run_is_finished(self):
-		run = self._run(status="Denied")
-		self.assertEqual(submit_feedback(run, "Up"), {"rating": "Up"})
-
-	def test_down_with_comment_persists(self):
-		run = self._run()
-		submit_feedback(run, "Down", comment="Wrong item code.")
-		doc = frappe.get_doc("Flow Run", run)
-		self.assertEqual(doc.feedback_rating, "Down")
-		self.assertEqual(doc.feedback_comment, "Wrong item code.")
-
-	def test_rejects_invalid_rating(self):
-		with self.assertRaisesRegex(frappe.ValidationError, "Rating"):
-			submit_feedback(self._run(), "Sideways")
-
-	def test_rejects_unfinished_run(self):
-		with self.assertRaisesRegex(frappe.ValidationError, "finished"):
-			submit_feedback(self._run(status="Running"), "Up")
-
-	def test_rejects_overlong_comment(self):
-		with self.assertRaisesRegex(frappe.ValidationError, "characters"):
-			submit_feedback(self._run(), "Down", comment="x" * 501)
-
-	def test_rejects_other_users_run(self):
-		run = self._run()
-		frappe.set_user(_ensure_user("feedback-other-user@example.com"))
-		with self.assertRaises(frappe.PermissionError):
-			submit_feedback(run, "Up")
-
-	def test_read_only_share_cannot_change_feedback(self):
-		run = self._run()
-		other = _ensure_user("feedback-read-only@example.com")
-		frappe.share.add("Flow Run", run, other, read=1, write=0)
-		frappe.set_user(other)
-		with self.assertRaises(frappe.PermissionError):
-			submit_feedback(run, "Up")
-
-	def test_down_comment_saved_as_memory(self):
-		run = self._run()
-		result = submit_feedback(run, "Down", comment="Widget A maps to WGT-001.")
-		memory = frappe.get_doc("Flow Agent Memory", result["memory"])
-		self.assertEqual(memory.agent, self.agent.name)
-		self.assertEqual(memory.scope, "Agent")
-		self.assertEqual(memory.source, "Feedback")
-		self.assertEqual(memory.source_run, run)
-		self.assertEqual(memory.content, "Widget A maps to WGT-001.")
-
-	def test_withdrawing_a_thumbs_down_forgets_its_memory(self):
-		run = self._run()
-		memory = submit_feedback(run, "Down", comment="Wrong item code.")["memory"]
-		self.assertEqual(submit_feedback(run, "None"), {"rating": None, "forgotten": 1})
-		self.assertFalse(frappe.db.exists("Flow Agent Memory", memory))
-
-	def test_down_comment_without_memory_tool_records_but_skips_memory(self):
-		other = frappe.get_doc(_agent_doc(self.model.name, title="Feedback No Memory Agent")).insert()
-		run = self._run(agent=other.name)
-		result = submit_feedback(run, "Down", comment="Fix it.")
-		self.assertNotIn("memory", result)
-		self.assertEqual(frappe.db.get_value("Flow Run", run, "feedback_rating"), "Down")
-		self.assertFalse(frappe.db.exists("Flow Agent Memory", {"agent": other.name}))
-
-	def test_up_never_saves_memory(self):
-		result = submit_feedback(self._run(), "Up", comment="Nice.")
-		self.assertNotIn("memory", result)
-		self.assertFalse(frappe.db.exists("Flow Agent Memory", {"agent": self.agent.name}))
-
-	def test_down_without_comment_saves_no_memory(self):
-		result = submit_feedback(self._run(), "Down")
-		self.assertNotIn("memory", result)
-		self.assertFalse(frappe.db.exists("Flow Agent Memory", {"agent": self.agent.name}))
-
-	def test_none_clears_rating(self):
-		run = self._run()
-		submit_feedback(run, "Up")
-		self.assertEqual(submit_feedback(run, "None"), {"rating": None})
-		doc = frappe.get_doc("Flow Run", run)
-		self.assertFalse(doc.feedback_rating)
-		self.assertIsNone(doc.feedback_comment)
-
-
 class ApiCase(IntegrationTestCase):
 	"""A model, an agent and a scripted flow server behind the endpoints."""
 
@@ -278,23 +157,17 @@ class TestSessionEndpoints(ApiCase):
 		for name in api.__all__:
 			frappe.is_whitelisted(frappe.get_attr(f"frappe.ai.api.{name}"))
 
-	def test_boot_lists_enabled_agents_and_models(self):
-		hidden = frappe.get_doc(_agent_doc(self.model.name, title="Hidden Agent", enabled=0)).insert()
+	def test_boot_lists_enabled_models(self):
 		data = api.boot()
-		names = [row.name for row in data["agents"]]
-		self.assertIn(self.agent.name, names)
-		self.assertNotIn(hidden.name, names)
 		model = next(row for row in data["models"] if row.name == self.model.name)
 		self.assertEqual(model.model_id, "openai/gpt-4o-mini")
 		self.assertIn("context_window", model)
 		self.assertIn("txt", data["file_types"])
-		self.assertIn("default_agent", data)
 
-	def test_boot_names_the_user_and_their_settings_rights(self):
+	def test_boot_names_the_user(self):
 		data = api.boot()
 		self.assertEqual(data["user"]["name"], "Administrator")
 		self.assertIn("full_name", data["user"])
-		self.assertEqual(data["permissions"]["Flow Provider"], ["read", "write", "create", "delete"])
 		frappe.set_user(_ensure_user(OTHER))
 		data = api.boot()
 		self.assertEqual(data["user"]["name"], OTHER)
@@ -380,7 +253,7 @@ class TestSessionEndpoints(ApiCase):
 
 		sync_builtin_assistant(self.model.name)
 		self.assertEqual(api.create_session()["agent"], ASSISTANT_AGENT_TITLE)
-		self.assertEqual(api.boot()["default_agent"], ASSISTANT_AGENT_TITLE)
+		self.assertEqual(api.skills(), {"skills": []})
 
 	def test_blank_input_is_refused(self):
 		name = self.create()
@@ -388,8 +261,6 @@ class TestSessionEndpoints(ApiCase):
 			api.session("  ")
 		with self.assertRaisesRegex(frappe.ValidationError, "Message is required"):
 			api.run(name, " ")
-		with self.assertRaisesRegex(frappe.ValidationError, "Model is required"):
-			api.set_model(name, "")
 		with self.assertRaisesRegex(frappe.ValidationError, "Title is required"):
 			api.set_title(name, "  ")
 		with self.assertRaisesRegex(frappe.ValidationError, "Path must be"):
@@ -430,7 +301,6 @@ class TestSessionEndpoints(ApiCase):
 			lambda: api.resume(fired, "{}"),
 			lambda: api.abort(fired),
 			lambda: api.cancel_pending(fired),
-			lambda: api.set_model(fired, self.model.name),
 			lambda: api.set_title(fired, "x"),
 			lambda: api.set_auto_approve(fired, 1),
 			lambda: api.cleanup_attachments(fired),
@@ -585,29 +455,12 @@ class TestSessionEndpoints(ApiCase):
 		self.assertEqual(api.entries(name, since="2")["entries"][0]["seq"], 3)
 		self.assertEqual(self.daemon.calls[-1], ("entries", name, 2, "active"))
 
-	def test_set_model_passes_the_reasoning_effort_to_the_flow_server(self):
-		name = self.create()
-		self.assertEqual(
-			api.set_model(name, self.model.name, reasoning_effort="high"),
-			{"model": self.model.name, "reasoning_effort": "high"},
-		)
-		self.assertEqual(self.daemon.calls[-1][3]["reasoning_effort"], "high")
-		self.assertEqual(api.set_model(name, self.model.name, reasoning_effort="")["reasoning_effort"], None)
-		self.assertIsNone(self.daemon.calls[-1][3]["reasoning_effort"])
-		with self.assertRaisesRegex(frappe.ValidationError, "Reasoning effort must be one of"):
-			api.set_model(name, self.model.name, reasoning_effort="extreme")
-
 	def test_settings_persist_on_the_session(self):
 		name = self.create()
-		other = frappe.get_doc(_model_doc(title="Endpoint Other Model")).insert()
-		self.assertEqual(
-			api.set_model(name, f" {other.name} "),
-			{"model": other.name, "reasoning_effort": None},
-		)
 		self.assertEqual(api.set_title(name, "  Renamed  "), {"title": "Renamed"})
 		self.assertEqual(api.set_auto_approve(name, "1"), {"auto_approve": True})
 		doc = frappe.get_doc("Flow Session", name)
-		self.assertEqual((doc.model, doc.title, doc.auto_approve), (other.name, "Renamed", 1))
+		self.assertEqual((doc.title, doc.auto_approve), ("Renamed", 1))
 		self.assertEqual(api.set_auto_approve(name, 0), {"auto_approve": False})
 		self.assertEqual(api.session(name)["auto_approve"], False)
 		self.assertEqual(self.daemon.configs[name]["auto_approve"], False)
@@ -647,10 +500,6 @@ class TestSessionEndpoints(ApiCase):
 		expected = {"skills": [{"name": "expense-approval", "description": "How to review a claim."}]}
 		self.assertEqual(api.skills(session=self.create()), expected)
 		self.assertEqual(api.skills(agent=self.agent.name), expected)
-		# a non-text agent is Frappe's own type error now
-		for bad in ({}, {"agent": " "}):
-			with self.assertRaisesRegex(frappe.ValidationError, "Session or agent"):
-				api.skills(**bad)
 
 	def test_delete_session_removes_the_session_and_its_server_copy(self):
 		name = self.create()

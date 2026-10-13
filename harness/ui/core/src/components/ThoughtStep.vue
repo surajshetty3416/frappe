@@ -2,35 +2,25 @@
 	<div>
 		<component
 			:is="expandable ? 'button' : 'div'"
-			class="flex w-full items-baseline gap-2.5 py-2.5 text-left"
-			:class="expandable ? 'group cursor-pointer' : ''"
+			class="-mx-1.5 flex w-[calc(100%+0.75rem)] items-center gap-2 rounded-4 px-1.5 py-1 text-left text-sm"
+			:class="expandable ? 'group hover:bg-surface-gray-2' : ''"
 			@click="expandable && (open = !open)"
 		>
-			<!-- leading slot doubles as the disclosure control (see ToolStep) -->
-			<span class="relative h-3.5 w-3.5 flex-none self-center text-ink-gray-5">
-				<ThoughtIcon
-					class="h-3.5 w-3.5 transition-opacity"
-					:class="open ? 'opacity-0' : expandable ? 'group-hover:opacity-0' : ''"
-				/>
-				<FeatherIcon
+			<span class="relative size-4 flex-none text-ink-gray-5">
+				<span class="lucide-brain absolute inset-0 size-4" :class="open ? 'opacity-0' : expandable ? 'group-hover:opacity-0' : ''" />
+				<span
 					v-if="expandable"
-					name="chevron-right"
-					class="absolute inset-0 h-3.5 w-3.5 transition-[opacity,transform]"
-					:class="open ? 'rotate-90 opacity-100' : 'opacity-0 group-hover:opacity-100'"
+					class="lucide-chevron-right absolute inset-0 size-4 transition-transform"
+					:class="open ? 'rotate-90' : 'opacity-0 group-hover:opacity-100'"
 				/>
 			</span>
-			<span class="flex-none text-sm font-medium" :class="live ? 'flow-shimmer' : 'text-ink-gray-9'">{{
-				live ? "Thinking" : "Thought"
-			}}</span>
-			<span class="min-w-0 flex-1 truncate text-sm text-ink-gray-5 group-hover:text-ink-gray-7">{{ preview }}</span>
+			<span class="flex-none" :class="live ? 'flow-shimmer' : 'text-ink-gray-6'">{{ live ? "Thinking" : "Thought" }}</span>
+			<span class="min-w-0 flex-1 truncate text-ink-gray-5">{{ preview }}</span>
 		</component>
 
-		<div
-			v-if="open && expandable"
-			class="mb-1.5 mt-1 rounded-[10px] border border-outline-gray-1 bg-surface-base px-3.5 py-3"
-		>
+		<div v-if="open && expandable" class="mb-1 ml-6 mt-1 border-l border-outline-gray-2 pl-3">
 			<div ref="panelEl" class="max-h-[260px] overflow-y-auto" @scroll="onPanelScroll">
-				<MarkdownContent :text="block.thinking" class="text-sm leading-relaxed text-ink-gray-6" />
+				<MarkdownContent :text="block.thinking" class="text-sm leading-relaxed text-ink-gray-5" />
 			</div>
 		</div>
 	</div>
@@ -38,11 +28,9 @@
 
 <script setup>
 import { computed, nextTick, ref, watch } from "vue"
-import FeatherIcon from "./FeatherIcon.vue"
 
 import { usePanelOpen } from "../panels.js"
 import MarkdownContent from "./MarkdownContent.vue"
-import ThoughtIcon from "./ThoughtIcon.vue"
 
 const props = defineProps({
 	id: { type: String, required: true },
@@ -53,9 +41,7 @@ const props = defineProps({
 
 const open = usePanelOpen(() => props.id)
 
-// The open panel follows streamed text like the thread does: pinned while the
-// user is at its bottom (trivially true when the content is still short),
-// released the moment they scroll up inside it.
+// the open panel follows streamed text while the user is at its bottom
 const panelEl = ref(null)
 let panelPinned = false
 const atPanelBottom = (el) => el.scrollHeight - el.scrollTop - el.clientHeight < 8
@@ -65,7 +51,6 @@ function onPanelScroll() {
 watch(panelEl, (el) => {
 	if (!el) return
 	panelPinned = atPanelBottom(el)
-	// opening near the bottom edge would reveal the panel off-screen; nudge it in
 	el.parentElement.scrollIntoView({ block: "nearest", behavior: "smooth" })
 })
 watch(
@@ -80,10 +65,9 @@ watch(
 
 const expandable = computed(() => !props.block.redacted && !!props.block.thinking)
 const preview = computed(() => {
-	if (props.block.redacted) return "Thinking is encrypted for this model."
-	const text = props.block.thinking ?? ""
-	const line = text.split("\n").find((l) => l.trim()) ?? ""
-	// markdown syntax is noise at one-line preview size; the panel renders it fully
+	if (props.block.redacted) return ""
+	const line = (props.block.thinking ?? "").split("\n").find((l) => l.trim()) ?? ""
+	// markdown syntax is noise at one-line size; the panel renders it fully
 	return line
 		.replace(/^#{1,6}\s+/, "")
 		.replace(/\*\*([^*]+)\*\*/g, "$1")

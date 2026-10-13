@@ -1,13 +1,6 @@
-/* Shared utility classes for @flow/ui-core components. Import once from the
+/* Utility classes for the chat components. Import once from the
    consuming app, after Tailwind's layers. Colors come exclusively from
    frappe-ui's themed CSS variables so dark mode follows [data-theme]. */
-
-.flow-composer-surface {
-	background: color-mix(in srgb, var(--surface-base) 90%, var(--surface-gray-1));
-}
-[data-theme="dark"] .flow-composer-surface {
-	background: var(--surface-gray-1);
-}
 
 /* Long dropdown menus: the page itself never scrolls, so a menu taller than
    the viewport would be unreachable. Cap it to the space reka reports for the
@@ -23,14 +16,7 @@
 	background-color: var(--surface-gray-3);
 }
 
-/* Diff overview ruler: monaco paints the viewport overlay with the scrollbar
-   slider color, which our editor theme makes opaque — that would hide the
-   red/green marks under it. Keep just this overlay translucent. */
-.monaco-diff-editor .diffOverview .diffViewport {
-	background: color-mix(in srgb, var(--ink-gray-9) 10%, transparent);
-}
-
-/* Floating "Add to chat" pill rendered as a monaco content widget */
+/* Floating "Add to chat" pill over a selection in the thread */
 .flow-add-to-chat {
 	margin-bottom: 4px;
 	padding: 4px 8px;
@@ -50,83 +36,6 @@
 	color: var(--ink-gray-9);
 }
 
-.flow-icon-btn {
-	display: grid;
-	place-items: center;
-	width: 28px;
-	height: 28px;
-	flex: none;
-	border: 0;
-	background: transparent;
-	border-radius: 6px;
-	cursor: pointer;
-	color: var(--ink-gray-7);
-}
-.flow-icon-btn:hover {
-	background: var(--surface-gray-2);
-	color: var(--ink-gray-9);
-}
-
-.flow-btn-primary,
-.flow-btn-secondary,
-.flow-btn-ghost {
-	flex: none;
-	height: 30px;
-	border-radius: 7px;
-	cursor: pointer;
-	font-size: 13px;
-	font-weight: 500;
-	border: 0;
-}
-.flow-btn-primary {
-	padding: 0 15px;
-	background: var(--surface-gray-10);
-	color: var(--ink-base);
-	box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.1);
-}
-.flow-btn-primary:hover {
-	opacity: 0.88;
-}
-.flow-btn-secondary {
-	padding: 0 13px;
-	border: 1px solid var(--outline-gray-2);
-	background: var(--surface-base);
-	color: var(--ink-gray-7);
-}
-.flow-btn-secondary:hover {
-	background: var(--surface-gray-2);
-	color: var(--ink-gray-9);
-}
-.flow-btn-ghost {
-	padding: 0 10px;
-	background: transparent;
-	color: var(--ink-gray-6);
-}
-.flow-btn-ghost:hover {
-	background: var(--surface-gray-2);
-	color: var(--ink-gray-9);
-}
-
-/* dialog.prompt renders the subtle input variant, whose border matches its own
-   background — invisible against the dark modal until focused. Give dialog
-   inputs the app's outline field look; their own focus styles still apply.
-   A combobox's inner input draws inside its own trigger and is left alone. */
-.dialog-content input[type="text"]:not(:focus):not([role="combobox"]),
-.dialog-content textarea:not(:focus) {
-	border-color: var(--outline-gray-2);
-	background: var(--surface-base);
-}
-
-/* frappe-ui sizes its settings shell as a full-bleed sheet on phones (w-screen, 100dvh)
-   while its dialog keeps a 1rem gutter and 2rem margins around it: fit the shell to the
-   dialog instead. */
-@media (max-width: 639px) {
-	.dialog-content > [data-orientation="vertical"] {
-		width: 100%;
-		height: calc(100dvh - 6rem);
-	}
-}
-
 /* the per-turn copy row reveals when hovering the turn's last item (its
    previous sibling), itself, or via keyboard focus — same feel as the user
    bubble's hover copy. Scoped to the thread's direct children: a bare
@@ -136,12 +45,12 @@
 	transition: opacity 0.12s ease;
 }
 .flow-thread > :hover + .flow-turn-copy,
-.flow-thread > :hover + .flow-turn-files + .flow-turn-copy,
+.flow-thread > :hover + .flow-turn-artifacts + .flow-turn-copy,
 .flow-turn-copy:hover,
 .flow-turn-copy:focus-within {
 	opacity: 1;
 }
-/* a message's own actions (the user bubble's time, rewind and copy) reveal on hovering it */
+/* a message's own actions (the user bubble's time and copy) reveal on hovering it */
 .flow-hover-reveal {
 	opacity: 0;
 	transition: opacity 0.12s ease;
@@ -236,9 +145,8 @@
 
 /* Conversation typography. */
 .flow-prose {
-	/* font-family: Inter; */
-	font-size: 15.5px;
-	line-height: 1.65;
+	font-size: 14px;
+	line-height: 1.6;
 	font-weight: 400;
 	letter-spacing: normal;
 }
@@ -482,12 +390,4 @@
 .flow-code .hljs-deletion {
 	color: var(--ink-red-6);
 	background: var(--surface-red-1);
-}
-
-/* Prompt rail: the bar list scrolls only when taller than its cap; no scrollbar chrome */
-.flow-prompt-rail {
-	scrollbar-width: none;
-}
-.flow-prompt-rail::-webkit-scrollbar {
-	display: none;
 }

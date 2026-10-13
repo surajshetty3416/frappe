@@ -19,9 +19,7 @@
 							<h2 class="text-base font-semibold leading-5 text-ink-gray-9">Transcript</h2>
 							<div v-if="title" class="mt-1.5 truncate text-sm text-ink-gray-6">{{ title }}</div>
 						</div>
-						<button ref="closeEl" class="flow-icon-btn flex-none" title="Close" @click="close">
-							<FeatherIcon name="x" class="h-3.5 w-3.5" />
-						</button>
+						<Button ref="closeEl" variant="ghost" icon="lucide-x" tooltip="Close" @click="close" />
 					</div>
 					<div class="mt-4 flex flex-wrap gap-2">
 						<div
@@ -66,7 +64,7 @@
 
 <script setup>
 import { computed, inject, nextTick, onBeforeUnmount, ref, watch } from "vue"
-import FeatherIcon from "./FeatherIcon.vue"
+import { Button } from "frappe-ui"
 
 import { buildTranscriptRows, formatTokens } from "../transcript.js"
 
@@ -130,7 +128,7 @@ watch(
 		if (isOpen) {
 			returnFocus = document.activeElement
 			window.addEventListener("keydown", onKey, true)
-			nextTick(() => closeEl.value?.focus())
+			nextTick(() => closeEl.value?.$el?.focus())
 		} else {
 			window.removeEventListener("keydown", onKey, true)
 			returnFocus?.focus?.()
