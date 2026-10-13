@@ -210,7 +210,11 @@ const page = computed(() => usePageStore().activePage);
 export default defineArtifactEditor({
 	preview: BuilderPagePreview,
 
-	title: () => page.value?.page_title || "Untitled page",
+	title() {
+		// blank until the page the route names has loaded, not the last page's title
+		if (!page.value || page.value.name !== usePageStore().selectedPage) return "";
+		return page.value.page_title || "Untitled page";
+	},
 	rename: (title) => usePageStore().updateActivePage("page_title", title) as Promise<unknown>,
 	status() {
 		if (usePageStore().savingPage) return { label: "Saving…", theme: "gray" };
