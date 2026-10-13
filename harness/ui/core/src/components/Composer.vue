@@ -110,6 +110,7 @@
 					<button type="button" class="underline" :disabled="submitting" @click="prepareAttachment(item)">Retry</button>
 				</p>
 				<Button
+					v-if="attachable"
 					variant="ghost"
 					icon="lucide-plus"
 					tooltip="Attach files"
@@ -117,7 +118,7 @@
 					:disabled="submitting"
 					@click="fileInput?.click()"
 				/>
-				<div class="relative self-center" :class="compact ? '' : 'order-1 col-span-3'">
+				<div class="relative self-center" :class="compact ? 'col-start-2' : 'order-1 col-span-3'">
 					<!-- known skill commands show in blue under the transparent text -->
 					<div
 						v-if="skillParts"
@@ -157,7 +158,7 @@
 						:model-value="flow.state.agent ?? ''"
 						@update:model-value="(value) => flow.setAgent(value || null)"
 					/>
-					<Dropdown :options="modeOptions" align="end">
+					<Dropdown v-if="flow.options.approvals !== false" :options="modeOptions" align="end">
 						<Button variant="ghost" :label="modeLabel" icon-right="lucide-chevron-down" />
 					</Dropdown>
 					<Button
@@ -227,6 +228,7 @@ const agentEntry = computed(() => {
 	const agent = flow.state.sessionId ? flow.state.session?.config?.agent : flow.state.agent
 	return flow.options.agents?.find((entry) => (entry.agent ?? null) === (agent ?? null))
 })
+const attachable = computed(() => flow.options.attachments !== false)
 const skillsOn = computed(() => flow.options.skills !== false && agentEntry.value?.skills !== false)
 const placeholder = computed(
 	() =>
@@ -311,6 +313,7 @@ function onFilesPicked(event) {
 }
 
 function onPaste(event) {
+	if (!attachable.value) return
 	const images = [...(event.clipboardData?.items ?? [])]
 		.filter((item) => item.kind === "file" && item.type.startsWith("image/"))
 		.map((item) => item.getAsFile())

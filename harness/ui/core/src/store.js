@@ -38,6 +38,8 @@ function readJSON(key, fallback, storage = globalThis.localStorage) {
 //                  aborting it, as a replay that pauses once its step finished
 //   placeholder    the composer's placeholder, instead of "Reply…" or "Describe what to build…"
 //   skills         false hides the composer's "/" skills menu
+//   attachments    false hides the composer's "+" and ignores pasted images
+//   approvals      false hides the composer's approval menu
 //   agents         [{ agent, label, placeholder, skills }] a new chat may start with, as a switch
 //                  in the composer; `agent` null is the default one, `skills` false has none
 //   taskCard       component drawing a task a turn's tool sent to another chat ({ task })
