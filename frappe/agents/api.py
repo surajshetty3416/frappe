@@ -253,11 +253,21 @@ def step_card(row: dict) -> dict:
 	action = get_action_registry().get(row.get("action_type") or "")
 	labels = {field["fieldname"]: field.get("label") for field in (action.params_schema if action else [])}
 	card["params"] = [
-		{"label": labels.get(key) or key, "value": value if isinstance(value, str) else frappe.as_json(value)}
+		{"label": labels.get(key) or key, "parts": param_parts(row.get("document_type"), value)}
 		for key, value in params.items()
 		if value not in (None, "", [], {})
 	]
 	return card
+
+
+def param_parts(doctype: str | None, value) -> list[dict]:
+	"""A param as prompt parts, so `["{{ doc.email }}"]` reads as the Email chip."""
+	parts = []
+	for item in value if isinstance(value, list) else [value]:
+		if parts:
+			parts.append({"text": ", "})
+		parts += prompt_parts(doctype, item) if isinstance(item, str) else [{"text": frappe.as_json(item)}]
+	return parts
 
 
 def prompt_parts(doctype: str | None, prompt: str) -> list[dict]:
