@@ -6,7 +6,8 @@ From the frappe repo root, on the branch to update, with a clean tree:
 	python3 unification/sync.py merge [source ...]  merge it, one merge commit per source
 
 `merge` stops at the first source that conflicts, with everything else (and the new sources.json)
-staged: resolve, commit, and run it again for the rest. Exit codes: 0 done, 2 conflicts.
+staged: resolve, commit, and run it again for the rest. With --skip-conflicts it sets that source
+aside and goes on with the others. Exit codes: 0 done, 2 conflicts.
 """
 
 import json
@@ -305,23 +306,45 @@ def status(sources):
 		print("".join(f"- {line}\n" for line in pending))
 
 
-def merge(data, source):
+def merge(data, source, skip_conflicts):
+	"""Merge one source in a commit of its own; False if it conflicted and was skipped."""
 	pending = source.pending()
 	if not pending:
-		return
+		return True
+	before = dict(source.config)
 	source.prepare()
-	print(f"## {source.title}: {len(pending)} new commits")
+	print(f"## {source.title}: {len(pending)} new commits\n")
+	print("".join(f"- {line}\n" for line in pending))
 	subprocess.run(["git", "-c", "merge.directoryRenames=true", "merge", "--no-ff", "--no-commit", source.ref], cwd=ROOT, capture_output=True)
 	review, conflicts = source.settle()
-	save(data)
 	print("".join(f"- look at {line}\n" for line in review))
+	if conflicts and skip_conflicts:
+		return skip(source, before, conflicts)
+	save(data)
 	Path(git("rev-parse", "--path-format=absolute", "--git-path", "MERGE_MSG")).write_text(message(data, source, pending))
 	if conflicts:
-		print("Conflicts. Resolve these, `git add` them and `git commit` (the message is ready), then run merge again:")
-		print("".join(f"- {path}\n" for path in conflicts))
-		sys.exit(2)
+		stop(source, conflicts)
 	git("commit", "--quiet", "--no-verify", "--no-edit")
-	print(f"merged as {git('rev-parse', '--short', 'HEAD')}\n")
+	print(f"Merged as {git('rev-parse', '--short', 'HEAD')}.\n")
+	return True
+
+
+def skip(source, before, conflicts):
+	git("merge", "--abort")
+	git("reset", "--hard", "--quiet", "HEAD")
+	source.config.clear()
+	source.config.update(before)
+	print(f"Skipped. These conflict; run `python3 unification/sync.py merge {source.name}` and resolve them:\n")
+	print("".join(f"- {path}\n" for path in conflicts))
+	return False
+
+
+def stop(source, conflicts):
+	print("Conflicts. Resolve these and `git add` them:\n")
+	print("".join(f"- {path}\n" for path in conflicts))
+	print("".join(f"Then run `{command}`, " for command in source.config.get("regenerate", [])), end="")
+	print("`git commit` (the message is ready), and run merge again for the other sources.")
+	sys.exit(2)
 
 
 def message(data, source, pending):
@@ -330,16 +353,19 @@ def message(data, source, pending):
 	return f"chore(unification): merge {source.title} up to {source.config['commit'][:10]}\n\n{body}\n\n{trailers}\n"
 
 
-def main(command="status", *names):
+def main(command="status", *args):
 	data, sources = load()
+	names = [arg for arg in args if not arg.startswith("--")]
 	chosen = [sources[name] for name in names] if names else list(sources.values())
 	if command == "status":
 		return status(chosen)
 	if git("status", "--porcelain", "--untracked-files=no") or git("rev-parse", "-q", "--verify", "MERGE_HEAD", check=False):
 		sys.exit("Commit or set aside local changes, and finish any merge in progress, first.")
+	merged = []
 	for source in chosen:
 		source.fetch()
-		merge(data, source)
+		merged.append(merge(data, source, "--skip-conflicts" in args))
+	sys.exit(0 if all(merged) else 2)
 
 
 if __name__ == "__main__":

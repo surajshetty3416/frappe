@@ -1,0 +1,10 @@
+[Unit]
+Description=Daily upstream sync for the unified branch
+
+[Timer]
+# 07:17 IST: upstream's day has landed, and the PR is waiting at the start of the next
+OnCalendar=*-*-* 01:47:00 UTC
+Persistent=true
+
+[Install]
+WantedBy=timers.target

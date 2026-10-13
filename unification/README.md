@@ -11,25 +11,24 @@ single-page app, **Studio**, serves them at `/studio`.
 | ai | frappe/flow | `frappe/ai` | `studio/ai` | chats, agents, tools |
 | ui | frappe/studio | `frappe/ui` | `studio/ui` | apps (Studio App) |
 
-This file is the map for porting later changes from those four repos. Read "Porting upstream
-changes" before touching a merge. The two scripts it runs are in "Scripts" at the end; save them
-outside the repo.
+This folder keeps the branch in step with those repos until it lands in frappe develop: this
+file maps where everything moved and what the unification added, and [`sync.py`](sync.py) merges
+upstream changes (see "Keeping up with upstream"). Delete the folder once the merge is upstream.
 
 ## Sources
 
-Each app was merged at the upstream commit below. Its history was first rewritten to the paths
-this repo used at merge time (see "The history rewrite"), so the merge's second parent is the
-*rewritten* copy of that upstream commit.
+| Upstream | Branch | Layer |
+| --- | --- | --- |
+| frappe/frappe | develop | the base |
+| frappe/builder | develop | web |
+| frappe/insights | develop | analytics |
+| frappe/flow | main (it has no develop) | ai |
+| frappe/studio | develop | ui |
 
-| Upstream | Branch | Merged upstream commit | Date | Rewritten commit (merge's 2nd parent) |
-| --- | --- | --- | --- | --- |
-| frappe/builder | develop | `477481ff78aaae7ef1c7318258f2b3aa159ff6fd` | 2026-10-10 | `c587875347a7014d16b4f7dc9f9d875c00dd0949` |
-| frappe/insights | develop | `ef8c48175b5fcd177f4ea08ee51100eb75816f82` | 2026-10-08 | `a721d45ef1d072292d56caa95a154920e9f8308c` |
-| frappe/flow | main (no develop) | `b3466bf0624d66ce796fb3c155eb8361739fa7a3` | 2026-10-12 | `dba5b9b949a294e90f494bed7d67e9789a5e8163` |
-| frappe/studio | develop | `42491ecdedc01a4d4630503443ed9125ca63887f` | 2026-10-12 | `04f6cec5bc06d4bf0a3b14c256860a12acbb2b8f` |
-
-The four merges sit on frappe develop at `c8d85d6356ca4ef3ec8edfa3340985c3007bfa55`.
-Update this table in the same commit as every port.
+[`sources.json`](sources.json) holds the last upstream commit merged from each and, for the apps,
+its rewritten copy here (the merge's second parent); every sync updates it in its merge commit.
+The first merges took builder at `477481ff`, insights at `ef8c4817`, flow at `b3466bf0` and
+studio at `42491ecd`, on frappe develop at `c8d85d63`.
 
 ## Where things moved
 
@@ -154,207 +153,117 @@ These are the pieces that exist only here. A port must not undo them.
   `FrappeUIProvider`, the frontend telemetry plugin, insights' `window.fetch` 403 override,
   builder's editor demo route, and app switchers in the layers' headers (the rail does that).
 
-## Porting upstream changes
-
-The history rewrite is deterministic: running the same rewrite on a fresh clone of an upstream
-repo reproduces the commits already merged here, hash for hash. So a port is a plain `git merge`
-of the rewritten upstream branch, and git's rename detection carries the changes onto the
-folders' current names (`frappe/insights/...` in the rewritten history lands in
-`frappe/analytics/...`).
-
-This was tried with the 6 insights commits after `ef8c4817`: the code auto-merged onto
-`frappe/analytics`, the only conflict was a generated file, and the layer's tests passed.
-
-### 1. Rewrite the upstream history
-
-Use `git-filter-repo` (tested with version `a40bce548d2c`; `uvx git-filter-repo` works) on a fresh
-**full** clone (not shallow):
+## Keeping up with upstream
 
 ```sh
-git clone --single-branch --branch develop https://github.com/frappe/insights.git /tmp/port/insights
-./rewrite_app_history.sh /tmp/port/insights insights   # see "Scripts" below
+python3 unification/sync.py status           # what each source has that isn't merged yet
+python3 unification/sync.py merge            # merge it all, one merge commit per source
+python3 unification/sync.py merge insights   # or one source
 ```
 
-Check that the rewrite is the same as before: the rewritten copy of the upstream commit in the
-"Sources" table must have the hash in its "Rewritten commit" column.
+Run it from the repo root on the branch to update, with a clean tree. It needs `uvx` (or
+`git-filter-repo` 2.47 on the PATH) and keeps its clones in `~/.cache/frappe-unification`
+(`UNIFICATION_CACHE`).
 
-```sh
-git -C /tmp/port/insights log --format='%H %s' | grep -m1 '<subject of the merged upstream commit>'
-```
+### How a sync works
 
-If it differs, stop: the merge would bring the whole history in a second time. Check the clone is
-full, the branch is right and the script is unchanged.
+frappe develop merges as it is. An app's history was rewritten before its first merge so its
+files sat under `frappe/<app>/` and `frontend/<app>/` (`CALLBACK` in `sync.py`); later commits here
+moved them to the layer folders. A sync rewrites only the commits since the last merge, the same
+way, and parents them on their copies already merged here, matched by author, both times and
+subject (a commit the first rewrite dropped, such as a `frappe-ui` submodule bump, hands over to
+its parent). What's left is a plain merge, and git's rename detection carries the changes onto the
+layer folders.
 
-### 2. Merge
+It doesn't re-run the whole rewrite: `git-filter-repo` rewrites hashes quoted in messages
+("cherry picked from commit ...") only for commits it has already exported, and the export order
+shifts as upstream adds and deletes branches, so a full rewrite stops reproducing the merged
+history.
 
-```sh
-git fetch /tmp/port/insights develop:refs/heads/port/insights
-git merge --no-ff port/insights -m "feat(analytics): merge frappe/insights@develop up to <short sha>"
-```
+### What it resolves itself
 
-To take a single change instead, cherry-pick its rewritten commit from `port/insights`.
+- **Files the unification only renamed things in** (`@/` to `@web/`, `builder.` to `frappe.web.`):
+  it merges them again with upstream's sides renamed first, so only real edits conflict. A file
+  upstream deleted goes.
+- **A change git lost track of across the rename**: merged into the file's new home (`moves` in
+  `sources.json`).
+- **Repo tooling the unification removed** (CI, lint, lockfiles, generated `.d.ts`; `ignore` in
+  `sources.json`): stays removed.
+- **New upstream files under the old folders**: moved to the layer's.
+- **Old names in whatever the merge brought in**: rewritten by [`port_rewrite.py`](port_rewrite.py).
+  The new lines it can't decide on (`get_app_path("builder", ...)`, app-name checks, `/builder`
+  URLs) are printed as "look at".
+- **Generated files**: regenerated (`regenerate` in `sources.json`).
 
-### 3. Resolve
+### What needs a person
 
-Expect conflicts in:
+`merge` stops at a source that still conflicts and lists the files (`--skip-conflicts` sets the
+source aside instead). The usual causes:
 
-- **Generated files** the rename rewrote (`frappe/analytics/docs/coverage.md`): drop the old-path
-  copy (`git rm frappe/insights/docs/coverage.md`) and regenerate
-  (`python frappe/analytics/tests/features.py generate`).
-- **Files that no longer exist here**: an app's `frontend/index.html`, `main.ts`, vite config,
-  `package.json`, `yarn.lock`, root CI and lint configs. Port the intent by hand: boot code goes to
-  the layer's `setup`, routes to its `layer.ts`/routes file, dependencies to `studio/package.json`.
-- **`hooks.py`**: keep the layer's hooks shape (see "Hooks" above); add new hooks, don't bring back
-  removed keys.
-- **Lines the rename touched** (imports, method paths, URLs): keep the unified form.
+- **Both sides edited the same lines.** Combine them, keeping the unification's integration (see
+  "How the layers plug in"). For example, the shell owns the theme, so upstream code that sets
+  `data-theme` should read and toggle frappe-ui's `useColorScheme()` instead.
+- **Upstream changed a file that doesn't exist here.** Port the intent and `git rm` the old path:
+  `package.json` to `studio/package.json` (then `yarn install` in `studio/`), `pyproject.toml`
+  to the root one, `index.html`/`main.ts`/vite config to the layer's `layer.ts`, its `setup` or
+  `studio/vite.config.js`.
+- **Upstream added something the layout has no place for**, such as a new folder beside an app's
+  `frontend/src`: decide where it goes.
 
-### 4. Rewrite the new code
+Then `git add` the files, run the source's `regenerate` commands, `git commit` (the message is
+ready) and run `merge` again for the other sources.
 
-Upstream code still says `builder.`, `insights.`, `/assets/builder/`, `@/`... Run the rewrite
-script over every file the merge changed, from the repo root:
+Check by hand, since the tool can't see these:
 
-```sh
-git diff --name-only --diff-filter=AM HEAD^1 HEAD -- frappe/web frappe/analytics frappe/ai frappe/ui studio \
-  | xargs python port_rewrite.py
-```
-
-It rewrites in place and prints the lines that still need a person: `get_app_path("<app>", ...)`,
-app-name checks such as `"builder" in frappe.get_installed_apps()`, and absolute `/builder`,
-`/insights`, `/flow` or `/studio/app/` URLs (see "URLs").
-
-Then check by hand:
-
-- new **patches**: add them to the layer's `patches.txt` as `frappe.<layer>.patches...`;
+- new **patches**: in the layer's `patches.txt` as `frappe.<layer>.patches...`;
 - new **whitelisted methods**: every argument type-annotated;
 - new **DocTypes**: `"module"` is the layer's (Web, Analytics, AI, UI);
-- new **routes**: relative paths in the layer's routes, unique names, `meta.artifact` on an editor
-  of an artifact;
-- new **CSS** files in a layer: no `@tailwind base`, no `frappe-ui/style.css` import;
+- new **routes**: relative paths in the layer's routes, unique names, `meta.artifact` on an
+  artifact's editor;
+- new **CSS** in a layer: no `@tailwind base`, no `frappe-ui/style.css` import;
 - new **templates**: Jinja names prefixed with the layer folder.
 
-### 5. Check
+### Checks
 
 ```sh
-# every layer module imports (run from the bench's sites/ folder)
-../env/bin/python -c "import frappe, importlib, pkgutil
-frappe.init(site='', sites_path='.')
-for layer in ['web', 'analytics', 'ai', 'ui']:
-    pkg = importlib.import_module(f'frappe.{layer}')
-    for m in pkgutil.walk_packages(pkg.__path__, f'frappe.{layer}.'):
-        if '.test' not in m.name and '__main__' not in m.name:
-            importlib.import_module(m.name)"
+# from the bench's sites/ folder
+PYTHONPATH=<repo> ../env/bin/python <repo>/unification/check_imports.py
 bench --site <test site> migrate
-bench --site <test site> run-tests --module frappe.<layer>.<module>   # the touched layer's tests
-cd apps/frappe/studio && yarn build                                    # also builds insights' desk islands
+bench --site <test site> run-tests --module frappe.<layer>.<module>
+yarn --cwd <repo>/studio install && yarn --cwd <repo>/studio build   # also builds insights' desk islands
 ```
 
-Then open `/studio`, the layer's screens and an artifact editor in the browser.
+Then open `/studio`, the touched layer's screens and an artifact editor in the browser.
 
-## Scripts
+### The daily PR
 
-### The history rewrite (`rewrite_app_history.sh`)
+On the devbox, `systemd/unification-sync.timer` runs [`sync_pr.sh`](sync_pr.sh) at 01:47 UTC
+(07:17 IST). It:
 
-The exact rewrite used for the merges. It maps paths to where they were **at merge time**
-(`frappe/<app>/`, `frontend/<app>/`); git's rename detection takes them the rest of the way. Don't
-"fix" it to the current names: a different rewrite produces different hashes, and step 1's check
-fails.
+1. skips the day if a `sync/upstream` PR is still open;
+2. resets its own worktree, `/home/t3run/unification-sync`, to `origin/unified`, so the bench
+   serving unified.surajshetty.tech is never touched, and runs `sync.py merge --skip-conflicts`
+   on a `sync/upstream` branch;
+3. checks the result with the worktree's code over the bench's env (`PYTHONPATH`): layer imports,
+   the SPA build, then migrate and every layer test on `unified-test.localhost`;
+4. pushes and opens a PR into `unified`, as a draft if a check failed;
+5. lists the sources it set aside in an "Upstream sync needs a hand" issue on the fork, updated
+   each run and closed once everything merges. Merge those by hand with `sync.py merge <source>`
+   and push to `unified`; the next run carries on from there.
+
+`systemctl start unification-sync` runs it now, `journalctl -u unification-sync` shows the run,
+and `DRY_RUN=1` prints the PR and issue instead of pushing.
+
+One-time setup, as root on the devbox:
 
 ```sh
-#!/bin/zsh
-# usage: rewrite_app_history.sh <full clone> <app: builder | insights | flow | studio>
-set -e
-cd "$1"
-APP="$2"
-uvx git-filter-repo --force --filename-callback "
-A = b'$APP'
-if filename == b'.gitmodules' or filename == b'frappe-ui' or filename.startswith(b'frappe-ui/'):
-    return None
-if filename == A + b'/' + A + b'/__init__.py':
-    return None
-if filename.startswith(A + b'/' + A + b'/'):
-    return b'frappe/' + A + b'/' + filename[2 * len(A) + 2:]
-if filename.startswith(A + b'/'):
-    return b'frappe/' + filename
-if filename.startswith(b'frontend/'):
-    return b'frontend/' + A + b'/' + filename[len(b'frontend/'):]
-return b'frappe/' + A + b'/' + filename
-"
-```
-
-### The code rewrite (`port_rewrite.py`)
-
-Run from the repo root (it reads the layer folders to tell a module path from a file name such as
-`"builder.css"`).
-
-```python
-"""Rewrite upstream builder/insights/flow/studio references to the unified layout.
-
-usage: python port_rewrite.py <file> [<file> ...]   (run from the frappe repo root)
-Rewrites in place and prints the lines that still name an old app for a manual look.
-"""
-
-import re
-import sys
-from pathlib import Path
-
-LAYERS = {"builder": "web", "insights": "analytics", "flow": "ai", "studio": "ui"}
-MODULES = {"Builder": "Web", "Insights": "Analytics", "Flow": "AI", "Studio": "UI"}
-ALIASES = {"builder": "@web/", "studio": "@ui/"}  # the upstream frontends whose "@/" meant their src
-
-
-def modules(layer):
-	"""Top-level names inside a layer package, so `builder.css` or `flow.json` stay put."""
-	return {path.stem if path.suffix == ".py" else path.name for path in Path("frappe", layer).iterdir()}
-
-
-NAMES = {old: modules(new) for old, new in LAYERS.items()}
-ALT = "|".join(LAYERS)
-DOTTED = re.compile(rf"(?<![\w.])(?P<app>{ALT})\.(?:(?P=app)\.)?(?P<head>\w+)(?P<tail>(?:\.\w+)*)")
-
-
-def dotted(match):
-	app, head = match["app"], match["head"]
-	if head not in NAMES[app]:
-		return match[0]
-	return f"frappe.{LAYERS[app]}.{head}{match['tail']}"
-
-
-def rewrite(text, path):
-	for old, new in LAYERS.items():
-		text = re.sub(rf"^(\s*)import {old}$", rf"\1from frappe import {new} as {old}", text, flags=re.M)
-		text = re.sub(rf"^(\s*)from {old} import ", rf"\1from frappe.{new} import ", text, flags=re.M)
-		text = text.replace(f"/assets/{old}/frontend/", "/assets/frappe/studio/")
-		text = text.replace(f"/assets/{old}/", f"/assets/frappe/{new}/")
-		text = text.replace(f'"{old}/templates/', f'"{new}/templates/')
-	# dotted paths in `from x import`, in string literals and after /api/method/
-	in_place = rf"(?<=from )(?:{ALT})\.[\w.]+(?= import)|(?<=[\"'`])(?:{ALT})\.[\w.]+|(?<=/api/method/)(?:{ALT})\.[\w.]+"
-	text = re.sub(in_place, lambda match: DOTTED.sub(dotted, match[0]), text)
-	text = re.sub(r'(["\'])templates/generators/(webpage|studio_renderer|app_renderer)', lambda m: f"{m[1]}{'web' if m[2] == 'webpage' else 'ui'}/templates/generators/{m[2]}", text)
-	for old, new in MODULES.items():
-		text = text.replace(f'"module": "{old}"', f'"module": "{new}"')
-	layer = next((old for old in ALIASES if f"/{LAYERS[old]}/" in f"/{path}"), None)
-	if layer and path.startswith("studio/"):
-		text = re.sub(r"(?<=[\"'`])@/", ALIASES[layer], text)
-	return text
-
-
-REVIEW = re.compile(rf"get_app_path\(\s*[\"'](?:{ALT})[\"']|[\"'](?:{ALT})[\"']\s*(?:in|==|!=)|(?<![\w/])/(?:builder|insights|flow)(?:/|[\"'`])|/studio/app/")
-
-
-def main(paths):
-	for name in paths:
-		path = Path(name)
-		text = path.read_text()
-		new = rewrite(text, name)
-		if new != text:
-			path.write_text(new)
-		for number, line in enumerate(new.splitlines(), 1):
-			if REVIEW.search(line):
-				print(f"{name}:{number}: {line.strip()}")
-
-
-if __name__ == "__main__":
-	main(sys.argv[1:])
+sudo -u t3run git -C /home/t3run/unified-bench/apps/frappe worktree add --detach /home/t3run/unification-sync origin/unified
+sudo -u t3run gh auth setup-git
+cd /home/t3run/unified-bench/sites && sudo -u t3run ../env/bin/python -m frappe.utils.bench_helper frappe \
+  new-site unified-test.localhost --db-root-password <root> --admin-password admin
+sudo -u t3run ../env/bin/python -m frappe.utils.bench_helper frappe --site unified-test.localhost set-config allow_tests true
+cp /home/t3run/unification-sync/unification/systemd/unification-sync.* /etc/systemd/system/
+systemctl daemon-reload && systemctl enable --now unification-sync.timer
 ```
 
 ## Still open
@@ -365,5 +274,10 @@ if __name__ == "__main__":
 - Layer translations (`frappe/<layer>/locale`) aren't loaded by frappe.
 - Frontend telemetry is off since the layers share one page.
 - Builder's and Studio's editors still have their own AI tab beside the Studio chat.
+- frappe-ui's `reka-ui` patch (shadow-DOM layers for insights' desk islands) isn't applied:
+  it targets reka-ui 2.10 and the SPA resolves 2.11. `studio/patches` applies the SPA's own.
+- frappe-ui stays at 1.0.0; studio upstream moved to 1.0.1.
+- Studio's canvas theme toggle sets `data-theme` inside the layer, which `layerScope.js` only
+  matches on or above the layer's root: check it in the browser.
 - Licenses: insights is GPLv3 and flow AGPLv3 inside MIT frappe; their texts are kept as
   `frappe/analytics/license.txt` and `frappe/ai/license.txt`.
