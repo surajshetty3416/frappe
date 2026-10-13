@@ -12,15 +12,27 @@ export const routes: RouteRecordRaw[] = [
 		props: true,
 		name: 'Dashboard',
 		path: 'dashboards/:name',
-		component: () => import('./dashboard/Dashboard.vue'),
-		meta: { artifact: { doctype: 'Insights Dashboard v3', param: 'name' } },
+		component: () => import('./dashboard/editor').then((editor) => editor.default.preview),
+		meta: {
+			artifact: {
+				doctype: 'Insights Dashboard v3',
+				param: 'name',
+				editor: () => import('./dashboard/editor'),
+			},
+		},
 	},
 	{
 		props: true,
 		name: 'Chart',
 		path: 'charts/:name',
-		component: () => import('./charts/ChartPreview.vue'),
-		meta: { artifact: { doctype: 'Insights Chart v3', param: 'name' } },
+		component: () => import('./charts/editor').then((editor) => editor.default.preview),
+		meta: {
+			artifact: {
+				doctype: 'Insights Chart v3',
+				param: 'name',
+				editor: () => import('./charts/editor'),
+			},
+		},
 	},
 	{
 		props: true,

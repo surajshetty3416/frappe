@@ -65,9 +65,9 @@ const textHtml = computed(() => (props.item.text ? DOMPurify.sanitize(props.item
 	<!-- centered with `my-auto` on the content rather than `justify-center` on the
 	     box: a centered flex column scrolls away from text taller than the cell -->
 	<div v-else-if="props.item.text" class="flex h-full w-full flex-col overflow-auto">
-		<div class="prose prose-v3 my-auto max-w-none text-ink-gray-7" v-html="textHtml"></div>
+		<div data-text class="prose prose-v3 my-auto max-w-none text-ink-gray-7" v-html="textHtml"></div>
 	</div>
-	<div v-else-if="dashboard" class="flex h-full w-full items-center text-p-sm text-ink-gray-4">
+	<div v-else-if="dashboard" data-text class="flex h-full w-full items-center text-p-sm text-ink-gray-4">
 		{{ __('Double-click to add text') }}
 	</div>
 </template>

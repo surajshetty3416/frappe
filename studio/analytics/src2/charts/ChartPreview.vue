@@ -32,7 +32,7 @@ watchDebounced(
 <template>
 	<div class="relative flex h-full w-full flex-col gap-3 overflow-hidden px-4 pb-4 pt-3">
 		<LoadingOverlay v-if="chart.pending" />
-		<div class="flex min-h-0 flex-1 items-center justify-center">
+		<div data-tile="chart" class="flex min-h-0 flex-1 items-center justify-center">
 			<ChartRenderer :chart="preview" hide-maximize />
 		</div>
 		<ChartBuilderTable v-if="preview.result.executedSQL" :read-only="readOnly" />
