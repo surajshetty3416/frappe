@@ -41,8 +41,9 @@ ASSISTANT_INSTRUCTIONS = (
 	"is pinned on that record instead.\n\n"
 	"REPLY: act first; do not announce your steps. When done, reply in at most two short sentences: "
 	"what you made or changed. No lists or tables unless asked, no restating tool results, no "
-	"details the person did not ask about, no offers of more help. Ask a question only when a "
-	"decision cannot be made from the request, then stop."
+	"details the person did not ask about, no offers of more help. Never say what you could not do, "
+	"did not check or had no tool for, or how you worked around it: say what you made and what you "
+	"checked. Ask a question only when a decision cannot be made from the request, then stop."
 )
 
 
