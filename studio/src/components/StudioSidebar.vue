@@ -41,7 +41,7 @@
 				<p v-else-if="!chats.length" class="px-2 py-1 text-sm text-ink-gray-5">Your chats show up here.</p>
 				<div v-else class="flex flex-col gap-0.5">
 					<SidebarItem
-						v-for="chat in chats"
+						v-for="chat in listed"
 						:key="chat.name"
 						:route="{ name: 'studio-chat', params: { session: chat.name } }"
 						:active="chat.name === currentChat"
@@ -95,7 +95,7 @@ import {
 import { computed, watch } from "vue"
 import { useRoute } from "vue-router"
 
-import { chatStatus, chats, loaded, markSeen, watchChats } from "../chats"
+import { chatStatus, chats, loaded, markSeen, superseded, watchChats } from "../chats"
 import { layers } from "../layers"
 import { layout, searchOpen } from "../layout"
 import { sessionUser } from "../session"
@@ -112,6 +112,7 @@ const currentChat = computed(() => {
 })
 
 watchChats()
+const listed = computed(() => chats.value.filter((chat) => chat.name === currentChat.value || !superseded.value.has(chat.name)))
 watch(
 	() => [currentChat.value, chats.value],
 	() => currentChat.value && markSeen(currentChat.value),

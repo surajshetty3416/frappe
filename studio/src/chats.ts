@@ -10,6 +10,8 @@ export type ChatStatus = "running" | "waiting" | "unread" | null
 
 export const chats = ref<Chat[]>([])
 export const loaded = ref(false)
+// a recording's earlier replays, which its latest one replaces in the list
+export const superseded = ref(new Set<string>())
 const runs = ref<Record<string, string>>({})
 // the `modified` of each chat when its person last had it open
 const seen = useStorage<{ since: string; chats: Record<string, string> }>("studio-seen-chats", { since: "", chats: {} })
@@ -23,6 +25,23 @@ export async function loadChats() {
 		limit_page_length: 50,
 	}).catch(() => [])
 	runs.value = Object.fromEntries(open.map((run: { session: string; status: string }) => [run.session, run.status]))
+	const replayed = await call<{ session: string; recording: string }[]>("frappe.client.get_list", {
+		doctype: "Flow Replay",
+		filters: { session: ["in", history.map((chat) => chat.name)] },
+		fields: ["session", "recording"],
+		limit_page_length: 50,
+	}).catch(() => [])
+	const recordingOf = new Map(replayed.map((replay) => [replay.session, replay.recording]))
+	// the history is newest first, so the first replay of a recording is its latest
+	const latest = new Set<string>()
+	superseded.value = new Set(
+		history.filter((chat) => {
+			const recording = recordingOf.get(chat.name)
+			if (!recording || latest.has(recording)) return Boolean(recording)
+			latest.add(recording)
+			return false
+		}).map((chat) => chat.name)
+	)
 	chats.value = history
 	loaded.value = true
 	// the first visit has read everything before it, by the server's clock
