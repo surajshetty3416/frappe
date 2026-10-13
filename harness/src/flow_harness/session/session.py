@@ -26,7 +26,7 @@ from enum import StrEnum
 from typing import TYPE_CHECKING, Literal
 
 from flow_harness import config as server_config
-from flow_harness.agent import loop
+from flow_harness.agent import claude_code, loop
 from flow_harness.agent.client_tools import notify_run_ended
 from flow_harness.agent.loop import AfterHook, BeforeHook
 from flow_harness.events import (
@@ -328,7 +328,8 @@ class Session:
 			should_title = self._should_title()
 			self._budget = loop.TokenBudget(self.config.token_budget)
 			inputs = self._loop_inputs(model, before_tool_call, after_tool_call)
-			handle = self._start_operation(loop.run(user_message, inputs))
+			runner = claude_code if claude_code.is_claude_code(self.model) else loop
+			handle = self._start_operation(runner.run(user_message, inputs))
 			if should_title:
 				self._start_titling(user_message.text)
 			return handle
@@ -356,7 +357,8 @@ class Session:
 			validate_resume(approval, approval_seq, answers)
 			assert approval is not None  # narrowed by validate_resume
 			inputs = self._loop_inputs(model, before_tool_call, after_tool_call)
-			return self._start_operation(loop.resume(approval, answers, inputs))
+			runner = claude_code if claude_code.is_claude_code(self.model) else loop
+			return self._start_operation(runner.resume(approval, answers, inputs))
 
 	def abort(self) -> bool:
 		"""Signal the active run to stop; steering that never became durable dies with it."""
@@ -423,8 +425,9 @@ class Session:
 			if not self.transcript.messages:
 				raise SessionConflict("nothing to compact")
 			inputs = self._loop_inputs(model, None, None)
+			runner = claude_code if claude_code.is_claude_code(self.model) else loop
 			return self._start_operation(
-				loop.compact(instructions, inputs),
+				runner.compact(instructions, inputs),
 				operation_type="compact",
 			)
 

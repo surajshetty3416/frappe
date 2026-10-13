@@ -117,6 +117,13 @@ async def _models_for_provider(
 	if spec is None:
 		return []
 	prefix = spec.model_prefixes[0]
+	if provider_id == "claude-code":
+		from flow_harness.model.providers.claude_code import MODELS
+
+		return [
+			ModelInfo(name=f"{prefix}/{model}", provider=provider_id, supports_images=True)
+			for model in MODELS
+		]
 	auth = await resolve_model_auth(f"{prefix}/discovery", store, provider_id=provider_id)
 	base = auth.base_url
 	if provider_id == "codex":

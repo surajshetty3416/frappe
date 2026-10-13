@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import getpass
+import shutil
 import time
 import webbrowser
 from socketserver import BaseServer
@@ -56,6 +57,8 @@ def show_providers(store: CredentialStore) -> None:
 			source = "stored API key"
 		elif kind == "oauth":
 			source = "OAuth"
+		elif "cli" in provider.auth_methods:
+			source = "login held by the claude CLI" if shutil.which("claude") else None
 		else:
 			source = configured_env(provider)
 		print(f"{provider.id:<{width}}  {source or 'not configured'}")

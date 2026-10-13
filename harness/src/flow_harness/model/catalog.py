@@ -4,6 +4,7 @@ runtime model catalog derived from litellm's cost table."""
 from __future__ import annotations
 
 import os
+import shutil
 from collections.abc import Iterator
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Literal
@@ -11,7 +12,8 @@ from typing import TYPE_CHECKING, Literal
 if TYPE_CHECKING:
 	from flow_harness.model.credentials import CredentialStore
 
-AuthMethod = Literal["api_key", "oauth"]
+# "cli": the provider's own CLI holds the login, so Flow stores no credential
+AuthMethod = Literal["api_key", "oauth", "cli"]
 
 
 @dataclass(frozen=True)
@@ -39,6 +41,7 @@ PROVIDERS = (
 	ProviderSpec("mistral", "Mistral", ("mistral",), ("MISTRAL_API_KEY",)),
 	ProviderSpec("cerebras", "Cerebras", ("cerebras",), ("CEREBRAS_API_KEY",)),
 	ProviderSpec("codex", "OpenAI Codex subscription", ("codex",), auth_methods=("oauth",)),
+	ProviderSpec("claude-code", "Claude Code", ("claude-code",), auth_methods=("cli",)),
 	ProviderSpec(
 		"opencode-go",
 		"OpenCode Go subscription",
@@ -67,11 +70,18 @@ def configured_env(provider: ProviderSpec) -> str | None:
 
 
 def configured_providers(store: CredentialStore) -> list[ProviderSpec]:
-	"""Providers usable right now: a stored credential or an API-key env var."""
+	"""Providers usable right now: a stored credential, an API-key env var, or a CLI
+	that holds its own login."""
 	stored = {entry.provider_id for entry in store.list()}
 	return [
-		provider for provider in PROVIDERS if provider.id in stored or configured_env(provider) is not None
+		provider
+		for provider in PROVIDERS
+		if provider.id in stored or configured_env(provider) is not None or _cli_installed(provider)
 	]
+
+
+def _cli_installed(provider: ProviderSpec) -> bool:
+	return "cli" in provider.auth_methods and shutil.which("claude") is not None
 
 
 @dataclass(frozen=True)
@@ -102,6 +112,8 @@ def model_supports_images(name: str) -> bool | None:
 	prefix, _, remote = name.partition("/")
 	if prefix == "mock":
 		return False
+	if prefix == "claude-code":
+		return True
 	if prefix == "codex":
 		from flow_harness.model.providers.codex import codex_supports_images
 
