@@ -102,6 +102,10 @@ class FlowModel(Document):
 		self.context_window = _detect_context_window(self.model_id) or self.context_window or 0
 
 	def _validate_provider_known(self):
+		from frappe.ai.lib.model import served_by_flow_server
+
+		if served_by_flow_server(self.model_id):
+			return
 		try:
 			import litellm
 		except ImportError:
@@ -152,6 +156,13 @@ def _detect_context_window(model_id: str) -> int:
 	"""Max input tokens for `model_id` per litellm, else for the id behind its prefix
 	(a gateway's custom_openai/openai/gpt-x), or 0 if neither is mapped."""
 	import litellm
+
+	from frappe.ai.lib.model import served_by_flow_server
+
+	if served_by_flow_server(model_id):
+		from flow_harness.model.discovery import context_window_for
+
+		return context_window_for(model_id) or 0
 
 	for candidate in (model_id, model_id.partition("/")[2]):
 		try:

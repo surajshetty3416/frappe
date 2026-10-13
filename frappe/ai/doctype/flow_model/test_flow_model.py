@@ -5,9 +5,8 @@ from typing import Any
 from unittest.mock import patch
 
 import frappe
-from frappe.tests import IntegrationTestCase
-
 from frappe.ai.doctype.flow_model.flow_model import _detect_context_window
+from frappe.tests import IntegrationTestCase
 
 
 def _model(**overrides: Any) -> dict:
@@ -55,6 +54,11 @@ class TestFlowModelValidation(IntegrationTestCase):
 
 		with self.assertRaises(frappe.ValidationError):
 			doc.insert()
+
+	def test_chatgpt_subscription_model_takes_the_flow_servers_window(self):
+		doc = frappe.get_doc(_model(model_id="codex/gpt-5.5")).insert()
+
+		self.assertEqual(doc.context_window, 272_000)
 
 
 class TestFlowModelProvider(IntegrationTestCase):

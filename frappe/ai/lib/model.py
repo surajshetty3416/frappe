@@ -28,8 +28,20 @@ def model_config(model: str) -> dict[str, Any]:
 	return config
 
 
+def served_by_flow_server(model_id: str) -> bool:
+	"""Whether the flow server's own adapter serves the model, such as a ChatGPT
+	subscription's codex/*. litellm does not know these; the server holds their sign-in."""
+	import litellm
+	from flow_harness.model.catalog import provider_for_model
+
+	spec = provider_for_model(model_id)
+	return spec is not None and spec.id not in {p.value for p in litellm.provider_list}
+
+
 def resolve_provider_credentials(model_id: str) -> dict[str, Any]:
 	"""Look up central Flow Provider credentials for a model's provider."""
+	if served_by_flow_server(model_id):
+		return {}
 	try:
 		import litellm
 
