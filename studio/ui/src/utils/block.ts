@@ -13,6 +13,7 @@ import { generateId, isObjectEmpty, kebabToCamelCase, numberToPx } from "./helpe
 import { copyObject, getBlockCopy, getComponentBlock } from "@ui/utils/serializer"
 import { componentHasDefaultSlot, getComponentSlots } from "@ui/utils/components"
 import { mergeLegacyRawStyles } from "@ui/patches/mergeLegacyRawStyles"
+import { SMALL_BREAKPOINTS, desktopDefaults, smallDefaults } from "@ui/utils/responsive"
 
 import type { StyleValue, FrappeUIComponent, FrappeUIComponents } from "@ui/types"
 import type { ComponentEvent } from "@ui/types/ComponentEvent"
@@ -345,6 +346,12 @@ class Block implements BlockOptions {
 			}
 		}
 		return styleObj
+	}
+
+	// what the page renders: the block's own styles over the defaults every app gets
+	getRenderStyles(breakpoint: string = "desktop"): BlockStyleMap {
+		if (!SMALL_BREAKPOINTS.has(breakpoint)) return { ...desktopDefaults(this), ...this.baseStyles }
+		return { ...desktopDefaults(this), ...this.baseStyles, ...smallDefaults(this, breakpoint), ...this.tabletStyles, ...(breakpoint === "mobile" ? this.mobileStyles : {}) }
 	}
 
 	getStyle(style: styleProperty, breakpoint?: string | null) {

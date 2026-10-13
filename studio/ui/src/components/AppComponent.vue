@@ -98,7 +98,7 @@ const componentRef = ref<ComponentPublicInstance | null>(null)
 
 const { currentBreakpoint } = useScreenSize()
 const styles = computed(() => {
-	const _styles = props.block.getStyles(currentBreakpoint.value)
+	const _styles = props.block.getRenderStyles(currentBreakpoint.value)
 	Object.entries(_styles).forEach(([key, value]) => {
 		if (value) {
 			if (isDynamicValue(value.toString())) {
