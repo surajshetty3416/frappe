@@ -55,7 +55,7 @@ in_bench() {
 
 # a bench's worker: test jobs left queued pile up across runs until frappe refuses to enqueue
 start_worker() {
-	in_bench -m frappe.utils.bench_helper frappe --site "$TEST_SITE" purge-jobs > /dev/null
+	in_bench -m frappe.utils.bench_helper frappe purge-jobs --site "$TEST_SITE" > /dev/null
 	(cd "$BENCH/sites" && exec "$BENCH/env/bin/python" -m frappe.utils.bench_helper frappe worker) > "$OUT/worker.log" 2>&1 &
 	WORKER=$!
 	trap 'kill "$WORKER" 2>/dev/null' EXIT
