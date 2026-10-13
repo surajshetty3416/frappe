@@ -10,6 +10,7 @@ from typing import Any, Literal
 import frappe
 from frappe import _
 
+from frappe.ai import artifacts
 from frappe.ai.lib.tool import Tool, ToolContext, tool
 from frappe.ai.utils.safe_exec import safe_exec
 
@@ -551,6 +552,15 @@ def _apply_action(doctype: str, name: str, action: str, args: dict[str, Any]) ->
 	raise ValueError(f"Unknown action {action!r} for {doctype}")
 
 
+def _with_artifact(result: dict[str, Any], ctx: ToolContext, doctype: str, names: list[str]) -> dict[str, Any]:
+	"""Link written Studio artifacts to the chat and return the newest as `artifact`, so Studio opens it."""
+	if not (ctx.session_id and names and doctype in artifacts.artifact_types()):
+		return result
+	for name in names:
+		result["artifact"] = artifacts.link(ctx.session_id, doctype, name)
+	return result
+
+
 @tool(
 	requires_confirmation=True,
 	confirm_prompt=lambda args: (
@@ -580,7 +590,7 @@ def create(doctype: str, records: list[dict[str, Any]], *, ctx: ToolContext) -> 
 	result: dict[str, Any] = {"doctype": doctype, "created": created}
 	if failures:
 		result["failures"] = failures
-	return result
+	return _with_artifact(result, ctx, doctype, created)
 
 
 @tool(
@@ -612,7 +622,7 @@ def update(doctype: str, names: list[str], values: dict[str, Any], *, ctx: ToolC
 	result: dict[str, Any] = {"doctype": doctype, "updated": updated}
 	if failures:
 		result["failures"] = failures
-	return result
+	return _with_artifact(result, ctx, doctype, updated)
 
 
 @tool(
@@ -672,7 +682,8 @@ def run_action(
 		new_name = args.get("new_name")
 		if not new_name:
 			raise ValueError("rename requires args.new_name.")
-		return {"action": "rename", "old": names[0], "new": frappe.rename_doc(doctype, names[0], new_name)}
+		renamed = frappe.rename_doc(doctype, names[0], new_name)
+		return _with_artifact({"action": "rename", "old": names[0], "new": renamed}, ctx, doctype, [renamed])
 
 	results: list[dict[str, Any]] = []
 	failures: list[dict[str, Any]] = []
@@ -685,7 +696,8 @@ def run_action(
 	result: dict[str, Any] = {"action": action, "results": results}
 	if failures:
 		result["failures"] = failures
-	return result
+	written = [r["result"]["name"] if action == "amend" else r["name"] for r in results]
+	return _with_artifact(result, ctx, doctype, written)
 
 
 BUILTIN_TOOLS: list[Tool] = [
