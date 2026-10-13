@@ -106,8 +106,73 @@ def artifact_rows(sessions: list[str]) -> list[dict]:
 
 
 def own_chats() -> list[list]:
-	"""Filters for the user's own chats, as the chat panel lists them."""
-	return [["owner", "=", frappe.session.user], ["source", "!=", "Trigger"]]
+	"""Filters for the user's own chats with the assistant, as the chat panel lists them. A
+	trigger's chats and a test of another agent are not the person's conversations."""
+	from frappe.ai.assistant import ASSISTANT_AGENT_TITLE
+
+	return [
+		["owner", "=", frappe.session.user],
+		# a chat is titled by its first message; one without was never sent
+		["title", "is", "set"],
+		["source", "!=", "Trigger"],
+		["agent", "=", ASSISTANT_AGENT_TITLE],
+	]
+
+
+def claim(doc, method: str | None = None) -> None:
+	"""doc_events hook: a tool call writes an artifact only when no other chat's running turn
+	last edited it, and the write makes its chat the owner. A record of a DocType a chat made
+	belongs to that DocType's artifact."""
+	session = frappe.flags.flow_session
+	if not session:
+		return
+	types = artifact_types()
+	if doc.doctype in types:
+		if doc.is_new():
+			return
+		target = (doc.doctype, doc.name)
+	elif "DocType" in types:
+		target = ("DocType", doc.doctype)
+	else:
+		return
+	last = frappe.get_all(
+		"Flow Session Artifact",
+		filters={
+			"parenttype": "Flow Session",
+			"parentfield": "artifacts",
+			"reference_doctype": target[0],
+			"reference_name": target[1],
+		},
+		fields=["parent", "creation"],
+		order_by="creation desc",
+		limit=1,
+	)
+	if not last and doc.doctype not in types:
+		return
+	last = last[0] if last else None
+	if last and last.parent != session:
+		other = running_since(last.parent)
+		if other and other <= last.creation:
+			title = frappe.db.get_value("Flow Session", last.parent, "title") or _("Untitled chat")
+			frappe.throw(
+				_(
+					'{0} {1} is being edited by the chat "{2}" right now. Tell the person to wait for that chat to finish, or to make this change there.'
+				).format(types[target[0]]["label"], target[1], title)
+			)
+	mine = running_since(session)
+	if not last or last.parent != session or (mine and last.creation < mine):
+		title = frappe.db.get_value(target[0], target[1], types[target[0]]["title_field"])
+		frappe.get_doc("Flow Session", session).add_artifact(*target, title or target[1])
+
+
+def running_since(session: str):
+	"""When the session's running turn started, if one is running."""
+	return frappe.db.get_value(
+		"Flow Run",
+		{"session": session, "status": ("in", ("Running", "Paused"))},
+		"creation",
+		order_by="creation desc",
+	)
 
 
 @frappe.whitelist()

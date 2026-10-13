@@ -1,7 +1,13 @@
 # The /flow page: a Vite app (frontend/) built by `yarn build` into public/studio, its
 # entry copied to www/flow/index.html. Every path under /flow serves that page.
 
-doc_events = {"*": {"on_update": "frappe.ai.versions.record"}}
+doc_events = {
+	"*": {
+		"before_validate": "frappe.ai.artifacts.claim",
+		"on_trash": "frappe.ai.artifacts.claim",
+		"on_update": "frappe.ai.versions.record",
+	}
+}
 
 # a session's tools run as its owner, so its content is theirs alone
 has_permission = {

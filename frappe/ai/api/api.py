@@ -130,6 +130,10 @@ def run(session: str, message: str, attachments: list[str] | str | None = None) 
 		"Flow Run", {"session": doc.name, "status": "Running"}, "name", order_by="creation desc"
 	)
 	run = doc.chat(message, attachments=_parse_attachments(attachments))
+	# the flow server names the chat once its model answers; until then its first line does
+	if not doc.title:
+		first = message.split("<studio_context>")[0].strip()
+		doc.db_set("title", first.splitlines()[0][:TITLE_LIMIT] if first else None, notify=True)
 	return {"run": run.name, "status": "steered" if run.name == active else "started"}
 
 
