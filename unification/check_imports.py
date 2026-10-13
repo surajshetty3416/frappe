@@ -1,7 +1,4 @@
-"""Import every module of the four layers. Run it from a bench's sites/ folder:
-
-	PYTHONPATH=<this repo> <bench>/env/bin/python <this repo>/unification/check_imports.py
-"""
+"""Import every module of the four layers. Run it with the bench's env from its sites/ folder."""
 
 import importlib
 import pkgutil

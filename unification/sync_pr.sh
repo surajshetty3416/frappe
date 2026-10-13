@@ -7,12 +7,14 @@
 #
 #   REPO       owner/name of the repo behind the remote "origin", where the PR goes
 #   BASE       the branch to merge into (unified)
-#   BENCH      a bench whose env runs the checks, with TEST_SITE a site on it the tests may change
+#   BENCH      the bench this worktree is apps/frappe of (default ../..): its env/ is reinstalled
+#              from the worktree, and TEST_SITE in its sites/ is one the tests may change
 #   DRY_RUN=1  print the PR and issue instead of pushing
 set -uo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 cd "$ROOT"
 BASE=${BASE:-unified}
+BENCH=${BENCH:-$(cd "$ROOT/../.." && pwd)}
 BRANCH=sync/upstream
 ISSUE="Upstream sync needs a hand"
 OUT=$(mktemp -d)
@@ -48,7 +50,13 @@ all_clear() {
 }
 
 in_bench() {
-	(cd "$BENCH/sites" && FRAPPE_BENCH_ROOT="$BENCH" PYTHONPATH="$ROOT" "$BENCH/env/bin/python" "$@")
+	(cd "$BENCH/sites" && "$BENCH/env/bin/python" "$@")
+}
+
+install_env() {
+	local dev
+	dev=$(python3 -c 'import tomllib; print(" ".join(k + v for k, v in tomllib.load(open("pyproject.toml", "rb"))["tool"]["bench"]["dev-dependencies"].items()))')
+	uv pip install --python "$BENCH/env/bin/python" --editable "$ROOT" $dev
 }
 
 layer_tests() {
@@ -99,6 +107,7 @@ fi
 
 printf '| Check | Result |\n| --- | --- |\n' > "$OUT/checks.md"
 : > "$OUT/failures.md"
+check env install_env
 check imports in_bench "$ROOT/unification/check_imports.py"
 check build bash -c "yarn --cwd studio install --frozen-lockfile --non-interactive && yarn --cwd studio build"
 check migrate in_bench -m frappe.utils.bench_helper frappe --site "$TEST_SITE" migrate

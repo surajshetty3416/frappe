@@ -8,12 +8,12 @@ Wants=network-online.target
 [Service]
 Type=oneshot
 User=t3run
-WorkingDirectory=/home/t3run/unification-sync
-Environment=REPO=surajshetty3416/frappe BASE=unified BENCH=/home/t3run/unified-bench TEST_SITE=unified-test.localhost
+WorkingDirectory=/home/t3run/unification-sync/apps/frappe
+Environment=REPO=surajshetty3416/frappe BASE=unified BENCH=/home/t3run/unification-sync TEST_SITE=unified-test.localhost
 Environment=PATH=/home/t3run/.local/bin:/usr/local/bin:/usr/bin:/bin
 # start from the branch as pushed, so the script never runs a copy it is about to replace
 ExecStartPre=/usr/bin/git fetch --quiet origin
 ExecStartPre=/usr/bin/git reset --quiet --hard origin/unified
 ExecStartPre=/usr/bin/git clean -fdq
-ExecStart=/home/t3run/unification-sync/unification/sync_pr.sh
+ExecStart=/home/t3run/unification-sync/apps/frappe/unification/sync_pr.sh
 TimeoutStartSec=3h

@@ -227,10 +227,10 @@ Check by hand, since the tool can't see these:
 
 ```sh
 # from the bench's sites/ folder
-PYTHONPATH=<repo> ../env/bin/python <repo>/unification/check_imports.py
+../env/bin/python ../apps/frappe/unification/check_imports.py
 bench --site <test site> migrate
 bench --site <test site> run-tests --module frappe.<layer>.<module>
-yarn --cwd <repo>/studio install && yarn --cwd <repo>/studio build   # also builds insights' desk islands
+yarn --cwd ../apps/frappe/studio install && yarn --cwd ../apps/frappe/studio build   # also builds insights' desk islands
 ```
 
 Then open `/studio`, the touched layer's screens and an artifact editor in the browser.
@@ -238,14 +238,16 @@ Then open `/studio`, the touched layer's screens and an artifact editor in the b
 ### The daily PR
 
 On the devbox, `systemd/unification-sync.timer` runs [`sync_pr.sh`](sync_pr.sh) at 01:47 UTC
-(07:17 IST). It:
+(07:17 IST). It works in a bench of its own, `/home/t3run/unification-sync`, whose `apps/frappe`
+is a worktree of the unified bench's repo, so the bench serving unified.surajshetty.tech is never
+touched. Each run:
 
 1. skips the day if a `sync/upstream` PR is still open;
-2. resets its own worktree, `/home/t3run/unification-sync`, to `origin/unified`, so the bench
-   serving unified.surajshetty.tech is never touched, and runs `sync.py merge --skip-conflicts`
-   on a `sync/upstream` branch;
-3. checks the result with the worktree's code over the bench's env (`PYTHONPATH`): layer imports,
-   the SPA build, then migrate and every layer test on `unified-test.localhost`;
+2. resets the worktree to `origin/unified` and runs `sync.py merge --skip-conflicts` on a
+   `sync/upstream` branch;
+3. checks the result: reinstalls the sync bench's env from the merged `pyproject.toml` (with
+   frappe's dev dependencies), imports every layer module, builds the SPA, then migrates
+   `unified-test.localhost` and runs every layer test on it;
 4. pushes and opens a PR into `unified`, as a draft if a check failed;
 5. lists the sources it set aside in an "Upstream sync needs a hand" issue on the fork, updated
    each run and closed once everything merges. Merge those by hand with `sync.py merge <source>`
@@ -254,17 +256,28 @@ On the devbox, `systemd/unification-sync.timer` runs [`sync_pr.sh`](sync_pr.sh) 
 `systemctl start unification-sync` runs it now, `journalctl -u unification-sync` shows the run,
 and `DRY_RUN=1` prints the PR and issue instead of pushing.
 
-One-time setup, as root on the devbox:
+One-time setup, as root on the devbox. The sync bench shares the unified bench's MariaDB, Redis and
+built desk assets:
 
 ```sh
-sudo -u t3run git -C /home/t3run/unified-bench/apps/frappe worktree add --detach /home/t3run/unification-sync origin/unified
-sudo -u t3run gh auth setup-git
-cd /home/t3run/unified-bench/sites && sudo -u t3run ../env/bin/python -m frappe.utils.bench_helper frappe \
-  new-site unified-test.localhost --db-root-password <root> --admin-password admin
+B=/home/t3run/unification-sync U=/home/t3run/unified-bench
+sudo -u t3run git -C $U/apps/frappe worktree add --detach $B/apps/frappe origin/unified
+sudo -u t3run -i uv venv --python 3.14 $B/env
+sudo -u t3run mkdir -p $B/sites && echo frappe | sudo -u t3run tee $B/sites/apps.txt
+sudo -u t3run python3 -c "import json; c = json.load(open('$U/sites/common_site_config.json')); c.pop('default_site', None); json.dump(c, open('$B/sites/common_site_config.json', 'w'), indent=1)"
+sudo -u t3run ln -s $U/sites/assets $B/sites/assets
+sudo -u t3run -i gh auth setup-git
+cd $B/apps/frappe && sudo -u t3run -i uv pip install --python $B/env/bin/python -e $B/apps/frappe
+cd $B/sites && sudo -u t3run ../env/bin/python -m frappe.utils.bench_helper frappe new-site unified-test.localhost \
+  --db-root-username root --db-root-password <root> --admin-password admin
 sudo -u t3run ../env/bin/python -m frappe.utils.bench_helper frappe --site unified-test.localhost set-config allow_tests true
-cp /home/t3run/unification-sync/unification/systemd/unification-sync.* /etc/systemd/system/
+cp $B/apps/frappe/unification/systemd/unification-sync.* /etc/systemd/system/
 systemctl daemon-reload && systemctl enable --now unification-sync.timer
 ```
+
+A frappe checkout must sit at `<bench>/apps/frappe`: frappe finds its bench as `../..` from the
+repo, and the SPA build scans `apps/` for studio apps. Outside that layout `new-site` half installs
+and frappe's migrate then reaps every DocType as an orphan.
 
 ## Still open
 
