@@ -19,8 +19,10 @@ import sys
 import tempfile
 from fnmatch import fnmatch
 from pathlib import Path
+from typing import NamedTuple
 
 import port_rewrite
+import report
 
 ROOT = port_rewrite.ROOT
 SOURCES = Path(__file__).with_name("sources.json")
@@ -103,8 +105,16 @@ def has_markers(path):
 	return any(line.startswith(("<<<<<<< ", ">>>>>>> ")) for line in text.splitlines())
 
 
+class Commit(NamedTuple):
+	sha: str
+	date: str
+	subject: str
+
+
 class Source:
 	"""An upstream merged as it is: frappe itself."""
+
+	layer = "core"
 
 	def __init__(self, name, config):
 		self.name = name
@@ -113,9 +123,16 @@ class Source:
 		self.repo = ROOT
 
 	@property
+	def url(self):
+		return self.config["repo"].removesuffix(".git")
+
+	@property
+	def slug(self):
+		return self.url.removeprefix("https://github.com/")
+
+	@property
 	def title(self):
-		repo = self.config["repo"].removeprefix("https://github.com/").removesuffix(".git")
-		return f"{repo}@{self.config['branch']}"
+		return f"{self.slug}@{self.config['branch']}"
 
 	def fetch(self):
 		git("fetch", "--quiet", "--no-tags", self.config["repo"], f"+refs/heads/{self.config['branch']}:{self.ref}")
@@ -124,8 +141,14 @@ class Source:
 		return git("rev-parse", self.ref)
 
 	def pending(self):
+		"""The upstream commits not merged yet, oldest first."""
 		pending = f"{self.config['commit']}..{self.head()}"
-		return git("log", "--no-merges", "--format=%h %s", pending, cwd=self.repo).splitlines()
+		log = git("log", "--no-merges", "--reverse", "--format=%H%x1f%cs%x1f%s", pending, cwd=self.repo)
+		return [Commit(*line.split("\x1f", 2)) for line in log.splitlines()]
+
+	def paths(self, commit):
+		"""What an upstream commit touched, at its paths here."""
+		return git("diff-tree", "--no-commit-id", "--name-only", "-r", commit, cwd=self.repo).splitlines()
 
 	def prepare(self):
 		"""Leave the commit to merge at self.ref, and record it."""
@@ -141,6 +164,7 @@ class App(Source):
 
 	def __init__(self, name, config, ignore):
 		super().__init__(name, config)
+		self.layer = port_rewrite.LAYERS[name]
 		self.ignore = ignore
 		self.repo = CACHE / f"{name}.git"
 		self.work = CACHE / name
@@ -173,6 +197,14 @@ class App(Source):
 		git("merge-base", "--is-ancestor", self.config["rewritten"], rewritten, cwd=self.work)
 		git("fetch", "--quiet", self.work, f"+refs/heads/{branch}:{self.ref}")
 		self.config.update(commit=self.head(), rewritten=rewritten)
+
+	def paths(self, commit):
+		lines = (self.work / ".git" / "filter-repo" / "commit-map").read_text().splitlines()[1:]
+		copy = dict(line.split() for line in lines).get(commit, "0" * 40)
+		if set(copy) == {"0"}:
+			return []
+		names = git("diff-tree", "--no-commit-id", "--name-only", "-r", copy, cwd=self.work).splitlines()
+		return [self.moved(name) or name for name in names if not self.ignored(name)]
 
 	def clone(self):
 		"""A scratch copy of the upstream branch that also holds the merged history to build on."""
@@ -305,53 +337,53 @@ def status(sources):
 	for source in sources:
 		source.fetch()
 		pending = source.pending()
-		print(f"## {source.title}: {len(pending)} new commit{'' if len(pending) == 1 else 's'}")
-		print("".join(f"- {line}\n" for line in pending))
+		print(f"## {source.title}: {len(pending)} new commit{'' if len(pending) == 1 else 's'}\n")
+		for commit in pending:
+			print(f"- {commit.date} {commit.sha[:10]} {report.qualified(commit.subject, source.slug)}")
+		print()
 
 
 def merge(data, source, skip_conflicts):
-	"""Merge one source in a commit of its own; False if it conflicted and was skipped."""
-	pending = source.pending()
-	if not pending:
-		return True
+	"""Merge one source in a commit of its own; returns its report entry, or None if nothing is new."""
+	commits = source.pending()
+	if not commits:
+		return None
 	before = dict(source.config)
 	source.prepare()
-	print(f"## {source.title}: {len(pending)} new commits\n")
-	print("".join(f"- {line}\n" for line in pending))
 	subprocess.run(["git", "-c", "merge.directoryRenames=true", "merge", "--no-ff", "--no-commit", source.ref], cwd=ROOT, capture_output=True)
 	review, conflicts = source.settle()
-	print("".join(f"- look at {line}\n" for line in review))
+	entry = report.Entry(source, commits, review)
+	entry.conflicts = conflicts
 	if conflicts and skip_conflicts:
-		return skip(source, before, conflicts)
+		skip(source, before)
+		entry.result = f"set aside: run `sync.py merge {source.name}`"
+		return entry
 	save(data)
-	Path(git("rev-parse", "--path-format=absolute", "--git-path", "MERGE_MSG")).write_text(message(data, source, pending))
+	Path(git("rev-parse", "--path-format=absolute", "--git-path", "MERGE_MSG")).write_text(message(data, source, commits))
 	if conflicts:
-		stop(source, conflicts)
+		entry.result = "conflicts, merge in progress"
+		return entry
 	git("commit", "--quiet", "--no-verify", "--no-edit")
-	print(f"Merged as {git('rev-parse', '--short', 'HEAD')}.\n")
-	return True
+	entry.result = f"merged as {git('rev-parse', '--short', 'HEAD')}"
+	return entry
 
 
-def skip(source, before, conflicts):
+def skip(source, before):
 	git("merge", "--abort")
 	git("reset", "--hard", "--quiet", "HEAD")
 	source.config.clear()
 	source.config.update(before)
-	print(f"Skipped. These conflict; run `python3 unification/sync.py merge {source.name}` and resolve them:\n")
-	print("".join(f"- {path}\n" for path in conflicts))
-	return False
 
 
-def stop(source, conflicts):
-	print("Conflicts. Resolve these and `git add` them:\n")
-	print("".join(f"- {path}\n" for path in conflicts))
-	print("".join(f"Then run `{command}`, " for command in source.config.get("regenerate", [])), end="")
-	print("`git commit` (the message is ready), and run merge again for the other sources.")
+def stop(source):
+	print("\nResolve the conflicts listed above and `git add` them.", end=" ")
+	print("".join(f"Run `{command}`. " for command in source.config.get("regenerate", [])), end="")
+	print("Then `git commit` (the message is ready) and run merge again for the other sources.")
 	sys.exit(2)
 
 
-def message(data, source, pending):
-	body = "\n".join(f"- {line.split(' ', 1)[1]}" for line in pending)
+def message(data, source, commits):
+	body = "\n".join(f"- {report.qualified(commit.subject, source.slug)}" for commit in commits)
 	trailers = "\n".join(data["commit_trailers"])
 	return f"chore(unification): merge {source.title} up to {source.config['commit'][:10]}\n\n{body}\n\n{trailers}\n"
 
@@ -364,11 +396,16 @@ def main(command="status", *args):
 		return status(chosen)
 	if git("status", "--porcelain", "--untracked-files=no") or git("rev-parse", "-q", "--verify", "MERGE_HEAD", check=False):
 		sys.exit("Commit or set aside local changes, and finish any merge in progress, first.")
-	merged = []
+	entries = []
 	for source in chosen:
 		source.fetch()
-		merged.append(merge(data, source, "--skip-conflicts" in args))
-	sys.exit(0 if all(merged) else 2)
+		if entry := merge(data, source, "--skip-conflicts" in args):
+			entries.append(entry)
+		if entry and entry.conflicts and "--skip-conflicts" not in args:
+			print(report.render(entries))
+			stop(source)
+	print(report.render(entries))
+	sys.exit(0 if all(entry.merged for entry in entries) else 2)
 
 
 if __name__ == "__main__":

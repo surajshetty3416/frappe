@@ -248,7 +248,9 @@ touched. Each run:
 3. checks the result: reinstalls the sync bench's env from the merged `pyproject.toml` (with
    frappe's dev dependencies), imports every layer module, builds the SPA, then migrates
    `unified-test.localhost` and runs every layer test on it;
-4. pushes and opens a PR into `unified`, as a draft if a check failed;
+4. pushes and opens a PR into `unified`, as a draft if a check failed. The PR sums up each
+   source, then the checks, then lists every commit: when it landed upstream, a link to it, and
+   the folders it touched here ("not carried over" for tooling the unification dropped);
 5. lists the sources it set aside in an "Upstream sync needs a hand" issue on the fork, updated
    each run and closed once everything merges. Merge those by hand with `sync.py merge <source>`
    and push to `unified`; the next run carries on from there.

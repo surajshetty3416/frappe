@@ -125,10 +125,12 @@ check tests layer_tests
 {
 	echo "Upstream changes merged by \`unification/sync.py\` on $(date -u +%F)."
 	if ((status == 2)); then echo "Sources that conflict were set aside: see the \"$ISSUE\" issue."; fi
-	printf '\n## Checks\n\n'
+	echo
+	sed '/^## Changes$/,$d' "$OUT/merge.md"
+	printf '## Checks\n\n'
 	cat "$OUT/checks.md" "$OUT/failures.md"
 	echo
-	cat "$OUT/merge.md"
+	sed -n '/^## Changes$/,$p' "$OUT/merge.md"
 } | head -c 60000 > "$OUT/pr.md"
 
 if [[ -n ${DRY_RUN:-} ]]; then
