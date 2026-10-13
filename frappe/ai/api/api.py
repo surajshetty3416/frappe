@@ -19,6 +19,8 @@ if TYPE_CHECKING:
 	from frappe.ai.doctype.flow_session.flow_session import FlowSession
 
 TITLE_LIMIT = 140
+# the flow server's titling.MAX_TITLE_CHARS
+GENERATED_TITLE_LIMIT = 50
 LIST_LIMIT = 100
 RUN_FIELDS = ["name", "daemon_run_id", "status", "error", "feedback_rating", "feedback_comment"]
 
@@ -132,9 +134,20 @@ def run(session: str, message: str, attachments: list[str] | str | None = None) 
 	run = doc.chat(message, attachments=_parse_attachments(attachments))
 	# the flow server names the chat once its model answers; until then its first line does
 	if not doc.title:
-		first = message.split("<studio_context>")[0].strip()
-		doc.db_set("title", first.splitlines()[0][:TITLE_LIMIT] if first else None, notify=True)
+		doc.db_set("title", first_line_title(message.split("<studio_context>")[0]), notify=True)
 	return {"run": run.name, "status": "steered" if run.name == active else "started"}
+
+
+def first_line_title(message: str) -> str | None:
+	"""The first non-empty line without its closing period, cut at a word as the flow server's
+	`sanitize_title` cuts a generated title."""
+	line = next((" ".join(line.split()) for line in message.splitlines() if line.strip()), "")
+	if len(line) <= GENERATED_TITLE_LIMIT:
+		return line.rstrip(".,;:") or None
+	room = line[: GENERATED_TITLE_LIMIT - 1]
+	if line[GENERATED_TITLE_LIMIT - 1] != " " and " " in room:
+		room = room.rsplit(" ", 1)[0]
+	return room.rstrip(" .,;:") + "…"
 
 
 @frappe.whitelist()
