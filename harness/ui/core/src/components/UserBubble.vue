@@ -24,13 +24,18 @@
 					<span class="truncate text-sm text-ink-gray-8">{{ chip.label }}</span>
 				</span>
 			</div>
-			<div v-if="hasText" ref="textEl" class="whitespace-pre-wrap break-words" :class="expanded ? '' : 'line-clamp-[12]'"
-				><div v-if="quotes.length" class="flex flex-col gap-2" :class="body ? 'mb-2' : ''"
-					><blockquote v-for="(quote, i) in quotes" :key="i" class="border-l-2 border-outline-gray-2 pl-3 text-ink-gray-6">{{
-						quote
-					}}</blockquote></div
-				><span v-for="(part, i) in parts" :key="i" :class="{ 'text-ink-blue-6': part.skill }">{{ part.text }}</span></div
-			>
+			<!-- twelve lines of the prose's 1.6 leading -->
+			<div v-if="hasText" ref="textEl" class="overflow-hidden" :class="expanded ? '' : 'max-h-[19.2em]'">
+				<div v-if="quotes.length" class="flex flex-col gap-2" :class="body ? 'mb-2' : ''">
+					<blockquote
+						v-for="(quote, i) in quotes"
+						:key="i"
+						class="whitespace-pre-wrap break-words border-l-2 border-outline-gray-2 pl-3 text-ink-gray-6"
+						>{{ quote }}</blockquote
+					>
+				</div>
+				<MarkdownContent v-if="body" :text="markdown" />
+			</div>
 			<button
 				v-if="clampable"
 				type="button"
@@ -55,6 +60,7 @@ import { invokedSkills, skillSegments, splitQuotes, userAttachments, userContext
 import ContextChipIcon from "./ContextChipIcon.vue"
 import CopyButton from "./CopyButton.vue"
 import ImageViewer from "./ImageViewer.vue"
+import MarkdownContent from "./MarkdownContent.vue"
 
 const props = defineProps({ entry: { type: Object, required: true } })
 const flow = inject("flow")
@@ -69,6 +75,10 @@ const parts = computed(() => {
 	const sending = props.entry.seq == null ? (flow.state.skills ?? []).map((skill) => skill.name) : []
 	return skillSegments(body.value, invokedSkills(props.entry) ?? sending)
 })
+// a message reads like the assistant's: its markdown rendered, its skill commands blue
+const markdown = computed(() =>
+	parts.value.map((part) => (part.skill ? `<span class="text-ink-blue-6">${part.text}</span>` : part.text)).join(""),
+)
 // images show as previews; other files, and what the host told the agent, as chips
 const imageTiles = computed(() => attachments.value.filter((item) => previews.value[item.id]))
 const chips = computed(() => [
