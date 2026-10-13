@@ -14,6 +14,7 @@
   "model",
   "max_iterations",
   "token_budget",
+  "reasoning_effort",
   "section_break_instructions",
   "instructions",
   "section_break_tools",
@@ -88,6 +89,13 @@
    "non_negative": 1
   },
   {
+   "description": "How hard the model thinks. Empty leaves it to the model.",
+   "fieldname": "reasoning_effort",
+   "fieldtype": "Select",
+   "label": "Reasoning Effort",
+   "options": "\noff\nminimal\nlow\nmedium\nhigh\nxhigh\nmax"
+  },
+  {
    "fieldname": "section_break_instructions",
    "fieldtype": "Section Break",
    "label": "Instructions"
@@ -156,7 +164,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-10-07 12:00:00.000000",
+ "modified": "2026-10-13 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "AI",
  "name": "Flow Agent",

@@ -8,11 +8,10 @@ from typing import TYPE_CHECKING, Any
 
 import frappe
 from frappe import _
+from frappe.ai.utils.system_generated import block_delete, block_rename, validate_immutable
 from frappe.model.document import Document
 from frappe.utils import get_fullname, today
 from frappe.utils.jinja import get_jenv, safe_render_flags
-
-from frappe.ai.utils.system_generated import block_delete, block_rename, validate_immutable
 
 if TYPE_CHECKING:
 	from frappe.ai.doctype.flow_run.flow_run import FlowRun
@@ -38,14 +37,13 @@ class FlowAgent(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
-
 		from frappe.ai.doctype.flow_agent_knowledge_base.flow_agent_knowledge_base import (
 			FlowAgentKnowledgeBase,
 		)
 		from frappe.ai.doctype.flow_agent_skill.flow_agent_skill import FlowAgentSkill
 		from frappe.ai.doctype.flow_agent_sub_agent.flow_agent_sub_agent import FlowAgentSubAgent
 		from frappe.ai.doctype.flow_agent_tool.flow_agent_tool import FlowAgentTool
+		from frappe.types import DF
 
 		description: DF.SmallText | None
 		enabled: DF.Check
@@ -54,6 +52,7 @@ class FlowAgent(Document):
 		knowledge_bases: DF.TableMultiSelect[FlowAgentKnowledgeBase]
 		max_iterations: DF.Int
 		model: DF.Link
+		reasoning_effort: DF.Literal["", "off", "minimal", "low", "medium", "high", "xhigh", "max"]
 		skills: DF.TableMultiSelect[FlowAgentSkill]
 		sub_agents: DF.TableMultiSelect[FlowAgentSubAgent]
 		title: DF.Data
@@ -223,6 +222,7 @@ class FlowAgent(Document):
 					"name": child.name,
 					"description": _one_line(child.description),
 					**model_config(child.model),
+					"reasoning_effort": child.reasoning_effort or None,
 					**child.session_tool_config(session),
 					"max_turns": child.max_iterations or DEFAULT_MAX_ITERATIONS,
 					"user_context": {**user_context, "agent": child.name},

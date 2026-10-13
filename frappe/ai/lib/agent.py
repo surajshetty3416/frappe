@@ -71,6 +71,7 @@ class Agent:
 		name: str,
 		model: str,
 		instructions: str,
+		reasoning_effort: str | None = None,
 		description: str = "",
 		tools: list[Tool] | None = None,
 		knowledge: Knowledge | list[Knowledge] | None = None,
@@ -82,6 +83,7 @@ class Agent:
 			knowledge = [knowledge]
 		self.name = name
 		self.model = model
+		self.reasoning_effort = reasoning_effort
 		self.instructions = instructions
 		self.description = description
 		self.tools = list(tools or [])
@@ -91,8 +93,9 @@ class Agent:
 		self.auto_approve = auto_approve
 
 	def sync(self) -> None:
-		"""Write this definition to the site. The model is set only when the doc is created,
-		or when its model is gone: switching it otherwise is the site's choice."""
+		"""Write this definition to the site. The model and its reasoning effort are set only
+		when the doc is created, or when its model is gone: switching them otherwise is the
+		site's choice."""
 		for child in self.sub_agents:
 			child.sync()
 		if frappe.db.exists("Flow Agent", self.name):
@@ -103,9 +106,16 @@ class Agent:
 					title=_("Agent Conflict"),
 				)
 			if not frappe.db.exists("Flow Model", doc.model):
-				doc.model = self.model
+				doc.model, doc.reasoning_effort = self.model, self.reasoning_effort
 		else:
-			doc = frappe.get_doc({"doctype": "Flow Agent", "title": self.name, "model": self.model})
+			doc = frappe.get_doc(
+				{
+					"doctype": "Flow Agent",
+					"title": self.name,
+					"model": self.model,
+					"reasoning_effort": self.reasoning_effort,
+				}
+			)
 		doc.description = self.description
 		doc.instructions = self.instructions
 		doc.max_iterations = self.max_iterations

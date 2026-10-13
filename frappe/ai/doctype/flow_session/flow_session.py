@@ -9,8 +9,6 @@ from typing import TYPE_CHECKING, Any
 
 import frappe
 from frappe import _
-from frappe.model.document import Document
-
 from frappe.ai.daemon.client import DaemonClient, DaemonError
 from frappe.ai.lib.session import (
 	ABANDONED,
@@ -22,6 +20,7 @@ from frappe.ai.lib.session import (
 	fail_running,
 	flow_server,
 )
+from frappe.model.document import Document
 
 if TYPE_CHECKING:
 	from frappe.ai.doctype.flow_run.flow_run import FlowRun
@@ -127,6 +126,7 @@ class FlowSession(Document):
 			"session_id": self.name,
 			"title": self.title,
 			**model_config(self.model or agent.model),
+			"reasoning_effort": agent.reasoning_effort or None,
 			**agent.session_tool_config(self.name),
 			"subagents": agent.subagent_configs(self.name, context),
 			"skills_enabled": False,
