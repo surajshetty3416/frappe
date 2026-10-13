@@ -20,7 +20,7 @@ from frappe import _
 from frappe.utils import cint, flt
 
 from frappe.ai.daemon.client import DaemonClient, DaemonError
-from frappe.ai.lib.session import _default_agent_name, flow_server, new_session
+from frappe.ai.lib.session import _default_agent_name, new_session
 
 FORMAT = "flow-recording"
 NEVER_RAN = {
@@ -175,13 +175,21 @@ def play_step(session: str, speed: float | str | None = None) -> dict[str, Any]:
 	results = [mapped(result, names) for result in step["results"] if result["tool_call_id"] in answered]
 	seconds, calls = pace(step, flt(speed) or SPEED)
 
-	with flow_server() as client:
-		from_seq = client.get_session(session)["latest_seq"]
+	# the step starts before its run opens, as in chat(), so a sync that sees the run open
+	# finds the flow server running it, or its end in the log
+	try:
+		with DaemonClient.for_site() as client:
+			from_seq = client.get_session(session)["latest_seq"]
+			client.replay(session, reply, message=message, results=results, seconds=seconds, calls=calls)
+	except DaemonError as exc:
+		replay.db_set("error", str(exc))
+		frappe.db.commit()
+		frappe.throw(str(exc), title=_("Flow Server"))
 	# one run per recorded turn, as live: its tool calls version an artifact once
 	if message or not replay.run:
 		run = frappe.get_doc(
 			{"doctype": "Flow Run", "session": session, "source": "Manual", "status": "Running"}
-		).insert(ignore_permissions=True)
+		)
 	else:
 		# the chat's sync may still be recording the previous step's end on this run
 		run = frappe.get_doc("Flow Run", replay.run, for_update=True)
@@ -191,16 +199,6 @@ def play_step(session: str, speed: float | str | None = None) -> dict[str, Any]:
 	replay.update({"status": "Playing", "run": run.name, "from_seq": from_seq, "error": None})
 	replay.save()
 	frappe.db.commit()  # the flow server's callbacks are other requests
-	try:
-		with DaemonClient.for_site() as client:
-			client.replay(session, reply, message=message, results=results, seconds=seconds, calls=calls)
-	except DaemonError as exc:
-		run.reload()
-		run.update({"status": "Failed", "error": str(exc), "on_complete": None})
-		run.save(ignore_permissions=True)
-		replay.db_set({"status": "Ready", "error": str(exc)})
-		frappe.db.commit()
-		frappe.throw(str(exc), title=_("Flow Server"))
 	return state(replay)
 
 
