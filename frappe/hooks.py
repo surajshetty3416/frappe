@@ -14,7 +14,7 @@ app_home = "/app/build"
 app_email = "developers@frappe.io"
 
 # Each layer is a package in this app with its own hooks.py, merged into these hooks.
-layers = ["web", "analytics", "ai", "ui"]
+layers = ["data", "web", "analytics", "ai", "ui"]
 
 flow_tools = ["frappe.email.flow_tools.send_email_template"]
 

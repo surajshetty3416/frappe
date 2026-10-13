@@ -3,4 +3,6 @@ import analytics from "@analytics/layer"
 import ui from "@ui/layer"
 import web from "@web/layer"
 
-export const layers = [ui, web, analytics, ai]
+import data from "../data/src/layer"
+
+export const layers = [data, ui, web, analytics, ai]
