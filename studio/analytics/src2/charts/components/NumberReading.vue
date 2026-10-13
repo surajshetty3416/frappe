@@ -93,8 +93,10 @@ const drillable = computed(() => props.drillable !== false && !props.card.missin
 		>
 			<!-- The state every other chart type is given by the chrome around its
 			     plot. A card is its own chrome, so it says it here, in the words
-			     the chrome says it in. -->
-			<template v-if="props.empty && !card.missing" #empty>
+			     the chrome says it in. A null reading says it too, in place of the
+			     dash: under it, the card's own "No data" is a line the cell has no
+			     height for. -->
+			<template v-if="!card.missing" #empty>
 				<p class="text-p-base text-ink-gray-5">{{ __('No data') }}</p>
 			</template>
 
