@@ -66,6 +66,7 @@ export class FrappeClient {
 	async createSession(config = {}) {
 		const data = await this.transport.call("frappe.ai.api.create_session", {
 			auto_approve: config.auto_approve ? 1 : 0,
+			agent: config.agent ?? null,
 		});
 		this.hooks.onSession?.(data);
 		return {

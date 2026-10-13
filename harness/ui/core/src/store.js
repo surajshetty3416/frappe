@@ -34,6 +34,9 @@ function readJSON(key, fallback, storage = globalThis.localStorage) {
 //   artifactIcon   (artifact) => icon class of an artifact card
 //   placeholder    the composer's placeholder, instead of "Reply…" or "Describe what to build…"
 //   skills         false hides the composer's "/" skills menu
+//   agents         [{ agent, label }] a new chat may start with, as a switch in the composer;
+//                  `agent` null is the default one
+//   taskCard       component drawing a task a turn's tool sent to another chat ({ task })
 //   context        what the host tells the agent with each message: { snapshot() → context or
 //                  null, taken as a message is sent; sent(context), once it is delivered or
 //                  queued; pending() → chips waiting above the composer, which make a message
@@ -53,6 +56,7 @@ export function createFlowStore(client, options = {}) {
 		loading: false,
 		toast: null,
 		quotes: [], // thread selections ("Add to chat") quoted under the next message
+		agent: null, // the agent a new chat starts with, null for the default
 		transcriptOpen: false,
 		prefs,
 	})
@@ -208,7 +212,9 @@ export function createFlowStore(client, options = {}) {
 	}
 
 	async function newSession({ sending = [] } = {}) {
-		const data = await guard(() => client.createSession({ auto_approve: state.prefs.mode === "auto" }))
+		const data = await guard(() =>
+			client.createSession({ auto_approve: state.prefs.mode === "auto", agent: state.agent }),
+		)
 		if (!data) return null
 		await openSession(data.session_id, { sending, config: data.config })
 		return data.session_id
@@ -451,6 +457,10 @@ export function createFlowStore(client, options = {}) {
 		}
 	}
 
+	function setAgent(agent) {
+		state.agent = agent
+	}
+
 	function setTranscriptOpen(open) {
 		state.transcriptOpen = open
 	}
@@ -498,6 +508,7 @@ export function createFlowStore(client, options = {}) {
 		removeQuote,
 		clearQuotes,
 		setMode,
+		setAgent,
 		setTranscriptOpen,
 		renameSession,
 		deleteSession,

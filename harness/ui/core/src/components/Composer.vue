@@ -146,6 +146,14 @@
 				</div>
 				<input ref="fileInput" type="file" multiple class="hidden" @change="onFilesPicked" />
 				<div class="col-start-3 flex items-center gap-1" :class="compact ? '' : 'order-3'">
+					<!-- a new chat picks its agent: build here, or send each task to its own chat -->
+					<TabButtons
+						v-if="agentOptions"
+						class="mr-1"
+						:model-value="flow.state.agent ?? ''"
+						:options="agentOptions"
+						@update:model-value="(value) => flow.setAgent(value || null)"
+					/>
 					<Dropdown :options="modeOptions" align="end">
 						<Button variant="ghost" :label="modeLabel" icon-right="lucide-chevron-down" />
 					</Dropdown>
@@ -176,7 +184,7 @@
 
 <script setup>
 import { computed, inject, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue"
-import { Button, Dropdown } from "frappe-ui"
+import { Button, Dropdown, TabButtons } from "frappe-ui"
 import { dialogs as frappeDialogs } from "frappe-ui/src/utils/dialog"
 
 import { quoteBlock, skillSegments } from "../transcript.js"
@@ -204,10 +212,16 @@ const running = computed(() => flow.state.conversation.running)
 // once the text wraps it keeps its own row until the box empties, or it would flip back and forth
 const wrapped = ref(false)
 const compact = computed(() => !wrapped.value && !text.value.includes("\n"))
+const agentOptions = computed(() =>
+	!flow.state.sessionId && flow.options.agents?.length > 1
+		? flow.options.agents.map(({ agent, label }) => ({ value: agent ?? "", label }))
+		: null,
+)
 const placeholder = computed(
 	() =>
-		flow.options.placeholder ??
-		(flow.state.sessionId ? (flow.options.skills === false ? "Reply…" : "Reply, / for a skill") : "Describe what to build…"),
+		(!flow.state.sessionId && flow.options.agents?.find(({ agent }) => agent === flow.state.agent)?.placeholder) ||
+		(flow.options.placeholder ??
+			(flow.state.sessionId ? (flow.options.skills === false ? "Reply…" : "Reply, / for a skill") : "Describe what to build…")),
 )
 
 const MODES = { auto: "Auto-approve", ask: "Ask first" }

@@ -88,6 +88,9 @@ const TOOLS = {
 	},
 	load_skill: { icon: "lucide-book", label: "Loading Skill" },
 	subagent: { icon: "lucide-bot", label: "Sub-agent" },
+	list_chats: { icon: "lucide-messages-square", label: "Reading Chats", stat: (result) => count(result.length, "chat") },
+	start_chat: { icon: "lucide-message-square-plus", label: "Starting Chat", subject: (args) => subject({ name: args.title }) },
+	send_to_chat: { icon: "lucide-send", label: "Sending to Chat", subject: (args) => subject({ content: args.message }) },
 };
 
 const ACTIONS = {
@@ -118,7 +121,7 @@ export function presentTool(name, args = {}, result = null) {
 	return {
 		icon: tool.icon,
 		label: typeof tool.label === "function" ? tool.label(args) : tool.label,
-		subject: subject(args),
+		subject: tool.subject ? tool.subject(args) : subject(args),
 		stat: parsed ? tool.stat(parsed) : "",
 		argsComponent: tool.asks ? tool.view : undefined,
 		resultComponent: cut ? JsonView : tool.view,

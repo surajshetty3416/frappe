@@ -39,6 +39,7 @@ import * as transport from "../api/frappe.js";
 import { connectSocket } from "../api/socket.js";
 import { replays } from "@shell/replay";
 import ReplayBar from "./ReplayBar.vue";
+import TaskCard from "./TaskCard.vue";
 import { presentTool } from "./toolMeta.js";
 
 const props = defineProps({
@@ -70,6 +71,11 @@ const client = new FrappeClient({
 	},
 });
 const stores = [];
+// a new chat builds, or sends each task to the chat that owns its artifacts or to a new one
+const AGENTS = [
+	{ agent: null, label: "Build" },
+	{ agent: "Orchestrator", label: "Orchestrate", placeholder: "Describe the work; each task goes to its own chat…" },
+];
 const shown = shallowRef(null);
 const viewKey = ref(0);
 
@@ -80,6 +86,8 @@ function createStore() {
 		openArtifact: (artifact) => store === shown.value && emit("artifact", artifact),
 		artifactIcon: (artifact) => props.artifactIcon?.(artifact),
 		context: props.context,
+		agents: AGENTS,
+		taskCard: TaskCard,
 	});
 	watch(
 		() => store.state.toast,

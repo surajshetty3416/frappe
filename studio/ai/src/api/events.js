@@ -7,6 +7,8 @@ const CONTEXT = /\n\n<studio_context>\n(.*)\n<\/studio_context>/;
 const EXCERPTS = /\n[^\n]*\n<excerpts>\n[\s\S]*?\n<\/excerpts>/;
 const FILE_BLOCK = /\n<file name="([^"]*)">\n[\s\S]*?\n<\/file>/g;
 const FILE_NOTE = /\n\[Attached file: ([^\n]+?) \(large; relevant excerpts follow\)\]/g;
+// the results of the tasks an orchestrator routed, which the site sends it once they all end
+const TASK_RESULTS = /\n\n<task_results>\n[\s\S]*?\n<\/task_results>/;
 const XML_ENTITIES = { "&quot;": '"', "&lt;": "<", "&gt;": ">", "&amp;": "&" };
 
 export function cleanUserText(text) {
@@ -42,9 +44,18 @@ export function presentEvent(
 	{ fileId = (name, fallback) => fallback ?? `file:${name}`, modelName = (id) => id } = {}
 ) {
 	if (event.type === "model_changed") return { ...event, model: modelName(event.model) };
-	if (event.type === "user_message")
-		return { ...event, content: presentUserContent(event.content, fileId) };
+	if (event.type === "user_message") {
+		const notice = taskNotice(event.content);
+		return { ...event, content: presentUserContent(event.content, fileId), ...(notice && { notice }) };
+	}
 	return event;
+}
+
+// a task report shows as a quiet line, never as the person's bubble
+function taskNotice(content) {
+	const text = typeof content === "string" ? content : Array.isArray(content) ? content.map((block) => block.text ?? "").join("") : "";
+	if (!TASK_RESULTS.test(text)) return null;
+	return cleanUserText(text.replace(TASK_RESULTS, "")).text.trim() || "Tasks finished";
 }
 
 const contextBlocks = (contexts) => contexts.filter(Boolean).map((context) => ({ type: "context", context }));

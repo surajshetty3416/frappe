@@ -475,6 +475,31 @@ export function resultArtifact(entry) {
 	}
 }
 
+// The tasks a turn's tools sent to other chats, keyed by turn. A routing tool returns the task
+// it sent as `routed` in its JSON result.
+function deriveTasks(entries, turnByEntry) {
+	const byTurn = new Map()
+	for (const entry of entries) {
+		if (entry.type !== "tool_result" || entry.is_error) continue
+		const task = resultTask(entry)
+		if (!task) continue
+		const turnKey = turnByEntry.get(entry)
+		byTurn.set(turnKey, [...(byTurn.get(turnKey) ?? []), { ...task, key: entry.tool_call_id }])
+	}
+	return byTurn
+}
+
+export function resultTask(entry) {
+	const text = typeof entry.content === "string" ? entry.content : (entry.content ?? []).map((block) => block.text ?? "").join("")
+	if (!text.includes('"routed"')) return null
+	try {
+		const task = JSON.parse(text)?.routed
+		return task?.chat ? task : null
+	} catch {
+		return null
+	}
+}
+
 function foldLabel(turn) {
 	const elapsed =
 		turn.startedAt != null && turn.endedAt != null
@@ -491,6 +516,7 @@ function foldLabel(turn) {
 //   {kind: "group", steps: [{call, result, aborted} | {thought, id, live?}]}
 //   {kind: "turn-fold", turnKey, label, expanded}
 //   {kind: "turn-artifacts", turnKey, artifacts: [{doctype, name, label, title, route}]}
+//   {kind: "turn-tasks", turnKey, tasks: [{key, chat, title, message, run, status}]}
 //   {kind: "compaction", entry}
 //   {kind: "error", error}
 // Every item carries a stable `key` (derived from seq / call id) so v-for
@@ -590,7 +616,9 @@ export function buildItems(conversation, expandedTurnKeys = new Set(), openPanel
 		if (Number.isFinite(entry.ts)) previousTs = entry.ts
 		if (entry.type === "user_message") {
 			flushThoughts()
-			items.push({ kind: "user", key: `u:${entry.seq}`, entry })
+			// a message the host marks as a notice, such as one sent by the system, is no bubble
+			if (entry.notice) items.push({ kind: "notice", key: `u:${entry.seq}`, turnKey: currentTurnKey, text: entry.notice })
+			else items.push({ kind: "user", key: `u:${entry.seq}`, entry })
 		} else if (entry.type === "assistant_message") {
 			appendAssistantBlocks(entry.content ?? [], { entry, seconds })
 		} else if (entry.type === "tool_result") {
@@ -650,11 +678,14 @@ export function buildItems(conversation, expandedTurnKeys = new Set(), openPanel
 		filtered.filter((item) => item.kind !== "compaction").map((item) => [item.turnKey, item.key]),
 	)
 	const artifactsByTurn = deriveArtifacts(conversation.entries, turnByEntry)
+	const tasksByTurn = deriveTasks(conversation.entries, turnByEntry)
 	const withCopyRows = []
 	for (const item of filtered) {
 		withCopyRows.push(item)
 		const terminal = terminalTextByTurn.get(item.turnKey)
 		if (!terminal || lastKeyByTurn.get(item.turnKey) !== item.key) continue
+		const tasks = tasksByTurn.get(item.turnKey)
+		if (tasks?.length) withCopyRows.push({ kind: "turn-tasks", key: `tt:${item.turnKey}`, turnKey: item.turnKey, tasks })
 		const artifacts = artifactsByTurn.get(item.turnKey)
 		if (artifacts?.size) {
 			withCopyRows.push({

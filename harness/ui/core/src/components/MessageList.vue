@@ -27,6 +27,9 @@
 						:steps="item.steps"
 						:sealed="i < turnEnd - 1 || !conversation.running"
 					/>
+					<div v-else-if="item.kind === 'turn-tasks' && flow.options.taskCard" class="flex flex-col gap-2">
+						<component :is="flow.options.taskCard" v-for="task in item.tasks" :key="task.key" :task="task" />
+					</div>
 					<div v-else-if="item.kind === 'turn-artifacts'" class="flow-turn-artifacts flex flex-col gap-2">
 						<ArtifactCard v-for="artifact in item.artifacts" :key="artifact.route" :artifact="artifact" />
 					</div>
