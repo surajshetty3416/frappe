@@ -12,7 +12,7 @@ import { studioVariables } from "@ui/data/studioVariables"
 import Block from "@ui/utils/block"
 import useCanvasStore from "@ui/stores/canvasStore"
 import useCodeStore, { usePageScope } from "@ui/stores/codeStore"
-import { reloadCustomVueComponents } from "@ui/globals"
+import { reloadCustomVueComponents } from "@ui/utils/customVueComponents"
 import { registerStudioPageScripts, unregisterStudioPageScripts } from "@ui/data/studioPageScripts"
 import { registerCustomComponentPaths } from "@ui/utils/components"
 import type { CustomVueComponentMeta } from "@ui/types/vue"
@@ -31,7 +31,7 @@ import type {
 import ComponentContextMenu from "@ui/components/ComponentContextMenu.vue"
 import type ComponentLayers from "@ui/components/ComponentLayers.vue"
 import type { Variable, VariableOption } from "@ui/types/Studio/StudioPageVariable"
-import { toast, dialog } from "frappe-ui"
+import { toast, dialog, useColorScheme } from "frappe-ui"
 import { createResource, call } from "frappe-ui"
 
 type PageFields = Partial<Pick<StudioPage, "page_title" | "route" | "script" | "allow_guest">>
@@ -53,6 +53,10 @@ const useStudioStore = defineStore("studioStore", () => {
 		localStorage,
 		{ mergeDefaults: true },
 	)
+	// the shell owns the page's theme: read and toggle it, never set data-theme here
+	const { resolvedColorScheme, toggleColorScheme: toggleTheme } = useColorScheme()
+	const isDark = computed(() => resolvedColorScheme.value === "dark")
+	const isCanvasDark = useStorage("studioCanvasDarkMode", false)
 	const mode = ref<StudioMode>("select")
 	const componentContextMenu = ref<InstanceType<typeof ComponentContextMenu> | null>(null)
 	const activeLayers = ref<InstanceType<typeof ComponentLayers> | null>(null)
@@ -787,6 +791,9 @@ const useStudioStore = defineStore("studioStore", () => {
 	return {
 		// layout
 		studioLayout,
+		isDark,
+		toggleTheme,
+		isCanvasDark,
 		mode,
 		componentContextMenu,
 		activeLayers,

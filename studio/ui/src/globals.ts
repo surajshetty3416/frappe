@@ -1,4 +1,4 @@
-import { App, Component, defineAsyncComponent, shallowRef } from "vue"
+import { App, Component, defineAsyncComponent } from "vue"
 import {
 	Alert,
 	Avatar,
@@ -65,17 +65,7 @@ import {
 	ListView,
 	TextEditor,
 } from "frappe-ui/experimental"
-import {
-	AreaChart,
-	BarChart,
-	LineChart,
-	DonutChart,
-	FunnelChart,
-	HeatmapChart,
-	ScatterChart,
-	SankeyChart,
-	NumberCard,
-} from "frappe-ui/charts"
+import { FRAPPE_UI_CHARTS } from "@ui/utils/constants"
 import {
 	List,
 	ListRows,
@@ -88,21 +78,10 @@ import {
 } from "frappe-ui/list"
 
 import Container from "@ui/components/AppLayout/Container.vue"
-import FitContainer from "@ui/components/AppLayout/FitContainer.vue"
-import SplitView from "@ui/components/AppLayout/SplitView.vue"
 import Repeater from "@ui/components/AppLayout/Repeater.vue"
 import HTML from "@ui/components/AppLayout/HTML.vue"
-import CardList from "@ui/components/AppLayout/CardList.vue"
-import AvatarCard from "@ui/components/AppLayout/AvatarCard.vue"
-import Audio from "@ui/components/AppLayout/Audio.vue"
 import ImageView from "@ui/components/AppLayout/ImageView.vue"
 import TextBlock from "@ui/components/AppLayout/TextBlock.vue"
-import AppHeader from "@ui/components/AppLayout/AppHeader.vue"
-import BottomTabs from "@ui/components/AppLayout/BottomTabs.vue"
-import MarkdownEditor from "@ui/components/AppLayout/MarkdownEditor.vue"
-
-import { vueComponents } from "@ui/data/vueComponents"
-import { CustomVueComponentMeta } from "@ui/types/vue"
 
 export function registerGlobalComponents(app: App) {
 	// the editor shares the app with other layers, which register some of the same frappe-ui components
@@ -152,16 +131,9 @@ export function registerGlobalComponents(app: App) {
 	register("Duration", Duration)
 	register("Spinner", Spinner)
 
-	// frappe-ui/charts
-	register("AreaChart", AreaChart)
-	register("BarChart", BarChart)
-	register("LineChart", LineChart)
-	register("DonutChart", DonutChart)
-	register("FunnelChart", FunnelChart)
-	register("HeatmapChart", HeatmapChart)
-	register("ScatterChart", ScatterChart)
-	register("SankeyChart", SankeyChart)
-	register("NumberCard", NumberCard)
+	for (const chart of FRAPPE_UI_CHARTS) {
+		register(chart, defineAsyncComponent(() => import("frappe-ui/charts").then((charts) => charts[chart])))
+	}
 
 	// List family (frappe-ui/list) — dropped as a tree via the `list` block template.
 	register("List", List)
@@ -200,161 +172,100 @@ export function registerGlobalComponents(app: App) {
 	register("RadioGroup", RadioGroup)
 	register("Radio", Radio)
 
-	// @framework/ui components
-	register(
-		"FormLayout",
-		defineAsyncComponent(() => import("@framework/ui/components/FormLayout/FormLayout.vue")),
-	)
-	register(
-		"Link",
-		defineAsyncComponent(() => import("@framework/ui/components/Link/Link.vue")),
-	)
-	register(
-		"Grid",
-		defineAsyncComponent(() => import("@framework/ui/components/Grid/Grid.vue")),
-	)
-	register(
-		"Phone",
-		defineAsyncComponent(() => import("@framework/ui/components/Phone/Phone.vue")),
-	)
-	register(
-		"TableMultiSelect",
-		defineAsyncComponent(() => import("@framework/ui/components/TableMultiSelect/TableMultiSelect.vue")),
-	)
-	register(
-		"NotificationPanel",
-		defineAsyncComponent(() => import("@framework/ui/components/Notifications/NotificationPanel.vue")),
-	)
-	register(
-		"NotificationItem",
-		defineAsyncComponent(() => import("@framework/ui/components/Notifications/NotificationItem.vue")),
-	)
-	register(
-		"ActivityTimeline",
-		defineAsyncComponent(() => import("@framework/ui/components/ActivityTimeline/ActivityTimeline.vue")),
-	)
-	register(
-		"EmailItem",
-		defineAsyncComponent(() => import("@framework/ui/components/ActivityTimeline/EmailItem.vue")),
-	)
-	register(
-		"CommentItem",
-		defineAsyncComponent(() => import("@framework/ui/components/ActivityTimeline/CommentItem.vue")),
-	)
-	register(
-		"EmailComposer",
-		defineAsyncComponent(() => import("@framework/ui/components/Composer/EmailComposer/EmailComposer.vue")),
-	)
-	register(
-		"CommentComposer",
-		defineAsyncComponent(
-			() => import("@framework/ui/components/Composer/CommentComposer/CommentComposer.vue"),
-		),
-	)
-	register(
-		"Filter",
-		defineAsyncComponent(() => import("@framework/ui/components/Filter/Filter.vue")),
-	)
-	register(
-		"SortBy",
-		defineAsyncComponent(() => import("@framework/ui/components/SortBy/SortBy.vue")),
-	)
-	register(
-		"QuickFilter",
-		defineAsyncComponent(() => import("@framework/ui/components/QuickFilter/QuickFilter.vue")),
-	)
-	register(
-		"ColumnSettings",
-		defineAsyncComponent(() => import("@framework/ui/components/ColumnSettings/ColumnSettings.vue")),
-	)
-	register(
-		"ListViewShell",
-		defineAsyncComponent(() => import("@framework/ui/components/ListView/ListViewShell.vue")),
-	)
-	register(
-		"FileUploadDialog",
-		defineAsyncComponent(() => import("@framework/ui/components/FileUpload/FileUploadDialog.vue")),
-	)
-	register(
-		"AttachmentsList",
-		defineAsyncComponent(() => import("@framework/ui/components/FileUpload/AttachmentsList.vue")),
-	)
-	register(
-		"UploadTray",
-		defineAsyncComponent(() => import("@framework/ui/components/FileUpload/UploadTray.vue")),
-	)
+	// @framework/ui components — only on frappe versions that ship apps/frappe/ui.
+	// __FRAMEWORK_UI_AVAILABLE__ is a build-time constant; when false, production
+	// builds DCE this whole block away. The dev server doesn't tree-shake, so it still
+	// resolves these specifiers — vite.config aliases @framework/ui/* to a stub when the
+	// package is absent so resolution succeeds (the branch is dead, never executed).
+	if (__FRAMEWORK_UI_AVAILABLE__) {
+		register(
+			"FormLayout",
+			defineAsyncComponent(() => import("@framework/ui/components/FormLayout/FormLayout.vue")),
+		)
+		register(
+			"Link",
+			defineAsyncComponent(() => import("@framework/ui/components/Link/Link.vue")),
+		)
+		register(
+			"Grid",
+			defineAsyncComponent(() => import("@framework/ui/components/Grid/Grid.vue")),
+		)
+		register(
+			"Phone",
+			defineAsyncComponent(() => import("@framework/ui/components/Phone/Phone.vue")),
+		)
+		register(
+			"TableMultiSelect",
+			defineAsyncComponent(() => import("@framework/ui/components/TableMultiSelect/TableMultiSelect.vue")),
+		)
+		register(
+			"NotificationPanel",
+			defineAsyncComponent(() => import("@framework/ui/components/Notifications/NotificationPanel.vue")),
+		)
+		register(
+			"NotificationItem",
+			defineAsyncComponent(() => import("@framework/ui/components/Notifications/NotificationItem.vue")),
+		)
+		register(
+			"ActivityTimeline",
+			defineAsyncComponent(() => import("@framework/ui/components/ActivityTimeline/ActivityTimeline.vue")),
+		)
+		register(
+			"EmailItem",
+			defineAsyncComponent(() => import("@framework/ui/components/ActivityTimeline/EmailItem.vue")),
+		)
+		register(
+			"CommentItem",
+			defineAsyncComponent(() => import("@framework/ui/components/ActivityTimeline/CommentItem.vue")),
+		)
+		register(
+			"EmailComposer",
+			defineAsyncComponent(() => import("@framework/ui/components/Composer/EmailComposer/EmailComposer.vue")),
+		)
+		register(
+			"CommentComposer",
+			defineAsyncComponent(
+				() => import("@framework/ui/components/Composer/CommentComposer/CommentComposer.vue"),
+			),
+		)
+		register(
+			"Filter",
+			defineAsyncComponent(() => import("@framework/ui/components/Filter/Filter.vue")),
+		)
+		register(
+			"SortBy",
+			defineAsyncComponent(() => import("@framework/ui/components/SortBy/SortBy.vue")),
+		)
+		register(
+			"QuickFilter",
+			defineAsyncComponent(() => import("@framework/ui/components/QuickFilter/QuickFilter.vue")),
+		)
+		register(
+			"ColumnSettings",
+			defineAsyncComponent(() => import("@framework/ui/components/ColumnSettings/ColumnSettings.vue")),
+		)
+		register(
+			"ListViewShell",
+			defineAsyncComponent(() => import("@framework/ui/components/ListView/ListViewShell.vue")),
+		)
+		register(
+			"FileUploadDialog",
+			defineAsyncComponent(() => import("@framework/ui/components/FileUpload/FileUploadDialog.vue")),
+		)
+		register(
+			"AttachmentsList",
+			defineAsyncComponent(() => import("@framework/ui/components/FileUpload/AttachmentsList.vue")),
+		)
+		register(
+			"UploadTray",
+			defineAsyncComponent(() => import("@framework/ui/components/FileUpload/UploadTray.vue")),
+		)
+	}
 
 	// studio components
 	register("Container", Container)
-	register("FitContainer", FitContainer)
-	register("SplitView", SplitView)
 	register("Repeater", Repeater)
 	register("HTML", HTML)
-	register("CardList", CardList)
-	register("AvatarCard", AvatarCard)
-	register("Audio", Audio)
 	register("ImageView", ImageView)
 	register("TextBlock", TextBlock)
-	register("AppHeader", AppHeader)
-	register("BottomTabs", BottomTabs)
-	register("MarkdownEditor", MarkdownEditor)
-}
-
-export const customVueComponentsRegistry = shallowRef<Record<string, any>>({})
-/**
- * Dynamically register custom Vue components from a specific Frappe app into the custom components registry.
- * @param frappeApp - The Frappe app name to fetch components from
- */
-export async function registerCustomVueComponents(frappeApp: string): Promise<CustomVueComponentMeta[]> {
-	try {
-		if (!frappeApp) return []
-		const components: CustomVueComponentMeta[] = await vueComponents.reload({ frappe_app: frappeApp })
-
-		const registry = { ...customVueComponentsRegistry.value }
-		for (const comp of components) {
-			try {
-				const asyncComp = defineAsyncComponent(() => import(/* @vite-ignore */ comp.file_path))
-				registry[comp.component_name] = asyncComp
-				if (window.__APP_COMPONENTS__) {
-					window.__APP_COMPONENTS__[comp.component_name] = asyncComp
-				}
-			} catch (err) {
-				console.error(`Failed to load custom component ${comp.component_name}:`, err)
-			}
-		}
-		customVueComponentsRegistry.value = registry
-		return components
-	} catch (err) {
-		console.error("Failed to fetch custom Vue components:", err)
-		return []
-	}
-}
-
-/**
- * Unregister previously registered custom Vue components from the custom components registry.
- * Called when switching apps to clean up components from the previous app's frappe_app.
- */
-export function unregisterCustomVueComponents(components: CustomVueComponentMeta[]) {
-	const registry = { ...customVueComponentsRegistry.value }
-	for (const comp of components) {
-		delete registry[comp.component_name]
-		if (window.__APP_COMPONENTS__) {
-			delete window.__APP_COMPONENTS__[comp.component_name]
-		}
-	}
-	customVueComponentsRegistry.value = registry
-}
-
-// Re-sync the registry to the app's current custom components. register() only merges, so on its
-// own a removed component would linger; this also evicts any that no longer exist. Pass an empty
-// frappeApp to clear them all (e.g. a non-standard app). Shared by the editor and the preview.
-export async function reloadCustomVueComponents(frappeApp: string): Promise<CustomVueComponentMeta[]> {
-	const before = Object.keys(customVueComponentsRegistry.value)
-	const components = await registerCustomVueComponents(frappeApp)
-
-	const current = new Set(components.map((comp) => comp.component_name))
-	const removed = before.filter((name) => !current.has(name)).map((name) => ({ component_name: name }))
-	if (removed.length) unregisterCustomVueComponents(removed as CustomVueComponentMeta[])
-
-	return components
 }

@@ -46,8 +46,8 @@
 		"studio": {
 			"repo": "https://github.com/frappe/studio.git",
 			"branch": "develop",
-			"commit": "42491ecdedc01a4d4630503443ed9125ca63887f",
-			"rewritten": "04f6cec5bc06d4bf0a3b14c256860a12acbb2b8f",
+			"commit": "45e9f7c0ac9c75c9ec051104abaa8203c57b4fa9",
+			"rewritten": "d02a1b7169dd37f0351b0d36b7e522897dc36988",
 			"moves": {
 				"frappe/studio/": "frappe/ui/",
 				"frontend/studio/": "studio/ui/"

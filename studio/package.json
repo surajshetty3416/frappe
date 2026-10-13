@@ -44,7 +44,6 @@
 		"@vue-flow/core": "^1.23.0",
 		"@vueuse/components": "^14.4.0",
 		"@vueuse/core": "^14.4.0",
-		"ace-builds": "^1.36.2",
 		"acorn": "^8.14.0",
 		"codemirror": "^6.0.2",
 		"dayjs": "^1.11.13",
