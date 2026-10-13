@@ -645,7 +645,7 @@ class Block implements BlockOptions {
 
 	// context menu
 	duplicateBlock() {
-		if (this.isRoot()) return
+		if (this.isRoot()) return undefined
 
 		const canvasStore = useCanvasStore()
 		const blockCopy = getBlockCopy(this)
@@ -670,6 +670,7 @@ class Block implements BlockOptions {
 				child.selectBlock()
 			}
 		});
+		return child?.componentId
 	}
 
 	selectBlock() {

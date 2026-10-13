@@ -67,6 +67,7 @@ function duplicateTile(store: Dashboard, index: number) {
 		copy.filter_name = `${copy.filter_name} ${n}`
 	}
 	store.doc.items.splice(index + 1, 0, copy)
+	return copy.layout.i
 }
 
 const DashboardArtifactPreview = defineComponent({

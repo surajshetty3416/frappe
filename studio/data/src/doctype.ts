@@ -178,11 +178,16 @@ const freeLabel = (doc: DocTypeDoc, label: string) => {
 export const addField = () => change((doc) => doc.fields.push({ label: freeLabel(doc, "New field"), fieldtype: "Data" }))
 export const removeField = (field: DocField) => change((doc) => (doc.fields = doc.fields.filter((other) => other !== field)))
 // the server names the copy's column from its label
-export const duplicateField = (field: DocField) =>
-	change((doc) => {
+export async function duplicateField(field: DocField) {
+	let label = ""
+	await change((doc) => {
 		const { name, fieldname, idx, ...copy } = JSON.parse(JSON.stringify(field)) as DocField
-		doc.fields.splice(doc.fields.indexOf(field) + 1, 0, { ...copy, label: freeLabel(doc, `${field.label || fieldname} copy`) })
+		label = freeLabel(doc, `${field.label || fieldname} copy`)
+		doc.fields.splice(doc.fields.indexOf(field) + 1, 0, { ...copy, label })
 	})
+	const made = doctype.doc?.fields.find((other) => other.label === label)
+	return made?.fieldname ? elementId(made) : undefined
+}
 
 const labelOf = (doc: DocTypeDoc, fieldname: string) => {
 	const field = doc.fields.find((field) => field.fieldname === fieldname)
