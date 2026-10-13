@@ -52,6 +52,9 @@
 				</span>
 			</div>
 			<div class="flex shrink-0 items-center gap-0.5">
+				<Tooltip v-if="saving" text="Saving">
+					<span class="mr-1.5 flex size-4 items-center" aria-label="Saving"><LoadingIndicator class="size-3.5 text-ink-gray-5" /></span>
+				</Tooltip>
 				<Button
 					v-for="drawer in drawers"
 					:key="drawer.name"
@@ -135,7 +138,7 @@
 </template>
 
 <script setup lang="ts">
-import { Button, TabButtons, TextInput, Tooltip, toast } from "frappe-ui"
+import { Button, LoadingIndicator, TabButtons, TextInput, Tooltip, toast } from "frappe-ui"
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, shallowRef, watch } from "vue"
 import { useRoute, useRouter } from "vue-router"
 
@@ -203,6 +206,7 @@ watch(title, (value) => {
 	if (tab && value && editor.value) tab.title = value
 })
 const status = computed(() => editor.value?.status() ?? null)
+const saving = computed(() => editor.value?.saving?.() ?? false)
 const action = computed(() => editor.value?.primaryAction() ?? null)
 const views = computed(() => editor.value?.views?.() ?? [])
 const barControls = computed(() => editor.value?.barControls?.() ?? null)

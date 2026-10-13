@@ -9,7 +9,10 @@ export interface ArtifactEditor {
 	preview: Component
 	title(): string
 	rename(title: string): Promise<unknown>
+	// where the artifact stands: draft, published, a record count. Saving is `saving`, not a status
 	status(): ArtifactStatus
+	// a save is on its way; the bar shows a spinner beside its buttons
+	saving?(): boolean
 	primaryAction(): ArtifactAction | null
 	// read-only rows in the Details drawer, under `detailsForm`
 	details(): ArtifactDetail[]
