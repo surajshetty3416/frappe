@@ -48,13 +48,26 @@
 				</span>
 			</div>
 			<div v-if="contextChips.length" class="mb-2 flex flex-wrap gap-1.5">
-				<span v-for="chip in contextChips" :key="chip.key" data-context-chip :class="[chipClass, '!max-w-full']" :title="chip.title">
-					<ContextChipIcon :chip="chip" />
-					<span class="min-w-0 truncate text-sm text-ink-gray-8">{{ chip.label }}</span>
-					<button type="button" :class="chipRemoveClass" title="Remove" @click="flow.options.context.remove(chip.key)">
-						<span class="lucide-x size-3" />
-					</button>
-				</span>
+				<template v-for="chip in contextChips" :key="chip.key">
+					<!-- an offered chip is not sent until picked -->
+					<Button
+						v-if="chip.suggested"
+						data-context-chip-suggested
+						variant="ghost"
+						icon-left="lucide-plus"
+						class="max-w-full !text-ink-gray-5"
+						:label="chip.label"
+						:tooltip="`Add ${chip.label} to the message`"
+						@click="flow.options.context.pick(chip.key)"
+					/>
+					<span v-else data-context-chip :class="[chipClass, '!max-w-full']" :title="chip.title">
+						<ContextChipIcon :chip="chip" />
+						<span class="min-w-0 truncate text-sm text-ink-gray-8">{{ chip.label }}</span>
+						<button type="button" :class="chipRemoveClass" title="Remove" @click="flow.options.context.remove(chip.key)">
+							<span class="lucide-x size-3" />
+						</button>
+					</span>
+				</template>
 			</div>
 
 			<div

@@ -69,7 +69,7 @@ import { useRoute, useRouter } from "vue-router"
 
 import { type Artifact, artifactIcon, artifactLabel, getArtifactSession, linkArtifact, routeArtifact } from "../artifacts"
 import { chats } from "../chats"
-import { attachedChips, chatContext, clearSent, contextChips, detach, pendingChips } from "../context"
+import { attachedChips, chatContext, clearSent, contextChips, detach, pendingChips, pick } from "../context"
 import { chatSender } from "../editor"
 import { layers } from "../layers"
 import { findTab } from "../tabs"
@@ -173,6 +173,7 @@ const context = {
 	pending: pendingChips,
 	attached: () => attachedChips(openArtifact()),
 	remove: (key: string) => detach(key, openArtifact()),
+	pick: (key: string) => pick(key, openArtifact()),
 	chips: contextChips,
 }
 </script>

@@ -35,6 +35,8 @@ export interface ContextChip {
 	badge?: number
 	label: string
 	title: string
+	// offered, not attached: a click attaches it
+	suggested?: boolean
 }
 
 export const selection = shallowRef<ElementContext | null>(null)
@@ -72,14 +74,19 @@ const artifactKey = (doctype: string, name: string) => `${doctype}/${name}`
 
 // what the person took off the next message: the open artifact, by key, and the selected element, by id
 export const detached = ref<{ artifact: string | null; selection: string | null }>({ artifact: null, selection: null })
+// the open artifact the person attached to the next message, by key
+const picked = ref<string | null>(null)
 
 type OpenArtifact = { doctype: string; name: string; title: string; path: string }
 
 export function chatContext(open: OpenArtifact | null): ChatContext | null {
 	const context: ChatContext = {}
-	const attach = open && detached.value.artifact !== artifactKey(open.doctype, open.name)
+	// the open artifact rides along only when the person picked it, or with the element they selected in it
+	const key = open && artifactKey(open.doctype, open.name)
+	const selected = Boolean(selection.value && detached.value.selection !== selection.value.id)
+	const attach = open && detached.value.artifact !== key && (picked.value === key || selected)
 	if (attach) context.artifact = open
-	if (attach && selection.value && detached.value.selection !== selection.value.id) context.selection = selection.value
+	if (attach && selected) context.selection = selection.value!
 	if (comments.value.length) {
 		context.comments = comments.value.map((comment, i) => {
 			const [doctype, ...name] = comment.artifact.split("/")
@@ -100,19 +107,31 @@ export function chatContext(open: OpenArtifact | null): ChatContext | null {
 const carried = new WeakMap<ChatContext, number[]>()
 // the comments a sent message carried leave the preview
 export function clearSent(context: ChatContext | null) {
+	if (context?.artifact) picked.value = null
 	const sent = (context && carried.get(context)) ?? []
 	comments.value = comments.value.filter((comment) => !sent.includes(comment.key))
 	if (sent.length) commenting.value = false
 }
 
-// the open artifact and its selection ride along with the next message unless taken off
+// what rides along with the next message; the open artifact, when it does not, is offered
 export const attachedChips = (open: OpenArtifact | null): ContextChip[] => {
 	const context = chatContext(open)
-	return context ? contextChips({ artifact: context.artifact, selection: context.selection }) : []
+	const chips = context ? contextChips({ artifact: context.artifact, selection: context.selection }) : []
+	if (open && !context?.artifact) chips.unshift({ ...contextChips({ artifact: open })[0], suggested: true })
+	return chips
+}
+
+export function pick(key: string, open: OpenArtifact | null) {
+	if (key !== "artifact" || !open) return
+	picked.value = artifactKey(open.doctype, open.name)
+	if (detached.value.artifact === picked.value) detached.value.artifact = null
 }
 
 export function detach(key: string, open: OpenArtifact | null) {
-	if (key === "artifact" && open) detached.value.artifact = artifactKey(open.doctype, open.name)
+	if (key === "artifact" && open) {
+		detached.value.artifact = artifactKey(open.doctype, open.name)
+		picked.value = null
+	}
 	else if (key === "selection" && selection.value) detached.value.selection = selection.value.id
 	else removeComment(Number(key))
 }
