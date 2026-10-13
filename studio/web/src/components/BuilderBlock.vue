@@ -18,7 +18,7 @@
 			:isChildOfComponent="block.isExtendedFromComponent() || isChildOfComponent"
 			:key="child.blockId"
 			:repeater-index="repeaterIndex"
-			v-for="child in block.getChildren().filter((child) => child.isVisible(breakpoint))" />
+			v-for="child in block.getChildren()" />
 	</component>
 </template>
 <script setup lang="ts">

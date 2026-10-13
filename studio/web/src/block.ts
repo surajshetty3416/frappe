@@ -435,7 +435,7 @@ class Block implements BlockOptions {
 			styles.backgroundSize = "16px 16px";
 		}
 
-		if (this.isButton() && this.children.length === 0) {
+		if (this.isButton() && this.children.length === 0 && this.isVisible()) {
 			styles.display = "flex";
 			styles.alignItems = "center";
 			styles.justifyContent = "center";
