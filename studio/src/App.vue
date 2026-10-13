@@ -61,10 +61,10 @@
 
 <script setup lang="ts">
 import { Dialogs } from "frappe-ui"
-import { computed, h, onBeforeUnmount, onMounted, ref, watchEffect } from "vue"
+import { computed, h, onBeforeUnmount, onMounted, ref, watch, watchEffect } from "vue"
 import { useRoute, useRouter } from "vue-router"
 
-import { chats } from "./chats"
+import { chats, loadChats } from "./chats"
 import EditorPanel from "./components/EditorPanel.vue"
 import SearchDialog from "./components/SearchDialog.vue"
 import StudioChat from "./components/StudioChat.vue"
@@ -102,11 +102,15 @@ const currentChat = computed(() => {
 	return typeof session === "string" && session !== "new" ? session : null
 })
 watchEffect(() => (tabChat.value = currentChat.value))
+const openChat = computed(() => chats.value.find((chat) => chat.name === currentChat.value))
+// a chat started here, like a replay, is not in the list until the list hears of it
+watch(currentChat, (session) => session && !openChat.value && loadChats())
 const title = computed(() => {
 	// the chat's title; the artifact's is on the artifact bar
 	if (chatLayout.value) {
 		if (!currentChat.value) return "New chat"
-		return chats.value.find((chat) => chat.name === currentChat.value)?.title || "Untitled chat"
+		if (!openChat.value) return ""
+		return openChat.value.title || "Untitled chat"
 	}
 	return layers.find((layer) => layer.name === route.matched[0]?.meta.layer)?.title ?? "Studio"
 })

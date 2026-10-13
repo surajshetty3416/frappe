@@ -14,7 +14,7 @@ const runs = ref<Record<string, string>>({})
 // the `modified` of each chat when its person last had it open
 const seen = useStorage<{ since: string; chats: Record<string, string> }>("studio-seen-chats", { since: "", chats: {} })
 
-async function load() {
+export async function loadChats() {
 	const history = await getHistory(50)
 	const open = await call("frappe.client.get_list", {
 		doctype: "Flow Run",
@@ -29,14 +29,14 @@ async function load() {
 	if (!seen.value.since) seen.value.since = history.reduce((latest, chat) => (chat.modified > latest ? chat.modified : latest), "0")
 }
 
-export const refreshChats = useDebounceFn(load, 400)
+export const refreshChats = useDebounceFn(loadChats, 400)
 
 let watching = false
 // the list follows every chat and run the site saves, so a chat in another tab shows its progress
 export function watchChats() {
 	if (watching) return
 	watching = true
-	load()
+	loadChats()
 	onListUpdate("Flow Session", refreshChats)
 	onListUpdate("Flow Run", refreshChats)
 }
