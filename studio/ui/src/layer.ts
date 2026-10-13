@@ -1,7 +1,7 @@
 import { defineLayer } from "@shell/layer"
 import session from "@ui/utils/session"
 
-const artifact = { doctype: "Studio App", param: "appID" }
+const artifact = { doctype: "Studio App", param: "appID", editor: () => import("./studioEditor") }
 
 export default defineLayer({
 	name: "ui",
@@ -20,7 +20,7 @@ export default defineLayer({
 		{
 			path: "app/:appID/:pageID",
 			name: "StudioPage",
-			component: () => import("./pages/StudioPage.vue"),
+			component: () => import("./studioEditor").then((editor) => editor.default.preview),
 			meta: { artifact },
 		},
 		{ path: "not-permitted", name: "StudioNotPermitted", component: () => import("./pages/NotPermitted.vue") },

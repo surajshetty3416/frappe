@@ -1,9 +1,8 @@
 <template>
 	<Dropdown :options="options" align="start">
 		<template #default="{ open }">
-			<Button variant="ghost">
-				<span class="text-base text-ink-gray-8">{{ store.activeApp?.app_title }}</span>
-				<span v-if="store.activePage" class="ml-1.5 text-base text-ink-gray-5">{{ store.activePage.page_title }}</span>
+			<Button variant="ghost" class="min-w-0">
+				<span class="truncate text-sm text-ink-gray-7">{{ store.activePage?.page_title || "Untitled page" }}</span>
 				<template #suffix>
 					<span :class="open ? 'lucide-chevron-up' : 'lucide-chevron-down'" class="h-4 w-4 text-ink-gray-5" />
 				</template>
