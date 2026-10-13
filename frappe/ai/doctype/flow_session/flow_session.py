@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import time
 from contextlib import suppress
 from typing import TYPE_CHECKING, Any
 
@@ -12,6 +13,7 @@ from frappe import _
 from frappe.ai.daemon.client import DaemonClient, DaemonError
 from frappe.ai.lib.session import (
 	ABANDONED,
+	ENDED,
 	GONE,
 	READ_ONLY,
 	STOPPED,
@@ -25,6 +27,8 @@ from frappe.model.document import Document
 
 if TYPE_CHECKING:
 	from frappe.ai.doctype.flow_run.flow_run import FlowRun
+
+RELEASE_TIMEOUT = 20  # the Claude Agent SDK's worst-case close
 
 
 class FlowSession(Document):
@@ -176,6 +180,7 @@ class FlowSession(Document):
 		uploaded = []
 		try:
 			with DaemonClient.for_site() as client:
+				self._wait_for_release(client)
 				try:
 					if turn.images:
 						uploaded = [
@@ -352,6 +357,16 @@ class FlowSession(Document):
 			existing = set(frappe.get_all("File", filters={"name": ("in", files)}, pluck="name"))
 			if existing != files:
 				self.set("attachments", [row for row in self.attachments if row.file in existing])
+
+	def _wait_for_release(self, client: DaemonClient) -> None:
+		"""A Claude Code run logs run_ended before the flow server lets go of it, and a message
+		sent in between steers into the ended run and is lost."""
+		latest = frappe.db.get_value("Flow Run", {"session": self.name}, "status", order_by="creation desc")
+		if latest not in ENDED:
+			return
+		deadline = time.monotonic() + RELEASE_TIMEOUT
+		while client.get_session(self.name)["running"] and time.monotonic() < deadline:
+			time.sleep(0.1)
 
 	def _active_run(self) -> FlowRun:
 		name = frappe.db.get_value(
