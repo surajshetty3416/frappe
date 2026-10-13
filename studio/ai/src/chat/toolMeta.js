@@ -7,6 +7,7 @@ import ReadView from "./tools/ReadView.vue";
 import ReportView from "./tools/ReportView.vue";
 import { parseResult } from "./tools/result.js";
 import SnippetView from "./tools/SnippetView.vue";
+import { recordTitle } from "@shell/artifacts";
 
 // How the assistant's tools read in the transcript and approval cards: a present-tense label, an
 // icon, the one-line subject of the call, the count it ended on, and the view that draws
@@ -98,6 +99,12 @@ const TOOLS = {
 	},
 	load_skill: { icon: "lucide-book", label: "Loading Skill" },
 	subagent: { icon: "lucide-bot", label: "Sub-agent" },
+	run_automation: {
+		icon: "lucide-zap",
+		label: "Running Automation",
+		subject: (args) => (args.automation ? recordTitle("Automation Flow", args.automation) : ""),
+		view: JsonView,
+	},
 	list_chats: { icon: "lucide-messages-square", label: "Reading Chats", stat: (result) => count(result.length, "chat") },
 	start_chat: { icon: "lucide-message-square-plus", label: "Starting Chat", subject: (args) => subject({ name: args.title }) },
 	send_to_chat: { icon: "lucide-send", label: "Sending to Chat", subject: (args) => subject({ content: args.message }) },

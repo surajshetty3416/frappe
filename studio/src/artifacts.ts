@@ -1,4 +1,5 @@
 import { call } from "frappe-ui"
+import { reactive } from "vue"
 import type { RouteLocationNormalizedLoaded } from "vue-router"
 
 import type { ArtifactEditor } from "./editor"
@@ -56,6 +57,20 @@ export function routeArtifact(route: RouteLocationNormalizedLoaded) {
 }
 
 export const artifactLabel = (doctype: string) => window.studio_artifacts?.[doctype]?.label ?? doctype
+
+// a record's title, by its DocType's title field; its name until the title arrives. Reactive, so a row that shows it updates.
+const titles = reactive(new Map<string, string>())
+export function recordTitle(doctype: string, name: string) {
+	const key = `${doctype}/${name}`
+	if (!titles.has(key)) {
+		titles.set(key, name)
+		const field = window.studio_artifacts?.[doctype]?.title_field ?? "name"
+		call("frappe.client.get_value", { doctype, filters: name, fieldname: field })
+			.then((doc) => doc?.[field] && titles.set(key, doc[field]))
+			.catch(() => {})
+	}
+	return titles.get(key) as string
+}
 
 export interface ArtifactInfo {
 	title: string
