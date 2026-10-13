@@ -21,6 +21,9 @@
 		</component>
 
 		<div v-if="open && expandable" ref="payloadEl" class="mb-1 mt-1 overflow-hidden rounded-4 border border-outline-gray-1 bg-surface-base">
+			<div v-if="reasoning" class="max-h-[200px] overflow-y-auto border-b border-outline-gray-1 px-3 py-2 last:border-b-0">
+				<MarkdownContent :text="reasoning" class="text-sm leading-relaxed text-ink-gray-5" />
+			</div>
 			<div v-if="meta.argsComponent && !resultView" class="border-b border-outline-gray-1">
 				<component :is="meta.argsComponent" :arguments="args" />
 			</div>
@@ -44,6 +47,7 @@ import { computed, inject, ref, watch } from "vue"
 import { usePanelOpen } from "../panels.js"
 import { stepDecision, stepIcon, stepLabel, stepStat, stepSubject } from "../transcript.js"
 import CopyButton from "./CopyButton.vue"
+import MarkdownContent from "./MarkdownContent.vue"
 
 const props = defineProps({
 	step: { type: Object, required: true },
@@ -97,8 +101,11 @@ const resultView = computed(() =>
 const payloadEl = ref(null)
 watch(payloadEl, (el) => el?.scrollIntoView({ block: "nearest", behavior: "smooth" }))
 
+// the short thought that led to the call
+const reasoning = computed(() => props.step.reasoning?.thinking ?? "")
+
 const expandable = computed(() => {
-	if (failed.value || decision.value) return true
+	if (failed.value || decision.value || reasoning.value) return true
 	if (meta.value.expandable === false) return false
 	if (meta.value.argsComponent) return true
 	if (!props.step.result) return false

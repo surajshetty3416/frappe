@@ -513,7 +513,7 @@ function foldLabel(turn) {
 //   {kind: "user", entry}
 //   {kind: "text", block, entry?, provisional?}
 //   {kind: "thinking", block, entry?, live?}
-//   {kind: "group", steps: [{call, result, aborted} | {thought, id, live?}]}
+//   {kind: "group", steps: [{call, result, aborted, reasoning?} | {thought, id, live?}]}
 //   {kind: "turn-fold", turnKey, label, expanded}
 //   {kind: "turn-artifacts", turnKey, artifacts: [{doctype, name, label, title, route}]}
 //   {kind: "turn-tasks", turnKey, tasks: [{key, chat, title, message, run, status}]}
@@ -602,6 +602,12 @@ export function buildItems(conversation, expandedTurnKeys = new Set(), openPanel
 					aborted: !provisional && entry.stop_reason === "aborted",
 					// a subagent call's child, once its first event has landed
 					subagent: block.name === "subagent" ? conversation.subagents?.[subagentId(block)] ?? null : null,
+				}
+				// a thought shorter than 2s folds into the call it led to
+				const before = group.steps[group.steps.length - 1]
+				if (before?.thought && !before.live && Number.isFinite(before.thought.seconds) && before.thought.seconds < 2) {
+					group.steps.pop()
+					step.reasoning = before.thought
 				}
 				stepsById.set(block.id, step)
 				group.steps.push(step)
