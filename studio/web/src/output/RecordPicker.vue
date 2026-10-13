@@ -1,11 +1,14 @@
 <template>
-	<Combobox
-		class="w-48 min-w-28 shrink"
-		:model-value="state.record"
-		:options="options"
-		:placeholder="`Choose a ${state.target ?? 'record'}`"
-		@update:model-value="(value) => value && pick(String(value))"
-	/>
+	<div class="w-48 min-w-28 shrink" :title="options.find((option) => option.value === state.record)?.label">
+		<Combobox
+			class="w-full"
+			trigger="button"
+			:model-value="state.record"
+			:options="options"
+			:placeholder="`Choose a ${state.target ?? 'record'}`"
+			@update:model-value="(value) => value && pick(String(value))"
+		/>
+	</div>
 </template>
 
 <script setup lang="ts">
