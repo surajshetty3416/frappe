@@ -1,6 +1,6 @@
 // Insights Chart v3 in Studio's editor shell: the chart with its rows as the
 // preview, and the shell's contract answered from the chart store.
-import { defineArtifactEditor } from '@shell/editor'
+import { type ArtifactStatus, defineArtifactEditor } from '@shell/editor'
 import { type UseRefHistoryReturn, useDebouncedRefHistory } from '@vueuse/core'
 import { computed, defineComponent, h, provide, ref, shallowReactive, shallowRef, watch } from 'vue'
 import JsonCode from '../components/JsonCode.vue'
@@ -85,6 +85,10 @@ function source(q?: Query) {
 	if (first?.type === 'code') return __('Python script')
 }
 
+// who sees the chart or dashboard, its publish state; saving is not a state
+export const visibilityStatus = (visibility?: string): ArtifactStatus =>
+	visibility === 'Public' ? { label: __('Public'), theme: 'green' } : { label: __('Private'), theme: 'gray' }
+
 export default defineArtifactEditor({
 	preview: ChartArtifactPreview,
 
@@ -94,10 +98,8 @@ export default defineArtifactEditor({
 		chart.value.doc.title = title
 		return chart.value.save()
 	},
-	status() {
-		if (chart.value?.saving || chart.value?.isdirty) return { label: __('Saving…'), theme: 'gray' }
-		return { label: __('Saved'), theme: 'gray' }
-	},
+	saving: () => Boolean(chart.value?.saving || chart.value?.isdirty),
+	status: () => visibilityStatus(chart.value?.doc.visibility),
 	primaryAction: () => null,
 	details() {
 		const executedAt = read.value?.executedAt

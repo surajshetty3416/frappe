@@ -248,9 +248,8 @@ export default defineArtifactEditor({
 
 	title: () => app.value?.app_title || "Untitled app",
 	rename: (title) => useStudioStore().updateActiveApp("app_title", title),
+	saving: () => useStudioStore().savingPage,
 	status() {
-		const store = useStudioStore()
-		if (store.savingPage) return { label: "Saving…", theme: "gray" }
 		const state = publishState()
 		if (state === "draft") return { label: "Draft", theme: "gray" }
 		if (state === "changed") return { label: "Unpublished changes", theme: "orange" }

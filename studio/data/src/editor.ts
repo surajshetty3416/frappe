@@ -99,9 +99,8 @@ export default defineArtifactEditor({
 			toast.error(errorText(error))
 		}
 	},
+	saving: () => Boolean(doctype.saving),
 	status() {
-		if (doctype.saving) return { label: "Saving…", theme: "gray" }
-		if (doctype.saved) return { label: "Saved", theme: "green" }
 		if (doctype.doc && !doctype.doc.custom) return { label: "Core, read only", theme: "gray" }
 		if (doctype.doc?.istable) return { label: "Child table", theme: "gray" }
 		if (doctype.count === null) return { label: "Counting…", theme: "gray" }

@@ -12,8 +12,6 @@ export const doctype = reactive({
 	loading: false,
 	error: "",
 	saving: 0,
-	// a save finished a moment ago
-	saved: false,
 	count: null as number | null,
 	demoData: false,
 })
@@ -83,18 +81,10 @@ export async function refreshCount() {
 	if (doctype.name === name) doctype.count = count
 }
 
-let savedTimer = 0
 export async function saving<T>(work: () => Promise<T>) {
 	doctype.saving++
-	doctype.saved = false
 	try {
-		const result = await work()
-		if (doctype.saving === 1) {
-			doctype.saved = true
-			clearTimeout(savedTimer)
-			savedTimer = window.setTimeout(() => (doctype.saved = false), 2000)
-		}
-		return result
+		return await work()
 	} finally {
 		doctype.saving--
 	}

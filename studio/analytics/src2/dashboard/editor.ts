@@ -4,7 +4,7 @@ import { defineArtifactEditor, type ElementAction, type ElementProperty } from '
 import { type UseRefHistoryReturn, useDebouncedRefHistory } from '@vueuse/core'
 import { call } from 'frappe-ui'
 import { type Component, computed, defineComponent, h, provide, ref, shallowReactive, watch } from 'vue'
-import { titleNode } from '../charts/editor'
+import { titleNode, visibilityStatus } from '../charts/editor'
 import { chartIcon, chartProperties, plainText } from '../charts/properties'
 import JsonCode from '../components/JsonCode.vue'
 import { getUniqueId, waitUntil } from '../helpers'
@@ -125,12 +125,8 @@ export default defineArtifactEditor({
 		dashboard.value.doc.title = title
 		return dashboard.value.save()
 	},
-	status() {
-		const store = dashboard.value
-		if (store?.saving || store?.isdirty) return { label: __('Saving…'), theme: 'gray' }
-		if (store?.doc.visibility === 'Public') return { label: __('Public'), theme: 'green' }
-		return { label: __('Private'), theme: 'gray' }
-	},
+	saving: () => Boolean(dashboard.value?.saving || dashboard.value?.isdirty),
+	status: () => visibilityStatus(dashboard.value?.doc.visibility),
 	primaryAction() {
 		const store = dashboard.value
 		if (!store?.doc.can_share) return null
