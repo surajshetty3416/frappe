@@ -28,6 +28,8 @@ permission_query_conditions = {
 # nor its list of the artifacts it made; a deleted one drops out of that list when read.
 ignore_links_on_delete = ["Flow Knowledge Chunk", "Flow Run", "Flow Session", "Flow Session Artifact"]
 
+flow_agents = ["frappe.ai.orchestrator.agents"]
+
 default_log_clearing_doctypes = {
 	"Flow Session": 90,
 }

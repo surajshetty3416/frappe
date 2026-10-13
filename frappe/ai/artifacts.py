@@ -109,13 +109,14 @@ def own_chats() -> list[list]:
 	"""Filters for the user's own chats with the assistant, as the chat panel lists them. A
 	trigger's chats and a test of another agent are not the person's conversations."""
 	from frappe.ai.assistant import ASSISTANT_AGENT_TITLE
+	from frappe.ai.orchestrator import ORCHESTRATOR_AGENT_TITLE
 
 	return [
 		["owner", "=", frappe.session.user],
 		# a chat is titled by its first message; one without was never sent
 		["title", "is", "set"],
 		["source", "!=", "Trigger"],
-		["agent", "=", ASSISTANT_AGENT_TITLE],
+		["agent", "in", [ASSISTANT_AGENT_TITLE, ORCHESTRATOR_AGENT_TITLE]],
 	]
 
 
