@@ -1,11 +1,11 @@
 ---
 name: Apps
-description: Build or change a Studio app and its pages, frappe-ui screens over the site's DocTypes, such as a review queue, a record with actions, or a phone screen to search and act. Use for any request for an app, a screen or a page in an app.
+description: Build or change an app and its pages, frappe-ui screens over the site's DocTypes, such as a review queue, a record with actions, or a phone screen to search and act. Use for any request for an app, a screen or a page in an app.
 ---
 
-# Building Studio apps
+# Building apps
 
-A Studio App is served at `/<app route>`. Each Studio Page is one screen at a path inside it. A page is a tree of frappe-ui components bound to resources (data fetched from DocTypes) and variables (page state). Pages you save are published at once, and a person can change them in the app editor. Read a page back with get_studio_page before you change it, because a person may have edited it.
+An app is served at `/<app route>`. Each page is one screen at a path inside it. It is an "app", never a "Studio app", in every text the app shows. A page is a tree of frappe-ui components bound to resources (data fetched from DocTypes) and variables (page state). Pages you save are published at once, and a person can change them in the app editor. Read a page back with get_studio_page before you change it, because a person may have edited it.
 
 ## Steps
 
@@ -35,9 +35,10 @@ A Studio App is served at `/<app route>`. Each Studio Page is one screen at a pa
 
 - A table is the List family: `List` (props `columns`, one CSS grid track per column, and `rowHeight`) holding a `ListHeader` of `ListHeaderCell`s and a `ListRows`. `ListRows` has `items: "{{ name.data }}"`, `rowKey: "name"`, and one `ListRow` in `slots.default`, with one `ListCell` per column. Inside the row, `item` is the record.
 - Columns: text that varies, such as a title or a name, is `minmax(0, Nfr)`, and the title gets the largest weight. A short value, such as a badge, a Select value or a number, gets a fixed rem width that fits its longest value. Header labels are one or two short words, so a phone column does not truncate them.
-- A table of short columns, such as counts per track, has only fixed columns after the first and stops at its content: `"props": {"columns": ["minmax(0, 1fr)", "7rem", "7rem", "7rem"]}, "style": {"maxWidth": "640px"}`.
+- A table of short columns, such as counts per track, has only fixed columns after the first and stops at its content: `"props": {"columns": {"base": ["minmax(0, 1fr)", "4.5rem", "4.5rem", "4.5rem"], "md": ["minmax(0, 1fr)", "7rem", "7rem", "7rem", "7rem"]}}, "style": {"maxWidth": "640px"}`.
+- On a phone a table keeps its title column and its one key number, and drops the rest. A table of counts drops its least useful column, such as the total. Give `columns` a template per breakpoint, `base` for the phone and `md` from 768px up, and hide each dropped column's header cell and cell with `"tablet": {"display": "none"}`: `"columns": {"base": ["minmax(0, 1fr)", "4rem"], "md": ["minmax(0, 4fr)", "minmax(0, 2fr)", "4rem"]}`. The `base` tracks are the kept columns only, narrower if they need it, so the rest share the phone's width.
 - To open a record from a row, set the ListRow's `route` to a path in the app: `"/proposal/{{ item.name }}"`.
-- Cards or any other repeated layout: `Repeater` with `data: "{{ name.data }}"` and `dataKey: "name"`, and one child as the template. Inside it, `dataItem` is the record. A Repeater lays its items out in a wrapping row, so set `style.flexDirection: "column"` for a stack.
+- Cards or any other repeated layout: `Repeater` with `data: "{{ name.data }}"` and `dataKey: "name"`, and one child as the template. Inside it, `dataItem` is the record. A Repeater lays its items out in a wrapping row, so set `style.flexDirection: "column"` for a stack. Set `emptyStateMessage` to "No <items>", such as "No sponsors", never "None".
 
 ## Events
 
@@ -54,7 +55,7 @@ A Studio App is served at `/<app route>`. Each Studio Page is one screen at a pa
 
 Pages must look finished with nothing added by hand.
 
-- Page frame: one container with `maxWidth: "1120px"`, `width: "100%"`, `margin: "0 auto"`, `padding: "32px 24px"`, `gap: "20px"`, and `mobile: {"padding": "16px"}`.
+- Page frame: every page of every app, phone screens too, has one container with `maxWidth: "1120px"`, `width: "100%"`, `margin: "0 auto"`, `padding: "32px 24px"`, `gap: "20px"`, and `mobile: {"padding": "16px"}`.
 - Page title: TextBlock, `tag: "h1"`, `fontSize: "text-3xl"`, `style: {"fontWeight": "600", "color": "var(--ink-gray-9)"}`. A one-line subtitle under it: `text-p-sm` in `var(--ink-gray-6)`. A record title: `text-4xl`.
 - Text colors: `var(--ink-gray-9)` for headings and key values, `--ink-gray-8` for body, `--ink-gray-7` for secondary, `--ink-gray-6` for labels. Use `text-p-*` sizes for sentences and plain `text-*` sizes for labels.
 - Card: `padding: "20px"`, `gap: "16px"`, `borderRadius: "0.75rem"`, `borderWidth: "1px"`, `borderStyle: "solid"`, `borderColor: "var(--outline-gray-2)"`. Never hex colors; use `--surface-*`, `--ink-*` and `--outline-*` tokens.
@@ -69,7 +70,7 @@ Pages must look finished with nothing added by hand.
   `{"name": "TextInput", "props": {"label": "Amount", "type": "number", "modelValue": "{{ sponsor.doc.amount }}"}, "slots": {"prefix": [{"name": "TextBlock", "props": {"text": "₹"}}]}, "events": {"change": [{"save": "sponsor", "values": {"amount": "{{ Number(eventArgs[0].target.value) }}"}}, {"toast": "Saved"}]}}`
 - Buttons that step through a sequence, such as stages, hide at its ends instead of showing disabled. With `function stageAfter(stage, n) { const stages = ['Lead', 'Contacted', 'Paid']; return stages[stages.indexOf(stage) + n] }` in the page script:
   `{"name": "Button", "visible": "{{ stageAfter(sponsor.doc.stage, -1) }}", "props": {"label": "{{ 'Back to ' + stageAfter(sponsor.doc.stage, -1) }}", "variant": "subtle", "iconLeft": "lucide-arrow-left"}, "events": {"click": [{"save": "sponsor", "values": {"stage": "{{ stageAfter(sponsor.doc.stage, -1) }}"}}]}}`, and the same with `1` and `Move to` for the next stage.
-- Phone screens: one column with `maxWidth: "480px"`, `padding: "16px"`, `gap: "16px"`. Inputs and buttons `size: "lg"`, buttons full width with `height: "48px"`, names in `text-2xl`.
+- Phone screens: the same page frame, so every app has one content width. Inputs and buttons `size: "lg"`, buttons full width with `height: "48px"`, names in `text-2xl`.
 
 ## Example: a list with filters
 
@@ -92,21 +93,21 @@ Pages must look finished with nothing added by hand.
     {"name": "container", "style": {"flexDirection": "row", "gap": "8px", "flexWrap": "wrap"}, "children": [
       {"name": "Select", "props": {"modelValue": {"$var": "track"}, "options": [{"label": "All tracks", "value": ""}, {"label": "Build", "value": "Build"}, {"label": "Run", "value": "Run"}, {"label": "Grow", "value": "Grow"}]}, "style": {"width": "160px"}},
       {"name": "Select", "props": {"modelValue": {"$var": "format"}, "options": [{"label": "All formats", "value": ""}, {"label": "Talk", "value": "Talk 25 min"}, {"label": "Lightning", "value": "Lightning 10 min"}, {"label": "Workshop", "value": "Workshop 90 min"}]}, "style": {"width": "160px"}}]},
-    {"name": "List", "props": {"columns": ["minmax(0, 4fr)", "minmax(0, 2fr)", "6rem", "8rem", "7rem", "4rem"], "rowHeight": 52}, "children": [
+    {"name": "List", "props": {"columns": {"base": ["minmax(0, 1fr)", "3rem"], "md": ["minmax(0, 4fr)", "minmax(0, 2fr)", "6rem", "8rem", "7rem", "4rem"]}, "rowHeight": 52}, "children": [
       {"name": "ListHeader", "children": [
         {"name": "ListHeaderCell", "children": [{"name": "TextBlock", "props": {"text": "Title"}}]},
-        {"name": "ListHeaderCell", "children": [{"name": "TextBlock", "props": {"text": "Speaker"}}]},
-        {"name": "ListHeaderCell", "children": [{"name": "TextBlock", "props": {"text": "Track"}}]},
-        {"name": "ListHeaderCell", "children": [{"name": "TextBlock", "props": {"text": "Format"}}]},
-        {"name": "ListHeaderCell", "children": [{"name": "TextBlock", "props": {"text": "Level"}}]},
+        {"name": "ListHeaderCell", "tablet": {"display": "none"}, "children": [{"name": "TextBlock", "props": {"text": "Speaker"}}]},
+        {"name": "ListHeaderCell", "tablet": {"display": "none"}, "children": [{"name": "TextBlock", "props": {"text": "Track"}}]},
+        {"name": "ListHeaderCell", "tablet": {"display": "none"}, "children": [{"name": "TextBlock", "props": {"text": "Format"}}]},
+        {"name": "ListHeaderCell", "tablet": {"display": "none"}, "children": [{"name": "TextBlock", "props": {"text": "Level"}}]},
         {"name": "ListHeaderCell", "style": {"justifyContent": "flex-end"}, "children": [{"name": "TextBlock", "props": {"text": "Score"}}]}]},
       {"name": "ListRows", "props": {"items": "{{ proposals.data }}", "rowKey": "name"}, "slots": {"default": [
         {"name": "ListRow", "props": {"value": "{{ value }}", "route": "/proposal/{{ item.name }}"}, "children": [
           {"name": "ListCell", "children": [{"name": "TextBlock", "props": {"text": "{{ item.title }}"}, "style": {"color": "var(--ink-gray-9)", "fontWeight": "500", "overflow": "hidden", "textOverflow": "ellipsis", "whiteSpace": "nowrap"}}]},
-          {"name": "ListCell", "children": [{"name": "TextBlock", "props": {"text": "{{ item.speaker_name }}"}, "style": {"color": "var(--ink-gray-7)"}}]},
-          {"name": "ListCell", "children": [{"name": "Badge", "props": {"label": "{{ item.track }}", "theme": "{{ { Build: 'blue', Run: 'green', Grow: 'amber' }[item.track] || 'gray' }}"}}]},
-          {"name": "ListCell", "children": [{"name": "TextBlock", "props": {"text": "{{ item.format }}"}, "style": {"color": "var(--ink-gray-7)"}}]},
-          {"name": "ListCell", "children": [{"name": "TextBlock", "props": {"text": "{{ item.level }}"}, "style": {"color": "var(--ink-gray-7)"}}]},
+          {"name": "ListCell", "tablet": {"display": "none"}, "children": [{"name": "TextBlock", "props": {"text": "{{ item.speaker_name }}"}, "style": {"color": "var(--ink-gray-7)"}}]},
+          {"name": "ListCell", "tablet": {"display": "none"}, "children": [{"name": "Badge", "props": {"label": "{{ item.track }}", "theme": "{{ { Build: 'blue', Run: 'green', Grow: 'amber' }[item.track] || 'gray' }}"}}]},
+          {"name": "ListCell", "tablet": {"display": "none"}, "children": [{"name": "TextBlock", "props": {"text": "{{ item.format }}"}, "style": {"color": "var(--ink-gray-7)"}}]},
+          {"name": "ListCell", "tablet": {"display": "none"}, "children": [{"name": "TextBlock", "props": {"text": "{{ item.level }}"}, "style": {"color": "var(--ink-gray-7)"}}]},
           {"name": "ListCell", "style": {"justifyContent": "flex-end"}, "children": [{"name": "TextBlock", "props": {"text": "{{ item.screener_score }}"}, "style": {"color": "var(--ink-gray-9)", "fontWeight": "600"}}]}]}]}}]}]}]
 }
 ```
@@ -161,7 +162,7 @@ Pages must look finished with nothing added by hand.
     "or_filters": "{{ { ticket_code: query, email: query, full_name: ['like', `%${query}%`] } }}", "limit_page_length": 5}}},
   "variables": {"query": ""},
   "script": "function eventDay() {\n  return new Date() < new Date('2027-08-21') ? 'Day 1' : 'Day 2'\n}\nfunction pad(n) {\n  return String(n).padStart(2, '0')\n}\nfunction stamp() {\n  const d = new Date()\n  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`\n}\nfunction halfHour() {\n  const d = new Date()\n  return `${pad(d.getHours())}:${d.getMinutes() < 30 ? '00' : '30'}`\n}",
-  "blocks": [{"name": "container", "style": {"width": "100%", "maxWidth": "480px", "margin": "0 auto", "padding": "16px", "gap": "16px"}, "children": [
+  "blocks": [{"name": "container", "style": {"width": "100%", "maxWidth": "1120px", "margin": "0 auto", "padding": "32px 24px", "gap": "16px"}, "mobile": {"padding": "16px"}, "children": [
     {"name": "container", "style": {"flexDirection": "row", "alignItems": "center", "gap": "4px", "paddingBottom": "12px", "borderWidth": "0px 0px 1px 0px", "borderStyle": "solid", "borderColor": "var(--outline-gray-1)"}, "children": [
       {"name": "TextBlock", "props": {"text": "Check-in", "fontSize": "text-base"}, "style": {"flex": "1", "fontWeight": "600", "color": "var(--ink-gray-9)"}},
       {"name": "Button", "props": {"label": "Scan", "variant": "subtle", "route": "/scan"}},

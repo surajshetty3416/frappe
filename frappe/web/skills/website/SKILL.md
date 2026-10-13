@@ -32,7 +32,7 @@ In the page YAML, repeat a block over a list and bind its fields, as in Cards be
 
 `style` is the desktop. `t_style` applies below 1024px, and `m_style` below 576px, over `t_style`.
 
-- Header and footer: write one Nav and one Footer and put the same blocks on every page. Link only to pages that exist and to anchors on the home page, such as `/event#speakers` with `attrs: {id: speakers}` on that section. Leave out a link to a page you have not made. On phone the links wrap with `flexWrap: wrap`, never hide.
+- Header and footer: write one Nav and one Footer and put the same blocks on every page. Link only to pages that exist and to anchors on the home page, such as `/event#speakers` with `attrs: {id: speakers}` on that section. Leave out a link to a page you have not made. A page cannot script or toggle a menu, so the nav never collapses. Make the Nav a wrapping row of the wordmark, the links in one block and the Register link, in `order` wordmark, links, Register on desktop. On phone the links block takes `m_style: {order: 3, flexBasis: 100%}`, so Register stays beside the wordmark and the links wrap below. Never hide a link.
 - Sections: the same padding on every section, such as `96px 48px` with `m_style: {padding: 64px 20px}`.
 - Identity without images: a hero with a gradient or pattern in the site's colors, such as `backgroundImage: radial-gradient(circle at 80% 0%, rgba(37,99,235,0.45), transparent 60%)`. One wordmark, spelled the same in nav, hero and footer. Link color only on links. All numbers in a row in one color.
 - Card text never clips: no fixed `height`, no `overflow: hidden` or `whiteSpace: nowrap` on a card or its text. A card grows with its text.
