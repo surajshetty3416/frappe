@@ -8,7 +8,7 @@
 		<aside
 			v-if="drawer"
 			data-editor-drawer
-			class="absolute inset-y-0 right-0 z-20 flex max-w-full flex-col overflow-hidden border-l border-outline-gray-1 bg-surface-base shadow-xl"
+			class="absolute inset-y-0 right-0 z-20 flex max-w-full flex-col overflow-hidden border-l border-outline-gray-1 bg-surface-base shadow-[-12px_0_32px_-12px_#00000029]"
 			:style="{ width: `${width}px` }"
 		>
 			<div
