@@ -1,11 +1,10 @@
 <template>
 	<section data-layer="shell" class="flex h-full min-w-0 flex-col bg-surface-base">
 		<div class="flex h-10 shrink-0 items-center border-b border-outline-gray-1">
-			<!-- tabs keep a readable width; the strip scrolls, and the ones out of view fold into a menu -->
+			<!-- tabs keep a readable width; the strip scrolls a whole tab at a time, and the ones out of view fold into a menu -->
 			<div
 				ref="strip"
-				class="flex h-full min-w-0 flex-1 items-center gap-1 overflow-x-auto px-2 [scrollbar-width:none]"
-				:style="{ maskImage: stripMask, WebkitMaskImage: stripMask }"
+				class="relative flex h-full min-w-0 flex-1 snap-x snap-mandatory items-center gap-1 overflow-x-auto scroll-pl-2 px-2 [scrollbar-width:none]"
 				role="tablist"
 				@scroll="measureTabs"
 				@wheel="scrollTabs"
@@ -17,7 +16,7 @@
 					role="tab"
 					:aria-selected="isActive(tab)"
 					:title="tab.title"
-					class="group flex h-7 min-w-32 max-w-60 shrink-0 cursor-pointer items-center gap-1.5 rounded-4 pl-2 pr-0.5 text-sm transition-colors"
+					class="group flex h-7 min-w-32 max-w-60 shrink-0 cursor-pointer snap-start items-center gap-1.5 rounded-4 pl-2 pr-0.5 text-sm transition-colors"
 					:class="isActive(tab) ? 'bg-surface-gray-2 text-ink-gray-8' : 'text-ink-gray-6 hover:bg-surface-gray-1'"
 					@click="router.push(tab.path)"
 					@auxclick.middle="close(tab)"
@@ -34,6 +33,7 @@
 						@click.stop="close(tab)"
 					/>
 				</div>
+				<div class="h-px shrink-0" :style="{ width: `${stripEnd}px` }" />
 			</div>
 			<DropdownButton
 				v-if="outOfView.length"
@@ -295,15 +295,8 @@ watch(openDrawer, (open) => {
 
 const strip = ref<HTMLElement | null>(null)
 const outOfView = ref<Tab[]>([])
-// a strip scrolled past a tab fades on that side, so a tab cut mid-word reads as more to scroll; the fade
-// spans half a tab, since a narrower one over the strip's padding leaves the cut word whole
-const clipped = ref({ left: false, right: false })
-const FADE = "64px"
-const stripMask = computed(() => {
-	const { left, right } = clipped.value
-	if (!left && !right) return undefined
-	return `linear-gradient(to right, ${left ? `transparent, black ${FADE}` : "black"}, ${right ? `black calc(100% - ${FADE}), transparent` : "black"})`
-})
+// room after the last tab, so the strip's furthest scroll also starts at a tab's left edge
+const stripEnd = ref(0)
 const outOfViewOptions = computed(() =>
 	outOfView.value.map((tab) => ({ label: tab.title, icon: tab.icon, onClick: () => router.push(tab.path) }))
 )
@@ -311,22 +304,46 @@ function measureTabs() {
 	const el = strip.value
 	if (!el) return
 	const box = el.getBoundingClientRect()
-	clipped.value = { left: el.scrollLeft > 1, right: el.scrollLeft + el.clientWidth < el.scrollWidth - 1 }
+	const starts = tabStarts(el)
+	const natural = el.scrollWidth - stripEnd.value
+	const overflow = natural - el.clientWidth
+	const first = starts.find((start) => start >= overflow)
+	const end = overflow > 1 && first !== undefined ? first - overflow : 0
+	if (Math.abs(end - stripEnd.value) > 0.5) stripEnd.value = end
 	outOfView.value = tabs.value.filter((tab) => {
 		const rect = el.querySelector(`[data-tab="${CSS.escape(tabKey(tab))}"]`)?.getBoundingClientRect()
 		return rect && (rect.left < box.left - 1 || rect.right > box.right + 1)
 	})
 }
-// a mouse wheel scrolls the strip sideways
+// the scroll positions that start the strip at a tab's left edge
+function tabStarts(el: HTMLElement) {
+	const pad = parseFloat(getComputedStyle(el).paddingLeft)
+	return [...el.querySelectorAll<HTMLElement>("[data-tab]")].map((tab) => tab.offsetLeft - pad)
+}
+// a mouse wheel scrolls the strip sideways; scrollBy moves to the next tab in the wheel's direction
 function scrollTabs(event: WheelEvent) {
 	if (!strip.value || Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return
-	strip.value.scrollLeft += event.deltaY
+	strip.value.scrollBy({ left: event.deltaY })
 	event.preventDefault()
 }
-// the open tab stays in view as tabs come and go, and as the strip narrows for the menu
+// the open tab stays whole in view as tabs come and go, and as the strip narrows for the menu
 function revealActive() {
-	strip.value?.querySelector(`[data-tab="${CSS.escape(openKey.value)}"]`)?.scrollIntoView({ block: "nearest", inline: "nearest" })
+	const el = strip.value
+	if (!el) return
 	measureTabs()
+	nextTick(() => {
+		const tab = el.querySelector<HTMLElement>(`[data-tab="${CSS.escape(openKey.value)}"]`)
+		if (tab) {
+			const pad = parseFloat(getComputedStyle(el).paddingLeft)
+			const starts = tabStarts(el)
+			const left = tab.offsetLeft - pad
+			const right = tab.offsetLeft + tab.offsetWidth + pad
+			if (left < el.scrollLeft) el.scrollLeft = left
+			else if (right > el.scrollLeft + el.clientWidth)
+				el.scrollLeft = starts.find((start) => start + el.clientWidth >= right) ?? left
+		}
+		measureTabs()
+	})
 }
 watch(
 	() => [tabs.value.map((tab) => tabKey(tab) + tab.title).join(), openKey.value],
