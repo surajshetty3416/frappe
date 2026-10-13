@@ -3,7 +3,7 @@
 	<SettingsBody>
 		<div class="mt-4">
 			<SettingsRow title="Theme" description="System follows your computer's setting.">
-				<TabButtons :model-value="colorScheme" :options="schemes" @update:model-value="setColorScheme" />
+				<TabButtons variant="ghost" :model-value="colorScheme" :options="schemes" @update:model-value="setColorScheme" />
 			</SettingsRow>
 		</div>
 	</SettingsBody>
