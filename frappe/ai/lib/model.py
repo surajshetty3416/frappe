@@ -6,13 +6,12 @@
 from __future__ import annotations
 
 import time
-from typing import TYPE_CHECKING, Any
+from contextlib import suppress
+from typing import Any
 
 import frappe
 from frappe import _
-
-if TYPE_CHECKING:
-	from frappe.ai.daemon.client import DaemonClient
+from frappe.ai.daemon.client import DaemonClient, DaemonError
 
 PING_TIMEOUT = 30
 
@@ -64,28 +63,36 @@ def ping_through_flow_server(model: str) -> None:
 			client.run(sid, "ping")
 			error = run_error(client, sid)
 		finally:
-			client.delete_session(sid)
+			discard_session(client, sid)
 	if error:
 		frappe.throw(error, title=_("Connection Failed"))
 
 
 def run_error(client: DaemonClient, sid: str) -> str | None:
-	"""Wait for the session's run to end, aborting it past PING_TIMEOUT so the session can
-	be deleted; its error message, if it failed."""
-	error, since = None, 0
-	started = time.monotonic()
-	while time.monotonic() - started < PING_TIMEOUT * 2:
+	"""Wait up to PING_TIMEOUT for the session's run to end; its error message, if it failed."""
+	deadline = time.monotonic() + PING_TIMEOUT
+	since = 0
+	while time.monotonic() < deadline:
 		for entry in client.entries(sid, since=since, path="all")["entries"]:
 			since = entry["seq"]
 			if entry["type"] == "run_error":
-				error = entry["message"]
-			elif entry["type"] == "run_ended":
-				return error
-		if error is None and time.monotonic() - started > PING_TIMEOUT:
-			client.abort(sid)
-			error = _("The model did not answer within {0} seconds.").format(PING_TIMEOUT)
+				return entry["message"]
+			if entry["type"] == "run_ended":
+				return None
 		time.sleep(0.5)
-	return error
+	return _("The model did not answer within {0} seconds.").format(PING_TIMEOUT)
+
+
+def discard_session(client: DaemonClient, sid: str) -> None:
+	"""Delete the throwaway session, aborting a run still going first, since the server
+	refuses to delete a running session. Its own failures never hide the check's error."""
+	with suppress(DaemonError):
+		for _attempt in range(20):
+			if not client.get_session(sid)["running"]:
+				break
+			client.abort(sid)
+			time.sleep(0.25)
+		client.delete_session(sid)
 
 
 def resolve_provider_credentials(model_id: str) -> dict[str, Any]:

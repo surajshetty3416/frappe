@@ -5,7 +5,7 @@ from typing import Any
 from unittest.mock import patch
 
 import frappe
-from frappe.ai.daemon.client import DaemonClient
+from frappe.ai.daemon.client import DaemonClient, DaemonError
 from frappe.ai.doctype.flow_model.flow_model import _detect_context_window
 from frappe.ai.tests.test_fake_daemon import FakeDaemon, row
 from frappe.tests import IntegrationTestCase
@@ -174,6 +174,7 @@ class TestFlowServerConnection(IntegrationTestCase):
 				("create_session", sid),
 				("run", sid, "ping"),
 				("entries", sid, 0, "all"),
+				("get_session", sid),
 				("delete_session", sid),
 			],
 		)
@@ -184,6 +185,20 @@ class TestFlowServerConnection(IntegrationTestCase):
 		with self.assertRaisesRegex(frappe.ValidationError, "not signed in"):
 			self.doc.test_connection()
 		self.assertEqual(self.daemon.calls[-1][0], "delete_session")
+
+	def test_a_failed_check_stops_its_run_before_deleting(self):
+		self.daemon.running_for = 1
+		lost = DaemonError(None, "ReadTimeout: log unreachable")
+
+		with patch.object(self.daemon, "entries", side_effect=lost):
+			with self.assertRaisesRegex(frappe.ValidationError, "log unreachable"):
+				self.doc.test_connection()
+
+		sid = self.daemon.calls[0][1]
+		self.assertEqual(
+			self.daemon.calls[2:],
+			[("get_session", sid), ("abort", sid), ("get_session", sid), ("delete_session", sid)],
+		)
 
 
 class TestContextWindow(IntegrationTestCase):
