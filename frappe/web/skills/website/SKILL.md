@@ -24,6 +24,8 @@ data.speakers = frappe.get_all("Speaker", fields=["full_name", "company"], order
 data.count = len(data.speakers)
 ```
 
+Build strings with f-strings. The sandbox refuses `str.format`.
+
 `frappe.get_all` reads past permissions, so fetch only the records and fields the page shows. Never fetch emails, phone numbers or other private fields for a public page.
 
 In the page YAML, repeat a block over a list and bind its fields, as in Cards below. Outside a repeat, `bind: {text: count}` reads a top-level key. `bind: {href: url}` binds an attribute.
