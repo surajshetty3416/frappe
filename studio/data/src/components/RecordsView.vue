@@ -42,6 +42,9 @@
 					<Tooltip v-else-if="column.field?.fieldtype === 'Link' && titles[`${column.field.options}::${item}`]" :text="String(item)">
 						<span class="block truncate text-sm text-ink-gray-7">{{ titles[`${column.field.options}::${item}`] }}</span>
 					</Tooltip>
+					<span v-else-if="column.field && NUMERIC.has(column.field.fieldtype)" class="block truncate text-right text-sm tabular-nums text-ink-gray-7">
+						{{ formatValue(column.field, item) || "—" }}
+					</span>
 					<span v-else class="block truncate text-sm" :class="column.key === 'name' ? 'text-ink-gray-8' : 'text-ink-gray-7'">
 						{{ column.field ? formatValue(column.field, item) : item }}
 					</span>
@@ -84,18 +87,25 @@ const listed = computed(() => {
 	const chosen = fields.filter((field) => field.in_list_view)
 	return (chosen.length ? chosen : fields).slice(0, MAX_COLUMNS)
 })
-// the title takes the room; short values stay narrow
-const NARROW = new Set(["Int", "Float", "Currency", "Percent", "Check", "Date", "Time", "Color", "Rating"])
+// the title takes the room; other values keep a fixed width, short ones narrow
+const NUMERIC = new Set(["Int", "Float", "Currency", "Percent"])
+const NARROW = new Set([...NUMERIC, "Check", "Date", "Time", "Color", "Rating"])
 const widthOf = (field: DocField) => {
-	if (field.fieldname === doctype.doc?.title_field) return "minmax(12rem, 2fr)"
-	if (NARROW.has(field.fieldtype)) return "minmax(6rem, 0.7fr)"
-	return "minmax(10rem, 1fr)"
+	if (field.fieldname === doctype.doc?.title_field) return "minmax(10rem, 1fr)"
+	if (NARROW.has(field.fieldtype)) return "5rem"
+	return "10rem"
 }
 const columns = computed(() => [
 	naming.value
-		? { key: "name", label: fieldLabel(naming.value), width: "minmax(12rem, 2fr)", field: naming.value as DocField | null }
-		: { key: "name", label: "ID", width: "7rem", field: null },
-	...listed.value.map((field) => ({ key: field.fieldname!, label: fieldLabel(field), width: widthOf(field), field })),
+		? { key: "name", label: fieldLabel(naming.value), width: "minmax(10rem, 1fr)", field: naming.value as DocField | null }
+		: { key: "name", label: "ID", width: "6rem", field: null },
+	...listed.value.map((field) => ({
+		key: field.fieldname!,
+		label: fieldLabel(field),
+		width: widthOf(field),
+		align: NUMERIC.has(field.fieldtype) ? "right" : undefined,
+		field,
+	})),
 ])
 
 const rows = ref<Row[]>([])
