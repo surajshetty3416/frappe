@@ -242,3 +242,32 @@ def get_session_artifacts(session: str) -> list[dict[str, str]]:
 	"""What one chat made or changed, newest last."""
 	frappe.has_permission("Flow Session", "read", session, throw=True)
 	return artifacts_by_session(artifact_rows([session]))[session]
+
+
+@frappe.whitelist()
+def get_run_artifacts(session: str) -> list[dict[str, str]]:
+	"""What each of a chat's runs saved, through any tool, last saved last, with the flow server's
+	`run_id` of the run, so the run's turn shows a card for it."""
+	from frappe.ai.lib.session import sync_with_retry
+
+	doc = frappe.get_doc("Flow Session", session)
+	doc.check_permission("read")
+	# a run's flow server id is recorded when the run's log is synced
+	if frappe.db.exists("Flow Run", {"session": session, "status": ("in", ("Running", "Paused"))}):
+		sync_with_retry(doc)
+	version, run = frappe.qb.DocType("Artifact Version"), frappe.qb.DocType("Flow Run")
+	rows = (
+		frappe.qb.from_(version)
+		.join(run)
+		.on(run.name == version.run)
+		.select(version.reference_doctype, version.reference_name, run.daemon_run_id)
+		.where((version.session == session) & run.daemon_run_id.isnotnull())
+		.orderby(version.modified)
+		.run(as_dict=True)
+	)
+	titles = readable_titles(rows)
+	return [
+		{**artifact(*key, titles[key]), "run_id": row.daemon_run_id}
+		for row in rows
+		if (key := (row.reference_doctype, row.reference_name)) in titles
+	]
