@@ -191,8 +191,7 @@ def play_step(session: str, speed: float | str | None = None) -> dict[str, Any]:
 			{"doctype": "Flow Run", "session": session, "source": "Manual", "status": "Running"}
 		)
 	else:
-		# the chat's sync may still be recording the previous step's end on this run
-		run = frappe.get_doc("Flow Run", replay.run, for_update=True)
+		run = frappe.get_doc("Flow Run", replay.run)
 		run.update({"status": "Running", "error": None})
 	run.on_complete = ON_COMPLETE
 	run.save(ignore_permissions=True)
@@ -213,14 +212,16 @@ def settle(replay) -> None:
 	failed where the recording's succeeded."""
 	if replay.status != "Playing":
 		return
+	# the end the sync recorded, so the next step's rows never share a sync with this one's
+	run = frappe.db.get_value("Flow Run", replay.run, ["status", "error"], as_dict=True)
+	if run.status == "Running":
+		return
 	session = frappe.get_doc("Flow Session", replay.session)
 	rows = [
 		row
 		for row in session.entries(since=replay.from_seq, path="all")["entries"]
 		if not row.get("subagent_id")
 	]
-	if not any(row["type"] == "run_ended" for row in rows):
-		return
 	# the poll, the run's on_complete and play_step settle concurrently: one holds the row,
 	# the others then read what it saved
 	replay.flags.for_update = True
