@@ -1,5 +1,6 @@
 <template>
-	<div ref="room" data-app-preview class="relative h-full w-full overflow-hidden bg-surface-gray-2" style="contain: paint">
+	<!-- the shell draws the selection, so the canvas's own overlay stays hidden -->
+	<div ref="room" data-app-preview class="relative h-full w-full overflow-hidden bg-surface-gray-2 [&_.overlay]:hidden" style="contain: paint">
 		<StudioCanvas
 			v-if="store.pageBlocks[0]"
 			ref="pageCanvas"
@@ -22,14 +23,12 @@ import { LoadingIndicator, toast } from "frappe-ui"
 import StudioCanvas from "@ui/components/StudioCanvas.vue"
 import useStudioStore from "@ui/stores/studioStore"
 import useCanvasStore from "@ui/stores/canvasStore"
-import { useStudioEvents } from "@ui/utils/useStudioEvents"
 
 // One app page rendered with its data, editable by selection. The shell mounts this as the preview.
 const props = defineProps<{ appID: string; pageID: string }>()
 
 const store = useStudioStore()
 const canvasStore = useCanvasStore()
-useStudioEvents()
 
 const PAD = 24
 const PHONE = { width: 390, height: 844, bezel: 10 }

@@ -121,6 +121,7 @@ import type { SlotScope } from "@ui/types"
 import type HTML from "@ui/components/AppLayout/HTML.vue"
 import MissingComponent from "@ui/components/MissingComponent.vue"
 import { usePageScope } from "@ui/stores/codeStore"
+import { editorMode } from "@shell/editor"
 
 const props = withDefaults(
 	defineProps<{
@@ -287,7 +288,11 @@ const loadEditor = computed(() => {
 	)
 })
 
+// in the shell's Preview the page is the app as its users get it: no hover, drag or selection
+const previewing = () => editorMode.value === "preview"
+
 const handleMouseOver = (e: MouseEvent) => {
+	if (previewing()) return
 	canvasStore.activeCanvas?.setHoveredBlock(props.block.componentId)
 	canvasStore.activeCanvas?.setHoveredBreakpoint(props.breakpoint)
 	e.stopPropagation()
@@ -314,7 +319,7 @@ const getClickedComponent = (e: MouseEvent) => {
 // first). The threshold inside startBlockReorder means a plain click still
 // falls through to handleClick for selection.
 const handleMouseDown = (e: MouseEvent) => {
-	if (e.button !== 0) return
+	if (e.button !== 0 || previewing()) return
 	const block = getClickedComponent(e)
 	const breakpoint = getBlockInfo(e).breakpoint || props.breakpoint
 	if (!block || !isReorderable(block, breakpoint)) return
@@ -324,6 +329,7 @@ const handleMouseDown = (e: MouseEvent) => {
 }
 
 const handleClick = (e: MouseEvent) => {
+	if (previewing()) return
 	if (canvasStore.preventClick) {
 		e.stopPropagation()
 		e.preventDefault()

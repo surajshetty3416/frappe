@@ -1,12 +1,16 @@
 // Insights Chart v3 in Studio's editor shell: the chart with its rows as the
 // preview, and the shell's contract answered from the chart store.
 import { defineArtifactEditor } from '@shell/editor'
-import { computed, defineComponent, h, ref, shallowRef, watch } from 'vue'
+import { type UseRefHistoryReturn, useDebouncedRefHistory } from '@vueuse/core'
+import { computed, defineComponent, h, ref, shallowReactive, shallowRef, watch } from 'vue'
+import JsonCode from '../components/JsonCode.vue'
 import { waitUntil } from '../helpers'
 import dayjs from '../helpers/dayjs'
 import useQuery, { type Query } from '../query/query'
 import { __ } from '../translation'
-import useChart from './chart'
+import useChart, { type Chart } from './chart'
+import ChartCode from './ChartCode.vue'
+import ChartDetails from './ChartDetails.vue'
 import useChartPreview from './chart_preview'
 import ChartPreview from './ChartPreview.vue'
 import { chartIcon, chartProperties, plainText } from './properties'
@@ -29,6 +33,21 @@ async function resolveQuery(name: string) {
 	if (current.value === name) query.value = q
 }
 
+// Undo and redo walk the chart's type, title and config as a person changed them here.
+// Made once the chart loads, so the load is not a step.
+const histories = shallowReactive(new Map<string, UseRefHistoryReturn<unknown, unknown>>())
+const history = computed(() => histories.get(current.value))
+async function track(name: string, store: Chart) {
+	if (histories.has(name)) return
+	await waitUntil(() => Boolean(store.isloaded))
+	if (histories.has(name)) return
+	const state = computed({
+		get: () => ({ title: store.doc.title, chart_type: store.doc.chart_type, config: store.doc.config }),
+		set: (value) => Object.assign(store.doc, value),
+	})
+	histories.set(name, useDebouncedRefHistory(state, { deep: true, clone: true, debounce: 300 }) as any)
+}
+
 let host: HTMLElement | null = null
 const chartNode = () => host?.querySelector<HTMLElement>('[data-tile="chart"]') ?? null
 
@@ -43,6 +62,7 @@ const ChartArtifactPreview = defineComponent({
 			(name) => {
 				current.value = name
 				resolveQuery(name)
+				track(name, useChart(name))
 			},
 			{ immediate: true },
 		)
@@ -79,15 +99,11 @@ export default defineArtifactEditor({
 	primaryAction: () => null,
 	details() {
 		const executedAt = read.value?.executedAt
-		const rows = [
+		return [
 			{ label: __('Query'), value: query.value?.doc.title || chart.value?.doc.query || '—' },
 			{ label: __('Source'), value: source(query.value) || '—' },
 			{ label: __('Last fetched'), value: executedAt ? dayjs(executedAt).fromNow() : '—' },
 		]
-		if (chart.value?.doc.description) {
-			rows.push({ label: __('Description'), value: chart.value.doc.description })
-		}
-		return rows
 	},
 	code() {
 		const q = query.value
@@ -95,6 +111,22 @@ export default defineArtifactEditor({
 		if (q.doc.is_script_query) return { language: 'python', content: q.getCodeOperation()?.code || '' }
 		if (q.doc.is_native_query) return { language: 'sql', content: (q.getSQLOperation() as any)?.raw_sql || '' }
 		return { language: 'sql', content: q.result.executedSQL || '' }
+	},
+	detailsForm: () => (current.value ? { component: ChartDetails, props: { name: current.value } } : null),
+	codeTabs() {
+		const store = chart.value
+		if (!store) return []
+		return [
+			{ name: 'query', label: __('Query'), component: { component: ChartCode, props: { name: current.value } } },
+			{
+				name: 'config',
+				label: __('Config'),
+				component: {
+					component: JsonCode,
+					props: { read: () => store.doc.config, write: (config: unknown) => (store.doc.config = config as any) },
+				},
+			},
+		]
 	},
 	async reload(modified) {
 		const store = chart.value
@@ -104,7 +136,10 @@ export default defineArtifactEditor({
 		if (modified && modified === (store.doc as { modified?: string }).modified) return
 		await store.load()
 		read.value?.load(true)
+		history.value?.clear()
 	},
+	undo: () => history.value?.undo(),
+	redo: () => history.value?.redo(),
 
 	elementAt(node) {
 		const element = node.closest<HTMLElement>('[data-tile="chart"]')

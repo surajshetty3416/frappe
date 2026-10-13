@@ -1,13 +1,11 @@
 <template>
-	<div class="flex h-full flex-col">
-		<div class="flex h-10 shrink-0 items-center gap-2 border-b border-outline-gray-2 px-3">
-			<TabButtons v-model="tab" :options="['Page', 'Script', 'Data'].map((label) => ({ label, value: label }))" />
-			<Button v-if="tab !== 'Script'" class="ml-auto" size="sm" variant="solid" :loading="saving" @click="save">
-				Save
-			</Button>
+	<div class="flex h-full w-full flex-col gap-2">
+		<div v-if="tab !== 'Script'" class="flex items-center justify-between">
+			<span class="text-sm text-ink-gray-5">JSON</span>
+			<Button :loading="saving" label="Save" icon-left="lucide-check" @click="save" />
 		</div>
 		<PageScript v-if="tab === 'Script'" class="min-h-0 flex-1" />
-		<div v-else class="relative min-h-0 flex-1 overflow-hidden">
+		<div v-else class="relative min-h-0 flex-1 overflow-hidden rounded-4 border border-outline-gray-2">
 			<Code
 				:key="tab"
 				v-model="source[tab]"
@@ -24,8 +22,8 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref, watch } from "vue"
-import { Button, TabButtons, toast } from "frappe-ui"
+import { computed, reactive, ref, watch } from "vue"
+import { Button, toast } from "frappe-ui"
 import Code from "@ui/components/Code.vue"
 import PageScript from "@ui/components/PageScript.vue"
 import useStudioStore from "@ui/stores/studioStore"
@@ -35,12 +33,14 @@ import { studioPageResources } from "@ui/data/studioResources"
 import { getBlockCopyWithoutParent, getBlockInstance, jsToJson } from "@ui/utils/serializer"
 import type { Resource } from "@ui/types/Studio/StudioResource"
 
-// The open page as code, one file per tab: its component tree, its script and its data sources
+// One part of the open page as code, a tab of the shell's Code drawer: its component tree, its
+// script or its data sources
+const props = defineProps<{ part: "Page" | "Script" | "Data" }>()
 const store = useStudioStore()
 const canvasStore = useCanvasStore()
 const pageScope = usePageScope()
 
-const tab = ref<"Page" | "Script" | "Data">("Page")
+const tab = computed(() => props.part)
 const source = reactive({ Page: "", Data: "" })
 const saving = ref(false)
 

@@ -1,17 +1,22 @@
 // Insights Dashboard v3 in Studio's editor shell: the always-editable grid as the
 // preview, and the shell's contract answered from the dashboard store.
-import { defineArtifactEditor, type ElementProperty } from '@shell/editor'
+import { defineArtifactEditor, type ElementAction, type ElementProperty } from '@shell/editor'
+import { type UseRefHistoryReturn, useDebouncedRefHistory } from '@vueuse/core'
 import { call } from 'frappe-ui'
-import { type Component, computed, defineComponent, h, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { type Component, computed, defineComponent, h, ref, shallowReactive, watch } from 'vue'
 import { titleNode } from '../charts/editor'
 import { chartIcon, chartProperties, plainText } from '../charts/properties'
-import { waitUntil } from '../helpers'
+import JsonCode from '../components/JsonCode.vue'
+import { getUniqueId, waitUntil } from '../helpers'
 import dayjs from '../helpers/dayjs'
 import { __ } from '../translation'
 import type { WorkbookDashboardFilter, WorkbookDashboardItem } from '../types/workbook.types'
-import useDashboard from './dashboard'
+import useDashboard, { type Dashboard } from './dashboard'
+import DashboardDetails from './DashboardDetails.vue'
 import DashboardPreview from './DashboardPreview.vue'
 import DashboardShareDialog from './DashboardShareDialog.vue'
+import FilterProperties from './FilterProperties.vue'
+import { BASE_BREAKPOINT, placementsFor, resolveLayouts } from './grid_placement'
 
 const current = ref('')
 const dashboard = computed(() => (current.value ? useDashboard(current.value) : null))
@@ -33,16 +38,34 @@ function countViews(name: string) {
 	}).then((count) => current.value === name && (views.value = count as number))
 }
 
-// Delete or Backspace removes the selected tile, unless the key is typing somewhere
-function onKeydown(event: KeyboardEvent) {
-	if (event.key !== 'Delete' && event.key !== 'Backspace') return
-	const target = event.target as HTMLElement | null
-	if (target?.closest('input, textarea, select, [contenteditable="true"]')) return
-	const store = dashboard.value
-	// the shell's toolbar shows while a tile is selected; Esc clears the shell's selection, not the store's
-	if (store?.selectedIndex === undefined || !host?.isConnected || !document.querySelector('[data-selection-ui]')) return
-	event.preventDefault()
-	store.removeItem(store.selectedIndex)
+// Undo and redo walk the tiles a person changed here. Made once the dashboard loads, so
+// the load is not a step, and cleared when someone else's save replaces the tiles.
+const histories = shallowReactive(new Map<string, UseRefHistoryReturn<unknown, unknown>>())
+const history = computed(() => histories.get(current.value))
+async function track(name: string, store: Dashboard) {
+	if (histories.has(name)) return
+	await waitUntil(() => Boolean(store.isloaded))
+	if (histories.has(name)) return
+	const items = computed({
+		get: () => store.doc.items,
+		set: (value) => (store.doc.items = value),
+	})
+	histories.set(name, useDebouncedRefHistory(items, { deep: true, clone: true, debounce: 300 }) as any)
+}
+
+function duplicateTile(store: Dashboard, index: number) {
+	const item = store.doc.items[index]
+	const copy = JSON.parse(JSON.stringify(item)) as WorkbookDashboardItem
+	// below the original; the grid makes room for it
+	copy.layout = { ...item.layout, i: getUniqueId(), y: item.layout.y + item.layout.h }
+	delete copy.layouts
+	if (copy.type === 'filter') {
+		const names = new Set(store.doc.items.map((other) => (other.type === 'filter' ? other.filter_name : '')))
+		let n = 2
+		while (names.has(`${copy.filter_name} ${n}`)) n++
+		copy.filter_name = `${copy.filter_name} ${n}`
+	}
+	store.doc.items.splice(index + 1, 0, copy)
 }
 
 const DashboardArtifactPreview = defineComponent({
@@ -60,8 +83,7 @@ const DashboardArtifactPreview = defineComponent({
 			},
 			{ immediate: true },
 		)
-		onMounted(() => window.addEventListener('keydown', onKeydown))
-		onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
+		watch(dashboard, (store) => store && track(props.name, store), { immediate: true })
 		return () =>
 			// the same sheet on the same surface as a Builder page's preview
 			h('div', { ref: root, class: 'h-full w-full bg-surface-gray-2 p-6' }, [
@@ -77,22 +99,16 @@ const DashboardArtifactPreview = defineComponent({
 	},
 })
 
-function filterProperties(filter: WorkbookDashboardFilter): ElementProperty[] {
+function filterProperties(index: number, filter: WorkbookDashboardFilter): ElementProperty[] {
 	return [
 		{
-			name: 'filter_type',
-			label: __('Type'),
+			name: 'filter',
+			label: __('Filter'),
 			icon: 'lucide-list-filter',
-			type: 'select',
-			value: filter.filter_type,
-			options: ['String', 'Number', 'Date'].map((type) => ({ label: __(type), value: type })),
-			set(value) {
-				filter.filter_type = value as WorkbookDashboardFilter['filter_type']
-				// the default and the linked columns were for the other type
-				filter.default_operator = undefined
-				filter.default_value = undefined
-				filter.links = {}
-			},
+			type: 'popover',
+			value: __(filter.filter_type),
+			component: { component: FilterProperties, props: { name: current.value, index } },
+			set: () => {},
 		},
 	]
 }
@@ -132,10 +148,22 @@ export default defineArtifactEditor({
 			{ label: __('Last refreshed'), value: times.length ? dayjs(Math.max(...times)).fromNow() : '—' },
 		]
 	},
-	code: () => ({
-		language: 'json',
-		content: JSON.stringify(dashboard.value?.doc.items ?? [], null, 2),
-	}),
+	code: () => ({ language: 'json', content: JSON.stringify(dashboard.value?.doc.items ?? [], null, 2) }),
+	detailsForm: () => (current.value ? { component: DashboardDetails, props: { name: current.value } } : null),
+	codeTabs() {
+		const store = dashboard.value
+		if (!store) return []
+		return [
+			{
+				name: 'tiles',
+				label: __('Tiles'),
+				component: {
+					component: JsonCode,
+					props: { read: () => store.doc.items, write: (items: WorkbookDashboardItem[]) => (store.doc.items = items) },
+				},
+			},
+		]
+	},
 	async reload(modified) {
 		const store = dashboard.value
 		if (!store) return
@@ -144,6 +172,43 @@ export default defineArtifactEditor({
 		if (modified && modified === (store.doc as { modified?: string }).modified) return
 		await store.load()
 		store.refresh(true)
+		history.value?.clear()
+	},
+	undo: () => history.value?.undo(),
+	redo: () => history.value?.redo(),
+
+	select(id) {
+		const store = dashboard.value
+		if (!store) return
+		const index = id ? tileIndex(id) : -1
+		store.selectedIndex = index === -1 ? undefined : index
+	},
+	actions(id): ElementAction[] {
+		const store = dashboard.value
+		if (!store || tileIndex(id) === -1) return []
+		return [
+			{ name: 'duplicate', label: __('Duplicate'), icon: 'lucide-copy', run: () => duplicateTile(store, tileIndex(id)) },
+			{ name: 'delete', label: __('Delete'), icon: 'lucide-trash-2', run: () => store.removeItem(tileIndex(id)) },
+		]
+	},
+	resizable: (id) => Boolean(tile(id)),
+	resize(id, size) {
+		const store = dashboard.value
+		const cell = tileNode(id)?.parentElement
+		if (!store || !cell) return
+		const key = BASE_BREAKPOINT.key
+		const rules = store.cellRules
+		const verticalCompact = Boolean(store.doc.vertical_compact_layout)
+		const from = resolveLayouts(placementsFor(store.doc.items, key, rules), { verticalCompact, rules })
+		const now = from.find((layout) => layout.i === id)
+		if (!now) return
+		// the tile sits inside its cell's padding
+		const { width, height } = cell.getBoundingClientRect()
+		const padding = width - (tileNode(id)?.offsetWidth ?? width)
+		const w = Math.min(Math.max(Math.round(((size.width + padding) / width) * now.w), 1), BASE_BREAKPOINT.columns - now.x)
+		const h = rules[id]?.height ?? Math.max(Math.round(((size.height + padding) / height) * now.h), 1)
+		const asked = from.map((layout) => (layout.i === id ? { ...layout, w, h } : layout))
+		store.moveItems(key, resolveLayouts(asked, { pinned: id, verticalCompact, rules }), from, verticalCompact)
 	},
 
 	elementAt(node) {
@@ -186,7 +251,7 @@ export default defineArtifactEditor({
 		const item = tile(id)
 		const store = dashboard.value
 		if (!item || !store) return []
-		if (item.type === 'filter') return filterProperties(item)
+		if (item.type === 'filter') return filterProperties(tileIndex(id), item)
 		if (item.type !== 'chart') return []
 		const chart = store.chartsByName[item.chart]
 		return chart ? chartProperties(chart, store.chartView(item.chart), item.reading) : []

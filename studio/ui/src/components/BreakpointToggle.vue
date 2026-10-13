@@ -1,7 +1,7 @@
 <template>
 	<TabButtons
 		v-if="canvas"
-		:options="canvas.canvasProps.breakpoints.map((breakpoint) => ({ value: breakpoint.device, icon: breakpoint.icon, label: '', title: breakpoint.displayName }))"
+		:options="canvas.canvasProps.breakpoints.map((breakpoint) => ({ value: breakpoint.device, icon: breakpoint.icon, label: breakpoint.displayName }))"
 		:modelValue="active"
 		@update:modelValue="(device) => canvas?.setBreakpoint(device as BreakpointConfig['device'])"
 	/>
