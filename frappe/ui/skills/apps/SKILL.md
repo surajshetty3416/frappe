@@ -34,7 +34,7 @@ A Studio App is served at `/<app route>`. Each Studio Page is one screen at a pa
 ## Rows
 
 - A table is the List family: `List` (props `columns`, one CSS grid track per column, and `rowHeight`) holding a `ListHeader` of `ListHeaderCell`s and a `ListRows`. `ListRows` has `items: "{{ name.data }}"`, `rowKey: "name"`, and one `ListRow` in `slots.default`, with one `ListCell` per column. Inside the row, `item` is the record.
-- Columns: text that varies, such as a title or a name, is `minmax(0, Nfr)`, and the title gets the largest weight. A short value, such as a badge, a Select value or a number, gets a fixed rem width that fits its longest value. Header labels are one or two words.
+- Columns: text that varies, such as a title or a name, is `minmax(0, Nfr)`, and the title gets the largest weight. A short value, such as a badge, a Select value or a number, gets a fixed rem width that fits its longest value. Header labels are one or two short words, so a phone column does not truncate them.
 - A table of short columns, such as counts per track, has only fixed columns after the first and stops at its content: `"props": {"columns": ["minmax(0, 1fr)", "7rem", "7rem", "7rem"]}, "style": {"maxWidth": "640px"}`.
 - To open a record from a row, set the ListRow's `route` to a path in the app: `"/proposal/{{ item.name }}"`.
 - Cards or any other repeated layout: `Repeater` with `data: "{{ name.data }}"` and `dataKey: "name"`, and one child as the template. Inside it, `dataItem` is the record. A Repeater lays its items out in a wrapping row, so set `style.flexDirection: "column"` for a stack.
