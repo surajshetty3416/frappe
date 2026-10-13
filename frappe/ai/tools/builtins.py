@@ -426,39 +426,33 @@ def execute(code: str, description: str, *, ctx: ToolContext) -> Any:
 	"""Run Python in a permission-respecting sandbox for computation, emails, or multi-record work.
 
 	`description` is one short, plain-English sentence stating what this code does, for a
-	non-technical user who approves it — e.g. "Count open ToDos". Describe the intent, not the code.
+	non-technical user who approves it, e.g. "Count open ToDos". Describe the intent, not the code.
 
-	Do NOT write `import` statements — imports are blocked and the whole script fails. `frappe`
-	and `frappe.utils` are already in scope; everything you can use is listed below, so never
-	start with `import ...`.
-
-	Every function here enforces the current user's permissions — there is no way to read or
-	write data the user cannot access. Assign the value to return to a variable named `result`.
-	Example (no imports, just use `frappe` directly):
+	Never write `import`: `frappe` and `frappe.utils` are already in scope, and an import fails the
+	whole script. Every function enforces the current user's permissions. Assign the value to
+	return to a variable named `result`:
 	    result = frappe.db.count("ToDo", {"status": "Open"})
 
 	Available:
-	- Reads: frappe.get_list (supports group_by and aggregates via dict fields, e.g.
+	- Reads: frappe.get_list (group_by and aggregates via dict fields, e.g.
 	  fields=[{"SUM": "qty", "as": "total"}] or [{"COUNT": "*", "as": "n"}]),
 	  frappe.get_doc (returns a dict), frappe.get_meta, frappe.db.get_value/get_single_value/count/exists.
-	- Writes: create, update, delete, run_action — the same permission-checked tools you call directly.
+	- Writes: create, update, delete, run_action, the same permission-checked tools you call directly.
 	- Also: read_records, describe, find_doctypes, frappe.call (whitelisted methods), frappe.enqueue,
 	  frappe.sendmail, frappe.get_print, frappe.parse_json, frappe.as_json, frappe.safe_json_loads,
 	  frappe.generate_hash, frappe.utils.* (dates, numbers, strings).
 
-	Sandbox limits — code using these FAILS:
-	- No `import`. `frappe` and `frappe.utils` are already in scope; nothing else can be imported.
-	- No names or attributes starting with `_` (no dunders, no `obj._private`).
-	- No raw database access: frappe.db.sql, frappe.qb, frappe.db.set_value and frappe.get_all are
-	  unavailable — use frappe.get_list and the write tools, which respect permissions.
-	- Unavailable builtins: open, eval, exec, compile, getattr, setattr, hasattr,
-	  globals, locals, vars, dir, input. Available: len, range, str, int, float,
-	  bool, sum, sorted, enumerate, zip, min, max, abs, dict, list, set, tuple, and type
-	  with one argument.
-	- `str.format()` / `.format_map()` are blocked — use f-strings or `%` formatting.
-	- `print()` output is logged, not returned — put what you want back into `result`.
+	Code using any of these FAILS:
+	- Names or attributes starting with `_`.
+	- frappe.db.sql, frappe.qb, frappe.db.set_value and frappe.get_all: use frappe.get_list and the write tools.
+	- open, eval, exec, compile, getattr, setattr, hasattr, globals, locals, vars, dir, input.
+	  Builtins you have: len, range, str, int, float, bool, sum, sorted, enumerate, zip, min, max,
+	  abs, dict, list, set, tuple, and type with one argument.
+	- `str.format()` and `.format_map()`: use f-strings or `%`.
+	- Augmented assignment to an item or an attribute, such as `d[k] += 1` or `o.n += 1`:
+	  write `d[k] = d.get(k, 0) + 1`. `n += 1` on a plain name works.
 
-	The user approves each call before it runs.
+	`print()` output is logged, not returned. The user approves each call before it runs.
 	"""
 	exec_globals, _locals = safe_exec(code, script_filename="ai_execute", tool_context=ctx)
 	return exec_globals.get("result")
