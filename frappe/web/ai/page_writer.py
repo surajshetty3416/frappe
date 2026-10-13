@@ -430,6 +430,69 @@ def build_repeater_data_script(parsed) -> str:
 	return "\n".join(f"data.{key} = {json.dumps(items, separators=(',', ':'))}" for key, items in out.items())
 
 
+# --- CSS in YAML flow mappings ---
+
+# Models write styles as one-line flow mappings with bare CSS values, where `#` starts
+# a comment and a comma ends the value: `border: 1px solid #eee` breaks the parse and
+# the salvage drops the line, `repeat(3, 1fr)` loses its second argument.
+STYLE_FLOW = re.compile(r"^(\s*(?:-\s+)?(?:style|m_style|t_style):\s*)\{(.*)\}\s*$")
+STYLE_PAIR = re.compile(r"""^\s*(['"]?)((?:[\w-]+:)?[\w-]+)\1\s*:\s+(.*)$""", re.S)
+QUOTED_HEX = re.compile(r"""(['"])(#[0-9a-fA-F]{3,8})\1""")
+
+
+def quote_style_values(text: str) -> str:
+	return "\n".join(quote_style_line(line) for line in text.split("\n"))
+
+
+def quote_style_line(line: str) -> str:
+	match = STYLE_FLOW.match(line)
+	if not match:
+		return line
+	pairs: list[list[str]] = []
+	for part in split_top_level(match.group(2)):
+		if pair := STYLE_PAIR.match(part):
+			pairs.append([pair.group(2), pair.group(3).strip()])
+		elif pairs:
+			# the comma belonged to the value, as in a font list
+			pairs[-1][1] += f", {part.strip()}"
+		elif part.strip():
+			return line
+	quoted = ", ".join(f"{json.dumps(key)}: {json.dumps(css_value(value))}" for key, value in pairs)
+	return f"{match.group(1)}{{{quoted}}}"
+
+
+def split_top_level(text: str) -> list[str]:
+	"""Split at commas outside brackets and quotes."""
+	parts, depth, quote, start = [], 0, None, 0
+	for index, char in enumerate(text):
+		if quote:
+			quote = None if char == quote else quote
+		elif char in "'\"":
+			quote = char
+		elif char in "([{":
+			depth += 1
+		elif char in ")]}":
+			depth -= 1
+		elif char == "," and depth == 0:
+			parts.append(text[start:index])
+			start = index + 1
+	parts.append(text[start:])
+	return parts
+
+
+def css_value(value: str) -> str | None:
+	if value in ("", "null", "~"):
+		return None
+	if len(value) > 1 and value[0] == value[-1] and value[0] in "'\"":
+		try:
+			loaded = yaml.safe_load(value)
+		except yaml.YAMLError:
+			loaded = None
+		if isinstance(loaded, str):
+			return loaded
+	return QUOTED_HEX.sub(r"\2", value)
+
+
 # --- top level ---
 
 
@@ -439,7 +502,7 @@ def parse_generation_yaml(yaml_text: str):
 	Salvage order: drop the offending line the parser points at (up to 8 times,
 	losing a property or a block instead of the page), then fall back to trimming
 	a truncated tail (a stream cut off by max_tokens still yields its valid prefix)."""
-	text = BlockCodec.strip_fences(yaml_text or "")
+	text = quote_style_values(BlockCodec.strip_fences(yaml_text or ""))
 	try:
 		return yaml.safe_load(text)
 	except yaml.YAMLError as exc:
