@@ -65,7 +65,7 @@ Done when push reports no lint errors in what you changed, the preview (or the l
 
 ## 3. Traps
 
-- **All block text, attributes, component scripts and styles, `head_html` and `canonical_url` render through Jinja.** `{{ }}` and `{% %}` are evaluated live and shown raw in the editor. `{#` fails the page unless inside `{% raw %}`; `.__` fails it even there, so move such code into a client script file.
+- **All block text, attributes, component scripts and styles, `head_html` and `canonical_url` render through Jinja.** `{{ }}` and `{% %}` are evaluated live and shown raw in the editor. Comments are `{## ##}`, so CSS's `{#id` stays text. `.__` fails the page even inside `{% raw %}`, so move such code into a client script file.
 - **A data-script exception, a missing nested binding, or a dict where a repeater wants a list 500s the page.** `reference/data-and-scripts.md`.
 - **Routes shadow everything.** A Builder route wins over every other website route; a root catch-all like `/:slug` captures `/login` and the editor at `/builder`.
 - **Bound values render as raw HTML.** Strip or escape visitor-submitted text in the data script.

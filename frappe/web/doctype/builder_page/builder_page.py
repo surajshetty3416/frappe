@@ -12,7 +12,6 @@ import frappe
 import frappe.utils
 from frappe.utils import now, set_request
 from frappe.utils.caching import redis_cache
-from frappe.utils.jinja import render_template
 from frappe.utils.telemetry import capture
 from frappe.website.page_renderers.document_page import DocumentPage
 from frappe.website.path_resolver import evaluate_dynamic_routes
@@ -44,6 +43,7 @@ from frappe.web.utils import (
 	ColonRule,
 	camel_case_to_kebab_case,
 	clean_data,
+	compile_page_template,
 	compact_json,
 	count_blocks,
 	escape_single_quotes,
@@ -55,6 +55,7 @@ from frappe.web.utils import (
 	normalize_legacy_raw_styles,
 	readable_css,
 	readable_html,
+	render_page_template,
 	sanitize_style_value,
 	split_styles,
 	template_target_app,
@@ -104,7 +105,7 @@ class BuilderPageRenderer(DocumentPage):
 		if self.doc.is_home_page():
 			context["canonical_url"] = frappe.utils.get_url()
 		elif self.doc.canonical_url:
-			context["canonical_url"] = render_template(self.doc.canonical_url, context)
+			context["canonical_url"] = render_page_template(self.doc.canonical_url, context)
 		else:
 			context["canonical_url"] = frappe.utils.get_url(self.path)
 		self.context = context
@@ -230,6 +231,9 @@ class BuilderPage(WebsiteGenerator):
 	def validate(self):
 		super().validate()  # WebsiteGenerator route normalization
 		self.validate_route_variables()
+		for field in ("head_html", "body_html", "canonical_url"):
+			if value := self.get(field):
+				compile_page_template(value, self.meta.get_label(field))
 
 		# pages of shipped template groups can only be edited in developer mode
 		if (
@@ -583,7 +587,7 @@ class BuilderPage(WebsiteGenerator):
 		self.set_custom_font(context, fonts)
 		context.font_urls = get_google_font_urls(fonts)
 		context.__content = content
-		context.style = render_template(style, page_data)
+		context.style = render_page_template(style, page_data)
 		context.editor_link = f"/{builder_path}/page/{self.name}"
 		if frappe.form_dict and self.dynamic_route:
 			query_string = "&".join(
@@ -614,7 +618,7 @@ class BuilderPage(WebsiteGenerator):
 		self.set_language(context)
 		# tojson can't serialize dates or decimals; frappe's encoder can
 		context.page_data = frappe.parse_json(frappe.as_json(clean_data(context.page_data)))
-		context["__content"] = render_template(context.__content, context)
+		context["__content"] = render_page_template(context.__content, context)
 
 	def set_meta_tags(self, context, page_data=None):
 		if not page_data:
@@ -679,8 +683,8 @@ class BuilderPage(WebsiteGenerator):
 		if self.body_html:
 			context._body_html += self.body_html
 
-		context["_head_html"] = render_template(context._head_html, context)
-		context["_body_html"] = render_template(context._body_html, context)
+		context["_head_html"] = render_page_template(context._head_html, context)
+		context["_body_html"] = render_page_template(context._body_html, context)
 
 	@frappe.whitelist()
 	def get_page_data(self, route_variables: dict | None = None) -> dict:
@@ -691,7 +695,7 @@ class BuilderPage(WebsiteGenerator):
 		"""The draft's HTML, rendered with its data as a visitor gets it, and its CSS."""
 		content, style, _fonts, _dual = get_block_html(self.draft_blocks or self.blocks or "[]")
 		data = self.get_page_data(route_variables)
-		return {"html": readable_html(render_template(content, data)), "css": readable_css(style)}
+		return {"html": readable_html(render_page_template(content, data)), "css": readable_css(style)}
 
 	def _get_page_data(self, route_variables: dict | None = None, for_render: bool = False) -> dict:
 		if route_variables:

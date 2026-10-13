@@ -618,6 +618,33 @@ def execute_script(script, _locals, script_filename):
 		safer_exec(script, None, _locals, script_filename=script_filename)
 
 
+def compile_page_template(template: str, label: str | None = None):
+	"""A page's HTML or CSS as Jinja whose comments are `{## ##}`, since minified CSS and JS
+	write `{#id`, which opens a default Jinja comment."""
+	from jinja2 import TemplateSyntaxError
+
+	from frappe.utils.jinja import get_jenv
+
+	prefix = f"{label}: " if label else ""
+	if ".__" in template:
+		frappe.throw(prefix + frappe._("`.__` is not allowed in a page template"))
+	jenv = get_jenv().overlay(comment_start_string="{##", comment_end_string="##}")
+	try:
+		return jenv.from_string(template)
+	except TemplateSyntaxError as e:
+		frappe.throw(prefix + frappe._("Jinja syntax error at line {0}: {1}").format(e.lineno, e.message))
+
+
+def render_page_template(template: str | None, context: dict) -> str:
+	from frappe.utils.jinja import safe_render_flags
+
+	if not template:
+		return ""
+	compiled = compile_page_template(template)
+	with safe_render_flags():
+		return compiled.render(context)
+
+
 def clean_data(data):
 	if isinstance(data, dict):
 		return {

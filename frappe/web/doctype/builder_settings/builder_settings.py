@@ -7,7 +7,7 @@ from frappe.utils import get_files_path
 from frappe.utils.caching import redis_cache
 from frappe.website.utils import clear_cache
 
-from frappe.web.utils import has_page_read, has_page_write
+from frappe.web.utils import compile_page_template, has_page_read, has_page_write
 
 
 class BuilderSettings(Document):
@@ -33,6 +33,11 @@ class BuilderSettings(Document):
 		style: DF.Code | None
 		style_public_url: DF.ReadOnly | None
 	# end: auto-generated types
+
+	def validate(self):
+		for field in ("head_html", "body_html"):
+			if value := self.get(field):
+				compile_page_template(value, self.meta.get_label(field))
 
 	def on_update(self):
 		self.handle_script_update("script", "JavaScript", "js", "page_scripts")

@@ -197,12 +197,6 @@ class Linter:
 		for name, text in fields.items():
 			if ".__" in text:
 				self.add("error", block, f"{name}: `.__` fails the whole page, even inside {{% raw %}}")
-			if "{#" in text and "{% raw %}" not in text:
-				self.add(
-					"error",
-					block,
-					f"{name}: `{{#` opens a Jinja comment and fails the page; wrap in {{% raw %}}",
-				)
 		if "{{" in fields["innerHTML"] + fields["attributes"] and "{% raw %}" not in fields["innerHTML"]:
 			self.add(
 				"warn", block, "{{ }} is evaluated on the live page and shown raw in the editor; bind instead"
