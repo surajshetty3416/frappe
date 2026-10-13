@@ -47,6 +47,20 @@ def record(doc, method: str | None = None) -> None:
 	).insert(ignore_permissions=True)
 
 
+def delete(doc, method: str | None = None) -> None:
+	"""doc_events hook: an artifact's versions go with it."""
+	if doc.doctype in artifact_types():
+		frappe.db.delete("Artifact Version", {"reference_doctype": doc.doctype, "reference_name": doc.name})
+
+
+def unlink_sessions(sessions: list[str]) -> None:
+	"""Deleted chats leave the versions they made, without a link to them or their runs."""
+	version = frappe.qb.DocType("Artifact Version")
+	frappe.qb.update(version).set(version.session, None).set(version.run, None).where(
+		version.session.isin(sessions)
+	).run()
+
+
 def version_source() -> dict[str, Any]:
 	"""Who is saving: the agent run working for the current tool call, else the person."""
 	session = frappe.flags.flow_session

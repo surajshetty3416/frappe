@@ -4,7 +4,7 @@
 doc_events = {
 	"*": {
 		"before_validate": "frappe.ai.artifacts.claim",
-		"on_trash": "frappe.ai.artifacts.claim",
+		"on_trash": ["frappe.ai.artifacts.claim", "frappe.ai.versions.delete"],
 		"on_update": "frappe.ai.versions.record",
 	}
 }

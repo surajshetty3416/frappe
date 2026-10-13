@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import json
 from contextlib import suppress
+from functools import partial
 from typing import TYPE_CHECKING, Any
 
 import frappe
@@ -21,6 +22,7 @@ from frappe.ai.lib.session import (
 	flow_server,
 )
 from frappe.ai.permissions import check_agent_access
+from frappe.ai.versions import unlink_sessions
 from frappe.model.document import Document
 
 if TYPE_CHECKING:
@@ -57,12 +59,13 @@ class FlowSession(Document):
 			self.auto_approve = 1
 
 	def on_trash(self):
-		try:
-			_delete_server_session(self.name)
-		except DaemonError as exc:
-			frappe.throw(str(exc), title=_("Flow Server"))
 		frappe.db.delete("Flow Run", {"session": self.name})
+		unlink_sessions([self.name])
 		_purge_attachment_chunks(self.name)
+
+	def after_delete(self):
+		# only a committed delete drops the server's copy, so a refused one leaves the chat whole
+		frappe.db.after_commit.add(partial(_delete_server_session, self.name))
 
 	def _validate_model_enabled(self):
 		if not self.model:
@@ -97,6 +100,7 @@ class FlowSession(Document):
 				frappe.log_error(title="Flow Session purge stopped: the flow server refused")
 				return
 			frappe.db.delete("Flow Run", {"session": ["in", batch]})
+			unlink_sessions(batch)
 			frappe.db.delete("Flow Session Message", {"parent": ["in", batch]})
 			_delete_attachment_files(batch)
 			frappe.db.delete("Flow Session Attachment", {"parent": ["in", batch]})
