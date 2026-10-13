@@ -42,7 +42,7 @@ NAME_LIMIT = 140  # a Data field's length
 @frappe.whitelist()
 def export_session(session: str) -> dict[str, Any]:
 	"""A chat as a recording: its messages in order, with each tool call's arguments and
-	result, the artifacts it linked and its agent."""
+	result, the artifacts it linked, its agent and approval mode."""
 	doc = frappe.get_doc("Flow Session", session)
 	doc.check_permission("read")
 	messages = []
@@ -66,6 +66,7 @@ def export_session(session: str) -> dict[str, Any]:
 		"format": FORMAT,
 		"title": doc.title,
 		"agent": doc.agent,
+		"auto_approve": bool(doc.auto_approve),
 		"site": frappe.local.site,
 		"messages": messages,
 		"artifacts": [
@@ -113,7 +114,8 @@ def start_replay(recording: str) -> dict[str, Any]:
 	rec = frappe.get_doc("Flow Recording", recording)
 	rec.check_permission("read")
 	frappe.has_permission("Flow Session", "create", throw=True)
-	session = new_session(rec.agent, title=rec.title)
+	auto_approve = frappe.parse_json(rec.data).get("auto_approve")
+	session = new_session(rec.agent, title=rec.title, auto_approve=bool(auto_approve))
 	replay = frappe.get_doc(
 		{"doctype": "Flow Replay", "session": session.name, "recording": rec.name, "names": "{}"}
 	).insert()
