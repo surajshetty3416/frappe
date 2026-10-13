@@ -87,6 +87,16 @@ def ported(data, path):
 		return data
 
 
+def merge_file(path, base, theirs):
+	"""Three-way merge upstream's change into the file at path; False if it left conflict markers."""
+	with tempfile.TemporaryDirectory() as folder:
+		Path(folder, "base").write_bytes(base)
+		Path(folder, "upstream").write_bytes(theirs)
+		labels = ["-L", "unified", "-L", "base", "-L", "upstream"]
+		merge = ["git", "merge-file", *labels, ROOT / path, Path(folder, "base"), Path(folder, "upstream")]
+		return subprocess.run(merge).returncode == 0
+
+
 def has_markers(path):
 	text = (ROOT / path).read_text(errors="replace")
 	return any(line.startswith(("<<<<<<< ", ">>>>>>> ")) for line in text.splitlines())
@@ -187,12 +197,38 @@ class App(Source):
 	def settle(self):
 		carried = []
 		for path in unmerged():
-			if not (self.take_upstream(path) or self.drop(path)) and (new := self.carry(path)):
+			if not (self.drop(path) or self.remerge(path)) and (new := self.carry(path)):
 				carried.append(new)
 		homeless = [path for path in staged() if self.is_old(path) and not self.rehome(path)]
 		review = self.port([*staged(), *carried])
 		self.regenerate()
 		return review, [*unmerged(), *homeless, *(path for path in carried if has_markers(path))]
+
+	def remerge(self, path):
+		"""Merge again with upstream's sides renamed first, so only real edits conflict. False if not ours to merge."""
+		base, ours, theirs = stage(path, 1), stage(path, 2), stage(path, 3)
+		if None in (base, ours):
+			return False
+		if theirs is None:
+			if ported(base, path) != ours:
+				return False
+			git("rm", "--quiet", path)
+			return True
+		(ROOT / path).write_bytes(ours)
+		if merge_file(path, ported(base, path), ported(theirs, path)):
+			git("add", path)
+		return True
+
+	def carry(self, path):
+		"""Merge an upstream change into a file rename detection lost track of; returns its path here."""
+		new = self.moved(path)
+		base, ours, theirs = stage(path, 1), stage(path, 2), stage(path, 3)
+		if ours is not None or None in (new, base, theirs) or not (ROOT / new).is_file():
+			return None
+		merge_file(new, ported(base, new), ported(theirs, new))
+		git("rm", "--quiet", "--cached", path)
+		(ROOT / path).unlink(missing_ok=True)
+		return new
 
 	def moved(self, path):
 		for old, new in self.config["moves"].items():
@@ -204,18 +240,6 @@ class App(Source):
 
 	def ignored(self, path):
 		return any(fnmatch(path, pattern) for pattern in self.ignore)
-
-	def take_upstream(self, path):
-		"""Where the unification only renamed things in a file, upstream's side is the answer."""
-		base, ours, theirs = stage(path, 1), stage(path, 2), stage(path, 3)
-		if None in (base, ours) or ported(base, path) != ours:
-			return False
-		if theirs is None:
-			git("rm", "--quiet", path)
-		else:
-			(ROOT / path).write_bytes(ported(theirs, path))
-			git("add", path)
-		return True
 
 	def drop(self, path):
 		"""Keep repo tooling the unification removed (CI, lint, lockfiles) removed."""
@@ -234,21 +258,6 @@ class App(Source):
 			return False
 		git("mv", path, new)
 		return True
-
-	def carry(self, path):
-		"""Merge an upstream change into a file rename detection lost track of; returns its path here."""
-		new = self.moved(path)
-		base, ours, theirs = stage(path, 1), stage(path, 2), stage(path, 3)
-		if ours is not None or None in (new, base, theirs) or not (ROOT / new).is_file():
-			return None
-		with tempfile.TemporaryDirectory() as folder:
-			Path(folder, "base").write_bytes(base)
-			Path(folder, "upstream").write_bytes(theirs)
-			labels = ["-L", "unified", "-L", "base", "-L", "upstream"]
-			subprocess.run(["git", "merge-file", *labels, ROOT / new, Path(folder, "base"), Path(folder, "upstream")])
-		git("rm", "--quiet", "--cached", path)
-		(ROOT / path).unlink(missing_ok=True)
-		return new
 
 	def port(self, paths):
 		"""Rewrite old names in the merged files; returns the new lines that still need a person."""
