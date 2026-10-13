@@ -39,6 +39,9 @@
 						<span class="size-3 shrink-0 rounded-full border border-outline-gray-2" :style="{ background: String(item) }" />
 						<span class="truncate text-sm text-ink-gray-5">{{ item }}</span>
 					</span>
+					<Tooltip v-else-if="column.field?.fieldtype === 'Link' && titles[`${column.field.options}::${item}`]" :text="String(item)">
+						<span class="block truncate text-sm text-ink-gray-7">{{ titles[`${column.field.options}::${item}`] }}</span>
+					</Tooltip>
 					<span v-else class="block truncate text-sm" :class="column.key === 'name' ? 'text-ink-gray-8' : 'text-ink-gray-7'">
 						{{ column.field ? formatValue(column.field, item) : item }}
 					</span>
@@ -54,12 +57,12 @@
 <script setup lang="ts">
 import { useDebounceFn } from "@vueuse/core"
 import { onListUpdate } from "@shell/realtime"
-import { Button, Skeleton } from "frappe-ui"
+import { Button, Skeleton, Tooltip } from "frappe-ui"
 import { ListHeader, ListHeaderItem, ListRows, ListView } from "frappe-ui/experimental"
 import { computed, onBeforeUnmount, ref, watch } from "vue"
 import { useRoute, useRouter } from "vue-router"
 
-import { type DocField, type Row, getRecords } from "../api"
+import { type DocField, type Row, getLinkTitles, getRecords } from "../api"
 import { doctype, editable, elementId, refreshCount } from "../doctype"
 import { fieldIcon, fieldLabel, formatValue, hasValue } from "../fields"
 
@@ -96,11 +99,14 @@ const columns = computed(() => [
 ])
 
 const rows = ref<Row[]>([])
+const titles = ref<Record<string, string>>({})
 const loading = ref(false)
 async function load() {
 	loading.value = true
 	try {
-		rows.value = await getRecords(doctype.name, ["name", ...listed.value.map((field) => field.fieldname!)])
+		const records = await getRecords(doctype.name, ["name", ...listed.value.map((field) => field.fieldname!)])
+		titles.value = await getLinkTitles(listed.value, records).catch(() => ({}))
+		rows.value = records
 	} finally {
 		loading.value = false
 	}

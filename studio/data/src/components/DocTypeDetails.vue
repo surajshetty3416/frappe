@@ -5,7 +5,7 @@
 			label="Title field"
 			:model-value="doc.title_field || ''"
 			:options="titleOptions"
-			@update:model-value="(value: string) => change((doc) => (doc.title_field = value))"
+			@update:model-value="(value: string) => change((doc) => Object.assign(doc, { title_field: value, show_title_field_in_link: value ? 1 : 0 }))"
 		/>
 		<Switch
 			label="Track changes"

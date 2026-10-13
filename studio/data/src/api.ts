@@ -42,6 +42,7 @@ export interface DocTypeDoc {
 	autoname?: string
 	naming_rule?: string
 	title_field?: string
+	show_title_field_in_link?: Flag
 	track_changes: Flag
 	modified: string
 	fields: DocField[]
@@ -72,6 +73,22 @@ export const getRecords = (doctype: string, fields: string[], limit = 100): Prom
 	call("frappe.client.get_list", { doctype, fields, order_by: "modified desc", limit_page_length: limit })
 
 export const getRecord = (doctype: string, name: string): Promise<Row> => call("frappe.client.get", { doctype, name })
+
+// the titles of the records Link fields point to, keyed `doctype::name`, for DocTypes that show titles in links
+export function getLinkTitles(fields: DocField[], rows: Row[]): Promise<Record<string, string>> {
+	const links: Record<string, Set<string>> = {}
+	for (const field of fields) {
+		if (field.fieldtype !== "Link" || !field.options) continue
+		for (const row of rows) {
+			const value = row[field.fieldname!]
+			if (value) (links[field.options] ||= new Set()).add(String(value))
+		}
+	}
+	if (!Object.keys(links).length) return Promise.resolve({})
+	return call("frappe.data.api.get_link_title_map", {
+		links: Object.fromEntries(Object.entries(links).map(([doctype, names]) => [doctype, [...names]])),
+	})
+}
 
 export const countRecords = (doctype: string): Promise<number> => call("frappe.client.get_count", { doctype })
 

@@ -1,5 +1,17 @@
 import frappe
+from frappe.desk.link_title import get_link_title_field, get_link_titles
 from frappe.model import no_value_fields, table_fields
+
+
+@frappe.whitelist()
+def get_link_title_map(links: dict[str, list[str]]) -> dict[str, str]:
+	"""Titles of linked records, keyed `doctype::name`, for the DocTypes that show titles in links."""
+	titles = {}
+	for doctype, names in links.items():
+		if title_field := get_link_title_field(doctype):
+			for name, title in get_link_titles(doctype, title_field, set(names)).items():
+				titles[f"{doctype}::{name}"] = title
+	return titles
 
 
 @frappe.whitelist()

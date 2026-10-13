@@ -65,7 +65,7 @@
 import { Checkbox, Combobox, FormControl, Select, TextInput, Textarea, call } from "frappe-ui"
 import { computed, ref } from "vue"
 
-import type { DocField, Row } from "../api"
+import type { DocField } from "../api"
 import { TABLE_TYPES } from "../fields"
 
 const props = defineProps<{ field: DocField; modelValue: unknown; readonly?: boolean }>()
@@ -82,20 +82,26 @@ const choices = computed(() =>
 		.map((option) => ({ label: option, value: option }))
 )
 
+// a linked record shows by its title when its DocType shows titles in links, as the desk does
 const links = ref<{ label: string; value: string }[]>([])
 let linksLoaded = false
 async function loadLinks() {
 	if (linksLoaded || !props.field.options) return
 	linksLoaded = true
-	const rows: Row[] = await call("frappe.client.get_list", {
+	const results: { value: string; label?: string }[] = await call("frappe.desk.search.search_link", {
 		doctype: props.field.options,
-		fields: ["name"],
-		order_by: "modified desc",
-		limit_page_length: 200,
+		txt: "",
+		page_length: 200,
 	})
-	links.value = rows.map((row) => ({ label: row.name, value: row.name }))
+	links.value = results.map((result) => ({ label: result.label || result.value, value: result.value }))
 }
-if (props.field.fieldtype === "Link" && props.modelValue) links.value = [{ label: String(props.modelValue), value: String(props.modelValue) }]
+if (props.field.fieldtype === "Link" && props.modelValue) {
+	const value = String(props.modelValue)
+	links.value = [{ label: value, value }]
+	call("frappe.desk.search.get_link_title", { doctype: props.field.options, docname: value }).then((title: string) => {
+		if (!linksLoaded && title) links.value = [{ label: title, value }]
+	})
+}
 
 const rowsLabel = computed(() => {
 	const rows = Array.isArray(props.modelValue) ? props.modelValue.length : 0

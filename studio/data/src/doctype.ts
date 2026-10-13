@@ -122,7 +122,7 @@ export function change(mutate: (doc: DocTypeDoc) => void, record = true) {
 }
 
 // Undo and redo walk the DocType's settings, fields and permissions as a person changed them here.
-const SETTINGS = ["title_field", "track_changes", "fields", "permissions"] as const
+const SETTINGS = ["title_field", "show_title_field_in_link", "track_changes", "fields", "permissions"] as const
 type Snapshot = Pick<DocTypeDoc, (typeof SETTINGS)[number]>
 const done: Snapshot[] = []
 const undone: Snapshot[] = []
