@@ -67,6 +67,8 @@ c:
 - The subject is Jinja too: `Your talk is in: {{ doc.title }}`.
 - Quote every value that starts with `{`. Inside it, use single quotes.
 - `doctype` in save_email_template is the DocType the email is about, such as Attendee or Talk Proposal.
+- The email goes to a person: the one named by the record's email field. Greet them by the name field beside it, such as `speaker_name` for `speaker_email`, never by the record's title.
+- A Select value is a label, not prose. Turn each one a sentence shows into words with a map: `Your {{ {'Talk 25 min': 'talk', 'Lightning 10 min': 'lightning talk', 'Workshop 90 min': 'workshop'}.get(doc.format, 'talk') }} is in the {{ doc.track }} track.` Read `sample_text` back and fix any sentence that still shows a raw value.
 
 ## Sending
 
