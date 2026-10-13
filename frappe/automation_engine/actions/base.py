@@ -142,8 +142,10 @@ def get_action(action_type: str) -> AutomationAction:
 
 
 def _iter_action_classes():
+	from frappe.automation_engine.actions.agent import RunAgent
 	from frappe.automation_engine.actions.core import CORE_ACTIONS
 
 	yield from CORE_ACTIONS
+	yield RunAgent
 	for path in frappe.get_hooks("automation_actions"):
 		yield frappe.get_attr(path)
