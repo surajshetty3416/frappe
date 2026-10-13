@@ -28,6 +28,7 @@ An agent is a `Flow Agent`: instructions, a model and tools. An automation is an
 
 - `title` is the agent's name and must be unique. `model` and `instructions` are required.
 - `instructions` speak to the agent: what it reads, what it writes in which fields, the allowed values, and what it never does. An automation's agent has no person to ask, so tell it to finish the job without questions.
+- A model gets weekdays wrong when it works them out from a date, and so do you. When an agent names days, write each date it may name into its instructions with its weekday, as a fact it reads: "Day 1 is Friday 20 August 2027". Get every weekday from `execute`, `result = [frappe.utils.get_weekday(d) for d in ["2027-08-20", "2027-08-21"]]`, never from memory. Tell the agent to take weekdays only from its instructions and never to work one out.
 - `tools` holds only what the job needs:
 
 | Tool | Use |
