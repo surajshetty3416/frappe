@@ -4,14 +4,13 @@
 		<component :is="'style'" v-if="blockClientStyles" v-text="blockClientStyles" />
 		<div
 			class="canvas relative min-h-full bg-white"
-			:style="{ width: `${frameWidth}px`, zoom: scale }"
-			:data-breakpoint="activeBreakpoint">
+			:data-breakpoint="breakpoint">
 			<BuilderBlock
 				class="min-h-[inherit]"
 				:block="block"
 				:style="cssVariables"
 				:key="block.blockId"
-				:breakpoint="activeBreakpoint"
+				:breakpoint="breakpoint"
 				:data="pageStore.pageData" />
 		</div>
 	</div>
@@ -43,13 +42,11 @@ watchEffect(() => fontTokens.value.forEach((token: any) => setFont(token.value))
 
 const canvasContainer = ref(null) as Ref<HTMLElement | null>;
 const block = ref(props.blockData) as Ref<Block>;
-// the preview shows the base styles every breakpoint inherits
+// edits land in the base styles every breakpoint inherits
 const activeBreakpoint = ref("desktop");
-// desktop lays out at its own width and zooms to fit the panel, so a narrow panel never reflows the page
-const DESKTOP_WIDTH = 1280;
+// the page renders at the panel's width with the styles the published page applies at that width
 const { width: panelWidth } = useElementSize(canvasContainer);
-const frameWidth = computed(() => Math.max(DESKTOP_WIDTH, panelWidth.value));
-const scale = computed(() => (panelWidth.value ? panelWidth.value / frameWidth.value : 1));
+const breakpoint = computed(() => (panelWidth.value <= 576 ? "mobile" : panelWidth.value < 1024 ? "tablet" : "desktop"));
 
 // the page's own CSS, from its head and its CSS scripts, held to this canvas
 const pageStyles = computed(() => {
