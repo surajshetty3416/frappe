@@ -18,7 +18,7 @@ def get_context(context):
 @frappe.whitelist(methods=["POST"], allow_guest=True)
 def get_context_for_dev() -> dict:
 	"""The same boot data for the Vite dev server, which cannot render the page template."""
-	if not frappe.conf.developer_mode:
+	if not (frappe.conf.developer_mode or frappe.conf.studio_dev_server):
 		frappe.throw(_("Only available in developer mode."), frappe.PermissionError)
 	return get_boot()
 
