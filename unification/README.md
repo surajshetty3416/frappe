@@ -263,7 +263,7 @@ built desk assets:
 B=/home/t3run/unification-sync U=/home/t3run/unified-bench
 sudo -u t3run git -C $U/apps/frappe worktree add --detach $B/apps/frappe origin/unified
 sudo -u t3run -i uv venv --python 3.14 $B/env
-sudo -u t3run mkdir -p $B/sites && echo frappe | sudo -u t3run tee $B/sites/apps.txt
+sudo -u t3run mkdir -p $B/sites $B/logs && echo frappe | sudo -u t3run tee $B/sites/apps.txt
 sudo -u t3run python3 -c "import json; c = json.load(open('$U/sites/common_site_config.json')); c.pop('default_site', None); json.dump(c, open('$B/sites/common_site_config.json', 'w'), indent=1)"
 sudo -u t3run ln -s $U/sites/assets $B/sites/assets
 sudo -u t3run -i gh auth setup-git
