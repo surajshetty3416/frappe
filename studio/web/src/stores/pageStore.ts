@@ -1,34 +1,13 @@
 import type Block from "@web/block";
 import { builderSettings } from "@web/data/builderSettings";
 import { webPages } from "@web/data/webPage";
-import router from "@web/router";
-import useBuilderStore from "@web/stores/builderStore";
 import useCanvasStore from "@web/stores/canvasStore";
-import useComponentStore from "@web/stores/componentStore.js";
-import { __ } from "@web/translation";
+import useComponentStore from "@web/stores/componentStore";
 import { BuilderClientScript, BuilderPage } from "@web/types/doctypes";
 import getBlockTemplate from "@web/utils/blockTemplate";
-import { editorDemo } from "@web/utils/editorDemo";
-import {
-	confirm,
-	countBlocks,
-	generateId,
-	getBlockInstance,
-	getCopyWithoutParent,
-	getRouteVariables,
-} from "@web/utils/helpers";
-import { createDocumentResource, createListResource, createResource, toast } from "frappe-ui";
-import { useTelemetry } from "@framework/ui/telemetry";
+import { generateId, getBlockInstance, getCopyWithoutParent } from "@web/utils/helpers";
+import { createDocumentResource, createListResource, toast } from "frappe-ui";
 import { defineStore } from "pinia";
-import { markRaw, nextTick } from "vue";
-
-const { capture } = useTelemetry();
-
-// not the openPageInBrowser tab name, so a detach does not take over the live page tab
-const DETACHED_PREVIEW_TAB = "builder-detached-preview";
-
-// a reloaded editor asks here for its detached tab, which replies with postMessage
-export const DETACHED_PREVIEW_CHANNEL = "builder-detached-preview";
 
 /** Normalize query values to strings; repeated parameters use the first value. */
 function normalizeRouteVariables(values: unknown) {
@@ -46,8 +25,6 @@ const usePageStore = defineStore("pageStore", {
 	state: () => ({
 		routeVariables: <{ [key: string]: string }>{},
 		pageData: <{ [key: string]: [] }>{},
-		pageName: "Home",
-		route: "/",
 		selectedPage: <string | null>null,
 		pageBlocks: <Block[]>[],
 		saveId: null as string | null,
@@ -56,101 +33,47 @@ const usePageStore = defineStore("pageStore", {
 		savingPage: false,
 		settingPage: false,
 		pageLoadToken: 0,
-		snapshotsVersion: 0,
-		// bumped when an AI turn changes the page's scripts on the server
-		scriptsVersion: 0,
-		detachedPreview: null as { tab: Window; pageId: string } | null,
 	}),
 	actions: {
-		async setPage(
-			pageName: string,
-			resetCanvas = true,
-			routeParams = null as Record<string, unknown> | null,
-		) {
+		async setPage(pageName: string, routeParams = null as Record<string, unknown> | null) {
+			if (!pageName) return;
 			this.settingPage = true;
-			if (!pageName) {
-				return;
-			}
-
-			// against the last page that actually loaded, so a retry after a failed
-			// fetch still counts as opening it
-			const switchingPage = pageName !== this.activePage?.name;
-			// going from one open page to another keeps the canvas zoom and pan
-			const keepViewport = switchingPage && Boolean(this.activePage);
 			this.selectedPage = pageName;
 			const pageLoadToken = ++this.pageLoadToken;
 
 			const page = await this.fetchActivePage(pageName);
-			if (pageLoadToken !== this.pageLoadToken || this.selectedPage !== pageName) {
-				return;
-			}
+			if (pageLoadToken !== this.pageLoadToken || this.selectedPage !== pageName) return;
 			if (!page) {
-				toast.error(__("Page not found"), {
-					duration: Infinity,
-				});
+				toast.error("Page not found");
 				return;
 			}
 			this.activePage = page;
 			const blocks = JSON.parse(page.draft_blocks || page.blocks || "[]");
-			if (switchingPage) {
-				capture("builder_editor_opened", {
-					page: page.name,
-					block_count: countBlocks(blocks),
-					is_published: Boolean(page.published),
-				});
-			}
-			this.editPage(!resetCanvas);
-			if (!Array.isArray(blocks)) {
-				const canvasStore = useCanvasStore();
-				canvasStore.pushBlocks([blocks]);
-			}
 			this.pageBlocks = [getBlockInstance(blocks[0] || getBlockTemplate("body"))];
-			this.pageName = page.page_name as string;
-			this.route = page.route || "/" + this.pageName.toLowerCase().replace(/ /g, "-");
 			this.loadRouteVariables(page.name, routeParams);
-			await this.setPageData(this.activePage);
-
-			const canvasStore = useCanvasStore();
-			// switching pages always exits any active version preview
-			canvasStore.clearVersionPreview();
-			canvasStore.activeCanvas?.setRootBlock(this.pageBlocks[0], resetCanvas, true, keepViewport);
+			await this.setPageData(page);
+			useCanvasStore().activeCanvas?.setRootBlock(this.pageBlocks[0]);
 
 			if (page.client_scripts?.length) {
-				// Fetch full script documents for each script
-				const scriptsResource = createListResource({
+				const scripts = createListResource({
 					doctype: "Builder Client Script",
 					fields: ["script_type", "name", "script"],
 					filters: [["name", "in", page.client_scripts.map((script) => script.builder_script)]],
 					auto: true,
 				});
-
-				await scriptsResource.list.promise;
-				this.activePageScripts = scriptsResource.data as BuilderClientScript[];
+				await scripts.list.promise;
+				this.activePageScripts = scripts.data as BuilderClientScript[];
 			} else {
 				this.activePageScripts = [];
 			}
 
-			nextTick(() => {
-				const componentStore = useComponentStore();
-				const interval = setInterval(() => {
-					if (!componentStore.fetchingComponent.size) {
-						this.settingPage = false;
-						// the detached preview raises this tab by this name
-						if (!editorDemo && router.currentRoute.value.name === "builder-editor") window.name = `editor-${pageName}`;
-						clearInterval(interval);
-						// detect pinned component instances whose live component drifted
-						componentStore.refreshComponentUpdates();
-						// surface any warnings stashed by a just-completed snapshot restore
-						const restoreWarnings = sessionStorage.getItem("builder:restoreWarnings");
-						if (restoreWarnings) {
-							sessionStorage.removeItem("builder:restoreWarnings");
-							for (const message of JSON.parse(restoreWarnings) as string[]) {
-								toast.warning(message);
-							}
-						}
-					}
-				}, 50);
-			});
+			// components a page uses load on their own; the page shows once they are in
+			const componentStore = useComponentStore();
+			const interval = setInterval(() => {
+				if (componentStore.fetchingComponent.size) return;
+				clearInterval(interval);
+				if (pageLoadToken === this.pageLoadToken) this.settingPage = false;
+			}, 50);
 		},
 
 		loadRouteVariables(pageName: string, routeParams: Record<string, unknown> | null = null) {
@@ -161,252 +84,52 @@ const usePageStore = defineStore("pageStore", {
 			}
 		},
 
-		async setActivePage(pageName: string) {
-			this.selectedPage = pageName;
-			const page = await this.fetchActivePage(pageName);
-			if (!page) {
-				return;
-			}
-			this.activePage = page;
-		},
-
-		async fetchActivePage(pageName?: string) {
-			const webPageResource = await createDocumentResource({
-				doctype: "Builder Page",
-				name: pageName as string,
-				auto: true,
-			});
+		async fetchActivePage(pageName: string) {
+			const resource = createDocumentResource({ doctype: "Builder Page", name: pageName, auto: true });
 			try {
-				await webPageResource.get.promise;
+				await resource.get.promise;
 			} catch (e) {
 				return null;
 			}
-
-			const page = webPageResource.doc as BuilderPage;
-			return page;
+			return resource.doc as BuilderPage;
 		},
 
-		editPage(retainSelection = false) {
-			const canvasStore = useCanvasStore();
-			if (!retainSelection) {
-				canvasStore.activeCanvas?.clearSelection();
-			}
-			canvasStore.editingMode = "page";
-		},
-
-		async duplicatePage(page: BuilderPage) {
-			toast.promise(
-				createResource({
-					url: "frappe.web.api.duplicate_page",
-					method: "POST",
-					params: {
-						page_name: page.name,
-					},
-				}).fetch(),
-				{
-					loading: __("Duplicating page"),
-					success: async (page: BuilderPage) => {
-						// load page and refresh
-						router.push({ name: "builder-editor", params: { pageId: page.page_name } }).then(() => {
-							router.go(0);
-						});
-						return __("Page duplicated");
-					},
-				},
-			);
-		},
-		deletePage: async (page: BuilderPage) => {
-			const confirmed = await confirm(
-				__("Are you sure you want to delete page: {0}?", [page.page_title || page.page_name]),
-			);
-			if (!confirmed) return false;
-			const deletion = webPages.delete.submit(page.name);
-			// toast.promise returns the toast id, not the promise
-			toast.promise(deletion, {
-				loading: __("Deleting page"),
-				success: () => {
-					return __("Page deleted");
-				},
-				error: () => {
-					return __("Page deletion failed");
-				},
-			});
-			await deletion;
-			return true;
-		},
-
-		async publishPage(openInBrowser = true, staging = false) {
+		async publishPage() {
 			await this.waitTillPageIsSaved();
-			return webPages.runDocMethod
-				.submit({
-					name: this.selectedPage as string,
-					method: staging ? "publish_to_staging" : "publish",
-					route_variables: this.routeVariables,
-				})
-				.then(async () => {
-					this.activePage = await this.fetchActivePage(this.selectedPage as string);
-					this.snapshotsVersion++;
-					if (openInBrowser) {
-						this.openPageInBrowser(this.activePage as BuilderPage);
-					}
-				});
-		},
-
-		async markAsStaging() {
-			const pageName = this.selectedPage as string;
-			const pageLoadToken = this.pageLoadToken;
-			const confirmed = await confirm(
-				__(
-					'Mark "{0}" as staging? It stays reachable by its link, but search engines and the sitemap stop listing it.',
-					[this.activePage?.page_title || __("this page")],
-				),
-			);
-			if (!confirmed) {
-				return;
-			}
-			await this.waitTillPageIsSaved();
-			await webPages.runDocMethod.submit({ name: pageName, method: "mark_as_staging" });
-			const page = await this.fetchActivePage(pageName);
-			// another page may have opened meanwhile, and its canvas autosaves to activePage
-			if (pageLoadToken === this.pageLoadToken && this.selectedPage === pageName) {
-				this.activePage = page;
-			}
-			toast.success(__("Page marked as staging"));
-			// marking the home page as staging clears it from Builder Settings
-			builderSettings.reload();
-		},
-
-		async revertChanges() {
-			const confirmed = await confirm(
-				__(
-					"This will revert all changes made to the page since the last publish. Are you sure you want to continue?",
-				),
-			);
-			if (confirmed) {
-				await this.updateActivePage("draft_blocks", null);
-				this.setPage(this.activePage?.name as string);
-			}
-		},
-
-		async createManualSnapshot(label?: string, pageName?: string) {
-			const res = await webPages.runDocMethod.submit({
-				name: pageName || (this.selectedPage as string),
-				method: "create_manual_snapshot",
-				label: label || null,
-			});
-			this.snapshotsVersion++;
-			return res;
-		},
-
-		async restoreSnapshot(snapshotName: string) {
-			// wait out any in-flight autosave so it can't clobber the restored draft
-			await this.waitTillPageIsSaved();
-			const res = await webPages.runDocMethod.submit({
+			await webPages.runDocMethod.submit({
 				name: this.selectedPage as string,
-				method: "restore_snapshot",
-				snapshot: snapshotName,
+				method: "publish",
+				route_variables: this.routeVariables,
 			});
-			// surface any deleted-dependency warnings after the upcoming reload
-			const warnings = (res?.message?.warnings || []) as string[];
-			if (warnings.length) {
-				sessionStorage.setItem("builder:restoreWarnings", JSON.stringify(warnings));
-			}
-			// router.go(0);
-			// Instead of a hard reload, we could are just re-fetching the page document
-			this.setPage(this.selectedPage as string, false);
-			toast.success(__("Version restored"));
-		},
-
-		async unpublishPage(page?: BuilderPage) {
-			const targetName = page?.name || this.selectedPage;
-			const targetTitle = page?.page_title || page?.page_name || __("this page");
-			const confirmed = await confirm(
-				__('Are you sure you want to unpublish "{0}"? It will no longer be accessible on the website.', [
-					targetTitle,
-				]),
-			);
-			if (!confirmed) {
-				return;
-			}
-			return webPages.setValue
-				.submit({
-					name: targetName,
-					published: false,
-					staging: false,
-				})
-				.then(() => {
-					toast.success(__("Page unpublished"));
-					if (page) {
-						page.published = 0;
-						page.staging = 0;
-					} else {
-						this.setPage(this.selectedPage as string);
-					}
-					builderSettings.reload();
-				});
+			this.activePage = await this.fetchActivePage(this.selectedPage as string);
 		},
 
 		updateActivePage(key: keyof BuilderPage, value: any) {
-			if (!this.activePage) {
-				return;
-			}
-			// Optimistically update in-place so reactive bindings stay consistent
+			if (!this.activePage) return;
+			// update in place so reactive bindings stay consistent
 			this.activePage[key] = value;
-			return webPages.setValue.submit({
-				name: this.activePage.name as string,
-				[key]: value,
-			});
+			return webPages.setValue.submit({ name: this.activePage.name as string, [key]: value });
 		},
 
 		savePage() {
-			const builderStore = useBuilderStore();
-			if (builderStore.readOnlyMode || builderStore.aiBuildingCanvas) {
-				// callers may have optimistically set this before invoking savePage
-				this.savingPage = false;
-				return;
-			}
-
-			// Own the flag here (not only in the editor watch) so every caller —
-			// including direct savePage() calls — keeps waitTillPageIsSaved reliable.
 			this.savingPage = true;
-
-			const canvasStore = useCanvasStore();
-			const pageData = JSON.stringify(
-				canvasStore
-					.getPageBlocks()
-					.filter((block): block is Block => block !== undefined)
-					.map((block: Block) => getCopyWithoutParent(block)),
-			);
+			const root = useCanvasStore().activeCanvas?.getRootBlock();
 			const saveId = generateId();
-
-			// more save requests can be triggered till the first one is completed
+			// more saves can start before the first one completes
 			this.saveId = saveId;
-			const args = {
-				name: this.activePage?.name || this.selectedPage,
-				draft_blocks: pageData,
-			};
 			return webPages.setValue
-				.submit(args)
-				.then((page: BuilderPage) => {
-					if (this.activePage) {
-						Object.assign(this.activePage, page);
-					} else {
-						this.activePage = page;
-					}
+				.submit({
+					name: this.activePage?.name || this.selectedPage,
+					draft_blocks: JSON.stringify(root ? [getCopyWithoutParent(root)] : []),
 				})
-				.catch((e: { exc_type?: string }) => {
-					if (e?.exc_type === "InReadOnlyMode") {
-						builderStore.isSiteInReadOnlyMode = true;
-						return;
-					}
-					throw e;
+				.then((page: BuilderPage) => {
+					if (this.activePage) Object.assign(this.activePage, page);
+					else this.activePage = page;
 				})
 				.finally(() => {
-					if (this.saveId === saveId) {
-						this.saveId = null;
-						this.savingPage = false;
-					}
-					canvasStore.activeCanvas?.toggleDirty(false);
+					if (this.saveId !== saveId) return;
+					this.saveId = null;
+					this.savingPage = false;
 				});
 		},
 
@@ -416,157 +139,27 @@ const usePageStore = defineStore("pageStore", {
 				return;
 			}
 			return webPages.runDocMethod
-				.submit({
-					method: "get_page_data",
-					name: page.name,
-					route_variables: this.routeVariables,
-				})
+				.submit({ method: "get_page_data", name: page.name, route_variables: this.routeVariables })
 				.then((data: { message: { [key: string]: [] } }) => {
 					this.pageData = data.message;
 				})
 				.catch((e: { exc: string | null }) => {
-					const error_message = e.exc?.split("\n").slice(-2)[0];
-					toast.error(__("There was an error while fetching page data"), {
-						description: error_message,
-					});
+					toast.error("The page's data script failed", { description: e.exc?.split("\n").slice(-2)[0] });
 				});
-		},
-
-		/** Persist a generated page_data_script (the static-repeater data shim) and
-		 * refresh pageData so repeaters render immediately in the editor. The script
-		 * is code we generate from the AI's JSON data — never AI-authored. */
-		applyRepeaterDataScript(script: string) {
-			const name = this.activePage?.name || this.selectedPage;
-			if (!name) return;
-			if (this.activePage) this.activePage.page_data_script = script;
-			return webPages.setValue
-				.submit({ name, page_data_script: script })
-				.then((page: BuilderPage) => {
-					this.activePage = page;
-					this.setPageData(page);
-				})
-				.catch(() => null);
-		},
-
-		setRouteVariable(variable: string, value: string) {
-			this.routeVariables[variable] = value;
-			localStorage.setItem(`${this.selectedPage}:routeVariables`, JSON.stringify(this.routeVariables));
-			this.setPageData(this.activePage as BuilderPage);
-		},
-
-		detachPreview(pageId: string) {
-			const previewURL = router.resolve({
-				name: "builder-preview",
-				params: { pageId },
-			}).href;
-			// one name per page, so an editor does not take over another editor's detached tab
-			const tabName = `${DETACHED_PREVIEW_TAB}-${pageId}`;
-			// one detached tab per editor: send the open one to this page
-			let tab = this.detachedPreview?.tab.closed ? null : (this.detachedPreview?.tab ?? null);
-			try {
-				if (tab) {
-					tab.name = tabName;
-					tab.location.assign(previewURL);
-				}
-			} catch (error) {
-				// a tab that went to another origin blocks these, so open a new one
-				if (!(error instanceof DOMException && error.name === "SecurityError")) throw error;
-				tab = null;
-			}
-			tab ??= window.open(previewURL, tabName);
-			// raw: a Vue proxy of a Window throws after the tab goes cross-origin
-			if (tab) this.detachedPreview = markRaw({ tab, pageId });
-			tab?.focus();
-			return tab;
-		},
-
-		findDetachedPreview() {
-			window.addEventListener("message", (event) => {
-				if (event.origin !== window.location.origin || !event.data?.detachedPreviewOf) return;
-				this.detachedPreview = markRaw({ tab: event.source as Window, pageId: event.data.detachedPreviewOf });
-			});
-			const channel = new BroadcastChannel(DETACHED_PREVIEW_CHANNEL);
-			channel.postMessage("find");
-			channel.close();
-		},
-
-		announceDetachedPreview(pageId: string) {
-			this.getEditorTab()?.postMessage({ detachedPreviewOf: pageId }, window.location.origin);
-		},
-
-		getDetachedPreview(pageId: string) {
-			if (this.detachedPreview?.tab.closed) this.detachedPreview = null;
-			if (this.detachedPreview?.pageId !== pageId) return null;
-			return this.detachedPreview.tab;
-		},
-
-		getEditorTab() {
-			const opener = window.opener as Window | null;
-			return opener && !opener.closed ? opener : null;
-		},
-
-		// Chrome ignores focus() on another tab, so raise it by name with no URL to reload
-		focusEditorTab() {
-			const editorTab = this.getEditorTab();
-			if (!editorTab) return false;
-			if (editorTab.name) window.open("", editorTab.name);
-			editorTab.focus();
-			return true;
-		},
-
-		openPreview(pageId: string) {
-			const tab = this.getDetachedPreview(pageId);
-			if (tab) tab.focus();
-			// getDetachedPreview drops a closed tab, so this one shows another page
-			else if (this.detachedPreview) this.detachPreview(pageId);
-			else router.push({ name: "builder-preview", params: { pageId } });
-		},
-
-		openPageInBrowser(page: BuilderPage) {
-			const pageURL = this.getResolvedPageURL(true, page);
-			const targetWindow = window.open(pageURL, "builder-preview");
-			if (targetWindow?.location.pathname === pageURL) {
-				targetWindow?.location.reload();
-			} else {
-				setTimeout(() => {
-					// wait for the page to load
-					targetWindow?.location.reload();
-				}, 50);
-			}
-		},
-
-		getResolvedPageURL(prependSlash = true, page: BuilderPage | null = null) {
-			let route = page?.route || this.activePage?.route || "/";
-			if (this.pageData) {
-				const routeVariables = getRouteVariables(route || "");
-				routeVariables.forEach((variable: string) => {
-					const routeVariableValue = this.routeVariables[variable];
-					if (routeVariableValue) {
-						if (route?.includes(`<${variable}>`)) {
-							route = route?.replace(`<${variable}>`, routeVariableValue);
-						} else if (route?.includes(`:${variable}`)) {
-							route = route?.replace(`:${variable}`, routeVariableValue);
-						}
-					}
-				});
-			}
-			return `${prependSlash ? "/" : ""}${route}`;
 		},
 
 		async waitTillPageIsSaved() {
-			// small delay so that all the save requests are triggered
-			if (!this.savingPage) {
-				await new Promise((resolve) => setTimeout(resolve, 300));
-			}
+			// a short delay so that every pending save has started
+			if (!this.savingPage) await new Promise((resolve) => setTimeout(resolve, 300));
 			return new Promise((resolve) => {
 				const interval = setInterval(() => {
-					if (!this.savingPage) {
-						clearInterval(interval);
-						resolve(null);
-					}
+					if (this.savingPage) return;
+					clearInterval(interval);
+					resolve(null);
 				}, 100);
 			});
 		},
+
 		isHomePage(page: BuilderPage | null = null) {
 			return builderSettings.doc?.home_page === (page || this.activePage)?.route;
 		},

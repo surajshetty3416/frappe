@@ -11,8 +11,6 @@
 			:componentData="repeatingFrom == 'componentData' ? _data : componentData"
 			:defaultProps="repeatingFrom == 'props' ? _data : null"
 			:block="block.children[0]"
-			:preview="Number(index) !== 0 || preview"
-			:readonly="readonly"
 			:breakpoint="breakpoint"
 			:isChildOfComponent="block.isExtendedFromComponent()"
 			:repeater-index="getRepeaterIndex(index)"
@@ -34,16 +32,12 @@ const props = withDefaults(
 	defineProps<{
 		block: Block;
 		repeaterIndex?: string | number | null;
-		preview?: boolean;
 		breakpoint?: string;
 		data?: Record<string, any> | null;
 		componentData?: Record<string, any> | null;
-		readonly?: boolean;
 	}>(),
 	{
-		preview: false,
 		breakpoint: "desktop",
-		readonly: false,
 		data: null,
 		componentData: null,
 	},

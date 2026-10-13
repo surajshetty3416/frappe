@@ -20,8 +20,6 @@
   "developer_options_section",
   "execute_block_scripts_in_editor",
   "restrict_click_handlers",
-  "ai_section",
-  "ai_api_key",
   "persona_survey_done"
  ],
  "fields": [
@@ -117,17 +115,6 @@
    "fieldname": "restrict_click_handlers",
    "fieldtype": "Check",
    "label": "Restrict Click Handlers"
-  },
-  {
-   "fieldname": "ai_section",
-   "fieldtype": "Section Break",
-   "label": "AI Settings"
-  },
-  {
-   "description": "API key for the selected AI model provider",
-   "fieldname": "ai_api_key",
-   "fieldtype": "Password",
-   "label": "AI API Key"
   },
   {
    "default": "0",

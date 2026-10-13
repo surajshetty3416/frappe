@@ -1,18 +1,5 @@
-import { sessionUser as currentUser } from "@shell/session";
 import { call } from "frappe-ui";
-import { ref } from "vue";
-import type { Router } from "vue-router";
 import { __ } from "./translation";
-
-const sessionUser = ref(currentUser());
-
-// The shell owns the app's one router. The layer's setup hands it over before any module
-// that imports it runs, and `export { router as default }` keeps the import a live binding.
-let router: Router;
-
-export function setAppRouter(appRouter: Router) {
-	router = appRouter;
-}
 
 let canWritePages: Promise<boolean> | null = null;
 
@@ -29,5 +16,3 @@ export async function validateVisit() {
 	window.location.href = "/desk";
 	return false;
 }
-
-export { router as default, sessionUser };

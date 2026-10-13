@@ -1,35 +1,9 @@
 import useCanvasStore from "@web/stores/canvasStore";
 import useComponentStore from "@web/stores/componentStore";
-import {
-	extendWithComponent,
-	rebuildWithComponent,
-	resetWithComponent,
-	syncBlockWithComponent,
-} from "@web/utils/block/componentInstance";
-import { findBlockInTree, resetBlock } from "@web/utils/block/tree";
+import { findBlockInTree } from "@web/utils/block/tree";
 import type { SpacingType } from "@web/utils/cssUtils";
-import {
-	addPxToNumber,
-	cssUrl,
-	dataURLFileName,
-	dataURLtoFile,
-	generateId,
-	getBlockCopy,
-	getBlockInstance,
-	getNumberFromPx,
-	getSpacing,
-	getTextContent,
-	handleBase64Attribute,
-	isHTMLString,
-	kebabToCamelCase,
-	parseAndSetBackground,
-	setSpacing,
-	toStyleProperty,
-	uploadBuilderAsset,
-} from "@web/utils/helpers";
-import { Editor } from "@tiptap/vue-3";
-import { clamp } from "@vueuse/core";
-import { computed, nextTick, reactive } from "vue";
+import { cssUrl, dataURLFileName, dataURLtoFile, generateId, getBlockInstance, getSpacing, getTextContent, handleBase64Attribute, isHTMLString, kebabToCamelCase, parseAndSetBackground, setSpacing, toStyleProperty, uploadBuilderAsset } from "@web/utils/helpers";
+import { computed, reactive } from "vue";
 
 const TEXT_ELEMENTS = new Set([
 	"span",
@@ -52,15 +26,7 @@ const TEXT_ELEMENTS = new Set([
 	"summary",
 ]);
 
-const CONTAINER_ELEMENTS = new Set(["section", "div"]);
-
 const HEADER_ELEMENTS = new Set(["h1", "h2", "h3", "h4", "h5", "h6"]);
-
-// editor of the currently editable text block; kept off Block instances to
-// avoid Vue reactivity and serialization. Owner tracked by blockId since
-// undo/redo swaps instances but keeps ids.
-let activeEditor: Editor | null = null;
-let activeEditorBlockId: string | null = null;
 
 // rawStyles were dropped in favour of baseStyles; older blocks still carry them
 const mergeLegacyRawStyles = (baseStyles: BlockStyleMap, rawStyles?: BlockStyleMap) => {
@@ -70,33 +36,6 @@ const mergeLegacyRawStyles = (baseStyles: BlockStyleMap, rawStyles?: BlockStyleM
 		baseStyles[toStyleProperty(style)] = value;
 	});
 	return baseStyles;
-};
-
-const withoutColor = (style: string) =>
-	style
-		.split(";")
-		.filter((declaration) => declaration.split(":")[0].trim().toLowerCase() !== "color")
-		.join(";")
-		.trim();
-
-// textStyle marks also keep the raw style attribute, which would write the old colour back
-const clearEditorTextColor = (editor: Editor) => {
-	const { from, to } = editor.state.selection;
-	editor
-		.chain()
-		.selectAll()
-		.unsetColor()
-		.setTextSelection({ from, to })
-		.command(({ tr }) => {
-			tr.doc.descendants((node, pos) => {
-				const mark = node.marks.find((m) => m.type.name === "textStyle" && m.attrs.style);
-				if (!mark) return;
-				const style = withoutColor(mark.attrs.style) || null;
-				tr.addMark(pos, pos + node.nodeSize, mark.type.create({ ...mark.attrs, style }));
-			});
-			return true;
-		})
-		.run();
 };
 
 class Block implements BlockOptions {
@@ -122,12 +61,10 @@ class Block implements BlockOptions {
 	visibilityCondition?: BlockVisibilityCondition;
 	elementBeforeConversion?: string;
 	parentBlock: Block | null;
-	activeState?: string | null = null;
 	dynamicValues: Array<BlockDataKey>;
 	props?: BlockProps;
 	editorConfig?: BlockEditorConfig;
 	clientScript: BlockClientScript;
-	// @ts-expect-error
 	referenceComponent: Block | null;
 	customAttributes: BlockAttributeMap;
 	constructor(options: BlockOptions) {
@@ -282,26 +219,6 @@ class Block implements BlockOptions {
 
 		return styleObj;
 	}
-	getStateStyles(state: string, breakpoint: string = "desktop"): BlockStyleMap {
-		const styles = this.getStyles(breakpoint);
-		const stateStyles = {} as BlockStyleMap;
-		Object.keys(styles).forEach((style) => {
-			if (style.startsWith(`${state}:`)) {
-				const newStyle = style.replace(`${state}:`, "");
-				stateStyles[newStyle as styleProperty] = styles[style];
-			}
-		});
-		return stateStyles;
-	}
-	hasOverrides(breakpoint: string) {
-		if (breakpoint === "mobile") {
-			return Object.keys(this.mobileStyles).length > 0;
-		}
-		if (breakpoint === "tablet") {
-			return Object.keys(this.tabletStyles).length > 0;
-		}
-		return false;
-	}
 	resetOverrides(breakpoint: string) {
 		if (breakpoint === "mobile") {
 			this.mobileStyles = {};
@@ -356,40 +273,11 @@ class Block implements BlockOptions {
 		}
 		return visibilityCondition;
 	}
-	getBlockDescription() {
-		if (this.extendedFromComponent) {
-			return this.getComponentBlockDescription() || "";
-		}
-		if (this.isHTML() && !this.blockName) {
-			const innerHTML = this.getInnerHTML() || "";
-			const match = innerHTML.match(/<([a-z]+)[^>]*>/);
-			if (match) {
-				return `${match[1]}`;
-			} else {
-				return "raw";
-			}
-		}
-		let description = this.blockName || this.originalElement || this.getElement() || "";
-		if (this.getTextContent() && !this.blockName) {
-			description += " | " + this.getTextContent();
-		}
-		return description;
-	}
-	getComponentBlockDescription() {
-		const componentStore = useComponentStore();
-		return componentStore.getComponentName(this.extendedFromComponent as string, this.componentVersion);
-	}
 	getTextContent() {
 		return getTextContent(this.getInnerHTML() || "");
 	}
 	isImage() {
 		return this.getElement() === "img";
-	}
-	isVideo() {
-		return this.getElement() === "video" || this.getInnerHTML()?.startsWith("<video");
-	}
-	isForm() {
-		return this.getElement() === "form";
 	}
 	isButton() {
 		return this.getElement() === "button";
@@ -405,9 +293,6 @@ class Block implements BlockOptions {
 	}
 	isText() {
 		return TEXT_ELEMENTS.has(this.getElement() as string);
-	}
-	isContainer() {
-		return CONTAINER_ELEMENTS.has(this.getElement() as string);
 	}
 	isHeader() {
 		return HEADER_ELEMENTS.has(this.getElement() as string);
@@ -432,40 +317,11 @@ class Block implements BlockOptions {
 		}
 		styleObj[style] = value;
 	}
-	setActiveStyle(style: styleProperty, value: StyleValue) {
-		this.setStyle(this.getActiveStyleProperty(style), value);
-	}
-	getActiveStyleValue(style: styleProperty) {
-		const activeStateStyle = this.getActiveStyleProperty(style);
-		const activeValue = activeStateStyle === style ? undefined : this.getStyle(activeStateStyle);
-		return activeValue === null || activeValue === "" || activeValue === undefined
-			? this.getStyle(style)
-			: activeValue;
-	}
-	getActiveStyleProperty(style: styleProperty) {
-		const activeState = this.activeState?.split(":")[0];
-		return (activeState ? `${activeState}:${style}` : style) as styleProperty;
-	}
 	setAttribute(attribute: string, value: string | undefined) {
 		this.attributes[attribute] = value;
 	}
 	removeAttribute(attribute: string) {
 		this.setAttribute(attribute, undefined);
-	}
-	// published pages apply customAttributes over attributes, so an id set in HTML Attributes wins
-	getId() {
-		return this.getCustomAttributes().id || this.getAttribute("id");
-	}
-	setId(id: string | undefined) {
-		// a removed key falls back to the component's id, so an instance blanks it instead
-		const value = id || (this.referenceComponent?.getId() ? "" : undefined);
-		if (value !== undefined && "id" in this.getCustomAttributes()) {
-			this.customAttributes.id = value;
-		} else {
-			// clearing drops both copies, or the one left behind becomes the id again
-			delete this.customAttributes.id;
-		}
-		this.setAttribute("id", value);
 	}
 	getAttribute(attribute: string) {
 		return this.getAttributes()[attribute];
@@ -474,10 +330,6 @@ class Block implements BlockOptions {
 		delete this.baseStyles[style];
 		delete this.mobileStyles[style];
 		delete this.tabletStyles[style];
-	}
-	setBaseStyle(style: styleProperty, value: StyleValue) {
-		style = kebabToCamelCase(style as string) as styleProperty;
-		this.baseStyles[style] = value;
 	}
 	getStyle(
 		style: styleProperty,
@@ -551,46 +403,6 @@ class Block implements BlockOptions {
 		if (!this.isExtendedFromComponent()) return undefined;
 		return this.referenceComponent?.getStyle?.(style, breakpoint, nativeOnly, cascading);
 	}
-	getNativeStyle(style: styleProperty) {
-		return this.getStyle(style, undefined, true);
-	}
-	getIcon() {
-		if (this.editorConfig?.icon) {
-			const icon = this.editorConfig.icon;
-			return icon.startsWith("lucide-") ? icon : `lucide-${icon}`;
-		}
-		// "lucide-toggle-left";
-		switch (true) {
-			case this.isRoot():
-				return "lucide-hash";
-			case this.isRepeater():
-				return "lucide-database";
-			case this.isSVG():
-				return "lucide-aperture";
-			case this.isHTML():
-				return "lucide-code";
-			case this.isLink():
-				return "lucide-link";
-			case this.isText():
-				return "lucide-type";
-			case this.isVideo():
-				return "lucide-film";
-			case this.isContainer() && this.isRow():
-				return "lucide-columns";
-			case this.isContainer() && this.isColumn():
-				return "lucide-rows-2";
-			case this.isGrid():
-				return "lucide-grid-2x2";
-			case this.isContainer():
-				return "lucide-square";
-			case this.isImage():
-				return "lucide-image";
-			case this.isForm():
-				return "lucide-file-text";
-			default:
-				return "lucide-square";
-		}
-	}
 	isRoot() {
 		return this.originalElement === "body";
 	}
@@ -600,88 +412,8 @@ class Block implements BlockOptions {
 		}
 		return this.getElement() || "div";
 	}
-	getComponentTag() {
-		return this.referenceComponent?.getTag() || "div";
-	}
-	isDiv() {
-		return this.getElement() === "div";
-	}
-	getStylesCopy() {
-		return {
-			baseStyles: Object.assign({}, this.baseStyles),
-			mobileStyles: Object.assign({}, this.mobileStyles),
-			tabletStyles: Object.assign({}, this.tabletStyles),
-		};
-	}
 	isMovable(): boolean {
 		return ["absolute", "fixed"].includes(this.getStyle("position") as string);
-	}
-	move(direction: "up" | "left" | "down" | "right") {
-		if (!this.isMovable()) {
-			return;
-		}
-		let top = getNumberFromPx(this.getStyle("top")) || 0;
-		let left = getNumberFromPx(this.getStyle("left")) || 0;
-		if (direction === "up") {
-			top -= 10;
-			this.setStyle("top", addPxToNumber(top));
-		} else if (direction === "down") {
-			top += 10;
-			this.setStyle("top", addPxToNumber(top));
-		} else if (direction === "left") {
-			left -= 10;
-			this.setStyle("left", addPxToNumber(left));
-		} else if (direction === "right") {
-			left += 10;
-			this.setStyle("left", addPxToNumber(left));
-		}
-	}
-	addChild(child: BlockOptions, index?: number | null, select: boolean = true) {
-		if (index === undefined || index === null) {
-			index = this.children.length;
-		}
-		index = clamp(index, 0, this.children.length);
-
-		const childBlock = getBlockInstance(child);
-		childBlock.parentBlock = this;
-		this.children.splice(index, 0, childBlock);
-		if (select) {
-			childBlock.selectBlock();
-		}
-		if (childBlock.isText()) {
-			childBlock.makeBlockEditable();
-		}
-
-		if (childBlock.getStyle("position")) {
-			if (!this.getStyle("position")) {
-				this.setStyle("position", "relative");
-			}
-		}
-
-		return childBlock;
-	}
-	removeChild(child: Block) {
-		const index = this.getChildIndex(child);
-		if (index > -1) {
-			this.children.splice(index, 1);
-		}
-	}
-	replaceChild(child: Block, newChild: Block) {
-		newChild.parentBlock = this;
-		const index = this.getChildIndex(child);
-		if (index > -1) {
-			// This is not triggering the reactivity even though the child object is reactive
-			// this.children.splice(index, 1, newChild);
-			this.removeChild(child);
-			this.addChild(newChild, index);
-		}
-	}
-	getChildIndex(child: Block) {
-		return this.children.findIndex((block) => block.blockId === child.blockId);
-	}
-	addChildAfter(child: BlockOptions, siblingBlock: Block) {
-		const siblingIndex = this.getChildIndex(siblingBlock);
-		return this.addChild(child, siblingIndex + 1);
 	}
 	getEditorStyles() {
 		const styles = reactive({} as BlockStyleMap);
@@ -705,12 +437,6 @@ class Block implements BlockOptions {
 
 		return styles;
 	}
-	selectBlock() {
-		const canvasStore = useCanvasStore();
-		nextTick(() => {
-			canvasStore.selectBlock(this, null);
-		});
-	}
 	getParentBlock(): Block | null {
 		return this.parentBlock || null;
 	}
@@ -722,138 +448,19 @@ class Block implements BlockOptions {
 			parent = parent.getParentBlock();
 		}
 	}
-	selectParentBlock() {
-		const parentBlock = this.getParentBlock();
-		if (parentBlock) {
-			parentBlock.selectBlock();
-		}
-	}
-	getSiblingBlock(direction: "next" | "previous") {
-		const parentBlock = this.getParentBlock();
-		let sibling = null as Block | null;
-		if (parentBlock) {
-			const index = parentBlock.getChildIndex(this);
-			if (direction === "next") {
-				sibling = parentBlock.children[index + 1];
-			} else {
-				sibling = parentBlock.children[index - 1];
-			}
-			if (sibling) {
-				return sibling;
-			}
-		}
-		return null;
-	}
-	getFirstChild() {
-		return this.children[0];
-	}
-	getLastChild() {
-		return this.children[this.children.length - 1];
-	}
-	selectSiblingBlock(direction: "next" | "previous") {
-		const sibling = this.getSiblingBlock(direction);
-		if (sibling) {
-			sibling.selectBlock();
-		}
-	}
-	canHaveChildren(): boolean {
-		return !(
-			this.isImage() ||
-			this.isSVG() ||
-			this.isInput() ||
-			this.isVideo() ||
-			(this.isText() && !this.isLink()) ||
-			this.isHTML() ||
-			this.isExtendedFromComponent()
-		);
-	}
-	updateStyles(styles: BlockStyleObjects) {
-		this.baseStyles = Object.assign({}, this.baseStyles, styles.baseStyles);
-		this.mobileStyles = Object.assign({}, this.mobileStyles, styles.mobileStyles);
-		this.tabletStyles = Object.assign({}, this.tabletStyles, styles.tabletStyles);
-	}
-	getBackgroundColor() {
-		return this.getStyle("backgroundColor") || "transparent";
-	}
-	getFontFamily() {
-		const editor = this.getEditor();
-		if (this.isText() && editor && editor.isFocused) {
-			return editor.getAttributes("textStyle").fontFamily;
-		}
-		return this.getStyle("fontFamily", undefined, true);
-	}
-	setFontFamily(fontFamily: string) {
-		const editor = this.getEditor();
-		if (this.isText() && editor && editor.isFocused) {
-			editor.chain().focus().setFontFamily(fontFamily).run();
-		} else {
-			this.setStyle("fontFamily", fontFamily);
-		}
-	}
-	getTextColor() {
-		const editor = this.getEditor();
-		const color = editor?.getAttributes("textStyle").color;
-		if (this.isText() && editor && color && editor.isEditable) {
-			return color;
-		} else {
-			return this.getStyle("color");
-		}
-	}
-	getEditor(): null | Editor {
-		return this.blockId === activeEditorBlockId ? activeEditor : null;
-	}
-	setEditor(editor: Editor | null) {
-		activeEditor = editor;
-		activeEditorBlockId = editor ? this.blockId : null;
-	}
-	setTextColor(color: string | null) {
-		this.setStyle("color", color);
-		const editor = this.getEditor();
-		if (this.isText() && editor && editor.isEditable) {
-			clearEditorTextColor(editor);
-			return;
-		}
-		const innerHTMLDOM = new DOMParser().parseFromString(this.innerHTML || "", "text/html");
-		innerHTMLDOM.querySelectorAll("*").forEach((el) => {
-			(el as HTMLElement).style.color = "";
-		});
-		this.innerHTML = innerHTMLDOM.body.innerHTML;
-	}
 	isHTML() {
 		return this.originalElement === "__raw_html__" || (isHTMLString(this.getInnerHTML()) && !this.isText());
-	}
-	isIframe() {
-		return this.innerHTML?.startsWith("<iframe");
-	}
-	makeBlockEditable() {
-		const canvasStore = useCanvasStore();
-		this.selectBlock();
-		canvasStore.editableBlock = this;
-		nextTick(() => {
-			this.getEditor()?.commands.focus("all");
-		});
 	}
 	isExtendedFromComponent() {
 		return Boolean(this.extendedFromComponent) || Boolean(this.isChildOfComponent);
 	}
 	getComponentRoot(): Block | null {
 		let block: Block | null = this;
-		const editingMode = useCanvasStore().editingMode;
-
-		if (editingMode == "page") {
-			if (!block.isExtendedFromComponent()) {
-				return null;
-			}
-		}
+		if (!block.isExtendedFromComponent()) return null;
 
 		while (block && block.isExtendedFromComponent()) {
 			if (block.extendedFromComponent) return block;
 			block = block.getParentBlock()!;
-		}
-		if (editingMode == "fragment") {
-			while (block && !block.isExtendedFromComponent() && block.getParentBlock()) {
-				block = block.getParentBlock()!;
-			}
 		}
 		return block;
 	}
@@ -868,23 +475,6 @@ class Block implements BlockOptions {
 		}
 		return null;
 	}
-	convertToRepeater() {
-		this.setBaseStyle("display", "flex");
-		this.setBaseStyle("flexDirection", "column");
-		this.setBaseStyle("alignItems", "flex-start");
-		this.setBaseStyle("justifyContent", "flex-start");
-		this.setBaseStyle("flexWrap", "wrap");
-		this.setBaseStyle("height", "fit-content");
-		this.setBaseStyle("gap", "20px");
-		this.isRepeaterBlock = true;
-	}
-	moveChild(child: Block, index: number) {
-		const childIndex = this.children.findIndex((block) => block.blockId === child.blockId);
-		if (childIndex > -1) {
-			this.children.splice(childIndex, 1);
-			this.children.splice(index, 0, child);
-		}
-	}
 	isRepeater() {
 		return Boolean(this.isRepeaterBlock);
 	}
@@ -895,21 +485,6 @@ class Block implements BlockOptions {
 		}
 		return dataKey;
 	}
-	setDataKey(key: keyof BlockDataKey, value: BlockDataKeyType) {
-		if (!this.dataKey || !this.dataKey[key]) {
-			this.dataKey = {
-				key: "",
-				type: this.isImage() || this.isLink() ? "attribute" : "key",
-				property: this.isLink() ? "href" : this.isImage() ? "src" : "innerHTML",
-				comesFrom: "dataScript",
-			};
-		}
-		if (!value && key === "key") {
-			this.dataKey = {};
-		} else {
-			this.dataKey[key] = value;
-		}
-	}
 	getInnerHTML(): string {
 		let innerHTML = this.innerHTML || "";
 		if (!innerHTML && this.isExtendedFromComponent()) {
@@ -917,60 +492,11 @@ class Block implements BlockOptions {
 		}
 		return String(innerHTML);
 	}
-	getText(): string {
-		const editor = this.getEditor();
-		if (editor && editor.isEditable) {
-			return editor.getText();
-		}
-		return this.getTextContent() || "";
-	}
 	setInnerHTML(innerHTML: string) {
 		this.innerHTML = innerHTML;
 	}
-	toggleVisibility(show: boolean | null = null) {
-		if ((this.getStyle("display") === "none" && show !== false) || show === true) {
-			this.setStyle("display", this.getStyle("__last_display") || "flex");
-			this.setStyle("__last_display", null);
-		} else {
-			this.setStyle("__last_display", this.getStyle("display"));
-			this.setStyle("display", "none");
-		}
-	}
 	isVisible(breakpoint?: string) {
 		return this.getStyle("display", breakpoint) !== "none";
-	}
-	extendFromComponent(componentName: string) {
-		this.extendedFromComponent = componentName;
-		// @ts-expect-error
-		this.referenceComponent?.effect?.run();
-		const component = this.referenceComponent as Block;
-		if (component) {
-			extendWithComponent(this, componentName, component.children);
-		}
-	}
-	isChildOfComponentBlock() {
-		return Boolean(this.isChildOfComponent);
-	}
-	resetWithComponent() {
-		const component = this.referenceComponent;
-		if (component) {
-			resetWithComponent(this, this.extendedFromComponent as string, component.children);
-			// TODO: Remove this
-			const canvasStore = useCanvasStore();
-			canvasStore.activeCanvas?.history?.resume(undefined, true, true);
-		}
-	}
-	syncWithComponent() {
-		const component = this.referenceComponent;
-		if (component) {
-			syncBlockWithComponent(this, this, this.extendedFromComponent as string, component.children);
-		}
-	}
-	rebuildWithComponent(componentId: string, newComponentChildren: Block[], oldComponentChildren: Block[]) {
-		rebuildWithComponent(this, componentId, newComponentChildren, oldComponentChildren);
-	}
-	resetChanges(resetChildren: boolean = false) {
-		resetBlock(this, resetChildren);
 	}
 	convertToLink() {
 		this.elementBeforeConversion = this.element;
@@ -988,96 +514,6 @@ class Block implements BlockOptions {
 			return this.referenceComponent?.element;
 		}
 		return this.element;
-	}
-	getUsedComponentNames() {
-		const componentStore = useComponentStore();
-		const componentNames = [] as string[];
-		if (this.extendedFromComponent) {
-			componentNames.push(this.extendedFromComponent);
-		}
-		if (this.isChildOfComponent) {
-			componentNames.push(this.isChildOfComponent);
-		}
-		this.children.forEach((child) => {
-			componentNames.push(...child.getUsedComponentNames());
-		});
-
-		componentNames.forEach((name) => {
-			componentNames.push(...componentStore.getComponentBlock(name).getUsedComponentNames());
-		});
-
-		return new Set(componentNames);
-	}
-	getUsedVariableNames() {
-		const variableNames = [] as string[];
-		const varPattern = /var\(--([a-zA-Z0-9_-]+)/g;
-
-		const extractVarsFromValue = (value: any) => {
-			if (!value || typeof value !== "string") return;
-			const matches = value.matchAll(varPattern);
-			for (const match of matches) {
-				variableNames.push(match[1]);
-			}
-		};
-
-		const styleObjects = [this.baseStyles, this.mobileStyles, this.tabletStyles];
-		styleObjects.forEach((styleObj) => {
-			if (styleObj) {
-				Object.values(styleObj).forEach(extractVarsFromValue);
-			}
-		});
-
-		if (this.innerHTML) {
-			extractVarsFromValue(this.innerHTML);
-		}
-
-		this.children.forEach((child) => {
-			variableNames.push(...child.getUsedVariableNames());
-		});
-
-		return new Set(variableNames);
-	}
-	isFlex() {
-		return this.getStyle("display") === "flex";
-	}
-	isGrid() {
-		return this.getStyle("display") === "grid";
-	}
-	isRow() {
-		return this.isFlex() && this.getStyle("flexDirection") === "row";
-	}
-	isColumn() {
-		return this.isFlex() && this.getStyle("flexDirection") === "column";
-	}
-	duplicateBlock() {
-		if (this.isRoot()) {
-			return;
-		}
-		const canvasStore = useCanvasStore();
-		const pauseId = canvasStore.activeCanvas?.history?.pause();
-		const blockCopy = getBlockCopy(this);
-		const parentBlock = this.getParentBlock();
-
-		if (blockCopy.getStyle("position") === "absolute") {
-			// shift the block a bit
-			const left = getNumberFromPx(blockCopy.getStyle("left"));
-			const top = getNumberFromPx(blockCopy.getStyle("top"));
-			blockCopy.setStyle("left", `${left + 20}px`);
-			blockCopy.setStyle("top", `${top + 20}px`);
-		}
-
-		let child = null as Block | null;
-		if (parentBlock) {
-			child = parentBlock.addChildAfter(blockCopy, this);
-		} else {
-			child = canvasStore.activeCanvas?.getRootBlock().addChild(blockCopy) as Block;
-		}
-		nextTick(() => {
-			if (child) {
-				child.selectBlock();
-				pauseId && canvasStore.activeCanvas?.history?.resume(pauseId, true, true);
-			}
-		});
 	}
 	setSpacing(type: SpacingType, value: string) {
 		setSpacing(this, type, value);
@@ -1098,61 +534,11 @@ class Block implements BlockOptions {
 		}
 		return dynamicValues;
 	}
-	setDynamicValue(
-		property: BlockDataKey["property"],
-		type: BlockDataKeyType,
-		key: BlockDataKey["key"] | null = null,
-		comesFrom: BlockDataKey["comesFrom"] = "dataScript",
-	) {
-		const existingKey = this.getDynamicKey(property, type);
-		if (existingKey) {
-			this.dynamicValues = this.dynamicValues.map((v) => {
-				if (v.property === property && v.type === type) {
-					return { ...v, key: key || "", comesFrom };
-				}
-				return v;
-			});
-		} else {
-			this.dynamicValues.push({
-				property,
-				type,
-				key: key || "",
-				comesFrom,
-			});
-		}
-	}
-	removeDynamicValue(property: BlockDataKey["property"], type: BlockDataKeyType) {
-		this.dynamicValues = this.dynamicValues.filter((v) => !(v.property === property && v.type === type));
-	}
-	getDynamicKey(property: BlockDataKey["property"], type: BlockDataKeyType): BlockDataKey["key"] | null {
-		const dynamicValue = this.dynamicValues.find((v) => v.property === property && v.type === type);
-		if (dynamicValue) {
-			return dynamicValue.key;
-		}
-		return null;
-	}
-	getRepeaterParent(): Block | null {
-		let parent = this.parentBlock;
-		while (parent) {
-			if (parent.isRepeater()) {
-				return parent;
-			}
-			parent = parent.parentBlock;
-		}
-		return null;
-	}
-	isInsideRepeater(): boolean {
-		return Boolean(this.getRepeaterParent());
-	}
 	getBlockProps(): BlockProps {
 		const propsRoot = this.getPropsRoot();
 		if (!propsRoot) return { ...(this.props || {}) };
 		const referenceProps = propsRoot.extendedFromComponent ? propsRoot.referenceComponent?.props || {} : {};
 		return { ...referenceProps, ...(propsRoot.props || {}) };
-	}
-	setBlockProps(props: BlockProps) {
-		const propsRoot = this.getPropsRoot() || this;
-		propsRoot.props = props;
 	}
 }
 

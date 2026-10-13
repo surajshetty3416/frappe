@@ -1,33 +1,19 @@
-// Builder Page in Studio's editor shell: Builder's canvas as the preview, and the shell's
-// contract answered from Builder's stores.
+// Builder Page in Studio's editor shell: the page as the preview, and the shell's contract
+// answered from the page store.
 import type Block from "@web/block";
 import BuilderCanvas from "@web/components/BuilderCanvas.vue";
 import { webPages } from "@web/data/webPage";
-import useBuilderStore from "@web/stores/builderStore";
 import useCanvasStore from "@web/stores/canvasStore";
 import usePageStore from "@web/stores/pageStore";
 import type { BuilderPage } from "@web/types/doctypes";
-import { getCopyWithoutParent, getRootBlockTemplate } from "@web/utils/helpers";
-import { useDebounceFn, useResizeObserver } from "@vueuse/core";
+import { getRootBlockTemplate } from "@web/utils/helpers";
+import { useDebounceFn } from "@vueuse/core";
 import { defineArtifactEditor, type ElementProperty } from "@shell/editor";
-import { LoadingIndicator, toast } from "frappe-ui";
-import { computed, defineComponent, h, nextTick, provide, ref, watch } from "vue";
+import { LoadingIndicator, createListResource, toast } from "frappe-ui";
+import { computed, defineComponent, h, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 
-const PAD = 24;
 let host: HTMLElement | null = null;
-
-// the canvas is the editor's; in the shell it shows the page and nothing of Builder's chrome
-const style = document.createElement("style");
-style.textContent = `
-[data-studio-preview] [data-builder-canvas] > div.fixed > div:not(.canvas),
-[data-studio-preview] [data-builder-canvas] .canvas > div:not(.__builder_component__),
-[data-studio-preview] [data-builder-canvas] > div.bottom-12,
-[data-studio-preview] [data-builder-canvas] > div.grid.place-items-center,
-[data-studio-preview] [data-builder-canvas] > .overlay { display: none !important; }
-[data-studio-preview] [data-builder-canvas] .canvas { box-shadow: 0 0 0 1px var(--outline-gray-2); border-radius: 2px; }
-`;
-document.head.appendChild(style);
 
 const BuilderPagePreview = defineComponent({
 	name: "BuilderPagePreview",
@@ -38,30 +24,17 @@ const BuilderPagePreview = defineComponent({
 		const canvasStore = useCanvasStore();
 		const canvas = ref<InstanceType<typeof BuilderCanvas> | null>(null);
 		const root = ref<HTMLElement | null>(null);
-		const minHeight = ref(0);
-		const fitted = ref(false);
 
-		provide("pageCanvas", canvas);
-		provide("fragmentCanvas", ref(null));
-		watch(canvas, (value) => {
-			canvasStore.activeCanvas = value;
-			canvasStore.editingMode = "page";
-			fitSoon();
-		});
+		watch(canvas, (value) => (canvasStore.activeCanvas = value));
 		watch(root, (value) => (host = value));
 
 		async function open(pageId: unknown) {
 			if (typeof pageId !== "string" || !pageId) return;
 			if (pageId === "new") return createPage();
-			if (pageId === pageStore.selectedPage && pageStore.pageBlocks.length) return fitSoon();
-			fitted.value = false;
-			await pageStore.setPage(pageId, true, route.query);
+			if (pageId === pageStore.selectedPage && pageStore.pageBlocks.length) return;
+			await pageStore.setPage(pageId, route.query);
 		}
 		watch(() => route.params.pageId, open, { immediate: true });
-		watch(
-			() => pageStore.settingPage,
-			(setting) => !setting && fitSoon(),
-		);
 
 		async function createPage() {
 			const page = (await webPages.insert.submit({
@@ -71,59 +44,27 @@ const BuilderPagePreview = defineComponent({
 			router.replace({ name: "builder-editor", params: { pageId: page.name }, query: route.query });
 		}
 
-		// the page's desktop width fills the panel, top first, like a document
-		async function fit() {
-			const room = root.value;
-			const props = canvas.value?.canvasProps;
-			if (!room || !props) return;
-			const desktop = props.breakpoints.find((breakpoint) => breakpoint.device === "desktop");
-			const scale = Math.min(1, (room.clientWidth - PAD * 2) / (desktop?.width || 1400));
-			props.scale = scale;
-			props.translateX = 0;
-			props.translateY = 0;
-			minHeight.value = (room.clientHeight - PAD * 2) / scale;
-			await nextTick();
-			const page = room.querySelector(".canvas");
-			if (!page) return;
-			props.translateY = (room.getBoundingClientRect().top + PAD - page.getBoundingClientRect().top) / scale;
-			fitted.value = true;
-		}
-		// Builder fits its own way first, as the page loads; this runs after it
-		const fitSoon = () => requestAnimationFrame(() => requestAnimationFrame(() => fit()));
-		useResizeObserver(root, useDebounceFn(fit, 50));
-
 		return () =>
-			h(
-				"div",
-				// the canvas is position: fixed; paint containment keeps it inside the panel
-				{ ref: root, "data-studio-preview": "", class: "relative h-full overflow-hidden bg-surface-gray-2", style: { contain: "paint" } },
-				[
-					pageStore.pageBlocks[0]
-						? h(BuilderCanvas, {
-								ref: canvas,
-								blockData: pageStore.pageBlocks[0],
-								canvasStyles: { minHeight: `${minHeight.value}px` },
-								class: [
-									"canvas-container absolute inset-0 flex justify-center overflow-hidden transition-opacity duration-150",
-									fitted.value && !pageStore.settingPage ? "opacity-100" : "opacity-0",
-								],
-							})
-						: null,
-					!fitted.value || pageStore.settingPage
-						? h("div", { class: "absolute inset-0 grid place-items-center" }, [
-								h(LoadingIndicator, { class: "size-5 text-ink-gray-4" }),
-							])
-						: null,
-				],
-			);
+			h("div", { ref: root, class: "relative h-full bg-surface-base" }, [
+				pageStore.pageBlocks[0]
+					? h(BuilderCanvas, {
+							ref: canvas,
+							blockData: pageStore.pageBlocks[0],
+							class: ["transition-opacity duration-150", pageStore.settingPage ? "opacity-0" : "opacity-100"],
+						})
+					: null,
+				pageStore.settingPage
+					? h("div", { class: "absolute inset-0 grid place-items-center" }, [
+							h(LoadingIndicator, { class: "size-5 text-ink-gray-4" }),
+						])
+					: null,
+			]);
 	},
 });
 
 const findBlock = (id: string) => (useCanvasStore().activeCanvas?.findBlock(id) as Block | null) ?? null;
 const blockNode = (id: string) =>
-	host?.querySelector<HTMLElement>(
-		`.canvas[data-breakpoint="desktop"] .__builder_component__[data-block-id="${CSS.escape(id)}"]`,
-	) ?? null;
+	host?.querySelector<HTMLElement>(`.__builder_component__[data-block-id="${CSS.escape(id)}"]`) ?? null;
 
 const save = useDebounceFn(() => usePageStore().savePage(), 300);
 
@@ -142,66 +83,124 @@ function kind(block: Block) {
 const DEFAULT_NAMES = new Set(["body", "container", "text", "image", "button", "link", "html", "repeater", "section"]);
 const hasText = (block: Block) => block.isText() || block.isLink() || block.isButton();
 
-const sizes = (values: number[], unit = "px") => values.map((value) => ({ label: `${value}`, value: `${value}${unit}` }));
-const SPACING = sizes([0, 4, 8, 12, 16, 24, 32, 48, 64, 96]);
-const RADIUS = [...sizes([0, 4, 8, 12, 16, 24]), { label: "Full", value: "9999px" }];
+type Option = { label: string; value: string };
 
-function property(block: Block, name: string, label: string, icon: string, type: "color" | "select", options?: { label: string; value: string }[]): ElementProperty {
-	let value = String(block.getStyle(name as styleProperty) ?? "");
-	// an inherited value shows as what the page renders
-	if (!value) {
-		const node = blockNode(block.blockId);
-		const rendered = node ? getComputedStyle(node).getPropertyValue(name.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`)) : "";
-		if (type === "color" || options?.some((option) => option.value === rendered)) value = rendered;
-	}
+function select(
+	name: string,
+	label: string,
+	icon: string,
+	value: string,
+	options: Option[],
+	set: (value: string) => void,
+): ElementProperty {
 	return {
 		name,
 		label,
 		icon,
-		type,
-		// a value outside the list still shows, as itself
-		options: options && value && !options.some((option) => option.value === value) ? [{ label: value, value }, ...options] : options,
+		type: "select",
 		value,
-		set(next: string) {
-			block.setStyle(name as styleProperty, next);
+		// a value outside the list still shows, as itself
+		options: value && !options.some((option) => option.value === value) ? [{ label: value, value }, ...options] : options,
+		set(next) {
+			set(next);
 			save();
 		},
 	};
 }
 
-function blockProperties(block: Block): ElementProperty[] {
-	if (hasText(block)) {
-		return [
-			property(block, "fontSize", "Size", "lucide-a-large-small", "select", sizes([12, 14, 16, 18, 20, 24, 30, 36, 48, 60, 72])),
-			property(block, "fontWeight", "Weight", "lucide-bold", "select", [
-				{ label: "Regular", value: "400" },
-				{ label: "Medium", value: "500" },
-				{ label: "Semibold", value: "600" },
-				{ label: "Bold", value: "700" },
-			]),
-			property(block, "textAlign", "Align", "lucide-align-left", "select", [
-				{ label: "Left", value: "left" },
-				{ label: "Center", value: "center" },
-				{ label: "Right", value: "right" },
-			]),
-			property(block, "color", "Color", "lucide-palette", "color"),
-		];
-	}
-	if (block.isImage()) {
-		return [
-			property(block, "objectFit", "Fit", "lucide-scan", "select", [
-				{ label: "Cover", value: "cover" },
-				{ label: "Contain", value: "contain" },
-			]),
-			property(block, "borderRadius", "Corners", "lucide-square-round-corner", "select", RADIUS),
-		];
-	}
-	return [
-		property(block, "background", "Background", "lucide-paint-bucket", "color"),
-		property(block, "padding", "Padding", "lucide-square-dashed", "select", SPACING),
-		property(block, "gap", "Gap", "lucide-between-horizontal-start", "select", SPACING),
-		property(block, "borderRadius", "Corners", "lucide-square-round-corner", "select", RADIUS),
+const NO_LINK = "none";
+function linkProperty(block: Block) {
+	const options = ((webPages.data ?? []) as BuilderPage[])
+		.filter((page) => page.route && !/[<:]/.test(page.route))
+		.map((page) => ({ label: page.page_title || page.route!, value: `/${page.route!.replace(/^\//, "")}` }));
+	const href = String(block.getAttribute("href") ?? "");
+	return select("link", "Link", "lucide-link", href, [{ label: "No link", value: NO_LINK }, ...options], (value) => {
+		if (value === NO_LINK) return block.isLink() && block.unsetLink();
+		if (!block.isLink()) block.convertToLink();
+		block.setAttribute("href", value);
+	});
+}
+
+const images = createListResource({
+	doctype: "File",
+	fields: ["file_name", "file_url"],
+	filters: { is_folder: 0, file_type: ["in", ["PNG", "JPG", "JPEG", "SVG", "WEBP", "GIF"]] },
+	orderBy: "creation desc",
+	pageLength: 50,
+	cache: "web-images",
+});
+function imageProperty(block: Block) {
+	if (!images.fetched && !images.list.loading) images.fetch();
+	const options = ((images.data ?? []) as { file_name: string; file_url: string }[]).map((file) => ({
+		label: file.file_name,
+		value: file.file_url,
+	}));
+	const src = String(block.getAttribute("src") ?? "");
+	return select("image", "Image", "lucide-image", src, options, (value) => block.setAttribute("src", value));
+}
+
+function alignProperty(block: Block) {
+	const node = blockNode(block.blockId);
+	const value = String(block.getStyle("textAlign") || (node ? getComputedStyle(node).textAlign : ""));
+	const options = [
+		{ label: "Left", value: "left" },
+		{ label: "Center", value: "center" },
+		{ label: "Right", value: "right" },
 	];
+	// the browser reports an unset alignment as "start"
+	const shown = value === "start" ? "left" : value;
+	return select("align", "Align", "lucide-align-left", shown, options, (next) => block.setStyle("textAlign", next));
+}
+
+// a flag per breakpoint: desktop, tablet, phone
+const VISIBILITY = [
+	{ label: "Everywhere", value: "111" },
+	{ label: "Desktop only", value: "100" },
+	{ label: "Desktop and tablet", value: "110" },
+	{ label: "Tablet and phone", value: "011" },
+	{ label: "Phone only", value: "001" },
+	{ label: "Hidden", value: "000" },
+];
+function visibilityProperty(block: Block) {
+	const value = ["desktop", "tablet", "mobile"].map((breakpoint) => (block.isVisible(breakpoint) ? "1" : "0")).join("");
+	return select("visibility", "Visibility", "lucide-eye", value, VISIBILITY, (next) => {
+		const maps = [block.baseStyles, block.tabletStyles, block.mobileStyles];
+		const shown = maps.map((styles) => styles.display).find((display) => display && display !== "none");
+		next.split("").forEach((flag, index) => {
+			const styles = maps[index];
+			// a breakpoint that matches the one above inherits it
+			if (index && flag === next[index - 1]) delete styles.display;
+			else if (flag === "0") styles.display = "none";
+			else if (shown || index) styles.display = shown || "flex";
+			else delete styles.display;
+		});
+	});
+}
+
+function blockProperties(block: Block): ElementProperty[] {
+	if (block.isRoot()) return [];
+	return [
+		linkProperty(block),
+		...(block.isImage() ? [imageProperty(block)] : []),
+		...(hasText(block) ? [alignProperty(block)] : []),
+		visibilityProperty(block),
+	];
+}
+
+function codeContent(page: BuilderPage) {
+	const pageStore = usePageStore();
+	const sections: [string, string | null | undefined][] = [
+		["Data script", page.page_data_script],
+		["Data", page.page_data_script ? JSON.stringify(pageStore.pageData, null, 2) : null],
+		...pageStore.activePageScripts.map(
+			(script) => [`Client script: ${script.name} (${script.script_type})`, script.script] as [string, string],
+		),
+		["Head HTML", page.head_html],
+		["Body HTML", page.body_html],
+	];
+	const filled = sections.filter(([, content]) => content?.trim());
+	if (!filled.length) return "This page has no data script, client script or custom HTML.";
+	return filled.map(([title, content]) => `# ${title}\n\n${content!.trim()}`).join("\n\n\n");
 }
 
 const page = computed(() => usePageStore().activePage);
@@ -222,22 +221,28 @@ export default defineArtifactEditor({
 		return {
 			label: live ? "Published" : "Publish",
 			icon: live ? "lucide-check" : undefined,
-			disabled: Boolean(live) || useBuilderStore().readOnlyMode,
+			disabled: Boolean(live),
 			run: async () => {
-				await usePageStore().publishPage(false);
+				await usePageStore().publishPage();
 				toast.success("Published");
 			},
 		};
 	},
 	details() {
-		const route = page.value?.route;
-		if (!route) return [];
-		const path = `/${route.replace(/^\//, "")}`;
-		return [{ label: "Address", value: path, href: page.value?.published ? path : undefined }];
+		const current = page.value;
+		if (!current) return [];
+		const path = `/${(current.route || "").replace(/^\//, "")}`;
+		return [
+			{ label: "Address", value: path, href: current.published ? path : undefined },
+			{ label: "Sign-in", value: current.authenticated_access ? "Required" : "Not required" },
+			{ label: "Indexing", value: current.disable_indexing ? "Off" : "On" },
+			{ label: "Homepage", value: usePageStore().isHomePage() ? "Yes" : "No" },
+			{ label: "Description", value: current.meta_description || "None" },
+			{ label: "Social image", value: current.meta_image || "None", href: current.meta_image || undefined },
+		];
 	},
 	code() {
-		const root = useCanvasStore().activeCanvas?.getRootBlock();
-		return { language: "json", content: root ? JSON.stringify([getCopyWithoutParent(root)], null, 2) : "" };
+		return { language: "text", content: page.value ? codeContent(page.value) : "" };
 	},
 	async reload(modified) {
 		const pageStore = usePageStore();
@@ -245,7 +250,7 @@ export default defineArtifactEditor({
 		if (pageStore.savingPage) await pageStore.waitTillPageIsSaved();
 		// the save this tab made itself
 		if (modified && modified === pageStore.activePage?.modified) return;
-		await pageStore.setPage(pageStore.selectedPage, false);
+		await pageStore.setPage(pageStore.selectedPage);
 	},
 
 	elementAt(node) {

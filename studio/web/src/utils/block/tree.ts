@@ -1,35 +1,4 @@
 import type Block from "@web/block";
-import { generateId } from "@web/utils/helpers";
-
-export function resetBlock(
-	block: Block | BlockOptions,
-	resetChildren: boolean = true,
-	resetOverrides: boolean = true,
-) {
-	block.blockId = generateId();
-	if (resetOverrides) {
-		delete block.innerHTML;
-		delete block.element;
-		block.baseStyles = {};
-		block.mobileStyles = {};
-		block.tabletStyles = {};
-		block.attributes = {};
-		block.customAttributes = {};
-		block.classes = [];
-		block.dataKey = null;
-		block.dynamicValues = [];
-		block.props = {};
-		block.clientScript = {};
-		// @ts-ignore
-		delete block.blockClientScript;
-	}
-
-	if (resetChildren) {
-		block.children?.forEach((child) => {
-			resetBlock(child, resetChildren, !Boolean(child.extendedFromComponent));
-		});
-	}
-}
 
 export function findBlockInTree(blockId: string, blocks: Block[]): Block | null {
 	for (const block of blocks) {

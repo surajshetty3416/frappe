@@ -8,26 +8,19 @@
 	</div>
 </template>
 <script setup lang="ts">
-import useBuilderStore from "@web/stores/builderStore";
 import usePageStore from "@web/stores/pageStore";
-import { __ } from "@web/translation";
 import { useTitle } from "@vueuse/core";
-import { useSiteReadOnlyNotice } from "@web/utils/useSiteReadOnlyNotice";
 import { computed } from "vue";
 import { useRoute } from "vue-router";
 
-// do not remove this
-const builderStore = useBuilderStore();
 const pageStore = usePageStore();
 const route = useRoute();
 
-const title = computed(() => {
-	return pageStore.activePage && route.name !== "builder-home"
-		? `${pageStore.activePage.page_title || __("Untitled")} | Builder`
-		: "Frappe Builder";
-});
-
-useTitle(title);
-
-useSiteReadOnlyNotice();
+useTitle(
+	computed(() =>
+		route.name === "builder-editor" && pageStore.activePage
+			? pageStore.activePage.page_title || "Untitled page"
+			: "Websites",
+	),
+);
 </script>

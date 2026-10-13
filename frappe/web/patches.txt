@@ -11,13 +11,7 @@ frappe.web.doctype.builder_page.patches.attach_client_script_to_builder_page
 frappe.web.doctype.builder_page.patches.enable_auto_convert_to_webp_by_default
 frappe.web.doctype.builder_client_script.patches.trigger_asset_compression
 frappe.web.patches.add_composite_index_to_web_page_view
-frappe.web.patches.migrate_ai_session_messages_to_doctype
 frappe.web.patches.refactor_builder_variables
 frappe.web.patches.reset_builder_page_clicks
-frappe.web.patches.seed_ai_providers_and_models
-frappe.web.patches.move_ai_keys_to_providers
-frappe.web.patches.seed_new_ai_models
-frappe.web.patches.upgrade_ai_models
-frappe.web.patches.delete_empty_ai_sessions
 execute:frappe.call("frappe.web.builder_analytics.enqueue_web_page_view_ingesion")
 execute:frappe.call("frappe.web.builder_analytics.setup_duckdb_table")

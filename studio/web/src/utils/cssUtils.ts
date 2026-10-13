@@ -347,30 +347,6 @@ function collapseShorthand(parts: unknown[], slots: ShorthandSlots): string {
 	return values.join(" ");
 }
 
-function expandBoxShorthand(value: unknown): string[] {
-	return expandShorthand(value, 4);
-}
-
-function fillUnsetSlots(parts: unknown[]): string[] {
-	return parts.map((part) => {
-		const value = String(part ?? "").trim();
-		return value !== "" && value !== "Mixed" && value !== "unset" ? value : "0px";
-	});
-}
-
-function collapseBoxShorthand(parts: unknown[]): string {
-	if (parts.every((part) => String(part ?? "").trim() === "")) return "";
-	return collapseShorthand(fillUnsetSlots(Array.from({ length: 4 }, (_, index) => parts[index])), 4);
-}
-
-function expandGapShorthand(value: unknown): [string, string] {
-	return expandShorthand(value, 2) as [string, string];
-}
-
-function collapseGapShorthand(parts: unknown[]): string {
-	return collapseShorthand(fillUnsetSlots(parts), 2);
-}
-
 /**
  * Normalizes CSS values by adding the default unit where missing.
  * Handles both single and whitespace-separated numeric values.
@@ -388,10 +364,6 @@ function normalizeValueWithUnits(value: string, defaultUnit: string): string {
 
 export {
 	addPxToNumber,
-	collapseBoxShorthand,
-	collapseGapShorthand,
-	expandBoxShorthand,
-	expandGapShorthand,
 	extractNumberAndUnit,
 	getNumberFromPx,
 	getSpacing,

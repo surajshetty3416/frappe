@@ -1,6 +1,6 @@
 import { defineLayer } from "@shell/layer";
 
-import { setAppRouter, validateVisit } from "./router";
+import { validateVisit } from "./router";
 
 export default defineLayer({
 	name: "web",
@@ -12,33 +12,18 @@ export default defineLayer({
 	},
 	component: () => import("./App.vue"),
 	routes: [
-		{ path: "", name: "builder-home", component: () => import("./pages/PageBuilderDashboard.vue") },
-		{ path: "home", redirect: { name: "builder-home" } },
-		{ path: "page", redirect: { name: "builder-home" } },
+		{ path: "", name: "builder-home", component: () => import("./pages/WebPages.vue") },
 		{
 			path: "page/:pageId",
 			name: "builder-editor",
 			component: () => import("./studioEditor").then((editor) => editor.default.preview),
 			meta: { artifact: { doctype: "Builder Page", param: "pageId", editor: () => import("./studioEditor") } },
 		},
-		{
-			path: "page/:pageId/preview",
-			name: "builder-preview",
-			component: () => import("./pages/PagePreview.vue"),
-		},
-		{
-			path: "persona-survey",
-			name: "builder-persona-survey",
-			component: () => import("./pages/PagePersonaSurvey.vue"),
-		},
-		// anything else under the layer (an old link, the editor demo's /studio/web/demo/<page>)
+		// anything else under the layer, such as an old link
 		{ path: ":unknown(.*)*", redirect: { name: "builder-home" } },
 	],
-	setup: async (app) => {
-		setAppRouter(app.config.globalProperties.$router);
-		const [{ registerGlobalComponents }] = await Promise.all([import("./globalComponents"), import("./index.css")]);
-		registerGlobalComponents(app);
-		window.name = "frappe-builder";
+	setup: async () => {
+		await import("./index.css");
 	},
 	beforeEnter: validateVisit,
 });

@@ -353,9 +353,6 @@ class BuilderPage(WebsiteGenerator):
 				delete_standard_dependency_if_unreferenced(doctype, identifier, app, delete_files)
 
 	def on_trash(self):
-		for session in frappe.get_all("Builder AI Session", filters={"page": self.name}, pluck="name"):
-			frappe.delete_doc("Builder AI Session", session, ignore_missing=True)
-
 		if self.is_template and self.template_group:
 			if frappe.conf.developer_mode:
 				delete_template_page_fixture(self, app=template_target_app())

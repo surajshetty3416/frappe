@@ -1,14 +1,11 @@
 <template>
 	<component
 		:is="getComponentName(block)"
-		:selected="isSelected"
 		:data-block-id="block.blockId"
 		:data-block-uid="uidToUse"
 		:data-breakpoint="breakpoint"
-		:draggable="draggable"
 		:class="classes"
 		v-bind="attributes"
-		:readonly="readonly"
 		:style="styles"
 		ref="component">
 		<template v-if="optionText != null">{{ optionText }}</template>
@@ -18,61 +15,36 @@
 			:defaultProps="defaultProps"
 			:block="child"
 			:breakpoint="breakpoint"
-			:preview="preview"
-			:readonly="readonly"
 			:isChildOfComponent="block.isExtendedFromComponent() || isChildOfComponent"
 			:key="child.blockId"
 			:repeater-index="repeaterIndex"
 			v-for="child in block.getChildren().filter((child) => child.isVisible(breakpoint))" />
 	</component>
-	<teleport
-		:to="canvasProps?.overlayElement"
-		v-if="canvasProps?.overlayElement && !preview && Boolean(canvasProps)">
-		<!-- prettier-ignore -->
-		<BlockEditor
-			ref="editor"
-			v-show="!isEditable"
-			v-if="loadEditor"
-			:block="block"
-			:breakpoint="breakpoint"
-			:editable="isEditable"
-			:isSelected="isSelected"
-			:readonly="readonly"
-			:target="(target as HTMLElement)" />
-	</teleport>
 </template>
 <script setup lang="ts">
 import type Block from "@web/block";
 import { builderSettings } from "@web/data/builderSettings";
-import useBuilderStore from "@web/stores/builderStore";
-import useCanvasStore from "@web/stores/canvasStore";
 import useComponentStore from "@web/stores/componentStore";
 import usePageStore from "@web/stores/pageStore";
 import { BlockValueResolver } from "@web/utils/blockValueResolver";
-import componentController from "@web/utils/componentController.js";
 import { needsItalic, setFont } from "@web/utils/fontManager";
 import { extractComponentId, getTextContent } from "@web/utils/helpers";
 import type { BlockClientScriptEmulator } from "@web/utils/scriptSandbox";
-import { useDraggableBlock } from "@web/utils/useDraggableBlock";
 import {
 	computed,
 	inject,
 	nextTick,
 	onMounted,
 	onUnmounted,
-	reactive,
 	ref,
 	useAttrs,
 	watch,
 	watchEffect,
 } from "vue";
-import BlockEditor from "./BlockEditor.vue";
 import BlockHTML from "./BlockHTML.vue";
 import DataLoaderBlock from "./DataLoaderBlock.vue";
 import TextBlock from "./TextBlock.vue";
 
-const builderStore = useBuilderStore();
-const canvasStore = useCanvasStore();
 const componentStore = useComponentStore();
 const component = ref<HTMLElement | InstanceType<typeof TextBlock> | null>(null);
 const attrs = useAttrs();
@@ -85,8 +57,6 @@ const props = withDefaults(
 		block: Block;
 		isChildOfComponent?: boolean;
 		breakpoint?: string;
-		preview?: boolean;
-		readonly?: boolean;
 		data?: Record<string, any> | null;
 		componentData?: Record<string, any> | null;
 		defaultProps?: Record<string, any> | null;
@@ -95,8 +65,6 @@ const props = withDefaults(
 	{
 		isChildOfComponent: false,
 		breakpoint: "desktop",
-		preview: false,
-		readonly: false,
 		data: null,
 		componentData: null,
 		defaultProps: null,
@@ -104,18 +72,7 @@ const props = withDefaults(
 	},
 );
 
-const editingComponentId = computed(() =>
-	canvasStore.fragmentData.fragmentType === "component" &&
-	!props.block.getParentBlock() &&
-	props.block === canvasStore.fragmentData.block
-		? canvasStore.fragmentData.fragmentId
-		: null,
-);
-
 const resolvedComponentData = computed(() => {
-	if (editingComponentId.value && !props.block.getParentBlock()) {
-		return componentController.getComponentDataPreview();
-	}
 	const componentId = extractComponentId(props.block);
 	if (componentId) {
 		return componentStore.getComponentInstanceData(componentId, uidToUse);
@@ -126,21 +83,6 @@ const resolvedComponentData = computed(() => {
 
 defineOptions({
 	inheritAttrs: false,
-});
-
-const draggable = computed(() => {
-	// TODO: enable this
-	return !props.block.isRoot() && !props.preview && false;
-});
-
-const isSelected = ref(false);
-
-const isHovered = computed(() => {
-	return !props.preview && canvasStore.activeCanvas?.hoveredBlock === props.block.blockId;
-});
-
-const selectedInCanvas = computed(() => {
-	return !props.preview && Boolean(canvasStore.activeCanvas?.isSelected(props.block));
 });
 
 // For repeater items the same Block object is rendered multiple times,
@@ -212,13 +154,8 @@ const attributes = computed(() => {
 		[key: string]: any;
 	};
 
-	if (props.block.isImage() && !props.preview) {
-		if (attribs.darkSrc) {
-			if (builderStore.canvasDarkMode || !attribs.src) {
-				attribs.src = attribs.darkSrc;
-			}
-			attribs["data-dark-src"] = "";
-		}
+	if (props.block.isImage()) {
+		if (attribs.darkSrc && !attribs.src) attribs.src = attribs.darkSrc;
 		delete attribs.darkSrc;
 	}
 
@@ -232,7 +169,6 @@ const attributes = computed(() => {
 	) {
 		attribs.block = props.block;
 		attribs.repeaterIndex = props.repeaterIndex;
-		attribs.preview = props.preview;
 		attribs.breakpoint = props.breakpoint;
 		attribs.data = props.data;
 		attribs.componentData = resolvedComponentData.value;
@@ -248,7 +184,6 @@ const attributes = computed(() => {
 	return attribs;
 });
 
-const canvasProps = !props.preview ? (inject("canvasProps") as CanvasProps) : null;
 const emulateBlockClientScript = inject<BlockClientScriptEmulator>(
 	"emulateBlockClientScript",
 	() => () => {},
@@ -272,20 +207,7 @@ const styles = computed(() => {
 		...dynamicStyles,
 	} as BlockStyleMap;
 
-	if (!props.preview && isSelected.value && props.block.activeState) {
-		const [state] = props.block.activeState.split(":");
-
-		if (canvasStore.activeCanvas?.activeBreakpoint === props.breakpoint) {
-			const stateStyles = props.block.getStateStyles(state, props.breakpoint);
-			if (stateStyles) {
-				Object.keys(stateStyles).forEach((key) => {
-					styleMap[key] = stateStyles[key];
-				});
-			}
-		}
-	}
-
-	if (!props.preview && props.block.getTag() === "iframe") {
+	if (props.block.getTag() === "iframe") {
 		styleMap.pointerEvents = "none";
 	}
 
@@ -295,30 +217,10 @@ const styles = computed(() => {
 	}
 
 	Object.keys(styleMap).forEach((key) => {
-		if (key.startsWith("hover:")) {
-			// state style preview on hover
-			// if (!isHovered.value) {
-			// 	delete styleMap[key];
-			// } else {
-			// 	styleMap[key.replace("hover:", "")] = styleMap[key];
-			// 	delete styleMap[key];
-			// }
-			delete styleMap[key];
-		}
+		if (key.startsWith("hover:")) delete styleMap[key];
 	});
 
 	return styleMap;
-});
-
-const loadEditor = computed(() => {
-	return (
-		target.value &&
-		props.block.getStyle("display") !== "none" &&
-		((isSelected.value && props.breakpoint === canvasStore.activeCanvas?.activeBreakpoint) ||
-			(isHovered.value && canvasStore.activeCanvas?.hoveredBreakpoint === props.breakpoint)) &&
-		!canvasProps?.scaling &&
-		!canvasProps?.panning
-	);
 });
 
 const emit = defineEmits(["mounted"]);
@@ -339,13 +241,6 @@ onMounted(async () => {
 	await nextTick();
 	emit("mounted", target.value);
 
-	if (draggable.value) {
-		useDraggableBlock(
-			props.block,
-			component.value as HTMLElement,
-			reactive({ ghostScale: canvasProps?.scale || 1 }),
-		);
-	}
 	isMounted.value = true;
 });
 
@@ -372,13 +267,12 @@ watch(
 	[
 		() => props.block.extendedFromComponent,
 		() => props.block.componentVersion,
-		() => canvasStore.editingMode,
 		() => props.componentData,
 		() => uidToUse,
 		fetchingComponentDetails,
 		allResolvedProps,
 	],
-	([componentId, , , , , fetchingComponentDetails, allResolvedProps]) => {
+	([componentId, , , , fetchingComponentDetails, allResolvedProps]) => {
 		componentDataReady.value = false;
 		// can use extractComponentId but below code is more efficient
 		if (!componentId) {
@@ -427,7 +321,7 @@ watch(
 			breakpoint: props.breakpoint,
 			css: clientScript.css ?? "",
 			javascript:
-				settingPage || (waitsForComponentData && !editingComponentId.value && !dataReady)
+				settingPage || (waitsForComponentData && !dataReady)
 					? ""
 					: (clientScript.javascript ?? ""),
 			componentData: componentData ?? {},
@@ -438,37 +332,9 @@ watch(
 	{ immediate: true },
 );
 
-const isEditable = computed(() => {
-	// to ensure it is right block and not on different breakpoint
-	return (
-		canvasStore.editableBlock === props.block &&
-		canvasStore.activeCanvas?.activeBreakpoint === props.breakpoint
-	);
-});
-
 const hiddenDueToVisibilityCondition = computed(() => {
 	return valueResolver.isHiddenByVisibilityCondition();
 });
 
-watch(
-	selectedInCanvas,
-	(selected, _, onCleanup) => {
-		if (!selected) {
-			props.block.activeState = null;
-		}
-		if (!selected || !props.block.isImage()) {
-			isSelected.value = selected;
-			return;
-		}
 
-		// Preserve double-click image uploads before showing the selection editor.
-		const timeout = setTimeout(() => {
-			isSelected.value = true;
-		}, 200);
-		onCleanup(() => clearTimeout(timeout));
-	},
-	{ immediate: true },
-);
-
-// Note: All the block event listeners are delegated to parent for better scalability
 </script>
