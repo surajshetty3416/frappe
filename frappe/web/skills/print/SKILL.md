@@ -19,6 +19,7 @@ A print format is a block tree on the HTML canvas, saved with save_print_format.
 - `margin_mm` is the margin on every side. A badge takes 0, so its bands reach the edge of the card; pad its blocks instead, and give it no border. A document takes 10 to 15.
 - The root fills the page inside the margins. The width inside is the page width minus two margins: 105 mm on A6 with no margin.
 - Write sizes in mm and font sizes in pt.
+- Set `fontFamily` once, on the root, as one family such as Inter. The canvas reads a list such as `"Menlo, monospace"` as one unknown font and prints in a serif.
 - To put a block at the bottom, make the root a flex column and give the block above it `flexGrow: '1'`.
 
 ## Jinja
@@ -27,7 +28,7 @@ A print format is a block tree on the HTML canvas, saved with save_print_format.
 - Quote every value that starts with `{`. Inside it, use single quotes.
 - A color by a field's value, with a default for the rest:
   `background: "{{ {'Speaker': '#ea580c', 'Student': '#16a34a', 'Sponsor Pass': '#ca8a04'}.get(doc.ticket_type, '#2563eb') }}"`
-- A QR code of a field: `text: "{{ qr_code(doc.ticket_code, 113) }}"` in a block sized in mm, `style: {width: 30mm}`. The code fills the block's width. Print the code under it as its own text block in `fontFamily: "ui-monospace, Menlo, monospace"`.
+- A QR code of a field: `text: "{{ qr_code(doc.ticket_code, 113) }}"` in a block sized in mm, `style: {width: 30mm}`. The code fills the block's width. Print the code under it as its own text block, in the badge's font with `letterSpacing: 0.08em`.
 - Shrink a long text to fit: `fit_font_size(text, width_mm, max_pt, min_pt, lines)` gives the font size. The width is the text's box: the width inside the margins minus the horizontal padding around it.
 - On a badge the name is the largest text. Let it wrap to two lines before it shrinks, and floor it above the largest size of every line under it, which shrink too:
   `style: {fontSize: "{{ fit_font_size(doc.full_name, 93, 26, 16, 2) }}"}` and `style: {fontSize: "{{ fit_font_size(doc.company or '', 93, 13, 8) }}"}`
@@ -79,5 +80,5 @@ c:
         style: {width: 30mm, flexShrink: '0'}
       - el: div
         text: "{{ doc.ticket_code }}"
-        style: {fontSize: 8pt, fontFamily: "ui-monospace, Menlo, monospace", letterSpacing: 0.08em}
+        style: {fontSize: 8pt, fontWeight: '600', letterSpacing: 0.08em}
 ```
