@@ -8,9 +8,14 @@
 		<aside
 			v-if="drawer"
 			data-editor-drawer
-			:class="drawer === 'code' && codeTabs.length ? 'w-[600px]' : 'w-[360px]'"
 			class="absolute inset-y-0 right-0 z-20 flex max-w-full flex-col overflow-hidden border-l border-outline-gray-1 bg-surface-base shadow-xl"
+			:style="{ width: `${width}px` }"
 		>
+			<div
+				class="absolute inset-y-0 left-0 z-10 w-1.5 cursor-col-resize hover:bg-surface-gray-3"
+				:class="resizing ? 'bg-surface-gray-3' : ''"
+				@pointerdown="startResize"
+			/>
 			<header class="flex h-10 shrink-0 items-center justify-between border-b border-outline-gray-1 pl-4 pr-2">
 				<h2 class="text-base font-medium text-ink-gray-8">{{ label }}</h2>
 				<div class="flex items-center gap-0.5">
@@ -68,7 +73,7 @@
 				<dl class="px-4 py-3" :class="detailsForm ? 'border-t border-outline-gray-1' : ''">
 					<div v-for="row in details" :key="row.label" class="flex items-baseline gap-3 py-1.5">
 						<dt class="w-24 shrink-0 text-sm text-ink-gray-5">{{ row.label }}</dt>
-						<dd class="min-w-0 flex-1 break-words text-sm text-ink-gray-8">
+						<dd class="min-w-0 flex-1 break-words text-sm text-ink-gray-8" :title="row.title">
 							<a v-if="row.href" :href="row.href" target="_blank" class="underline decoration-outline-gray-3 underline-offset-2 hover:decoration-outline-gray-5">{{ row.value }}</a>
 							<template v-else>{{ row.value }}</template>
 						</dd>
@@ -93,11 +98,12 @@
 </template>
 
 <script setup lang="ts">
+import { useStorage } from "@vueuse/core"
 import { Avatar, Button, Skeleton, TabButtons, dayjs, toast } from "frappe-ui"
 import { computed, onBeforeUnmount, reactive, ref, watch } from "vue"
 
 import { type ArtifactInfo, type Version, getArtifactInfo, getVersions, restoreVersion } from "../artifacts"
-import type { ArtifactEditor } from "../editor"
+import type { ArtifactDetail, ArtifactEditor } from "../editor"
 import { onDocUpdate } from "../realtime"
 import LayerComponent from "./LayerComponent.vue"
 
@@ -135,16 +141,34 @@ async function restore(version: string) {
 
 const info = ref<ArtifactInfo | null>(null)
 const details = computed(() => {
-	const rows = [...(props.editor?.details() ?? [])]
+	const rows: (ArtifactDetail & { title?: string })[] = [...(props.editor?.details() ?? [])]
 	if (info.value) {
 		rows.push(
 			{ label: "Created by", value: info.value.owner },
-			{ label: "Created", value: dayjs(info.value.creation).format("D MMM YYYY, h:mm a") },
-			{ label: "Last changed", value: dayjs(info.value.modified).fromNow() }
+			{ label: "Created", value: dayjs(info.value.creation).fromNow(), title: dayjs(info.value.creation).format("D MMM YYYY, h:mm a") },
+			{ label: "Last changed", value: dayjs(info.value.modified).fromNow(), title: dayjs(info.value.modified).format("D MMM YYYY, h:mm a") }
 		)
 	}
 	return rows
 })
+// one width for every drawer, which a drag on its edge changes
+const width = useStorage("studio-drawer-width", 480)
+const resizing = ref(false)
+function startResize(event: PointerEvent) {
+	const from = width.value
+	const { clientX } = event
+	event.preventDefault()
+	resizing.value = true
+	const move = (moved: PointerEvent) => (width.value = Math.round(Math.min(900, Math.max(360, from + clientX - moved.clientX))))
+	const stop = () => {
+		resizing.value = false
+		window.removeEventListener("pointermove", move)
+		window.removeEventListener("pointerup", stop)
+	}
+	window.addEventListener("pointermove", move)
+	window.addEventListener("pointerup", stop)
+}
+
 const detailsForm = computed(() => props.editor?.detailsForm?.() ?? null)
 
 const codeTabs = computed(() => props.editor?.codeTabs?.() ?? [])

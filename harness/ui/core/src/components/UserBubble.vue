@@ -1,5 +1,5 @@
 <template>
-	<div class="group flex flex-col items-end gap-1">
+	<div class="group relative flex flex-col items-end">
 		<div class="flow-prose w-full rounded-6 bg-surface-gray-1 px-3 py-2 text-ink-gray-8">
 			<div v-if="imageTiles.length" class="flex flex-wrap gap-1.5" :class="hasText || chips.length ? 'mb-2' : ''">
 				<button
@@ -40,7 +40,8 @@
 				{{ expanded ? "Show less" : "Show more" }}
 			</button>
 		</div>
-		<span class="flow-hover-reveal flex items-center gap-1">
+		<!-- over the gap below, so the bubble keeps the turn's rhythm -->
+		<span class="flow-hover-reveal absolute right-0 top-full z-10 mt-0.5 flex items-center gap-1">
 			<CopyButton :text="text" />
 		</span>
 		<ImageViewer v-if="viewer" :src="previews[viewer.id]" :alt="viewer.name" @close="viewer = null" />

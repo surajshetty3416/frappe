@@ -52,10 +52,10 @@
 			ref="toolbar"
 			data-selection-ui
 			data-layer="shell"
-			class="absolute z-[1002] flex h-9 items-center gap-0.5 rounded-6 border border-outline-gray-2 bg-surface-base p-1 shadow-lg"
+			class="absolute z-[1002] flex h-9 items-center gap-0.5 overflow-x-auto rounded-6 border border-outline-gray-2 bg-surface-base p-1 shadow-lg [scrollbar-width:none] [&>*]:shrink-0"
 			:style="toolbarStyle"
 		>
-			<span class="flex max-w-[160px] items-center gap-1.5 px-1.5 text-sm text-ink-gray-6">
+			<span class="flex max-w-[160px] shrink-0 items-center gap-1.5 px-1.5 text-sm text-ink-gray-6">
 				<span :class="selected.icon" class="size-4 shrink-0 text-ink-gray-5" />
 				<span class="truncate">{{ selected.label }}</span>
 			</span>
@@ -127,6 +127,12 @@ function describeSelection() {
 }
 onBeforeUnmount(() => (selection.value = null))
 
+// a drawer over the preview lets go of the selection, which would show through
+watch(
+	() => props.covered,
+	(covered) => covered && (selected.value = null)
+)
+
 watch(commenting, (on) => {
 	if (on) selected.value = null
 	else closeDraft(true)
@@ -148,11 +154,27 @@ const properties = computed(() => (selected.value && props.editor ? props.editor
 const actions = computed(() => (selected.value && props.editor?.actions ? props.editor.actions(selected.value.id) : []))
 const ACTION_KEYS: Record<string, string> = { delete: "Delete", duplicate: "⌘D" }
 async function runAction(action: ElementAction) {
+	const from = selected.value
 	try {
-		await action.run()
+		const made = await action.run()
+		if (typeof made === "string" && from) selectMade(made, from)
 	} catch (error) {
 		toast.error((error as Error)?.message || "That did not work")
 	}
+}
+
+// an action's new element (a duplicate) takes the selection once it is on screen
+function selectMade(id: string, from: PreviewElement, frames = 30) {
+	const rect = props.editor?.elementRect(id)
+	if (!rect) {
+		if (frames) requestAnimationFrame(() => selectMade(id, from, frames - 1))
+		return
+	}
+	const atCentre = document
+		.elementsFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2)
+		.map((node) => props.editor?.elementAt(node))
+		.find((element) => element?.id === id)
+	selected.value = atCentre ?? { ...from, id }
 }
 
 const canResize = computed(() => Boolean(selected.value && props.editor?.resize && props.editor.resizable?.(selected.value.id)))
@@ -318,12 +340,11 @@ const toolbarStyle = computed(() => {
 	const gap = 8
 	// the preview insets its sheet; the toolbar stays inside it
 	const inset = 24
-	let top = box.top - height - gap
-	if (top < gap) top = box.top + box.height + gap
-	if (top + height > room.clientHeight - gap) top = Math.max(gap, box.top + gap)
+	// above the element; with no room above it overlaps the element's own top, never a sibling below it
+	const top = Math.min(Math.max(box.top - height - gap, gap), room.clientHeight - height - gap)
 	const centered = box.left + box.width / 2 - width / 2
-	const left = Math.min(Math.max(centered, inset), room.clientWidth - width - inset)
-	return { top: `${top}px`, left: `${left}px` }
+	const left = Math.max(Math.min(Math.max(centered, inset), room.clientWidth - width - inset), gap)
+	return { top: `${top}px`, left: `${left}px`, maxWidth: `${room.clientWidth - gap * 2}px` }
 })
 
 function onKeydown(event: KeyboardEvent) {

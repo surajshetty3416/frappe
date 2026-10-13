@@ -21,14 +21,14 @@
 			</PalettePanel>
 
 			<!-- messages waiting for the run to end, and what waits to join the next message -->
-			<div v-if="flow.state.queued.length || contextChips.length" class="mb-2 flex flex-wrap gap-1.5">
+			<div v-if="flow.state.queued.length" class="mb-2 flex flex-col items-start gap-1.5">
 				<span
 					v-for="item in flow.state.queued"
 					:key="item.key"
 					class="flex h-7 max-w-full items-center gap-1 rounded-4 border border-outline-gray-2 bg-surface-base pl-2 pr-1"
 				>
 					<span class="lucide-clock size-3.5 flex-none text-ink-gray-5" />
-					<span class="min-w-0 max-w-[16rem] truncate text-sm text-ink-gray-7">{{ item.label }}</span>
+					<span class="min-w-0 truncate text-sm text-ink-gray-7">{{ item.label }}</span>
 					<button
 						type="button"
 						class="grid size-5 flex-none place-items-center rounded-3 text-ink-gray-5 hover:bg-surface-gray-2 hover:text-ink-gray-8"
@@ -46,7 +46,9 @@
 						<span class="lucide-x size-3.5" />
 					</button>
 				</span>
-				<span v-for="chip in contextChips" :key="chip.key" data-context-chip :class="[chipClass, '!max-w-[200px]']" :title="chip.title">
+			</div>
+			<div v-if="contextChips.length" class="mb-2 flex flex-wrap gap-1.5">
+				<span v-for="chip in contextChips" :key="chip.key" data-context-chip :class="[chipClass, '!max-w-full']" :title="chip.title">
 					<ContextChipIcon :chip="chip" />
 					<span class="min-w-0 truncate text-sm text-ink-gray-8">{{ chip.label }}</span>
 					<button type="button" :class="chipRemoveClass" title="Remove" @click="flow.options.context.remove(chip.key)">
@@ -202,7 +204,11 @@ const running = computed(() => flow.state.conversation.running)
 // once the text wraps it keeps its own row until the box empties, or it would flip back and forth
 const wrapped = ref(false)
 const compact = computed(() => !wrapped.value && !text.value.includes("\n"))
-const placeholder = computed(() => flow.options.placeholder ?? (flow.state.sessionId ? "Reply…" : "Describe what to build…"))
+const placeholder = computed(
+	() =>
+		flow.options.placeholder ??
+		(flow.state.sessionId ? (flow.options.skills === false ? "Reply…" : "Reply, / for a skill") : "Describe what to build…"),
+)
 
 const MODES = { auto: "Auto-approve", ask: "Ask first" }
 const currentMode = computed(() => {
@@ -409,11 +415,13 @@ const imageTiles = computed(() => staged(isImageTile))
 const fileChips = computed(() => staged((item) => !isImageTile(item)))
 const chipClass = "flex h-7 max-w-[240px] items-center gap-1.5 rounded-4 border border-outline-gray-2 bg-surface-base pl-2 pr-1"
 const chipRemoveClass = "grid size-5 flex-none place-items-center rounded-3 text-ink-gray-5 hover:bg-surface-gray-2 hover:text-ink-gray-8"
-const contextChips = computed(() => flow.options.context?.pending() ?? [])
+// what rides along with the message (the open artifact), then what makes one worth sending on its own (comments)
+const pendingChips = computed(() => flow.options.context?.pending() ?? [])
+const contextChips = computed(() => [...(flow.options.context?.attached?.() ?? []), ...pendingChips.value])
 const canSend = computed(
 	() =>
 		!submitting.value &&
-		(text.value.trim().length > 0 || attachments.value.length > 0 || quotes.value.length > 0 || contextChips.value.length > 0),
+		(text.value.trim().length > 0 || attachments.value.length > 0 || quotes.value.length > 0 || pendingChips.value.length > 0),
 )
 
 function onKey(e) {

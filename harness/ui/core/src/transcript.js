@@ -532,7 +532,8 @@ export function buildItems(conversation, expandedTurnKeys = new Set(), openPanel
 		}
 		bufferedThoughts = []
 	}
-	const appendAssistantBlocks = (blocks, { entry = null, provisional = false } = {}) => {
+	const appendAssistantBlocks = (rawBlocks, { entry = null, provisional = false, seconds = null } = {}) => {
+		const blocks = mergedThoughts(rawBlocks, seconds)
 		// a thought is live only while its chunks are still arriving — i.e. while it
 		// is the newest streamed block. Any block after it (a tool call, text) means
 		// that thought ended: it settles to "Thought" and the status line takes over.
@@ -581,13 +582,17 @@ export function buildItems(conversation, expandedTurnKeys = new Set(), openPanel
 		}
 	}
 
+	let previousTs = null
 	for (const entry of conversation.entries) {
 		currentTurnKey = turnByEntry.get(entry) ?? currentTurnKey
+		// the log has no thinking clock: a message took as long as the gap since the entry before it
+		const seconds = Number.isFinite(entry.ts) && Number.isFinite(previousTs) ? entry.ts - previousTs : null
+		if (Number.isFinite(entry.ts)) previousTs = entry.ts
 		if (entry.type === "user_message") {
 			flushThoughts()
 			items.push({ kind: "user", key: `u:${entry.seq}`, entry })
 		} else if (entry.type === "assistant_message") {
-			appendAssistantBlocks(entry.content ?? [], { entry })
+			appendAssistantBlocks(entry.content ?? [], { entry, seconds })
 		} else if (entry.type === "tool_result") {
 			const step = stepsById.get(entry.tool_call_id)
 			if (step) step.result = entry
@@ -804,6 +809,21 @@ function withoutFlowFields(object) {
 			.filter(([key]) => !FLOW_FIELDS.has(key))
 			.map(([key, value]) => [key, key === "content" && Array.isArray(value) ? value.map(withoutFlowFields) : value]),
 	)
+}
+
+// Adjacent thoughts are one row, timed by their message. A thought the provider sent without its text still shows how long it took.
+function mergedThoughts(blocks, seconds) {
+	const merged = []
+	for (const block of blocks) {
+		if (block.type !== "thinking") merged.push(block)
+		else {
+			const text = block.redacted ? "" : (block.thinking ?? "").trim()
+			const last = merged[merged.length - 1]
+			if (last?.type === "thinking") last.thinking = [last.thinking, text].filter(Boolean).join("\n\n")
+			else merged.push({ type: "thinking", thinking: text, seconds })
+		}
+	}
+	return merged
 }
 
 // ids of the rows an item can expand: its tool calls and thoughts

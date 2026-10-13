@@ -12,6 +12,7 @@
 			<slot name="intro" />
 		</div>
 		<MessageList v-else :key="viewKey" />
+		<ReplayBar v-if="!readOnly" :key="viewKey" />
 		<Composer v-if="!readOnly" ref="composer" :key="viewKey" />
 		<p v-else class="flex-none px-4 pb-4 text-center text-sm text-ink-gray-5">
 			Only the owner of this chat can send messages.
@@ -36,6 +37,7 @@ import { resultArtifact } from "@flow/ui-core/transcript.js";
 import { FrappeClient } from "../api/client.js";
 import * as transport from "../api/frappe.js";
 import { connectSocket } from "../api/socket.js";
+import ReplayBar from "./ReplayBar.vue";
 import { presentTool } from "./toolMeta.js";
 
 const props = defineProps({
@@ -134,7 +136,10 @@ watch(
 
 const readOnly = computed(() => Boolean(readOnlyBySession[shown.value?.state.sessionId]));
 const composer = ref(null);
-const blank = computed(() => !props.session && !props.initialMessage && isBlank(shown.value));
+// a chat never sent to starts like a new one
+const unsent = (store) =>
+	!store.state.loading && !store.state.conversation.entries.length && !store.state.conversation.running && !busy(store);
+const blank = computed(() => !props.initialMessage && (props.session ? unsent(shown.value) : isBlank(shown.value)));
 
 // the shown chat got its session, or lost it
 watch(

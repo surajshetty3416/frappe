@@ -2,23 +2,22 @@
 	<div>
 		<component
 			:is="expandable ? 'button' : 'div'"
-			class="-mx-1.5 flex w-[calc(100%+0.75rem)] items-center gap-2 rounded-4 px-1.5 py-1 text-left text-sm"
-			:class="expandable ? 'group hover:bg-surface-gray-2' : ''"
+			:type="expandable ? 'button' : undefined"
+			class="-mx-1.5 flex w-fit select-none items-center gap-2 rounded-4 px-1.5 py-1 text-sm text-ink-gray-5"
+			:class="expandable ? 'transition-colors duration-150 ease-out hover:bg-surface-gray-2 hover:text-ink-gray-7' : ''"
+			:aria-expanded="expandable ? open : undefined"
 			@click="expandable && (open = !open)"
 		>
-			<span class="relative size-4 flex-none text-ink-gray-5">
-				<span class="lucide-brain absolute inset-0 size-4" :class="open ? 'opacity-0' : expandable ? 'group-hover:opacity-0' : ''" />
-				<span
-					v-if="expandable"
-					class="lucide-chevron-right absolute inset-0 size-4 transition-transform"
-					:class="open ? 'rotate-90' : 'opacity-0 group-hover:opacity-100'"
-				/>
-			</span>
-			<span class="flex-none" :class="live ? 'flow-shimmer' : 'text-ink-gray-6'">{{ live ? "Thinking" : "Thought" }}</span>
-			<span class="min-w-0 flex-1 truncate text-ink-gray-5">{{ preview }}</span>
+			<span class="lucide-brain size-4 flex-none" />
+			<span :class="live ? 'flow-shimmer' : ''">{{ label }}</span>
+			<span
+				v-if="expandable"
+				class="lucide-chevron-right size-3.5 flex-none transition-transform duration-150 ease-out"
+				:class="open ? 'rotate-90' : ''"
+			/>
 		</component>
 
-		<div v-if="open && expandable" class="mb-1 ml-6 mt-1 border-l border-outline-gray-2 pl-3">
+		<div v-if="open && expandable" class="mb-1 ml-2 mt-1 border-l border-outline-gray-2 pl-4">
 			<div ref="panelEl" class="max-h-[260px] overflow-y-auto" @scroll="onPanelScroll">
 				<MarkdownContent :text="block.thinking" class="text-sm leading-relaxed text-ink-gray-5" />
 			</div>
@@ -30,6 +29,7 @@
 import { computed, nextTick, ref, watch } from "vue"
 
 import { usePanelOpen } from "../panels.js"
+import { formatDuration } from "../transcript.js"
 import MarkdownContent from "./MarkdownContent.vue"
 
 const props = defineProps({
@@ -63,17 +63,10 @@ watch(
 	},
 )
 
-const expandable = computed(() => !props.block.redacted && !!props.block.thinking)
-const preview = computed(() => {
-	if (props.block.redacted) return ""
-	const line = (props.block.thinking ?? "").split("\n").find((l) => l.trim()) ?? ""
-	// markdown syntax is noise at one-line size; the panel renders it fully
-	return line
-		.replace(/^#{1,6}\s+/, "")
-		.replace(/\*\*([^*]+)\*\*/g, "$1")
-		.replace(/__([^_]+)__/g, "$1")
-		.replace(/\*([^*]+)\*/g, "$1")
-		.replace(/`([^`]+)`/g, "$1")
-		.replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
+const expandable = computed(() => !!props.block.thinking)
+const label = computed(() => {
+	if (props.live) return "Thinking"
+	const seconds = props.block.seconds
+	return Number.isFinite(seconds) ? `Thought for ${formatDuration(Math.max(1, seconds) * 1000)}` : "Thought"
 })
 </script>

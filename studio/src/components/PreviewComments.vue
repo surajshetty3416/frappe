@@ -21,7 +21,7 @@
 			ref="card"
 			data-selection-ui
 			data-comment-ui
-			class="pointer-events-auto absolute w-72 rounded-6 border border-outline-gray-2 bg-surface-base p-2 shadow-xl"
+			class="pointer-events-auto absolute w-[360px] rounded-6 border border-outline-gray-2 bg-surface-base p-2 shadow-xl"
 			:style="{ left: `${popover.left}px`, top: `${popover.top}px` }"
 		>
 			<div class="flex h-6 items-center gap-1.5 px-1 text-sm text-ink-gray-5">
@@ -109,14 +109,17 @@ const popover = computed(() => {
 	// a new pin's popover shows at once, before the next frame places the pin
 	const spot = open && (spots.value[open.key ? String(open.key) : NEW] ?? spotOf(open.element.id, open.x, open.y))
 	const room = props.host
-	if (!spot || !room) return null
-	const width = 288
+	const rect = open && props.editor.elementRect(open.element.id)
+	const origin = room?.getBoundingClientRect()
+	if (!spot || !room || !rect || !origin) return null
+	// below the element it comments on, so the element stays in view; above it when there is no room below
+	const width = 360
 	const height = card.value?.offsetHeight ?? 84
 	const gap = 8
-	let left = spot.left + 28 + gap
-	if (left + width > room.clientWidth - gap) left = spot.left - width - gap
-	left = Math.max(gap, left)
-	const top = Math.min(Math.max(spot.top - 24, gap), room.clientHeight - height - gap)
+	const left = Math.min(Math.max(spot.left - 12, gap), room.clientWidth - width - gap)
+	const below = rect.bottom - origin.top + gap
+	const above = rect.top - origin.top - height - gap
+	const top = below + height <= room.clientHeight - gap ? below : above >= gap ? above : room.clientHeight - height - gap
 	return { left, top }
 })
 

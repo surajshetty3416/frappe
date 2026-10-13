@@ -70,10 +70,16 @@ export function removeComment(key: number) {
 
 const artifactKey = (doctype: string, name: string) => `${doctype}/${name}`
 
-export function chatContext(open: { doctype: string; name: string; title: string; path: string } | null): ChatContext | null {
+// what the person took off the next message: the open artifact, by key, and the selected element, by id
+export const detached = ref<{ artifact: string | null; selection: string | null }>({ artifact: null, selection: null })
+
+type OpenArtifact = { doctype: string; name: string; title: string; path: string }
+
+export function chatContext(open: OpenArtifact | null): ChatContext | null {
 	const context: ChatContext = {}
-	if (open) context.artifact = open
-	if (open && selection.value) context.selection = selection.value
+	const attach = open && detached.value.artifact !== artifactKey(open.doctype, open.name)
+	if (attach) context.artifact = open
+	if (attach && selection.value && detached.value.selection !== selection.value.id) context.selection = selection.value
 	if (comments.value.length) {
 		context.comments = comments.value.map((comment, i) => {
 			const [doctype, ...name] = comment.artifact.split("/")
@@ -96,6 +102,19 @@ const carried = new WeakMap<ChatContext, number[]>()
 export function clearSent(context: ChatContext | null) {
 	const sent = (context && carried.get(context)) ?? []
 	comments.value = comments.value.filter((comment) => !sent.includes(comment.key))
+	if (sent.length) commenting.value = false
+}
+
+// the open artifact and its selection ride along with the next message unless taken off
+export const attachedChips = (open: OpenArtifact | null): ContextChip[] => {
+	const context = chatContext(open)
+	return context ? contextChips({ artifact: context.artifact, selection: context.selection }) : []
+}
+
+export function detach(key: string, open: OpenArtifact | null) {
+	if (key === "artifact" && open) detached.value.artifact = artifactKey(open.doctype, open.name)
+	else if (key === "selection" && selection.value) detached.value.selection = selection.value.id
+	else removeComment(Number(key))
 }
 
 export const pendingChips = (): ContextChip[] =>

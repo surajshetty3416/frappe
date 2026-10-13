@@ -84,6 +84,7 @@ export interface ElementAction {
 	name: string
 	label: string
 	icon: string
+	// an action that makes an element (duplicate) returns or resolves to its id, and the shell selects it
 	run(): unknown
 }
 

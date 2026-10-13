@@ -40,16 +40,15 @@
 				/>
 				<Tooltip v-else :text="editor ? 'Rename' : undefined" :disabled="!editor">
 					<span
-						class="block min-w-[72px] max-w-[240px] truncate rounded-4 px-1 py-0.5 text-base font-medium text-ink-gray-8"
+						class="block min-w-0 max-w-[240px] truncate rounded-4 px-1 py-0.5 text-base font-medium text-ink-gray-8"
 						:class="editor ? 'cursor-text hover:bg-surface-gray-2' : ''"
 						@click="startRename"
 						>{{ title }}</span
 					>
 				</Tooltip>
-				<!-- in a narrow panel the label gives way first, down to its dot -->
-				<span v-if="status" class="flex min-w-1.5 shrink-[20] items-center gap-1.5 text-sm text-ink-gray-5" :title="status.label">
+				<span v-if="status" class="flex shrink-0 items-center gap-1.5 whitespace-nowrap text-sm text-ink-gray-5">
 					<span class="size-1.5 shrink-0 rounded-full" :class="STATUS_DOT[status.theme]" />
-					<span class="truncate">{{ status.label }}</span>
+					<span>{{ status.label }}</span>
 				</span>
 				<TabButtons
 					v-if="views.length"
@@ -61,13 +60,20 @@
 				<LayerComponent v-if="barControls" :mount="barControls" :layer="layerName" />
 			</div>
 			<div class="flex shrink-0 items-center gap-0.5">
-				<TabButtons
-					v-if="modes.length > 1"
-					class="mr-1"
-					:options="MODES"
-					:model-value="editorMode"
-					@update:model-value="(mode) => setMode(mode as EditorMode)"
-				/>
+				<div v-if="modes.length > 1" role="radiogroup" aria-label="Mode" class="mr-1 flex items-center gap-0.5">
+					<Button
+						v-for="mode in MODES"
+						:key="mode.value"
+						role="radio"
+						variant="ghost"
+						:icon="mode.icon"
+						:tooltip="mode.label"
+						:aria-label="mode.label"
+						:aria-checked="editorMode === mode.value"
+						:class="editorMode === mode.value ? '!bg-surface-gray-3 !text-ink-gray-8' : ''"
+						@click="setMode(mode.value)"
+					/>
+				</div>
 				<Button
 					variant="ghost"
 					icon="lucide-message-square-plus"
@@ -139,8 +145,8 @@ const STATUS_DOT = { gray: "bg-surface-gray-5", green: "bg-surface-green-7", ora
 
 const MODES = [
 	{ value: "edit", label: "Edit", icon: "lucide-mouse-pointer-2" },
-	{ value: "preview", label: "Preview (Esc to edit)", icon: "lucide-play" },
-]
+	{ value: "preview", label: "Preview (Esc to edit)", icon: "lucide-eye" },
+] as const
 
 const route = useRoute()
 const router = useRouter()
@@ -172,6 +178,7 @@ watch(
 			title: findTab(open.doctype, open.name)?.title ?? open.name,
 			icon: layer?.icon ?? "lucide-file",
 			path: route.fullPath,
+			chat: typeof route.query.chat === "string" ? route.query.chat : null,
 		})
 		if (!open.editor) {
 			const info = await getArtifactInfo(open.doctype, open.name).catch(() => null)

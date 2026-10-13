@@ -37,7 +37,8 @@ function readJSON(key, fallback, storage = globalThis.localStorage) {
 //   context        what the host tells the agent with each message: { snapshot() → context or
 //                  null, taken as a message is sent; sent(context), once it is delivered or
 //                  queued; pending() → chips waiting above the composer, which make a message
-//                  worth sending on their own; remove(key); chips(context) → a bubble's chips }
+//                  worth sending on their own; attached() → chips the message carries along, not
+//                  worth sending alone; remove(key); chips(context) → a bubble's chips }
 export function createFlowStore(client, options = {}) {
 	options = { storageKey: "flow.ui", maxAttachments: MAX_ATTACHMENTS, presentTool: null, ...options }
 	const keys = { prefs: `${options.storageKey}.prefs`, queue: `${options.storageKey}.queue` }

@@ -1,8 +1,11 @@
 <template>
 	<Popover v-if="property.type === 'color'" side="bottom" align="start">
 		<template #trigger>
-			<Button variant="ghost" :tooltip="property.label">
-				<span class="block size-4 rounded-full border border-outline-gray-2" :style="{ background: property.value || 'transparent' }" />
+			<Button variant="ghost" :tooltip="property.label" :aria-label="property.label" class="!gap-1 !px-1.5">
+				<span class="flex items-center gap-1">
+					<span class="block size-4 rounded-full ring-1 ring-inset ring-outline-gray-2" :style="{ background: property.value || 'transparent' }" />
+					<span class="lucide-chevron-down size-4 text-ink-gray-5" />
+				</span>
 			</Button>
 		</template>
 		<template #default="{ close }">
@@ -71,7 +74,7 @@
 			</div>
 		</template>
 	</Popover>
-	<!-- the select shows its value, so it needs no tooltip -->
+	<!-- the property's name leads its value, or stands in for it, so it needs no tooltip -->
 	<Select
 		v-else
 		size="sm"
@@ -82,7 +85,7 @@
 		:options="property.options ?? []"
 		@update:model-value="(value) => property.set(String(value))"
 	>
-		<template #prefix><span :class="property.icon" class="size-4 text-ink-gray-5" /></template>
+		<template v-if="property.value" #prefix><span class="whitespace-nowrap text-ink-gray-5">{{ property.label }}</span></template>
 	</Select>
 </template>
 

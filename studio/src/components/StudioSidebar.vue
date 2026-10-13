@@ -69,7 +69,7 @@
 				<Dropdown :options="userMenu" side="top" align="start">
 					<template #trigger>
 						<SidebarItem :label="fullName">
-							<template #prefix><Avatar :label="fullName" size="xs" /></template>
+							<template #prefix><Avatar :label="fullName" size="sm" /></template>
 						</SidebarItem>
 					</template>
 				</Dropdown>

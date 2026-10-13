@@ -32,8 +32,12 @@
 			<template #starters="{ prefill }">
 				<div data-layer="shell" class="mx-auto w-full max-w-[760px]">
 					<div class="flex flex-wrap gap-1.5">
-						<Button v-for="idea in ideas" :key="idea.text" variant="outline" :icon-left="idea.icon" :label="idea.text.trim()" @click="prefill(idea.text)" />
+						<!-- a starter that waits for the rest of the sentence trails off -->
+						<Button v-for="idea in ideas" :key="idea.text" variant="outline" :icon-left="idea.icon" @click="prefill(idea.text)">
+							{{ idea.text.trim() }}<span v-if="idea.text.endsWith(' ')" class="text-ink-gray-4">…</span>
+						</Button>
 					</div>
+					<RecordingList v-if="!artifact" class="mt-8" />
 					<section v-if="recent.length && !artifact" class="mt-8">
 						<h2 class="px-2 text-sm font-medium text-ink-gray-5">Recent</h2>
 						<router-link
@@ -64,9 +68,10 @@ import { useRoute, useRouter } from "vue-router"
 
 import { type Artifact, artifactIcon, artifactLabel, getArtifactSession, linkArtifact, routeArtifact } from "../artifacts"
 import { chats } from "../chats"
-import { chatContext, clearSent, contextChips, pendingChips, removeComment } from "../context"
+import { attachedChips, chatContext, clearSent, contextChips, detach, pendingChips } from "../context"
 import { chatSender } from "../editor"
 import { findTab } from "../tabs"
+import RecordingList from "./RecordingList.vue"
 
 const route = useRoute()
 const router = useRouter()
@@ -153,15 +158,17 @@ const recent = computed(() => {
 })
 
 // the editor beside the chat, so "this page" or "these" in a message has a referent
+function openArtifact() {
+	const open = artifact.value
+	const title = open ? findTab(open.doctype, open.name)?.title || open.name : ""
+	return open ? { doctype: open.doctype, name: open.name, title, path: route.path } : null
+}
 const context = {
-	snapshot() {
-		const open = artifact.value
-		const title = open ? findTab(open.doctype, open.name)?.title || open.name : ""
-		return chatContext(open ? { doctype: open.doctype, name: open.name, title, path: route.path } : null)
-	},
+	snapshot: () => chatContext(openArtifact()),
 	sent: clearSent,
 	pending: pendingChips,
-	remove: (key: string) => removeComment(Number(key)),
+	attached: () => attachedChips(openArtifact()),
+	remove: (key: string) => detach(key, openArtifact()),
 	chips: contextChips,
 }
 </script>
