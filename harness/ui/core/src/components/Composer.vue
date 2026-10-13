@@ -188,7 +188,6 @@
 <script setup>
 import { computed, inject, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import { Button, Dropdown, TabButtons } from "frappe-ui"
-import { dialogs as frappeDialogs } from "frappe-ui/src/utils/dialog"
 
 import { quoteBlock, skillSegments } from "../transcript.js"
 import ContextChipIcon from "./ContextChipIcon.vue"
@@ -475,10 +474,12 @@ function onKey(e) {
 	}
 }
 
-// Escape stops the turn even when focus is outside the box; open dialogs own it, and so
-// does whatever else on the page took it, once every listener has run
+// Escape stops the turn even when focus is outside the box. An open dialog, menu or list
+// owns it, though closing one leaves the event unprevented, and so does whatever else on
+// the page took it, once every listener has run.
+const LAYERS = '[role="dialog"], [role="menu"], [role="listbox"]'
 function onWindowKey(e) {
-	if (e.key !== "Escape" || e.repeat || menuOpen.value || frappeDialogs.value.length) return
+	if (e.key !== "Escape" || e.repeat || menuOpen.value || document.querySelector(LAYERS)) return
 	setTimeout(() => {
 		if (!e.defaultPrevented && running.value) flow.abort()
 	})

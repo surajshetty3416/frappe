@@ -34,6 +34,8 @@ function readJSON(key, fallback, storage = globalThis.localStorage) {
 //   artifactIcon   (artifact) => icon class of an artifact card
 //   artifactLayer  (artifact) => the name an artifact card gives its kind, instead of its label
 //   openTurn       () => true while the latest turn stays open after its run ends, as if it still ran
+//   stop           (session) => true when the host stopped the run its own way, instead of
+//                  aborting it, as a replay that pauses once its step finished
 //   placeholder    the composer's placeholder, instead of "Reply…" or "Describe what to build…"
 //   skills         false hides the composer's "/" skills menu
 //   agents         [{ agent, label, placeholder, skills }] a new chat may start with, as a switch
@@ -427,7 +429,7 @@ export function createFlowStore(client, options = {}) {
 	}
 
 	async function abort() {
-		if (!state.sessionId) return
+		if (!state.sessionId || options.stop?.(state.sessionId)) return
 		state.conversation.steering = []
 		await guard(() => client.abort(state.sessionId))
 	}

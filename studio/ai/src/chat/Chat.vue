@@ -38,7 +38,7 @@ import { resultArtifact } from "@flow/ui-core/transcript.js";
 import { FrappeClient } from "../api/client.js";
 import * as transport from "../api/frappe.js";
 import { connectSocket } from "../api/socket.js";
-import { isReplaying, replays } from "@shell/replay";
+import { isReplaying, pauseReplay, replays } from "@shell/replay";
 import ReplayBar from "./ReplayBar.vue";
 import ReplayIntro from "./ReplayIntro.vue";
 import TaskCard from "./TaskCard.vue";
@@ -94,6 +94,13 @@ function createStore() {
 		openTurn: () => {
 			const replay = replays.get(store.state.sessionId);
 			return Boolean(replay && !replay.live && replay.status !== "Done");
+		},
+		// Stop and Escape pause a replay, so the step at work keeps its tool calls
+		stop: (session) => {
+			const replay = replays.get(session);
+			if (!replay || replay.live || !(isReplaying(session) || replay.status === "Playing")) return false;
+			pauseReplay(session);
+			return true;
 		},
 		context: props.context,
 		agents: AGENTS,
