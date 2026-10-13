@@ -35,9 +35,15 @@
 					/>
 				</div>
 			</div>
-			<Dropdown v-if="outOfView.length" :options="outOfViewOptions" align="end">
-				<Button variant="ghost" class="mr-2 shrink-0" :label="`+${outOfView.length}`" :tooltip="'More tabs'" />
-			</Dropdown>
+			<DropdownButton
+				v-if="outOfView.length"
+				:options="outOfViewOptions"
+				align="end"
+				variant="ghost"
+				class="mr-2 shrink-0"
+				:label="`+${outOfView.length}`"
+				tooltip="More tabs"
+			/>
 		</div>
 
 		<div v-if="artifact" data-artifact-bar class="flex h-11 shrink-0 items-center gap-2 border-b border-outline-gray-1 pl-3 pr-2">
@@ -170,7 +176,8 @@
 </template>
 
 <script setup lang="ts">
-import { Button, Dropdown, LoadingIndicator, TabButtons, TextInput, Tooltip, toast } from "frappe-ui"
+import DropdownButton from "@flow/ui-core/components/DropdownButton.vue"
+import { Button, LoadingIndicator, TabButtons, TextInput, Tooltip, toast } from "frappe-ui"
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, shallowRef, watch } from "vue"
 import { useRoute, useRouter } from "vue-router"
 

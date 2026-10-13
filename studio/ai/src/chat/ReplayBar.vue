@@ -56,9 +56,7 @@
 				/>
 				<span class="ml-1 flex-none tabular-nums text-ink-gray-8">{{ progress }}</span>
 				<span class="flex-1" />
-				<Dropdown :options="speedOptions" align="end">
-					<Button variant="ghost" :label="`${speed}x`" icon-right="lucide-chevron-down" tooltip="Replay speed" />
-				</Dropdown>
+				<DropdownButton :options="speedOptions" align="end" variant="ghost" :label="`${speed}x`" icon-right="lucide-chevron-down" tooltip="Replay speed" />
 			</template>
 		</div>
 	</div>
@@ -67,7 +65,8 @@
 <script setup>
 import { computed, inject, ref, watch } from "vue";
 import { useRouter } from "vue-router";
-import { Button, Dropdown } from "frappe-ui";
+import { Button } from "frappe-ui";
+import DropdownButton from "@flow/ui-core/components/DropdownButton.vue";
 
 import {
 	isPlaying,

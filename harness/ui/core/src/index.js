@@ -17,6 +17,7 @@ export {
 export { highlightCode, renderMarkdown, renderMarkdownSegments } from "./markdown.js"
 
 export { default as ChatMenu } from "./components/ChatMenu.vue"
+export { default as DropdownButton } from "./components/DropdownButton.vue"
 export { default as MessageList } from "./components/MessageList.vue"
 export { default as Composer } from "./components/Composer.vue"
 export { default as ApprovalCard } from "./components/ApprovalCard.vue"

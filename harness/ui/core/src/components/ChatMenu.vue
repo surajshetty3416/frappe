@@ -1,12 +1,10 @@
 <template>
-	<Dropdown v-if="flow.state.sessionId" :options="menu" align="end">
-		<Button variant="ghost" icon="lucide-ellipsis" tooltip="Chat" aria-label="Chat" />
-	</Dropdown>
+	<DropdownButton v-if="flow.state.sessionId" :options="menu" align="end" variant="ghost" icon="lucide-ellipsis" tooltip="Chat" aria-label="Chat" />
 </template>
 
 <script setup>
 import { computed, inject } from "vue"
-import { Button, Dropdown } from "frappe-ui"
+import DropdownButton from "./DropdownButton.vue"
 import { dialog } from "frappe-ui/src/utils/dialog"
 
 import { conversationTitle, formatTokens } from "../transcript.js"
