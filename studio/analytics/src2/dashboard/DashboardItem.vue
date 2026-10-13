@@ -26,6 +26,7 @@ const dashboard = inject('dashboard') as Dashboard
 				v-if="item.type == 'chart'"
 				:item="props.item"
 				:dashboard="props.dashboard"
+				:selected="dashboard.selectedIndex === props.index"
 			/>
 
 			<DashboardText
