@@ -16,6 +16,7 @@ export class FrappeClient {
 		this.transport = transport;
 		this.configs = new Map(); // session → the config the store last saw
 		this.fileIds = new Map(); // file name → the File it was staged as, for this page
+		this.syncs = new Map(); // session → its latest run-end sync
 		this.setModels(boot?.models ?? []);
 	}
 
@@ -96,13 +97,18 @@ export class FrappeClient {
 		});
 	}
 
-	async syncSession(sid) {
-		const data = await this.transport.call("frappe.ai.api.sync_session", { session: sid });
-		this.hooks.onSession?.(data);
-		return data;
+	syncSession(sid) {
+		const synced = this.transport.call("frappe.ai.api.sync_session", { session: sid }).then((data) => {
+			this.hooks.onSession?.(data);
+			return data;
+		});
+		this.syncs.set(sid, synced);
+		return synced;
 	}
 
-	runArtifacts(sid) {
+	// a run's flow server id is recorded by the sync its end starts
+	async runArtifacts(sid) {
+		await this.syncs.get(sid)?.catch(() => null);
 		return this.transport.call("frappe.ai.artifacts.get_run_artifacts", { session: sid });
 	}
 

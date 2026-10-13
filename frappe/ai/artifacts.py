@@ -248,13 +248,7 @@ def get_session_artifacts(session: str) -> list[dict[str, str]]:
 def get_run_artifacts(session: str) -> list[dict[str, str]]:
 	"""What each of a chat's runs saved, through any tool, last saved last, with the flow server's
 	`run_id` of the run, so the run's turn shows a card for it."""
-	from frappe.ai.lib.session import sync_with_retry
-
-	doc = frappe.get_doc("Flow Session", session)
-	doc.check_permission("read")
-	# a run's flow server id is recorded when the run's log is synced
-	if frappe.db.exists("Flow Run", {"session": session, "status": ("in", ("Running", "Paused"))}):
-		sync_with_retry(doc)
+	frappe.has_permission("Flow Session", "read", session, throw=True)
 	version, run = frappe.qb.DocType("Artifact Version"), frappe.qb.DocType("Flow Run")
 	rows = (
 		frappe.qb.from_(version)
