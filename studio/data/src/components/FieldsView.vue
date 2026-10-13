@@ -40,7 +40,7 @@
 						</div>
 						<span class="truncate text-sm text-ink-gray-7">{{ field.fieldtype }}</span>
 						<Tooltip :text="choices(field).join(', ')">
-							<span class="truncate text-sm text-ink-gray-7">{{ choices(field).join(", ") }}</span>
+							<span class="line-clamp-2 text-sm text-ink-gray-7">{{ choices(field).join(", ") }}</span>
 						</Tooltip>
 						<span v-if="field.reqd" class="lucide-check size-4 text-ink-gray-5" />
 						<span v-else class="text-sm text-ink-gray-4">–</span>
