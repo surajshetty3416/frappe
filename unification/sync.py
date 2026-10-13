@@ -16,6 +16,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+from fnmatch import fnmatch
 from pathlib import Path
 
 import port_rewrite
@@ -66,6 +67,13 @@ def added_lines(path):
 	return [line[1:].strip() for line in diff if line.startswith("+") and not line.startswith("+++")]
 
 
+def ported(data, path):
+	try:
+		return port_rewrite.rewrite(data.decode(), path).encode()
+	except UnicodeDecodeError:
+		return data
+
+
 def has_markers(path):
 	text = (ROOT / path).read_text(errors="replace")
 	return any(line.startswith(("<<<<<<< ", ">>>>>>> ")) for line in text.splitlines())
@@ -92,7 +100,8 @@ class Source:
 		return git("rev-parse", self.ref)
 
 	def pending(self):
-		return git("log", "--format=%h %s", f"{self.config['commit']}..{self.head()}", cwd=self.repo).splitlines()
+		pending = f"{self.config['commit']}..{self.head()}"
+		return git("log", "--no-merges", "--format=%h %s", pending, cwd=self.repo).splitlines()
 
 	def prepare(self):
 		"""Leave the commit to merge at self.ref, and record it."""
@@ -106,8 +115,9 @@ class Source:
 class App(Source):
 	"""An app merged as a layer of frappe, through the path rewrite."""
 
-	def __init__(self, name, config):
+	def __init__(self, name, config, ignore):
 		super().__init__(name, config)
+		self.ignore = ignore
 		self.repo = CACHE / f"{name}.git"
 		self.work = CACHE / name
 
@@ -143,15 +153,55 @@ class App(Source):
 		return dict(line.split() for line in lines)
 
 	def settle(self):
-		carried = [new for path in unmerged() if (new := self.carry(path))]
+		carried = []
+		for path in unmerged():
+			if not (self.take_upstream(path) or self.drop(path)) and (new := self.carry(path)):
+				carried.append(new)
+		homeless = [path for path in staged() if self.is_old(path) and not self.rehome(path)]
 		review = self.port([*staged(), *carried])
 		self.regenerate()
-		return review, [*unmerged(), *(path for path in carried if has_markers(path))]
+		return review, [*unmerged(), *homeless, *(path for path in carried if has_markers(path))]
 
 	def moved(self, path):
 		for old, new in self.config["moves"].items():
 			if path.startswith(old):
 				return new + path[len(old) :]
+
+	def is_old(self, path):
+		return path.startswith((f"frappe/{self.name}/", f"frontend/{self.name}/"))
+
+	def ignored(self, path):
+		return any(fnmatch(path, pattern) for pattern in self.ignore)
+
+	def take_upstream(self, path):
+		"""Where the unification only renamed things in a file, upstream's side is the answer."""
+		base, ours, theirs = stage(path, 1), stage(path, 2), stage(path, 3)
+		if None in (base, ours) or ported(base, path) != ours:
+			return False
+		if theirs is None:
+			git("rm", "--quiet", path)
+		else:
+			(ROOT / path).write_bytes(ported(theirs, path))
+			git("add", path)
+		return True
+
+	def drop(self, path):
+		"""Keep repo tooling the unification removed (CI, lint, lockfiles) removed."""
+		if stage(path, 2) is not None or not self.ignored(path):
+			return False
+		git("rm", "--quiet", path)
+		return True
+
+	def rehome(self, path):
+		"""Move a file upstream added where the app's folders used to be; False if it has no home."""
+		if self.ignored(path):
+			git("rm", "--quiet", "--force", path)
+			return True
+		new = self.moved(path)
+		if not new or (ROOT / new).exists() or not (ROOT / new).parent.is_dir():
+			return False
+		git("mv", path, new)
+		return True
 
 	def carry(self, path):
 		"""Merge an upstream change into a file rename detection lost track of; returns its path here."""
@@ -194,8 +244,11 @@ class App(Source):
 
 def load():
 	data = json.loads(SOURCES.read_text())
-	sources = {name: (App if "rewritten" in config else Source)(name, config) for name, config in data["sources"].items()}
-	return data, sources
+
+	def source(name, config):
+		return App(name, config, data["ignore"]) if "rewritten" in config else Source(name, config)
+
+	return data, {name: source(name, config) for name, config in data["sources"].items()}
 
 
 def save(data):

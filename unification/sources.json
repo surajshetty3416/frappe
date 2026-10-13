@@ -59,5 +59,32 @@
 		"Co-Authored-By: Rucha Mahabal <24353136+ruchamahabal@users.noreply.github.com>",
 		"Co-Authored-By: Shrihari Mahabal <166826779+ShrihariMahabal@users.noreply.github.com>",
 		"Co-Authored-By: Saqib Ansari <25369014+nextchamp-saqib@users.noreply.github.com>"
+	],
+	"ignore": [
+		"frappe/*/.github/*",
+		"frappe/*/.devcontainer/*",
+		"frappe/*/.vscode/*",
+		"frappe/*/.claude/*",
+		"frappe/*/.agents/*",
+		"frappe/*/docker/*",
+		"frappe/*/.git-blame-ignore-revs",
+		"frappe/*/.gitignore",
+		"frappe/*/.editorconfig",
+		"frappe/*/.eslintrc",
+		"frappe/*/.pre-commit-config.yaml",
+		"frappe/*/.releaserc",
+		"frappe/*/.mergify.yml",
+		"frappe/*/.semgrep*",
+		"frappe/*/.coveragerc",
+		"frappe/*/codecov.yml",
+		"frappe/*/flake8",
+		"frappe/*/commitlint.config.*",
+		"frappe/*/crowdin.yml",
+		"frappe/*/MANIFEST.in",
+		"*/yarn.lock",
+		"*/package-lock.json",
+		"frontend/*/components.d.ts",
+		"frontend/*/auto-imports.d.ts",
+		"frontend/*/typecheck-baseline.txt"
 	]
 }
