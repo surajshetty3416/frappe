@@ -53,6 +53,14 @@ in_bench() {
 	(cd "$BENCH/sites" && "$BENCH/env/bin/python" "$@")
 }
 
+# a bench's worker: test jobs left queued pile up across runs until frappe refuses to enqueue
+start_worker() {
+	in_bench -m frappe.utils.bench_helper frappe --site "$TEST_SITE" purge-jobs > /dev/null
+	(cd "$BENCH/sites" && exec "$BENCH/env/bin/python" -m frappe.utils.bench_helper frappe worker) > "$OUT/worker.log" 2>&1 &
+	WORKER=$!
+	trap 'kill "$WORKER" 2>/dev/null' EXIT
+}
+
 install_env() {
 	local dev
 	dev=$(python3 -c 'import tomllib; print(" ".join(k + v for k, v in tomllib.load(open("pyproject.toml", "rb"))["tool"]["bench"]["dev-dependencies"].items()))')
@@ -108,6 +116,7 @@ fi
 printf '| Check | Result |\n| --- | --- |\n' > "$OUT/checks.md"
 : > "$OUT/failures.md"
 check env install_env
+start_worker
 check imports in_bench "$ROOT/unification/check_imports.py"
 check build bash -c "yarn --cwd studio install --frozen-lockfile --non-interactive && yarn --cwd studio build"
 check migrate in_bench -m frappe.utils.bench_helper frappe --site "$TEST_SITE" migrate
