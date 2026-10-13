@@ -9,7 +9,7 @@ export default defineLayer({
 	path: "/studio/data",
 	component: () => import("./App.vue"),
 	routes: [
-		{ path: "", name: "data-schema", component: () => import("./pages/Schema.vue") },
+		{ path: "", name: "data-schema", component: () => import("./pages/Schema.vue"), meta: { artifact } },
 		{
 			path: "doctype/:doctype",
 			name: "data-doctype",

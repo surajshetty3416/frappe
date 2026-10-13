@@ -11,27 +11,8 @@
 				</span>
 				<h1 class="mt-4 text-2xl font-semibold text-ink-gray-9">Describe your data</h1>
 				<p class="mt-2 max-w-md text-p-base text-ink-gray-6">
-					Tell the assistant what you keep track of: the things, what each one holds, and how they link. Its DocTypes show here as a diagram.
+					Tell the assistant in the chat what you keep track of: the things, what each one holds, and how they link. Its DocTypes show here as a diagram.
 				</p>
-				<form
-					class="mt-6 w-full rounded-6 border border-outline-gray-2 bg-surface-base text-left shadow-sm focus-within:border-outline-gray-3"
-					@submit.prevent="start"
-				>
-					<textarea
-						ref="input"
-						v-model="prompt"
-						rows="3"
-						class="block w-full resize-none border-0 bg-transparent px-4 pt-3.5 text-p-base text-ink-gray-8 placeholder-ink-gray-4 focus:ring-0"
-						placeholder="A conference: tickets, attendees, talk proposals, speakers and sessions"
-						@keydown.enter.exact.prevent="start"
-					/>
-					<div class="flex justify-end px-3 pb-3">
-						<Button variant="solid" icon="lucide-arrow-up" class="!rounded-full" :disabled="!prompt.trim()" type="submit" tooltip="Start" />
-					</div>
-				</form>
-				<div class="mt-3 flex flex-wrap justify-center gap-1.5">
-					<Button v-for="idea in IDEAS" :key="idea" size="sm" variant="subtle" :label="idea" @click="usePrompt(idea)" />
-				</div>
 			</div>
 		</div>
 
@@ -51,30 +32,15 @@
 					<DocTypeNode :data="data" />
 				</template>
 			</VueFlow>
-			<div class="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between gap-4 px-6 py-5">
-				<div class="flex flex-col gap-1">
-					<h1 class="text-xl font-semibold text-ink-gray-9">Data</h1>
-					<span class="text-sm text-ink-gray-5">{{ summary }}</span>
-				</div>
-				<Button class="pointer-events-auto" variant="solid" icon-left="lucide-plus" label="New DocType" @click="newDocType" />
+			<div class="pointer-events-none absolute inset-x-0 top-0 flex flex-col gap-1 px-6 py-5">
+				<h1 class="text-xl font-semibold text-ink-gray-9">Data</h1>
+				<span class="text-sm text-ink-gray-5">{{ summary }}</span>
 			</div>
 			<div class="absolute bottom-4 right-4 flex flex-col rounded-4 border border-outline-gray-2 bg-surface-base">
 				<Button variant="ghost" icon="lucide-plus" tooltip="Zoom in" @click="zoomIn()" />
 				<Button variant="ghost" icon="lucide-minus" tooltip="Zoom out" @click="zoomOut()" />
 				<Button variant="ghost" icon="lucide-scan" tooltip="Fit" @click="fit()" />
 			</div>
-			<form
-				class="absolute bottom-4 left-1/2 flex w-[min(560px,calc(100%-8rem))] -translate-x-1/2 items-center gap-2 rounded-6 border border-outline-gray-2 bg-surface-base py-1.5 pl-4 pr-1.5 shadow-sm focus-within:border-outline-gray-3"
-				@submit.prevent="start"
-			>
-				<input
-					ref="ask"
-					v-model="prompt"
-					class="min-w-0 flex-1 border-0 bg-transparent p-0 text-base text-ink-gray-8 placeholder-ink-gray-4 focus:ring-0"
-					placeholder="Ask for a new DocType, a field or a link…"
-				/>
-				<Button variant="solid" icon="lucide-arrow-up" class="!rounded-full" :disabled="!prompt.trim()" type="submit" tooltip="Ask" />
-			</form>
 		</template>
 	</div>
 </template>
@@ -84,15 +50,14 @@ import { onListUpdate } from "@shell/realtime"
 import { useDebounceFn } from "@vueuse/core"
 import { type Edge, MarkerType, type Node, VueFlow, useVueFlow } from "@vue-flow/core"
 import { Button, LoadingIndicator } from "frappe-ui"
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue"
-import { useRouter } from "vue-router"
+import { computed, onBeforeUnmount, onMounted, ref } from "vue"
+import { useRoute, useRouter } from "vue-router"
 
 import { type SchemaNode, getSchema } from "../api"
 import DocTypeNode from "../components/DocTypeNode.vue"
 import { TABLE_TYPES } from "../fields"
 
-const IDEAS = ["An event with tickets and attendees", "A CRM with leads, deals and companies", "A library of books and loans"]
-
+const route = useRoute()
 const router = useRouter()
 const { fitView, setViewport, zoomIn, zoomOut } = useVueFlow()
 
@@ -205,25 +170,8 @@ const summary = computed(() => {
 	return `${own.length} DocType${own.length === 1 ? "" : "s"} · ${records.toLocaleString()} record${records === 1 ? "" : "s"}`
 })
 
-const openDocType = (name: string) => router.push({ name: "data-doctype", params: { doctype: name } })
-
-const prompt = ref("")
-const input = ref<HTMLTextAreaElement | null>(null)
-const ask = ref<HTMLInputElement | null>(null)
-// a new DocType starts as a request to the assistant, like every other change here
-function newDocType() {
-	prompt.value = "Add a DocType for "
-	nextTick(() => ask.value?.focus())
-}
-function usePrompt(idea: string) {
-	prompt.value = idea
-	input.value?.focus()
-}
-function start() {
-	const text = prompt.value.trim()
-	if (text) router.push({ name: "studio-chat", params: { session: "new" }, query: { prompt: text } })
-}
+// the DocType opens in the same chat
+const openDocType = (name: string) => router.push({ name: "data-doctype", params: { doctype: name }, query: { chat: route.query.chat } })
 
 onMounted(() => (document.title = "Data"))
-watch(loading, (done) => done && nextTick(() => input.value?.focus()))
 </script>

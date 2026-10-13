@@ -37,8 +37,8 @@ export const getSessionArtifacts = (session: string): Promise<Artifact[]> =>
 export const linkArtifact = (session: string, doctype: string, name: string): Promise<Artifact> =>
 	call("frappe.ai.artifacts.link_artifact", { session, reference_doctype: doctype, reference_name: name })
 
-// A route opens an artifact when one of its records names it in `meta.artifact`; a layer that
-// implements the shell's editor contract adds `editor`, and its route renders `editor.preview`.
+// A route opens in the editor panel beside the chat when one of its records names an artifact in `meta.artifact`,
+// and opens that artifact when its `param` is set; a layer that implements the shell's editor contract adds `editor`, and its route renders `editor.preview`.
 export interface ArtifactRoute {
 	doctype: string
 	param: string
@@ -49,9 +49,10 @@ export function routeArtifact(route: RouteLocationNormalizedLoaded) {
 	const record = [...route.matched].reverse().find((match) => match.meta.artifact)
 	if (!record) return null
 	const spec = record.meta.artifact as ArtifactRoute
-	const name = String(route.params[spec.param])
-	// an editor still creating its record ("new") has no artifact yet
-	return name === "new" ? null : { doctype: spec.doctype, name, editor: spec.editor }
+	const name = route.params[spec.param]
+	// a layer's own view beside the chat (no record), or an editor still creating its record ("new"), has no artifact yet
+	if (typeof name !== "string" || !name || name === "new") return null
+	return { doctype: spec.doctype, name, editor: spec.editor }
 }
 
 export const artifactLabel = (doctype: string) => window.studio_artifacts?.[doctype]?.label ?? doctype
