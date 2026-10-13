@@ -123,9 +123,21 @@ def safe_exec(
 
 	with safe_exec_flags():
 		# execute script compiled by RestrictedPython
-		exec(_compile_code(script, filename=filename), exec_globals, _locals)
+		exec_as_module(_compile_code(script, filename=filename), exec_globals, _locals)
 
 	return exec_globals, _locals
+
+
+def exec_as_module(code, exec_globals: dict, _locals: dict | None = None) -> None:
+	"""Run `code` in one namespace, so its functions and comprehensions see its top-level names,
+	and copy the names it binds back into `_locals`."""
+	if _locals is None:
+		exec(code, exec_globals)
+		return
+	exec_globals.update(_locals)
+	before = dict(exec_globals)
+	exec(code, exec_globals)
+	_locals.update({k: v for k, v in exec_globals.items() if k not in before or before[k] is not v})
 
 
 @site_cache(maxsize=32)

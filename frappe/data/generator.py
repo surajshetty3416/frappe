@@ -287,6 +287,9 @@ class Generator:
 			spec["where"] = where
 			if (df.unique or meta.autoname == f"field:{fieldname}") and kind != "link":
 				spec["unique"] = True
+			# people do not share an email or a phone, also across calls
+			if kind in ("email", "phone"):
+				spec.setdefault("unique", True)
 			spec["taken"] = set()
 			if spec.get("unique") and kind != "table" and not meta.istable:
 				spec["taken"] = {str(v) for v in frappe.get_all(meta.name, pluck=fieldname, distinct=True) if v}

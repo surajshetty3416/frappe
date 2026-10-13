@@ -149,6 +149,8 @@ class LogRecorder:
 			elif kind == "run_ended" and self.run:
 				self.end_run(row["reason"])
 		for run in self.runs.values():
+			# its reference was valid when it started and may be deleted since
+			run.flags.ignore_links = True
 			run.save(ignore_permissions=True)
 		self.session.last_synced_seq = rows[-1]["seq"]
 

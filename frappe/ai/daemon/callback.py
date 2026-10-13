@@ -86,7 +86,7 @@ def run_ended_callback(session_id: str, terminal_seq: int) -> dict:
 	try:
 		session = frappe.get_doc("Flow Session", session_id)
 	except frappe.DoesNotExistError:
-		frappe.throw(_("Unknown session {0}.").format(session_id))
+		return {"synced_through": None, "message": _("Unknown session {0}, nothing to sync.").format(session_id)}
 	user = frappe.session.user
 	frappe.set_user(session.owner)
 	try:

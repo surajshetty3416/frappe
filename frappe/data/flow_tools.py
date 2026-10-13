@@ -16,8 +16,8 @@ GENERATE_GUIDE = f"""Generate and insert many realistic records from a spec: you
 Kinds:
 - name, first_name, last_name: one person per record, shared by these and email. `india` share of Indian names (default 1, the rest international), `women` share (default 0.5).
 - company: `names` list or weight map; without it, made-up Indian company names, a `pool` of them, a few big.
-- email: first.last at the domain of the record's company field (`company`: fieldname, default company), or a fixed `domain`; `free` share at gmail.com and similar.
-- phone: `prefix` (default "+91 "), `digits` (10), `first` digits to start with ("987").
+- email: first.last at the domain of the record's company field (`company`: fieldname, default company), or a fixed `domain`; `free` share at gmail.com and similar. Unique by default, also against existing records: a taken address gets a number.
+- phone: `prefix` (default "+91 "), `digits` (10), `first` digits to start with ("987"). Unique by default, also against existing records.
 - date: `from`, `to` (YYYY-MM-DD, today, or -30d / +7d), or `ranges` [[from, to, weight], ...]; `skew` "rising", "falling" or -5 to 5 within each range; `weekdays` 7 weights Monday to Sunday.
 - datetime: date params, plus `times` [["09:00", "09:30", weight], ...] for the time of day (default 09:00 to 18:00).
 - int, float: `min`, `max`, `skew`; float takes `precision`.

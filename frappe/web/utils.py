@@ -22,6 +22,7 @@ from frappe.utils.safe_exec import (
 	SERVER_SCRIPT_FILE_PREFIX,
 	FrappeTransformer,
 	NamespaceDict,
+	exec_as_module,
 	get_python_builtins,
 	get_safe_globals,
 	is_safe_exec_enabled,
@@ -342,7 +343,7 @@ def safer_exec(
 
 	with safe_exec_flags():
 		# execute script compiled by RestrictedPython
-		exec(
+		exec_as_module(
 			compile_restricted(script, filename=filename, policy=FrappeTransformer),
 			exec_globals,
 			_locals,

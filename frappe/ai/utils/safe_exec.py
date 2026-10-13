@@ -33,6 +33,7 @@ from frappe.utils.safe_exec import (
 	_getitem,
 	_write,
 	call_whitelisted_function,
+	exec_as_module,
 	get_python_builtins,
 	is_job_queued,
 	safe_enqueue,
@@ -63,9 +64,14 @@ def safe_exec(
 		filename += f": {frappe.scrub(script_filename)}"
 
 	with safe_exec_flags():
-		exec(_compile_code(script, filename=filename), exec_globals, _locals)
+		exec_as_module(_compile_code(script, filename=filename), exec_globals, _locals)
 
 	return exec_globals, _locals
+
+
+def _type(obj: Any) -> type:
+	"""`type` with one argument only, since three arguments make a class."""
+	return type(obj)
 
 
 def _gated_get_doc(*args: Any, **kwargs: Any) -> dict:
@@ -173,6 +179,7 @@ def get_flow_safe_globals(*, tool_context: ToolContext | None = None) -> Namespa
 		orjson=SAFE_ORJSON,
 		as_json=frappe.as_json,
 		dict=dict,
+		type=_type,
 		_dict=frappe._dict,
 		log=frappe.log,
 		_=frappe._,
@@ -198,6 +205,9 @@ def get_flow_safe_globals(*, tool_context: ToolContext | None = None) -> Namespa
 			throw=frappe.throw,
 			errprint=frappe.errprint,
 			bold=frappe.bold,
+			parse_json=frappe.utils.parse_json,
+			safe_json_loads=frappe.utils.safe_json_loads,
+			generate_hash=frappe.generate_hash,
 			sanitize_html=frappe.utils.sanitize_html,
 			get_fullname=frappe.utils.get_fullname,
 			format=frappe.format_value,

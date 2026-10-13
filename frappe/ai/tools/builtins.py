@@ -443,7 +443,8 @@ def execute(code: str, description: str, *, ctx: ToolContext) -> Any:
 	  frappe.get_doc (returns a dict), frappe.get_meta, frappe.db.get_value/get_single_value/count/exists.
 	- Writes: create, update, delete, run_action — the same permission-checked tools you call directly.
 	- Also: read_records, describe, find_doctypes, frappe.call (whitelisted methods), frappe.enqueue,
-	  frappe.sendmail, frappe.get_print, frappe.utils.* (dates, numbers, strings).
+	  frappe.sendmail, frappe.get_print, frappe.parse_json, frappe.safe_json_loads,
+	  frappe.generate_hash, frappe.utils.* (dates, numbers, strings).
 
 	Sandbox limits — code using these FAILS:
 	- No `import`. `frappe` and `frappe.utils` are already in scope; nothing else can be imported.
@@ -451,8 +452,9 @@ def execute(code: str, description: str, *, ctx: ToolContext) -> Any:
 	- No raw database access: frappe.db.sql, frappe.qb, frappe.db.set_value and frappe.get_all are
 	  unavailable — use frappe.get_list and the write tools, which respect permissions.
 	- Unavailable builtins: open, eval, exec, compile, getattr, setattr, hasattr,
-	  globals, locals, vars, dir, type, input. Available: len, range, str, int, float,
-	  bool, sum, sorted, enumerate, zip, min, max, abs, dict, list, set, tuple.
+	  globals, locals, vars, dir, input. Available: len, range, str, int, float,
+	  bool, sum, sorted, enumerate, zip, min, max, abs, dict, list, set, tuple, and type
+	  with one argument.
 	- `str.format()` / `.format_map()` are blocked — use f-strings or `%` formatting.
 	- `print()` output is logged, not returned — put what you want back into `result`.
 
