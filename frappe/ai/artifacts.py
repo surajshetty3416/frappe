@@ -122,34 +122,24 @@ def own_chats() -> list[list]:
 
 def claim(doc, method: str | None = None) -> None:
 	"""doc_events hook: a tool call writes an artifact only when no other chat's running turn
-	last edited it, and the write makes its chat the owner. A record of a DocType a chat made
-	belongs to that DocType's artifact."""
+	last edited it, and the write makes its chat the owner. A record of a DocType a chat made is
+	data: writing one neither checks nor changes ownership."""
 	session = frappe.flags.flow_session
-	if not session:
-		return
 	types = artifact_types()
-	if doc.doctype in types:
-		if doc.is_new():
-			return
-		target = (doc.doctype, doc.name)
-	elif "DocType" in types:
-		target = ("DocType", doc.doctype)
-	else:
+	if not session or doc.doctype not in types or doc.is_new():
 		return
 	last = frappe.get_all(
 		"Flow Session Artifact",
 		filters={
 			"parenttype": "Flow Session",
 			"parentfield": "artifacts",
-			"reference_doctype": target[0],
-			"reference_name": target[1],
+			"reference_doctype": doc.doctype,
+			"reference_name": doc.name,
 		},
 		fields=["parent", "creation"],
 		order_by="creation desc",
 		limit=1,
 	)
-	if not last and doc.doctype not in types:
-		return
 	last = last[0] if last else None
 	if last and last.parent != session:
 		other = running_since(last.parent)
@@ -158,12 +148,12 @@ def claim(doc, method: str | None = None) -> None:
 			frappe.throw(
 				_(
 					'{0} {1} is being edited by the chat "{2}" right now. Tell the person to wait for that chat to finish, or to make this change there.'
-				).format(types[target[0]]["label"], target[1], title)
+				).format(types[doc.doctype]["label"], doc.name, title)
 			)
 	mine = running_since(session)
 	if not last or last.parent != session or (mine and last.creation < mine):
-		title = frappe.db.get_value(target[0], target[1], types[target[0]]["title_field"])
-		frappe.get_doc("Flow Session", session).add_artifact(*target, title or target[1])
+		title = frappe.db.get_value(doc.doctype, doc.name, types[doc.doctype]["title_field"])
+		frappe.get_doc("Flow Session", session).add_artifact(doc.doctype, doc.name, title or doc.name)
 
 
 def running_since(session: str):

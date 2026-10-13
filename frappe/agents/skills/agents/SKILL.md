@@ -1,6 +1,6 @@
 ---
 name: Agents
-description: Make or change a Flow Agent, and an Automation Flow that runs it with the RunAgent action when a record is created or changed, or on a schedule. Load it before you create or update either DocType. Use for any request for an agent, an assistant, a bot, a screener, a digest, or work that should happen by itself.
+description: Make or change a Flow Agent, and an Automation Flow that runs it with the RunAgent action when a record is created or changed, or on a schedule, or run an automation on records that already exist. Load it before you create or update either DocType. Use for any request for an agent, an assistant, a bot, a screener, a digest, or work that should happen by itself.
 ---
 
 # Agents and automations
@@ -69,6 +69,10 @@ An agent is a `Flow Agent`: instructions, a model and tools. An automation is an
 - `filters` narrows which records run it: a JSON string of rows `[["status", "=", "Open"]]`.
 - `params.agent` is the Flow Agent's `name` (its title). `params.prompt` is a Jinja template: `{{ doc.name }}` and `{{ doc.<fieldname> }}` read the record that fired the trigger. Name the record and let the agent read the rest with its tools.
 - The automation runs the agent as Administrator and its tools run without approval. The agent's reply and its session show under the automation's Runs.
+
+## Records that already exist
+
+An automation on a document event runs only when a record is created or changed. To process records that already exist, find them with `read_records`, then run the automation on them with `run_automation`, passing their names. Never write the agent's output yourself, and never make a temporary automation for them.
 
 ## Check
 

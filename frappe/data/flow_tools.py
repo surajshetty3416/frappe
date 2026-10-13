@@ -5,9 +5,8 @@ from typing import Annotated, Any
 
 import frappe
 from frappe import _
-from frappe.ai import tool
+from frappe.ai import artifacts, tool
 from frappe.ai.lib.tool import ToolContext
-from frappe.ai.tools.builtins import _with_artifact
 from frappe.data.generator import MAX_COUNT, Generator
 
 GENERATE_GUIDE = f"""Generate and insert many realistic records from a spec: you describe the data, the server makes it. Use it for demo data and anything over about 20 records. Up to {MAX_COUNT} per call; all or nothing.
@@ -61,4 +60,10 @@ def generate_records(
 			frappe.throw(_("Record {0} of {1} failed, nothing was saved: {2}").format(number, count, e))
 		if len(sample) < 3:
 			sample.append({"name": doc.name, **values})
-	return _with_artifact({"doctype": doctype, "created": count, "sample": sample}, ctx, "DocType", [doctype])
+	# records are data, so the DocType shows as a card without the chat taking it over
+	return {
+		"doctype": doctype,
+		"created": count,
+		"sample": sample,
+		"artifact": artifacts.describe("DocType", doctype),
+	}
