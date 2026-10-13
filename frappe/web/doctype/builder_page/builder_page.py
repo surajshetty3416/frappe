@@ -1598,7 +1598,8 @@ def wrap_with_media_query(style_string, device):
 def get_style(style_obj):
 	def _css_value(key, value):
 		if key == "fontFamily" and isinstance(value, str):
-			value = value.strip("'\"").replace(" ", "\\ ")
+			# a family name's spaces are escaped, the commas between families are not
+			value = ", ".join(family.strip().strip("'\"").replace(" ", "\\ ") for family in value.split(","))
 		return sanitize_style_value(value)
 
 	return (
