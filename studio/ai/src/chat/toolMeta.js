@@ -2,6 +2,7 @@ import CodeView from "./tools/CodeView.vue";
 import CreateView from "./tools/CreateView.vue";
 import JsonView from "./tools/JsonView.vue";
 import NamesView from "./tools/NamesView.vue";
+import QueryView from "./tools/QueryView.vue";
 import ReadView from "./tools/ReadView.vue";
 import ReportView from "./tools/ReportView.vue";
 import { parseResult } from "./tools/result.js";
@@ -69,6 +70,13 @@ const TOOLS = {
 				: outcome(result.results, result.failures, "done"),
 	},
 	execute: { icon: "lucide-code", label: "Running Code", view: CodeView, asks: true },
+	run_query: {
+		icon: "lucide-database",
+		label: "Querying",
+		subject: (args) => tables(args.sql),
+		view: QueryView,
+		stat: (result) => count(result.rows?.length ?? 0, "row"),
+	},
 	search_knowledge: {
 		icon: "lucide-book-open",
 		label: "Searching Knowledge",
@@ -137,6 +145,15 @@ function subject(args) {
 		}
 	}
 	return "";
+}
+
+// the tables a query reads, by their DocType names
+function tables(sql) {
+	const names = [...String(sql ?? "").matchAll(/\b(?:from|join)\s+(?:`tab([^`]+)`|tab(\w+))/gi)].map(
+		(match) => match[1] ?? match[2]
+	);
+	const unique = [...new Set(names)];
+	return unique.length > 3 ? `${unique.slice(0, 3).join(", ")} and ${unique.length - 3} more` : unique.join(", ");
 }
 
 function count(n, singular, plural = `${singular}s`) {
