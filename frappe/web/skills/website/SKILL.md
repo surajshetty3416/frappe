@@ -26,24 +26,95 @@ data.count = len(data.speakers)
 
 `frappe.get_all` reads past permissions, so fetch only the records and fields the page shows. Never fetch emails, phone numbers or other private fields for a public page.
 
-In the page YAML, repeat a block over a list and bind its fields:
+In the page YAML, repeat a block over a list and bind its fields, as in Cards below. Outside a repeat, `bind: {text: count}` reads a top-level key. `bind: {href: url}` binds an attribute.
+
+## Layout
+
+Quote every style value that holds a comma: `'repeat(4, minmax(0, 1fr))'`. Unquoted, the comma ends the value and the rest is lost.
+
+`style` is the desktop. `t_style` applies below 1024px, and `m_style` below 576px, over `t_style`.
+
+- Header and footer: write one Nav and one Footer and put the same blocks on every page. Link only to pages that exist and to anchors on the home page, such as `/event#speakers` with `attrs: {id: speakers}` on that section. Leave out a link to a page you have not made. On phone the links wrap with `flexWrap: wrap`, never hide.
+- Sections: the same padding on every section, such as `96px 48px` with `m_style: {padding: 64px 20px}`.
+- Identity without images: a hero with a gradient or pattern in the site's colors, such as `backgroundImage: 'radial-gradient(circle at 80% 0%, rgba(37,99,235,0.45), transparent 60%)'`. One wordmark, spelled the same in nav, hero and footer. Link color only on links. All numbers in a row in one color.
+- Card text never clips: no fixed `height`, no `overflow: hidden` or `whiteSpace: nowrap` on a card or its text. A card grows with its text.
+
+### Cards
+
+Speakers, sponsors, tracks and numbers go in a grid on the block that holds the cards, which for live records is the repeat block: four a row on desktop, two on tablet, one on phone.
 
 ```yaml
 - el: div
   name: Speakers
-  style: {display: grid, gridTemplateColumns: repeat(3, 1fr), gap: 24px}
+  style: {display: grid, gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 24px}
+  t_style: {gridTemplateColumns: 'repeat(2, minmax(0, 1fr))'}
+  m_style: {gridTemplateColumns: 1fr}
   repeat:
     data: speakers
     item:
       el: div
+      style: {display: flex, flexDirection: column, gap: 4px, padding: 24px, borderRadius: 12px, background: '#141925'}
       c:
         - el: h3
+          style: {margin: '0', fontSize: 18px}
           bind: {text: full_name}
         - el: p
+          style: {margin: '0', opacity: '0.7'}
           bind: {text: company}
 ```
 
-Outside a repeat, `bind: {text: count}` reads a top-level key. `bind: {href: url}` binds an attribute.
+Sponsors sit in a wrapping row per tier, each tile sized to its content, a higher tier larger. Without a logo, the sponsor's name is its wordmark. Make it in the data script, `s.mark = f'<img src="{s.logo}" alt="{s.company_name}" style="height:40px">' if s.logo else s.company_name`, and bind it:
+
+```yaml
+- el: div
+  name: Gold Sponsors
+  style: {display: flex, flexWrap: wrap, gap: 16px}
+  repeat:
+    data: gold
+    item:
+      el: div
+      style: {padding: 20px 32px, borderRadius: 12px, border: '1px solid rgba(255,255,255,0.15)', fontSize: 24px, fontWeight: '800'}
+      bind: {text: mark}
+```
+
+### Schedule
+
+Room headers and sessions share one grid, so each header heads its column. The repeat block takes `display: contents`, which makes its cards cells of that grid. The data script gives each session a `cell` with its column and rows as CSS variables. The rows are the session's start and end among the day's sorted times, so a 10-minute talk gets a whole row. A break spans every room with `--col: 1 / -1`. On phone the grid turns to one column and the cards stack in time order, each showing its room.
+
+```python
+rooms = ["Main Hall", "Room A", "Room B"]
+rows = frappe.get_all("Session", fields=["session_title", "room", "start_time", "end_time"], filters={"day": "Day 1"}, order_by="start_time asc")
+times = sorted({r.start_time for r in rows} | {r.end_time for r in rows})
+hhmm = lambda t: frappe.utils.format_datetime(t, "HH:mm")
+for r in rows:
+    r.time = f"{hhmm(r.start_time)}–{hhmm(r.end_time)}"
+    r.cell = f"--col: {rooms.index(r.room) + 1}; --row: {times.index(r.start_time) + 2} / {times.index(r.end_time) + 2}"
+data.sessions = rows
+```
+
+```yaml
+- el: div
+  name: Schedule
+  style: {display: grid, gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8px}
+  m_style: {gridTemplateColumns: 1fr}
+  c:
+    - {el: div, text: Main Hall, style: {fontWeight: '700'}, m_style: {display: none}}
+    - {el: div, text: Room A, style: {fontWeight: '700'}, m_style: {display: none}}
+    - {el: div, text: Room B, style: {fontWeight: '700'}, m_style: {display: none}}
+    - el: div
+      style: {display: contents}
+      repeat:
+        data: sessions
+        item:
+          el: div
+          style: {gridColumn: var(--col), gridRow: var(--row), display: flex, flexDirection: column, gap: 4px, padding: 12px, borderRadius: 10px, background: '#141925'}
+          m_style: {gridColumn: auto, gridRow: auto}
+          bind: {style: cell}
+          c:
+            - {el: span, bind: {text: time}, style: {fontSize: 12px}}
+            - {el: strong, bind: {text: session_title}}
+            - {el: span, bind: {text: room}, style: {display: none}, m_style: {display: inline}}
+```
 
 ## Forms
 
