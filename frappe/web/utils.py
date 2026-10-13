@@ -19,6 +19,7 @@ from frappe.modules.import_file import (
 )
 from frappe.utils import get_datetime, get_url
 from frappe.utils.safe_exec import (
+	SAFE_EXEC_GUARDS,
 	SERVER_SCRIPT_FILE_PREFIX,
 	FrappeTransformer,
 	NamespaceDict,
@@ -313,11 +314,7 @@ def get_safer_globals():
 		),
 	)
 
-	out._write_ = safe_globals["_write_"]
-	out._getitem_ = safe_globals["_getitem_"]
-	out._getattr_ = safe_globals["_getattr_"]
-	out._getiter_ = safe_globals["_getiter_"]
-	out._iter_unpack_sequence_ = safe_globals["_iter_unpack_sequence_"]
+	out.update(SAFE_EXEC_GUARDS)
 
 	# add common python builtins
 	out.update(restricted_safe_globals)

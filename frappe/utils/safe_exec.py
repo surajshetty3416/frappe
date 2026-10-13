@@ -631,18 +631,7 @@ def render_safe_globals():
 
 	out.update(safe_globals)
 
-	# default writer allows write access
-	out._write_ = _write
-	out._getitem_ = _getitem
-	out._getattr_ = _getattr_for_safe_exec
-
-	# Allow using `print()` calls with `safe_exec()`
-	out._print_ = FrappePrintCollector
-
-	# allow iterators and list comprehension
-	out._getiter_ = iter
-	out._iter_unpack_sequence_ = RestrictedPython.Guards.guarded_iter_unpack_sequence
-	out._inplacevar_ = protected_inplacevar
+	out.update(SAFE_EXEC_GUARDS)
 
 	# add common python builtins, also remove standard builtins
 	out.update(get_python_builtins())
@@ -1122,6 +1111,18 @@ SAFE_DATA_UTILS = {key: frappe.utils.data.__dict__[key] for key in VALID_UTILS}
 assert SAFE_DATA_UTILS.keys() == set(VALID_UTILS), (
 	"every whitelisted util name must resolve to a frappe.utils.data attribute"
 )
+
+
+SAFE_EXEC_GUARDS = {
+	"_write_": _write,
+	"_getitem_": _getitem,
+	"_getattr_": _getattr_for_safe_exec,
+	"_print_": FrappePrintCollector,
+	"_getiter_": iter,
+	"_iter_unpack_sequence_": RestrictedPython.Guards.guarded_iter_unpack_sequence,
+	"_unpack_sequence_": RestrictedPython.Guards.guarded_unpack_sequence,
+	"_inplacevar_": protected_inplacevar,
+}
 
 
 WHITELISTED_SAFE_EVAL_GLOBALS = {

@@ -17,21 +17,16 @@ from functools import partial
 from typing import TYPE_CHECKING, Any
 
 import frappe
-import RestrictedPython.Guards
 from frappe import _
 from frappe.core.utils import html2text
-from frappe.utils.inplacevar import protected_inplacevar
 from frappe.utils.safe_exec import (
 	SAFE_DATA_UTILS,
+	SAFE_EXEC_GUARDS,
 	SAFE_EXCEPTIONS,
 	SAFE_ORJSON,
 	SERVER_SCRIPT_FILE_PREFIX,
-	FrappePrintCollector,
 	NamespaceDict,
 	_compile_code,
-	_getattr_for_safe_exec,
-	_getitem,
-	_write,
 	call_whitelisted_function,
 	exec_as_module,
 	get_python_builtins,
@@ -228,14 +223,7 @@ def get_flow_safe_globals(*, tool_context: ToolContext | None = None) -> Namespa
 	out.update(_flow_builtins(tool_context))
 
 	out.update(safe_globals)
-	out._write_ = _write
-	out._getitem_ = _getitem
-	out._getattr_ = _getattr_for_safe_exec
-	out._print_ = FrappePrintCollector
-	out._getiter_ = iter
-	out._iter_unpack_sequence_ = RestrictedPython.Guards.guarded_iter_unpack_sequence
-	out._unpack_sequence_ = RestrictedPython.Guards.guarded_unpack_sequence
-	out._inplacevar_ = protected_inplacevar
+	out.update(SAFE_EXEC_GUARDS)
 	out.update(get_python_builtins())
 
 	return out
