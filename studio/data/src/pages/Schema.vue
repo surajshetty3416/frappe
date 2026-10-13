@@ -16,7 +16,7 @@
 			</div>
 		</div>
 
-		<template v-else>
+		<div v-else ref="panel" class="size-full">
 			<VueFlow
 				:nodes="nodes"
 				:edges="edges"
@@ -24,7 +24,10 @@
 				:elements-selectable="false"
 				:min-zoom="0.2"
 				:max-zoom="1.25"
-				@nodes-initialized="place"
+				:default-viewport="{ x: 0, y: 0, zoom: 1 }"
+				:zoom-on-scroll="false"
+				pan-on-scroll
+				:pan-on-scroll-mode="PanOnScrollMode.Vertical"
 				class="size-full"
 				@node-click="({ node }) => openDocType(node.id)"
 			>
@@ -32,25 +35,27 @@
 					<DocTypeNode :data="data" />
 				</template>
 			</VueFlow>
-			<div class="pointer-events-none absolute inset-x-0 top-0 flex flex-col gap-1 px-6 py-5">
+			<div class="pointer-events-none absolute inset-x-0 top-0 flex flex-col gap-1 bg-surface-gray-1 px-6 py-5">
 				<h1 class="text-xl font-semibold text-ink-gray-9">Data</h1>
 				<span class="text-sm text-ink-gray-5">{{ summary }}</span>
 			</div>
-			<div class="absolute bottom-4 right-4 flex flex-col rounded-4 border border-outline-gray-2 bg-surface-base">
-				<Button variant="ghost" icon="lucide-plus" tooltip="Zoom in" @click="zoomIn()" />
+			<div class="absolute bottom-4 right-4 flex items-center gap-0.5 rounded-4 border border-outline-gray-2 bg-surface-base p-0.5">
 				<Button variant="ghost" icon="lucide-minus" tooltip="Zoom out" @click="zoomOut()" />
-				<Button variant="ghost" icon="lucide-scan" tooltip="Fit" @click="fit()" />
+				<span class="w-10 text-center text-sm tabular-nums text-ink-gray-6">{{ Math.round(viewport.zoom * 100) }}%</span>
+				<Button variant="ghost" icon="lucide-plus" tooltip="Zoom in" @click="zoomIn()" />
+				<span class="mx-0.5 h-4 w-px bg-outline-gray-2" />
+				<Button variant="ghost" label="Fit" icon-left="lucide-scan" @click="fit()" />
 			</div>
-		</template>
+		</div>
 	</div>
 </template>
 
 <script setup lang="ts">
 import { onListUpdate } from "@shell/realtime"
-import { useDebounceFn } from "@vueuse/core"
-import { type Edge, MarkerType, type Node, VueFlow, useVueFlow } from "@vue-flow/core"
+import { useDebounceFn, useElementSize } from "@vueuse/core"
+import { type Edge, MarkerType, type Node, PanOnScrollMode, VueFlow, useVueFlow } from "@vue-flow/core"
 import { Button, LoadingIndicator } from "frappe-ui"
-import { computed, onBeforeUnmount, onMounted, ref } from "vue"
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import { useRoute, useRouter } from "vue-router"
 
 import { type SchemaNode, getSchema } from "../api"
@@ -59,7 +64,7 @@ import { TABLE_TYPES } from "../fields"
 
 const route = useRoute()
 const router = useRouter()
-const { fitView, setViewport, zoomIn, zoomOut } = useVueFlow()
+const { fitView, setViewport, viewport, zoomIn, zoomOut } = useVueFlow()
 
 const schema = ref<SchemaNode[]>([])
 const loading = ref(true)
@@ -68,16 +73,8 @@ async function load() {
 	loading.value = false
 }
 load()
+const fit = () => fitView({ padding: 0.1, maxZoom: 1 })
 // a DocType the assistant makes shows up as it lands
-const fit = () => fitView({ padding: 0.2, maxZoom: 1 })
-// the diagram opens readable, at 100% with its first card under the heading; Fit shows it whole
-let opened = false
-function place() {
-	if (opened || !nodes.value.length) return
-	opened = true
-	const [first] = [...nodes.value].sort((a, b) => a.position.x - b.position.x || a.position.y - b.position.y)
-	setViewport({ x: 24 - first.position.x, y: 120 - first.position.y, zoom: 1 })
-}
 const reload = useDebounceFn(load, 500)
 const stop = onListUpdate("DocType", reload)
 onBeforeUnmount(stop)
@@ -111,8 +108,8 @@ const links = computed(() =>
 	)
 )
 
-// columns, left to right: what links sits left of what it links to, so each edge runs rightward
-const columnOf = computed(() => {
+// how far a DocType sits from the end of its links: what links comes before what it links to
+const depthOf = computed(() => {
 	const columns = new Map<string, number>()
 	const visiting = new Set<string>()
 	const column = (name: string): number => {
@@ -136,21 +133,33 @@ const heightOf = (doctype: SchemaNode) => {
 	return 50 + rows(doctype) * 28 + children
 }
 
+// at 100% the cards fill the panel's width in columns, each card under the shortest one, and the rest scrolls down
+const panel = ref<HTMLElement | null>(null)
+const { width } = useElementSize(panel)
+const CARD = 260
+const MARGIN = 24
+const TOP = 120
+const GAP = 40
 const nodes = computed<Node[]>(() => {
-	const nextY = new Map<number, number>()
-	const last = Math.max(0, ...columnOf.value.values())
-	return placed.value.map((doctype) => {
-		const column = last - (columnOf.value.get(doctype.name) ?? 0)
-		const y = nextY.get(column) ?? 0
-		nextY.set(column, y + heightOf(doctype) + 40)
+	const room = Math.max(CARD, width.value - 2 * MARGIN)
+	const count = Math.max(1, Math.floor((room + GAP) / (CARD + GAP)))
+	const step = count > 1 ? CARD + Math.min(160, (room - count * CARD) / (count - 1)) : 0
+	const bottoms = Array<number>(count).fill(TOP)
+	const ordered = [...placed.value].sort((a, b) => (depthOf.value.get(b.name) ?? 0) - (depthOf.value.get(a.name) ?? 0))
+	return ordered.map((doctype) => {
+		const column = bottoms.indexOf(Math.min(...bottoms))
+		const y = bottoms[column]
+		bottoms[column] = y + heightOf(doctype) + GAP
 		return {
 			id: doctype.name,
 			type: "doctype",
-			position: { x: column * 340, y },
+			position: { x: MARGIN + column * step, y },
 			data: { doctype, children: childrenOf(doctype.name) },
 		}
 	})
 })
+// a resize lays the cards out again, so the view returns to their left edge at 100%
+watch(width, () => setViewport({ x: 0, y: viewport.value.y, zoom: 1 }))
 
 const edges = computed<Edge[]>(() =>
 	links.value.map((link) => ({
