@@ -11,7 +11,7 @@ from typing import Any
 
 import frappe
 from frappe.model import no_value_fields, table_fields
-from frappe.utils import add_days, cint, flt, getdate, nowdate
+from frappe.utils import add_days, cint, flt, getdate, nowdate, validate_phone_number
 
 MAX_COUNT = 2000
 TRIES = 50
@@ -407,7 +407,15 @@ class Generator:
 	def compile_phone(self, spec, df, draws):
 		spec.setdefault("prefix", "+91 ")
 		spec.setdefault("digits", 10)
-		spec.setdefault("first", "987")
+		first = spec.setdefault("first", "987")
+		# "987" and ["9", "8", "7"] both mean a number starts with one of 9, 8 and 7
+		spec["first"] = [str(head) for head in first] if isinstance(first, list) else list(str(first or ""))
+		if not all(head.isdigit() for head in spec["first"]):
+			raise SpecError(f"first takes the digits a number starts with, such as \"987\", not {first!r}")
+		head = (spec["first"] or ["1"])[0]
+		sample = f"{spec['prefix']}{head}{'0' * (cint(spec['digits']) - len(head))}"
+		if not validate_phone_number(sample):
+			raise SpecError(f"prefix and digits make {sample!r}, not a valid phone number")
 
 	def compile_date(self, spec, df, draws):
 		ranges = spec.get("ranges") or [[spec.get("from"), spec.get("to")]]
@@ -745,8 +753,8 @@ class Row:
 
 	def make_phone(self, spec):
 		digits = cint(spec["digits"])
-		head = self.rng.choice(str(spec["first"])) if spec["first"] else str(self.rng.randint(1, 9))
-		return f"{spec['prefix']}{head}{''.join(str(self.rng.randint(0, 9)) for _ in range(digits - 1))}"
+		head = self.rng.choice(spec["first"]) if spec["first"] else str(self.rng.randint(1, 9))
+		return f"{spec['prefix']}{head}{''.join(str(self.rng.randint(0, 9)) for _ in range(digits - len(head)))}"
 
 	def make_date(self, spec):
 		start, end = spec["range_bag"].draw()
