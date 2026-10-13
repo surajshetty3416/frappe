@@ -4,7 +4,7 @@
 			:is="expandable ? 'button' : 'div'"
 			:type="expandable ? 'button' : undefined"
 			class="-mx-1.5 flex w-fit select-none items-center gap-2 rounded-4 px-1.5 py-1 text-sm text-ink-gray-5"
-			:class="expandable ? 'transition-colors duration-150 ease-out hover:bg-surface-gray-2 hover:text-ink-gray-7' : ''"
+			:class="expandable ? 'transition-colors duration-150 ease-out hover:text-ink-gray-7' : ''"
 			:aria-expanded="expandable ? open : undefined"
 			@click="expandable && (open = !open)"
 		>

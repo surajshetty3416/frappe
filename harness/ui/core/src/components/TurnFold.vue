@@ -1,7 +1,7 @@
 <template>
 	<button
 		type="button"
-		class="-mx-1.5 flex w-fit select-none items-center gap-1.5 rounded-4 px-1.5 py-1 text-sm text-ink-gray-5 hover:bg-surface-gray-2 hover:text-ink-gray-7"
+		class="-mx-1.5 flex w-fit select-none items-center gap-1.5 rounded-4 px-1.5 py-1 text-sm text-ink-gray-5 transition-colors duration-150 ease-out hover:text-ink-gray-7"
 		:aria-expanded="expanded"
 		@click="$emit('toggle')"
 	>

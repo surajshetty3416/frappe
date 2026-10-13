@@ -3,7 +3,7 @@
 		<component
 			:is="expandable ? 'button' : 'div'"
 			class="-mx-1.5 flex w-[calc(100%+0.75rem)] items-center gap-2 rounded-4 px-1.5 py-1 text-left text-sm"
-			:class="[expandable ? 'group hover:bg-surface-gray-2' : '', live ? 'flow-tool-live' : '']"
+			:class="[expandable ? 'group' : '', live ? 'flow-tool-live' : '']"
 			@click="expandable && (open = !open)"
 		>
 			<!-- the icon yields to a chevron on hover, and to the turned chevron while open -->
