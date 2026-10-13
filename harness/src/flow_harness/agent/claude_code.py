@@ -123,6 +123,13 @@ async def _turns(
 	"""One Flow run lasts until Claude Code returns a result."""
 	prompts: dict[str, str] = {}
 	turn = _Turn(inputs.model_name, inputs.config.client_tools, prompts)
+	# a resumed call was made in an earlier run
+	turn.tool_names = {
+		call.id: call.name
+		for message in inputs.messages
+		if isinstance(message, AssistantMessage)
+		for call in message.tool_calls
+	}
 	async with ClaudeSDKClient(_options(inputs, answers, prompts, command=command)) as client:
 		await client.query(prompt if prompt is not None else _nothing())
 		async for sdk_message in iterate_with_cancellation(client.receive_messages(), inputs.abort):

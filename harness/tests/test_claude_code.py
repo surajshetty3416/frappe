@@ -15,7 +15,9 @@ from flow_harness.agent import claude_code, loop
 from flow_harness.events import (
 	ApprovalRequired,
 	AssistantMessage,
+	PendingCall,
 	RunEnded,
+	ToolCall,
 	ToolCallStarted,
 	ToolResult,
 	UserMessage,
@@ -25,6 +27,7 @@ from flow_harness.model.auth import resolve_model_auth
 from flow_harness.model.credentials import CredentialStore
 from flow_harness.model.providers import claude_code as providers_claude_code
 from flow_harness.session.config import SessionConfig
+from flow_harness.session.transcript import PendingApproval
 
 CREATE = {
 	"type": "function",
@@ -313,3 +316,18 @@ async def test_a_title_comes_from_an_isolated_claude_code(monkeypatch, is_error,
 	assert (options.tools, options.setting_sources, options.strict_mcp_config) == ([], [], True)
 	assert options.env == {"CLAUDE_CODE_OAUTH_TOKEN": "oauth-token"}
 	assert events[0].stop_reason == stop_reason
+
+
+async def test_a_resumed_call_keeps_its_flow_name(tmp_path, monkeypatch, mcp_tools):
+	monkeypatch.setattr(claude_code, "ClaudeSDKClient", _FakeClient)
+	_FakeClient.script = [
+		SDKUserMessage(content=[ToolResultBlock(tool_use_id="t1", content="created")]),
+		_result(),
+	]
+	inputs = _inputs(tmp_path)
+	inputs.messages.append(
+		AssistantMessage(content=[ToolCall(id="t1", name="create", arguments={})], stop_reason="tool_use")
+	)
+	approval = PendingApproval(seq=3, calls=(PendingCall(id="t1", name="create", args={}, prompt="?"),))
+	events = [e async for e in claude_code.resume(approval, {"t1": "Approve"}, inputs)]
+	assert [(e.name, e.content) for e in events if isinstance(e, ToolResult)] == [("create", "created")]
