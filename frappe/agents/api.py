@@ -7,6 +7,7 @@ from frappe.automation_engine.api import run_manually
 
 RUN = "Automation Run"
 DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+STATUS_FIELDS = ("status", "workflow_state")
 DOC_EVENTS = {
 	"Doc Created": "created",
 	"Doc Updated": "updated",
@@ -166,6 +167,10 @@ def trigger_words(flow) -> str:
 	if kind in DOC_EVENTS:
 		return f"When {article(doctype)} {doctype} is {DOC_EVENTS[kind]}"
 	if kind == "Field Value Changed":
+		if flow.trigger_field in STATUS_FIELDS and flow.to_value:
+			if flow.from_value:
+				return f"When {article(doctype)} {doctype} goes from {flow.from_value} to {flow.to_value}"
+			return f"When {article(doctype)} {doctype} is {flow.to_value}"
 		words = f"When {field_label(doctype, flow.trigger_field)} of {article(doctype)} {doctype} changes"
 		if flow.from_value:
 			words += f" from {flow.from_value}"
