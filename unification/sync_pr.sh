@@ -11,17 +11,23 @@
 #              from the worktree, and TEST_SITE in its sites/ is one the tests may change
 #   DRY_RUN=1  print the PR and issue instead of pushing
 set -uo pipefail
-# switching to the open PR's branch rewrites this file, and bash reads a script as it runs
-if [[ -z ${SYNC_PR_COPY:-} ]]; then
-	copy=$(mktemp)
-	cp "$0" "$copy"
-	SYNC_PR_COPY=1 exec bash "$copy" "$@"
-fi
 ROOT=$(git rev-parse --show-toplevel)
 cd "$ROOT"
 BASE=${BASE:-unified}
 BENCH=${BENCH:-$(cd "$ROOT/../.." && pwd)}
 BRANCH=sync/upstream
+# run the open sync PR's copy of this script, which carries tooling fixes before they reach $BASE,
+# and run it from a copy: switching branches rewrites this file while bash still reads it
+if [[ -z ${SYNC_PR_COPY:-} ]]; then
+	copy=$(mktemp)
+	git fetch --quiet origin
+	if [[ -n $(gh pr list --repo "$REPO" --head "$BRANCH" --base "$BASE" --state open --json url --jq '.[0].url // empty') ]]; then
+		git show "origin/$BRANCH:unification/sync_pr.sh" > "$copy"
+	else
+		cp "$0" "$copy"
+	fi
+	SYNC_PR_COPY=1 exec bash "$copy" "$@"
+fi
 ISSUE="Upstream sync needs a hand"
 OUT=$(mktemp -d)
 FAILED=0
