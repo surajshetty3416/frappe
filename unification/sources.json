@@ -28,8 +28,8 @@
 		"insights": {
 			"repo": "https://github.com/frappe/insights.git",
 			"branch": "develop",
-			"commit": "ce7fd17e1a0ccc32b7ed3651368b3680789f227a",
-			"rewritten": "8f57545ad6f3b74020fb5e97622419a9957316a4",
+			"commit": "876e933c401bab3c99830f305dd8c208b6c30226",
+			"rewritten": "c05a69c531a2c3a2ac1927fc003f56d6ffae13cd",
 			"moves": {
 				"frappe/insights/www/_insights.py": "frappe/analytics/shell.py",
 				"frappe/insights/public/": "frappe/public/analytics/",
