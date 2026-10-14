@@ -299,3 +299,33 @@ test("a resume names the batch it answers, so a sub-agent's can be told apart", 
 		["frappe.ai.api.resume", { session: "S1", answers: { c9: "Approve" }, approval_seq: 8 }],
 	]);
 });
+
+test("a sync that fails after a run ends is retried once, then dropped quietly", async () => {
+	const { fakeSocket } = await import("./helpers/socket.js");
+	const reported = [];
+	let failures = 1;
+	const transport = fakeTransport({
+		"frappe.ai.api.entries": { entries: [{ type: "run_ended", seq: 1, reason: "done" }] },
+		"frappe.ai.api.sync_session": () => {
+			if (failures-- > 0) throw new Error("Internal Server Error");
+			return session;
+		},
+	});
+	const client = new FrappeClient({
+		socket: fakeSocket(),
+		boot,
+		transport,
+		hooks: { onSession: (data) => reported.push(data.name) },
+	});
+	const stream = client.stream("S1");
+	await stream[Symbol.asyncIterator]().next(); // the run_ended row
+	stream.close();
+	await new Promise((resolve) => setImmediate(resolve));
+	assert.deepEqual(reported, ["S1"]);
+	failures = 2;
+	assert.equal(await client.syncSession("S1"), null);
+	assert.equal(
+		transport.calls.filter(([method]) => method === "frappe.ai.api.sync_session").length,
+		4
+	);
+});

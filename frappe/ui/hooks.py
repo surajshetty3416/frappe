@@ -242,9 +242,6 @@ flow_tools = [
 	"frappe.ui.flow_tools.save_studio_page",
 ]
 
-# skills the assistant loads when a task needs them
-flow_skills = ["ui/skills/apps/SKILL.md"]
-
 # what Studio opens beside the chat for an artifact of this layer
 studio_artifacts = {
 	"Studio App": {"label": "App", "route": "/studio/ui/app/{name}", "title_field": "app_title"},

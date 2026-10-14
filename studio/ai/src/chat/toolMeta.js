@@ -49,7 +49,7 @@ const TOOLS = {
 		subject: (args) => (noun(args.doctype) ? createdTitles(args) : subject(args)),
 		view: CreateView,
 		asks: true,
-		stat: (result) => outcome(result.created, result.failures, "created"),
+		stat: (result) => outcome(result.created, "created"),
 	},
 	update: {
 		icon: "lucide-pencil",
@@ -57,7 +57,7 @@ const TOOLS = {
 		subject: (args) => (noun(args.doctype) ? titles(args.doctype, args.names) : subject(args)),
 		view: NamesView,
 		asks: true,
-		stat: (result) => outcome(result.updated, result.failures, "updated"),
+		stat: (result) => outcome(result.updated, "updated"),
 	},
 	delete: {
 		icon: "lucide-trash-2",
@@ -65,7 +65,7 @@ const TOOLS = {
 		subject: (args) => (noun(args.doctype) ? titles(args.doctype, args.names) : subject(args)),
 		view: NamesView,
 		asks: true,
-		stat: (result) => outcome(result.deleted, result.failures, "deleted"),
+		stat: (result) => outcome(result.deleted, "deleted"),
 	},
 	run_action: {
 		icon: "lucide-play",
@@ -73,9 +73,7 @@ const TOOLS = {
 		view: NamesView,
 		asks: true,
 		stat: (result) =>
-			result.action === "rename"
-				? "renamed"
-				: outcome(result.results, result.failures, "done"),
+			result.action === "rename" ? "renamed" : outcome(result.results, "done"),
 	},
 	execute: { icon: "lucide-code", label: "Running Code", view: CodeView, asks: true },
 	run_query: {
@@ -146,7 +144,11 @@ const SUBJECT_KEYS = [
 	"content",
 ];
 
+// the flow server's file tools keep the core's own rows, which fold a read's file text
+const FILE_TOOLS = new Set(["read", "grep"]);
+
 export function presentTool(name, args = {}, result = null) {
+	if (FILE_TOOLS.has(name)) return {};
 	const tool = TOOLS[name];
 	// a custom Imported or Script tool: its return is the point, so always show it
 	if (!tool) return { resultComponent: JsonView };
@@ -214,7 +216,6 @@ function count(n, singular, plural = `${singular}s`) {
 	return `${n} ${n === 1 ? singular : plural}`;
 }
 
-function outcome(done, failures, verb) {
-	const ok = `${done?.length ?? 0} ${verb}`;
-	return failures?.length ? `${ok} · ${failures.length} failed` : ok;
+function outcome(done, verb) {
+	return `${done?.length ?? 0} ${verb}`;
 }

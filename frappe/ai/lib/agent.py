@@ -6,7 +6,6 @@
 from __future__ import annotations
 
 import importlib
-import os
 from typing import TYPE_CHECKING
 
 import frappe
@@ -55,34 +54,6 @@ def sync_tools(_app: str | None = None) -> None:
 		_ensure_tool(frappe.get_attr(path))
 
 
-def sync_skills(_app: str | None = None) -> None:
-	"""Write each skill the installed apps list under the `flow_skills` hook as a locked global
-	Flow Skill, so every agent with load_skill can load it. An entry is a SKILL.md path inside
-	its app: front matter with `name` and `description`, then the instructions. Runs after
-	migrate and app installs."""
-	for app in frappe.get_installed_apps():
-		for path in frappe.get_hooks("flow_skills", app_name=app):
-			_ensure_skill(os.path.join(frappe.get_app_path(app), path))
-
-
-def _ensure_skill(path: str) -> None:
-	import yaml
-
-	_, front, instructions = frappe.read_file(path).split("---", 2)
-	meta = yaml.safe_load(front)
-	if frappe.db.exists("Flow Skill", meta["name"]):
-		doc = frappe.get_doc("Flow Skill", meta["name"])
-		if not doc.is_system_generated:
-			frappe.throw(
-				_("Flow Skill {0} already exists and is not owned by code.").format(meta["name"]),
-				title=_("Skill Conflict"),
-			)
-	else:
-		doc = frappe.get_doc({"doctype": "Flow Skill", "title": meta["name"], "enabled": 1, "is_global": 1})
-	doc.update({"description": meta["description"], "instructions": instructions.strip(), "is_system_generated": 1})
-	doc.save(ignore_permissions=True)
-
-
 class Agent:
 	"""A Flow Agent defined in code.
 
@@ -92,6 +63,7 @@ class Agent:
 	disable them and switch the agent's model, nothing else. Tools must be module-level
 	functions in an installed app, since the flow server calls them back by import path.
 	`sub_agents` are Agents this one may hand a task to; they are synced before it.
+	`skills` are Flow Skill names.
 	"""
 
 	def __init__(
@@ -104,6 +76,7 @@ class Agent:
 		description: str = "",
 		tools: list[Tool] | None = None,
 		knowledge: Knowledge | list[Knowledge] | None = None,
+		skills: list[str] | None = None,
 		sub_agents: list[Agent] | None = None,
 		max_iterations: int = DEFAULT_MAX_ITERATIONS,
 		auto_approve: bool = False,
@@ -117,6 +90,7 @@ class Agent:
 		self.description = description
 		self.tools = list(tools or [])
 		self.knowledge = list(knowledge or [])
+		self.skills = list(skills or [])
 		self.sub_agents = list(sub_agents or [])
 		self.max_iterations = max_iterations
 		self.auto_approve = auto_approve
@@ -151,6 +125,7 @@ class Agent:
 		doc.is_system_generated = 1
 		doc.set("tools", [{"tool": _ensure_tool(tool)} for tool in self.tools])
 		doc.set("knowledge_bases", [{"knowledge_base": kb.name} for kb in self.knowledge])
+		doc.set("skills", [{"skill": name} for name in self.skills])
 		doc.set("sub_agents", [{"agent": child.name} for child in self.sub_agents])
 		doc.save(ignore_permissions=True)
 

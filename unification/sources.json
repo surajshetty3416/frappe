@@ -1,0 +1,120 @@
+{
+	"sources": {
+		"frappe": {
+			"repo": "https://github.com/frappe/frappe.git",
+			"branch": "develop",
+			"commit": "f94cedbd1f775e7b0bdf68bc3329c24e429a4bcd"
+		},
+		"builder": {
+			"repo": "https://github.com/frappe/builder.git",
+			"branch": "develop",
+			"commit": "3f18033ee52a1125680c91b2a93b72536c52bf7e",
+			"rewritten": "985771850979cc7c82ac499034d16ad1124a456f",
+			"moves": {
+				"frappe/builder/www/_builder.py": "frappe/web/shell.py",
+				"frappe/builder/www/404.py": "frappe/web/not_found.py",
+				"frappe/builder/www/sitemap.py": "frappe/web/sitemap.py",
+				"frappe/builder/www/404.html": "frappe/www/404.html",
+				"frappe/builder/www/sitemap.xml": "frappe/www/sitemap.xml",
+				"frappe/builder/public/": "frappe/public/web/",
+				"frappe/builder/": "frappe/web/",
+				"frontend/builder/": "studio/web/"
+			},
+			"dependencies": {
+				"frappe/builder/pyproject.toml": "pyproject.toml",
+				"frontend/builder/package.json": "studio/package.json"
+			}
+		},
+		"insights": {
+			"repo": "https://github.com/frappe/insights.git",
+			"branch": "develop",
+			"commit": "876e933c401bab3c99830f305dd8c208b6c30226",
+			"rewritten": "c05a69c531a2c3a2ac1927fc003f56d6ffae13cd",
+			"moves": {
+				"frappe/insights/www/_insights.py": "frappe/analytics/shell.py",
+				"frappe/insights/public/": "frappe/public/analytics/",
+				"frappe/insights/": "frappe/analytics/",
+				"frontend/insights/": "studio/analytics/"
+			},
+			"dependencies": {
+				"frappe/insights/pyproject.toml": "pyproject.toml",
+				"frontend/insights/package.json": "studio/package.json"
+			},
+			"regenerate": [
+				"python3 -I frappe/analytics/tests/features.py generate"
+			]
+		},
+		"flow": {
+			"repo": "https://github.com/frappe/flow.git",
+			"branch": "main",
+			"commit": "76f1df7511d3df765681f4f208252a9979187ac5",
+			"rewritten": "7b2f2298d070b6fe6934a8919d65ea4e2f20ade4",
+			"moves": {
+				"frappe/flow/www/flow/index.py": "frappe/ai/shell.py",
+				"frappe/flow/commands/__init__.py": "frappe/commands/flow.py",
+				"frappe/flow/harness/": "harness/",
+				"frappe/flow/realtime/handlers.js": "realtime/flow_handlers.js",
+				"frappe/flow/tailwind.config.js": "studio/ai/tailwind.config.js",
+				"frappe/flow/": "frappe/ai/",
+				"frontend/flow/": "studio/ai/"
+			},
+			"dependencies": {
+				"frappe/flow/pyproject.toml": "pyproject.toml",
+				"frappe/flow/package.json": "studio/package.json"
+			}
+		},
+		"studio": {
+			"repo": "https://github.com/frappe/studio.git",
+			"branch": "develop",
+			"commit": "78a7b00f935549c627962f68e4f2dcc8beba27a5",
+			"rewritten": "1ed9f5645563da8512b29a75ffe0a84992f2a47f",
+			"moves": {
+				"frappe/studio/www/studio.py": "frappe/ui/shell.py",
+				"frappe/studio/commands/__init__.py": "frappe/commands/studio.py",
+				"frontend/studio/renderer.html": "frappe/ui/templates/generators/studio_renderer.html",
+				"frappe/studio/": "frappe/ui/",
+				"frontend/studio/": "studio/ui/"
+			},
+			"dependencies": {
+				"frappe/studio/pyproject.toml": "pyproject.toml",
+				"frontend/studio/package.json": "studio/package.json"
+			}
+		}
+	},
+	"commit_trailers": [
+		"Co-Authored-By: Claude <noreply@anthropic.com>",
+		"Co-Authored-By: Rucha Mahabal <24353136+ruchamahabal@users.noreply.github.com>",
+		"Co-Authored-By: Shrihari Mahabal <166826779+ShrihariMahabal@users.noreply.github.com>",
+		"Co-Authored-By: Saqib Ansari <25369014+nextchamp-saqib@users.noreply.github.com>"
+	],
+	"ignore": [
+		"frappe/*/.github/*",
+		"frappe/*/.devcontainer/*",
+		"frappe/*/.vscode/*",
+		"frappe/*/.claude/*",
+		"frappe/*/.agents/*",
+		"frappe/*/docker/*",
+		"frappe/*/.git-blame-ignore-revs",
+		"frappe/*/.gitignore",
+		"frappe/*/.editorconfig",
+		"frappe/*/.eslintrc",
+		"frappe/*/.pre-commit-config.yaml",
+		"frappe/*/.releaserc",
+		"frappe/*/.mergify.yml",
+		"frappe/*/.semgrep*",
+		"frappe/*/.coveragerc",
+		"frappe/*/codecov.yml",
+		"frappe/*/flake8",
+		"frappe/*/commitlint.config.*",
+		"frappe/*/crowdin.yml",
+		"frappe/*/MANIFEST.in",
+		"*/yarn.lock",
+		"*/package-lock.json",
+		"frontend/*/components.d.ts",
+		"frontend/*/auto-imports.d.ts",
+		"frontend/*/typecheck-baseline.txt",
+		"frappe/builder/package.json",
+		"frappe/insights/package.json",
+		"frappe/studio/package.json"
+	]
+}

@@ -4,5 +4,3 @@ studio_artifacts = {
 }
 
 flow_tools = ["frappe.agents.flow_tools.run_automation", "frappe.agents.flow_tools.ask_agent"]
-
-flow_skills = ["agents/skills/agents/SKILL.md"]

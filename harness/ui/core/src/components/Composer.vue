@@ -327,11 +327,15 @@ function onFilesPicked(event) {
 
 function onPaste(event) {
 	if (!attachable.value) return
-	const images = [...(event.clipboardData?.items ?? [])]
+	const data = event.clipboardData
+	const images = [...(data?.items ?? [])]
 		.filter((item) => item.kind === "file" && item.type.startsWith("image/"))
 		.map((item) => item.getAsFile())
 		.filter(Boolean)
 	if (!images.length) return
+	// a spreadsheet or document range brings a picture of itself along: the text is what was
+	// copied. A copied file or web image has no text in its HTML.
+	if (data.getData("text/plain").trim() && data.getData("text/html").replace(/<[^>]*>/g, "").trim()) return
 	event.preventDefault()
 	addFiles(images)
 }
@@ -477,7 +481,12 @@ const canSend = computed(
 		(text.value.trim().length > 0 || attachments.value.length > 0 || quotes.value.length > 0 || pendingChips.value.length > 0),
 )
 
+// An IME's Enter picks a candidate and its Escape drops one; Safari sends the closing key
+// after compositionend, marked only by keyCode 229.
+const composing = (e) => e.isComposing || e.keyCode === 229
+
 function onKey(e) {
+	if (composing(e)) return
 	if (e.key === "Enter" && !e.shiftKey && !(menuOpen.value && matches.value.length)) {
 		e.preventDefault()
 		submit()
@@ -491,11 +500,12 @@ function onKey(e) {
 }
 
 // Escape stops the turn even when focus is outside the box. An open dialog, menu or list
-// owns it, though closing one leaves the event unprevented, and so does whatever else on
-// the page took it, once every listener has run.
+// owns it, though closing one leaves the event unprevented, and so do other fields (a search
+// box, a form, the editor) and whatever else on the page took it, once every listener has run.
 const LAYERS = '[role="dialog"], [role="menu"], [role="listbox"]'
 function onWindowKey(e) {
-	if (e.key !== "Escape" || e.repeat || menuOpen.value || document.querySelector(LAYERS)) return
+	if (e.key !== "Escape" || e.repeat || composing(e) || menuOpen.value || document.querySelector(LAYERS)) return
+	if (e.target?.closest?.('input, textarea, select, [contenteditable], [role="dialog"], [role="menu"]')) return
 	setTimeout(() => {
 		if (!e.defaultPrevented && running.value) flow.abort()
 	})
@@ -517,13 +527,17 @@ async function submit() {
 		if (pending.length) await Promise.all(pending)
 		if (flow.state.sessionId !== sendingSessionId) return
 		if (selectedAttachments.some((item) => item.error || !attachments.value.includes(item))) return
-		// the box empties as the bubble appears; a send that never lands hands the text back
+		// the box and its chips empty as the bubble appears; a send that never lands hands
+		// them back. Only what went out: a quote added meanwhile stays staged.
 		text.value = ""
+		attachments.value = attachments.value.filter((item) => !selectedAttachments.includes(item))
+		flow.clearQuotes(selectedQuotes)
 		if (await flow.send(outgoing, selectedAttachments)) {
-			clearAttachments(false)
-			flow.clearQuotes(selectedQuotes)
+			for (const item of selectedAttachments) if (item.previewUrl) URL.revokeObjectURL(item.previewUrl)
 		} else {
 			text.value = draftText
+			attachments.value = [...selectedAttachments, ...attachments.value]
+			for (const quote of selectedQuotes) flow.addQuote(quote)
 		}
 	} finally {
 		submitting.value = false

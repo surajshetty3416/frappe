@@ -58,14 +58,14 @@ after_migrate = [
 	"frappe.ai.assistant.sync_builtin_assistant",
 	"frappe.ai.lib.agent.sync_agents",
 	"frappe.ai.lib.agent.sync_tools",
-	"frappe.ai.lib.agent.sync_skills",
 	"frappe.ai.daemon.lifecycle.after_migrate",
 ]
 after_app_install = [
+	"frappe.ai.assistant.sync_assistant_skills",
 	"frappe.ai.lib.agent.sync_agents",
 	"frappe.ai.lib.agent.sync_tools",
-	"frappe.ai.lib.agent.sync_skills",
 ]
+after_app_uninstall = ["frappe.ai.assistant.sync_assistant_skills"]
 before_uninstall = ["frappe.ai.daemon.lifecycle.remove_site"]
 
 extend_bootinfo = "frappe.ai.boot.boot_session"

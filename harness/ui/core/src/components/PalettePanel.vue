@@ -52,6 +52,8 @@ function onPointerOver(event) {
 // Capture at window level so palettes work whether focus lives in their search
 // input, their panel, or the composer textarea behind the slash-command list.
 function onKey(event) {
+	// an IME's Enter picks its candidate, not a row
+	if (event.isComposing || event.keyCode === 229) return
 	if (event.key === "Escape") {
 		event.preventDefault()
 		event.stopPropagation()

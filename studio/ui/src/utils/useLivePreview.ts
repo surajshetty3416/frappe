@@ -2,7 +2,7 @@ import { ref, inject, onMounted, onBeforeUnmount } from "vue"
 import { useRouter } from "vue-router"
 import { useDebounceFn } from "@vueuse/core"
 
-import { reloadCustomVueComponents } from "@ui/globals"
+import { reloadCustomVueComponents } from "@ui/utils/customVueComponents"
 import useComponentStore from "@ui/stores/componentStore"
 
 // Re-render the preview when the open page changes in the DB — an editor save, an AI edit, or a disk

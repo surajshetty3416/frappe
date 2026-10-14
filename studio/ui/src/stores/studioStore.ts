@@ -12,7 +12,7 @@ import { studioVariables } from "@ui/data/studioVariables"
 import Block from "@ui/utils/block"
 import useCanvasStore from "@ui/stores/canvasStore"
 import useCodeStore, { usePageScope } from "@ui/stores/codeStore"
-import { reloadCustomVueComponents } from "@ui/globals"
+import { reloadCustomVueComponents } from "@ui/utils/customVueComponents"
 import { registerStudioPageScripts, unregisterStudioPageScripts } from "@ui/data/studioPageScripts"
 import { registerCustomComponentPaths } from "@ui/utils/components"
 import type { CustomVueComponentMeta } from "@ui/types/vue"
@@ -20,7 +20,7 @@ import type { CustomVueComponentMeta } from "@ui/types/vue"
 import type { StudioApp } from "@ui/types/Studio/StudioApp"
 import type { StudioPage } from "@ui/types/Studio/StudioPage"
 import type { Variable, VariableOption } from "@ui/types/Studio/StudioPageVariable"
-import { toast, dialog } from "frappe-ui"
+import { toast, dialog, useColorScheme } from "frappe-ui"
 import { call } from "frappe-ui"
 
 type PageFields = Partial<Pick<StudioPage, "page_title" | "route" | "script" | "allow_guest">>
@@ -28,6 +28,10 @@ type PageFields = Partial<Pick<StudioPage, "page_title" | "route" | "script" | "
 const PAGE_CHANGED_MESSAGE = "This page was changed outside the editor. Refresh to load the latest version."
 
 const useStudioStore = defineStore("studioStore", () => {
+	// the shell owns the page's theme: read it, never set data-theme here
+	const { resolvedColorScheme } = useColorScheme()
+	const isDark = computed(() => resolvedColorScheme.value === "dark")
+
 	// studio apps
 	const activeApp = ref<StudioApp | null>(null)
 	const appPages = computed<Record<string, StudioPage>>(() => {
@@ -547,6 +551,7 @@ const useStudioStore = defineStore("studioStore", () => {
 	})
 
 	return {
+		isDark,
 		// studio app
 		activeApp,
 		setApp,

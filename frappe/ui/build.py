@@ -213,6 +213,7 @@ class StudioAppBuilder:
 					page_text = f.read()
 				page_data = json.loads(page_text)
 				self._add_icons(page_text)
+				self._add_h_function_components(page_text)
 			except (json.JSONDecodeError, OSError) as e:
 				click.secho(f"Warning: Could not read {page_path}: {e}", fg="yellow")
 				continue
@@ -222,7 +223,6 @@ class StudioAppBuilder:
 				continue
 
 			if isinstance(blocks, str):
-				self._add_h_function_components(blocks)
 				blocks = json.loads(blocks)
 
 			if isinstance(blocks, list) and blocks:

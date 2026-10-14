@@ -2,12 +2,16 @@
 # See license.txt
 
 from typing import Any
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import frappe
+import litellm
+import requests
 from frappe.tests import IntegrationTestCase
 
-from frappe.ai.doctype.flow_model.flow_model import _detect_context_window
+from frappe.ai.daemon.client import DaemonClient, DaemonError
+from frappe.ai.doctype.flow_model.flow_model import _detect_context_window, get_provider_models
+from frappe.ai.tests.test_fake_daemon import FakeDaemon, row
 
 
 def _model(**overrides: Any) -> dict:
@@ -42,9 +46,14 @@ class TestFlowModelValidation(IntegrationTestCase):
 		self.assertEqual(doc.model_id, "openai/gpt-4o-mini")
 		self.assertEqual(doc.base_url, "https://api.example.com")
 
+	def test_openrouter_latest_alias_inserts(self):
+		doc = frappe.get_doc(_model(model_id="openrouter/~anthropic/claude-sonnet-latest")).insert()
+
+		self.assertEqual(doc.model_id, "openrouter/~anthropic/claude-sonnet-latest")
+
 	def test_invalid_model_id_format_rejected(self):
 		# Format validation runs first and rejects these before reaching the provider check.
-		for bad in ("missing-slash", "Uppercase/model", "openai/", "/no-provider"):
+		for bad in ("missing-slash", "Uppercase/model", "openai/", "/no-provider", "openai/~"):
 			with self.subTest(model_id=bad):
 				doc = frappe.get_doc(_model(model_id=bad))
 				with self.assertRaisesRegex(frappe.ValidationError, "Model ID"):
@@ -55,6 +64,11 @@ class TestFlowModelValidation(IntegrationTestCase):
 
 		with self.assertRaises(frappe.ValidationError):
 			doc.insert()
+
+	def test_chatgpt_subscription_model_takes_the_flow_servers_window(self):
+		doc = frappe.get_doc(_model(model_id="codex/gpt-5.5")).insert()
+
+		self.assertEqual(doc.context_window, 272_000)
 
 
 class TestFlowModelProvider(IntegrationTestCase):
@@ -136,6 +150,65 @@ class TestFlowModelExtraParams(IntegrationTestCase):
 		self.assertEqual(completion.call_args.kwargs["provider"], {"zdr": True})
 
 
+def failed_turn(seq, run_id, message):
+	return [
+		row(seq, "run_started", run_id=run_id),
+		row(seq + 1, "run_error", message="AuthError: not signed in"),
+		row(seq + 2, "run_ended", reason="error"),
+	]
+
+
+class TestFlowServerConnection(IntegrationTestCase):
+	"""A ChatGPT subscription model is reached only through the flow server."""
+
+	def setUp(self):
+		self.enterContext(patch.dict(frappe.local.conf, {"flow_server_secret": "site-token"}))
+		self.daemon = FakeDaemon()
+		self.enterContext(patch.object(DaemonClient, "for_site", return_value=self.daemon))
+		self.doc = frappe.get_doc(_model(model_id="codex/gpt-5.5")).insert()
+
+	def tearDown(self):
+		frappe.db.rollback()
+
+	def test_test_connection_pings_a_throwaway_session(self):
+		with patch("litellm.completion") as completion:
+			self.assertTrue(self.doc.test_connection()["ok"])
+
+		completion.assert_not_called()
+		sid = self.daemon.calls[0][1]
+		self.assertEqual(
+			self.daemon.calls,
+			[
+				("create_session", sid),
+				("run", sid, "ping"),
+				("entries", sid, 0, "all"),
+				("get_session", sid),
+				("delete_session", sid),
+			],
+		)
+
+	def test_test_connection_throws_the_runs_error(self):
+		self.daemon.answer = failed_turn
+
+		with self.assertRaisesRegex(frappe.ValidationError, "not signed in"):
+			self.doc.test_connection()
+		self.assertEqual(self.daemon.calls[-1][0], "delete_session")
+
+	def test_a_failed_check_stops_its_run_before_deleting(self):
+		self.daemon.running_for = 1
+		lost = DaemonError(None, "ReadTimeout: log unreachable")
+
+		with patch.object(self.daemon, "entries", side_effect=lost):
+			with self.assertRaisesRegex(frappe.ValidationError, "log unreachable"):
+				self.doc.test_connection()
+
+		sid = self.daemon.calls[0][1]
+		self.assertEqual(
+			self.daemon.calls[2:],
+			[("get_session", sid), ("abort", sid), ("get_session", sid), ("delete_session", sid)],
+		)
+
+
 class TestContextWindow(IntegrationTestCase):
 	def tearDown(self):
 		frappe.db.rollback()
@@ -181,3 +254,70 @@ class TestContextWindow(IntegrationTestCase):
 			doc.model_id = "anthropic/made-up-model-xyz"
 			doc.save()
 		self.assertEqual(doc.context_window, 128000)
+
+
+class TestProviderModels(IntegrationTestCase):
+	def tearDown(self):
+		frappe.set_user("Administrator")
+		frappe.db.rollback()
+
+	def test_lists_the_providers_own_models_with_its_prefix(self):
+		frappe.get_doc({"doctype": "Flow Provider", "provider": "groq", "api_key": "test-key"}).insert()
+		body = {"data": [{"id": "llama-3.3-70b"}, {"id": "groq/compound"}, {"object": "list"}]}
+		with patch("requests.get", return_value=_response(body)) as get:
+			models = get_provider_models("groq")
+
+		# Groq's own groq/compound still gets the prefix: litellm strips one
+		self.assertEqual(models, ["groq/groq/compound", "groq/llama-3.3-70b"])
+		self.assertEqual(get.call_args.args[0], "https://api.groq.com/openai/v1/models")
+		self.assertEqual(get.call_args.kwargs["headers"], {"Authorization": "Bearer test-key"})
+
+	def test_a_base_url_is_asked_for_its_models(self):
+		frappe.get_doc(
+			{
+				"doctype": "Flow Provider",
+				"provider": "litellm_proxy",
+				"base_url": "https://gw.example.com/v1/",
+			}
+		).insert()
+		with patch("requests.get", return_value=_response({"data": [{"id": "openai/gpt-6-sol"}]})) as get:
+			models = get_provider_models("litellm_proxy")
+
+		self.assertEqual(models, ["litellm_proxy/openai/gpt-6-sol"])
+		self.assertEqual(get.call_args.args[0], "https://gw.example.com/v1/models")
+
+	def test_anthropic_is_asked_for_every_model_on_one_page(self):
+		if not frappe.db.exists("Flow Provider", "anthropic"):
+			frappe.get_doc({"doctype": "Flow Provider", "provider": "anthropic"}).insert()
+		with patch("requests.get", return_value=_response({"data": [{"id": "claude-x"}]})) as get:
+			self.assertEqual(get_provider_models("anthropic"), ["anthropic/claude-x"])
+		self.assertEqual(get.call_args.kwargs["params"], {"limit": 1000})
+
+	def test_gemini_is_asked_for_every_model_on_one_page(self):
+		if not frappe.db.exists("Flow Provider", "gemini"):
+			frappe.get_doc({"doctype": "Flow Provider", "provider": "gemini"}).insert()
+		body = {"models": [{"name": "models/gemini-x"}]}
+		with patch("requests.get", return_value=_response(body)) as get:
+			self.assertEqual(get_provider_models("gemini"), ["gemini/gemini-x"])
+		self.assertEqual(get.call_args.kwargs["params"], {"pageSize": 1000})
+
+	def test_falls_back_to_litellms_catalog_when_the_provider_does_not_answer(self):
+		frappe.get_doc({"doctype": "Flow Provider", "provider": "groq"}).insert()
+		with (
+			patch("requests.get", side_effect=requests.ConnectionError("down")),
+			patch.dict(litellm.models_by_provider, {"groq": {"llama-3.3-70b", "groq/llama-guard"}}),
+		):
+			# the catalog's own prefix is not doubled
+			self.assertEqual(get_provider_models("groq"), ["groq/llama-3.3-70b", "groq/llama-guard"])
+
+	def test_users_who_cannot_edit_models_get_nothing(self):
+		frappe.set_user("Guest")
+		with patch("requests.get") as get:
+			self.assertEqual(get_provider_models("groq"), [])
+		get.assert_not_called()
+
+
+def _response(body: dict) -> Mock:
+	response = Mock()
+	response.json.return_value = body
+	return response
