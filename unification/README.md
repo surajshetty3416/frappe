@@ -245,7 +245,9 @@ run:
 1. starts from the open sync PR's branch, `sync/upstream`, with `unified` merged in (so the PR
    stays mergeable and the run uses the current tooling), or from `unified` when no sync PR is
    open;
-2. runs `sync.py merge --skip-conflicts`, and stops there if nothing new merged;
+2. runs `sync.py merge --skip-conflicts`, and stops there unless something merged or the open
+   PR's branch moved since its last check (the description records the commit it checked, so a
+   fix pushed to the branch by hand is checked within the hour);
 3. checks the result: reinstalls the sync bench's env from the merged `pyproject.toml` (with
    frappe's dev dependencies), imports every layer module, builds the SPA, then migrates
    `unified-test.localhost` and runs every layer test on it;
@@ -259,6 +261,11 @@ run:
    and push to `unified`; the next run carries on from there.
 
 A run that is still checking when the next hour comes round makes systemd skip that hour.
+
+After each run [`deploy_test_site.sh`](deploy_test_site.sh) moves unified.surajshetty.tech (the
+unified bench) to the newest code that passed its checks: the open sync PR's head while it isn't a
+draft, otherwise `unified`. It only moves forward, then installs, builds, migrates and restarts
+`bench-unified`.
 `systemctl start unification-sync` runs it now, `journalctl -u unification-sync` shows the run,
 and `DRY_RUN=1` prints the PR and issue instead of pushing.
 
@@ -277,6 +284,7 @@ cd $B/apps/frappe && sudo -u t3run -i uv pip install --python $B/env/bin/python 
 cd $B/sites && sudo -u t3run ../env/bin/python -m frappe.utils.bench_helper frappe new-site unified-test.localhost \
   --db-root-username root --db-root-password <root> --admin-password admin
 sudo -u t3run ../env/bin/python -m frappe.utils.bench_helper frappe --site unified-test.localhost set-config allow_tests true
+echo 't3run ALL=(root) NOPASSWD: /usr/bin/systemctl restart bench-unified' > /etc/sudoers.d/unification-sync
 cp $B/apps/frappe/unification/systemd/unification-sync.* /etc/systemd/system/
 systemctl daemon-reload && systemctl enable --now unification-sync.timer
 ```

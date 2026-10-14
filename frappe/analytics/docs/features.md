@@ -408,6 +408,7 @@ One row per thing a user can do or rely on. Slugs are `<area>.<feature>` in the 
 | data-store.import-row-limit | An admin caps how many rows an import copies. |
 | data-store.sync-schedule | An admin sets a cron schedule on a stored table, and the table is imported when the schedule is due, counted from its last import. |
 | data-store.list | An admin browses the stored tables and searches them by name. |
+| data-store.import-atomic | A failed import leaves the stored table as it was and no other table behind. |
 | data-store.import-cursor | An incremental import's cursor describes what is in the store, not what a run intended. |
 | data-store.import-script-sandbox | An import job's script reads Frappe data, calls its client and inserts into its table; it cannot write to the site, enqueue a job, call a method, send mail or register a commit hook. |
 | data-store.failed-import-notice | A reader is told when a table's newest import failed, and nothing while one runs or a retry is queued. |
@@ -416,6 +417,7 @@ One row per thing a user can do or rely on. Slugs are `<area>.<feature>` in the 
 | data-store.division-by-zero | A division by zero returns null in the data store, as it does on the live connection. |
 | data-store.cleanup-prunes-stale | The weekly cleanup drops a table no query has used, and keeps one used recently, nested, freshly imported or incremental. |
 | data-store.cleanup-keeps-unexplained | The cleanup deletes only what it can rebuild and keeps an unexplained orphan. |
+| data-store.memory-limit | Every DuckDB connection is held to a memory limit, 4 GB or DuckDB's lower default on a small host, unless the site config sets `insights_duckdb_memory_limit`. |
 | data-store.compaction | The store file is compacted without losing data, and small files are left alone. |
 | data-store.execution-log-retention | Log Settings clears query execution logs past the retention an admin sets; the 90-day default outlasts the cleanup's unused-table window. |
 

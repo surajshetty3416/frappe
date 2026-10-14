@@ -25,6 +25,7 @@ ALT = "|".join(LAYERS)
 DOTTED = re.compile(rf"(?<![\w.])(?P<app>{ALT})\.(?:(?P=app)\.)?(?P<head>\w+)(?P<tail>(?:\.\w+)*)")
 REVIEW = re.compile(
 	rf"get_app_path\(\s*[\"'](?:{ALT})[\"']|[\"'](?:{ALT})[\"']\s*(?:in|==|!=)|(?<![\w/])/(?:builder|insights|flow)(?:/|[\"'`])|/studio/app/"
+	rf"|\bapp(?:_name)?\s*(?::\s*str\s*)?=\s*[\"'](?:{ALT})[\"']"
 )
 
 
@@ -33,6 +34,11 @@ def dotted(match):
 	if head not in NAMES[app]:
 		return match[0]
 	return f"frappe.{LAYERS[app]}.{head}{match['tail']}"
+
+
+def layer_of(path):
+	parts = path.split("/")
+	return parts[1] if len(parts) > 2 and parts[0] in ("frappe", "studio") and parts[1] in LAYERS.values() else None
 
 
 def rewrite(text, path):
@@ -52,6 +58,8 @@ def rewrite(text, path):
 	)
 	for old, new in MODULES.items():
 		text = text.replace(f'"module": "{old}"', f'"module": "{new}"')
+	if layer := layer_of(path):
+		text = re.sub(r"(?<![\w/.-])(?:\./)?frontend/(?=src2?/|public/)", f"studio/{layer}/", text)
 	layer = next((old for old in ALIASES if f"/{LAYERS[old]}/" in f"/{path}"), None)
 	if layer and path.startswith("studio/"):
 		text = re.sub(r"(?<=[\"'`])@/", ALIASES[layer], text)

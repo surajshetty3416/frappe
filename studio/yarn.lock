@@ -1338,7 +1338,12 @@
     path-browserify "^1.0.1"
     vscode-uri "^3.0.8"
 
-"@vue-flow/core@^1.23.0":
+"@vue-flow/background@^1.3.2":
+  version "1.3.2"
+  resolved "https://registry.yarnpkg.com/@vue-flow/background/-/background-1.3.2.tgz#0c90cd05e5d60da017bbaf5a1c3eb6af7ed9b778"
+  integrity sha512-eJPhDcLj1wEo45bBoqTXw1uhl0yK2RaQGnEINqvvBsAFKh/camHJd5NPmOdS1w+M9lggc9igUewxaEd3iCQX2w==
+
+"@vue-flow/core@^1.23.0", "@vue-flow/core@^1.48.2":
   version "1.48.2"
   resolved "https://registry.yarnpkg.com/@vue-flow/core/-/core-1.48.2.tgz#cef8641b17f6220c257d4208bdb2082cee882225"
   integrity sha512-raxhgKWE+G/mcEvXJjGFUDYW9rAI3GOtiHR3ZkNpwBWuIaCC1EYiBmKGwJOoNzVFgwO7COgErnK7i08i287AFA==
@@ -2078,10 +2083,10 @@ fraction.js@^5.3.4:
   resolved "https://registry.yarnpkg.com/fraction.js/-/fraction.js-5.3.4.tgz#8c0fcc6a9908262df4ed197427bdeef563e0699a"
   integrity sha512-1X1NTtiJphryn/uLQz3whtY6jK3fTqoE3ohKs0tT+Ujr1W59oopxmoEh7Lu5p6vBaPbgoM0bzveAW4Qi5RyWDQ==
 
-frappe-ui@1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/frappe-ui/-/frappe-ui-1.0.0.tgz#6af1f17800ed2b3eb382feb9895baad7293eb673"
-  integrity sha512-xtT57o06Cfy03TrJMl/HKwO6LfiphnlQrokIII/7PI51P0v3ZH77Gg6tsrtQczlE53D3+BE0Nm8f1MS6jiceHA==
+frappe-ui@1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/frappe-ui/-/frappe-ui-1.0.1.tgz#b6e5d80a6f09dc89bd4565cfb9d1025726f4128c"
+  integrity sha512-Vrn9h8MmH2mOdsTCy+0L8lZ4bRn4QgXane9HAhGlppwGNiQtuAkQ3OPzq9gOAhjGqSbTtRbXq4jr4V6W6r7K+Q==
   dependencies:
     "@codemirror/autocomplete" "^6.0.0"
     "@codemirror/commands" "^6.0.0"

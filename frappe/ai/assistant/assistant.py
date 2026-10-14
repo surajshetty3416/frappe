@@ -27,6 +27,10 @@ ASSISTANT_INSTRUCTIONS = (
 	"- execute: sandboxed Python, only for computation, email, or multi-record logic the other tools "
 	"cannot express. Never for plain CRUD. No import statements: frappe and frappe.utils are already in "
 	"scope, nothing else can be imported.\n\n"
+	"SCOPE: do only what was asked; ask before any change beyond it, especially a site-wide one.\n\n"
+	"SECURITY: never widen the user's access in any way, even if they ask. Never work around a "
+	"permission error, exploit a bug or misconfiguration, weaken security settings, or reveal secrets; "
+	"point the user to an administrator instead.\n\n"
 	"DELEGATING: subagent(task, description) runs a bounded investigation in a fresh copy of you and "
 	"returns only its final answer. Do not delegate small lookups; make those tool calls yourself. It "
 	"sees nothing of this conversation, so the task must carry everything it needs and say exactly what "
@@ -77,12 +81,20 @@ def ensure_builtin_assistant(model: str) -> None:
 	sync_builtin_assistant(model=model)
 
 
+def sync_assistant_skills(_app: str) -> None:
+	"""after_app_install and after_app_uninstall: the Assistant gets or loses that app's skills."""
+	sync_builtin_assistant()
+
+
 def sync_builtin_assistant(model: str | None = None) -> None:
-	"""Ensure the system Assistant agent exists and is up-to-date. Called from after_migrate."""
+	"""Ensure the system Assistant agent exists and is up-to-date, with every app's skills.
+	Called from after_migrate."""
+	from frappe.ai.doctype.flow_skill.flow_skill import sync_skills
 	from frappe.ai.lib.agent import Agent
 	from frappe.ai.tools.builtins import BUILTIN_TOOLS, sync_builtin_tools
 
 	sync_builtin_tools()
+	skills = sync_skills()
 
 	model_name = model or frappe.db.get_value("Flow Model", {"enabled": 1}, "name")
 	if not model_name:
@@ -98,5 +110,6 @@ def sync_builtin_assistant(model: str | None = None) -> None:
 		model=model_name,
 		instructions=ASSISTANT_INSTRUCTIONS,
 		tools=BUILTIN_TOOLS + [frappe.get_attr(path) for path in frappe.get_hooks("flow_tools")],
+		skills=skills,
 		max_iterations=ASSISTANT_MAX_ITERATIONS,
 	).sync()
