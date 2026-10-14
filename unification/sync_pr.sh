@@ -102,7 +102,9 @@ check() {
 # start from the open PR's branch with $BASE merged in, so it stays mergeable and runs the
 # current tooling; a failed lookup must not read as "no PR", or the force-push would drop its commits
 pr=$(open_pr) || exit 1
+checked=""
 if [[ -n $pr ]]; then
+	checked=$(gh pr view "$pr" --repo "$REPO" --json body --jq .body | sed -n 's/^Checked at `\([0-9a-f]*\)`.*/\1/p' | head -1)
 	git fetch --quiet origin "$BRANCH" || exit 1
 	git switch --quiet -C "$BRANCH" "origin/$BRANCH"
 	if ! git merge --quiet --no-edit -m "chore(unification): bring $BRANCH up to $BASE" "origin/$BASE" > /dev/null; then
@@ -123,8 +125,11 @@ case $status in
 	2) ask_for_a_hand "These sources conflict, so the sync set them aside" ;;
 	*) ask_for_a_hand "The sync stopped with an error"; exit 1 ;;
 esac
-if [[ $(git rev-parse HEAD) == "$start" ]]; then
-	echo "Nothing new merged."
+# a new PR needs something merged; an open one needs checking whenever its branch moved, by
+# this run or by hand
+head=$(git rev-parse HEAD)
+if [[ ( -z $pr && $head == "$start" ) || ( -n $pr && $head == "$checked" ) ]]; then
+	echo "Nothing new to check."
 	exit 0
 fi
 
@@ -139,11 +144,11 @@ check tests layer_tests
 
 python3 unification/sync.py report "origin/$BASE" > "$OUT/report.md" 2>&1
 {
-	echo "Upstream changes merged by \`unification/sync.py\`, last added $(date -u '+%F %H:%M') UTC."
+	echo "Upstream changes merged by \`unification/sync.py\`."
 	if ((status == 2)); then echo "Sources that conflict wait in the \"$ISSUE\" issue."; fi
 	echo
 	sed '/^## Changes$/,$d' "$OUT/report.md"
-	printf '## Checks\n\nOn the branch as of the last addition.\n\n'
+	printf '## Checks\n\nChecked at `%s` on %s UTC.\n\n' "$head" "$(date -u '+%F %H:%M')"
 	cat "$OUT/checks.md" "$OUT/failures.md"
 	echo
 	sed -n '/^## Changes$/,$p' "$OUT/report.md"

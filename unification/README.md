@@ -245,7 +245,9 @@ run:
 1. starts from the open sync PR's branch, `sync/upstream`, with `unified` merged in (so the PR
    stays mergeable and the run uses the current tooling), or from `unified` when no sync PR is
    open;
-2. runs `sync.py merge --skip-conflicts`, and stops there if nothing new merged;
+2. runs `sync.py merge --skip-conflicts`, and stops there unless something merged or the open
+   PR's branch moved since its last check (the description records the commit it checked, so a
+   fix pushed to the branch by hand is checked within the hour);
 3. checks the result: reinstalls the sync bench's env from the merged `pyproject.toml` (with
    frappe's dev dependencies), imports every layer module, builds the SPA, then migrates
    `unified-test.localhost` and runs every layer test on it;
