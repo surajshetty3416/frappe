@@ -66,8 +66,8 @@
 		"studio": {
 			"repo": "https://github.com/frappe/studio.git",
 			"branch": "develop",
-			"commit": "8a4839c97c284736b052900092c7faddae144ef6",
-			"rewritten": "99f6d3308c25be3914d8a02af6415d982d40bc46",
+			"commit": "78a7b00f935549c627962f68e4f2dcc8beba27a5",
+			"rewritten": "1ed9f5645563da8512b29a75ffe0a84992f2a47f",
 			"moves": {
 				"frappe/studio/www/studio.py": "frappe/ui/shell.py",
 				"frappe/studio/commands/__init__.py": "frappe/commands/studio.py",
