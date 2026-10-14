@@ -104,7 +104,17 @@ def merge_file(path, base, theirs):
 		return subprocess.run(merge).returncode == 0
 
 
+def remove(path):
+	git("rm", "--quiet", path)
+	# on a case-insensitive disk agents.md and an AGENTS.md upstream renamed it to are one file
+	for twin in git("ls-files", "--", path.rsplit("/", 1)[0] if "/" in path else ".").splitlines():
+		if twin.lower() == path.lower() and twin != path:
+			git("checkout", "--", twin)
+
+
 def has_markers(path):
+	if not (ROOT / path).is_file():
+		return False
 	text = (ROOT / path).read_text(errors="replace")
 	return any(line.startswith(("<<<<<<< ", ">>>>>>> ")) for line in text.splitlines())
 
@@ -258,7 +268,7 @@ class App(Source):
 			# docs follow upstream even where the unification touched them
 			if ported(base, path) != ours and not path.endswith(".md"):
 				return False
-			git("rm", "--quiet", path)
+			remove(path)
 			return True
 		(ROOT / path).write_bytes(ours)
 		if merge_file(path, ported(base, path), ported(theirs, path)):
@@ -282,7 +292,7 @@ class App(Source):
 		if not target or ours is not None or None in (base, theirs):
 			return None
 		notes = dependencies.port(base.decode(), theirs.decode(), ROOT / target)
-		git("rm", "--quiet", path)
+		remove(path)
 		if target.endswith("package.json") and notes:
 			lock = subprocess.run(["yarn", "--cwd", "studio", "install", "--non-interactive"], cwd=ROOT, capture_output=True)
 			notes += [] if lock.returncode == 0 else ["studio/yarn.lock: `yarn install` failed, refresh it by hand"]
@@ -316,7 +326,7 @@ class App(Source):
 		"""Keep repo tooling the unification removed (CI, lint, lockfiles) removed."""
 		if stage(path, 2) is not None or not self.ignored(path):
 			return False
-		git("rm", "--quiet", path)
+		remove(path)
 		return True
 
 	def rehome(self, path):
