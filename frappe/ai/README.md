@@ -129,12 +129,22 @@ Conversations run on the flow agent harness, a daemon from the [`frappe-flow`](h
 
 To run it under Supervisor, set `"flow_server_manager": "supervisor"` in `common_site_config.json` and add `bench flow-server serve` as a Supervisor program with `autorestart=true` that logs to `logs/flow-server.log`. Restart that program after updating Flow or its extensions.
 
-## Repository layout
+### Frappeverse demo
 
-The Frappe app is the root of this repository. [`harness/`](harness/) is the flow agent harness, published on PyPI as [`frappe-flow`](https://pypi.org/project/frappe-flow/). For development, install the checkout into the bench:
+Seven recorded chats build a conference on Studio, one per layer. On a new site, this sets the site up and replays each chat once, in about six minutes:
 
 ```bash
-bench pip install -e apps/flow/harness
+bench --site site-name studio-demo
+```
+
+The flow server must run the harness from this checkout, installed as below. Replays call no model, but the screener runs the last chat starts need Claude Code logged in for the bench user. Mail goes to an SMTP receiver on `127.0.0.1:1025`. Run again, the command plays only the chats not yet replayed: a second replay of a chat makes the same artifacts again and fails.
+
+## Repository layout
+
+The Frappe app is the root of this repository. [`harness/`](../../harness/) is the flow agent harness, published on PyPI as [`frappe-flow`](https://pypi.org/project/frappe-flow/). For development, install the checkout into the bench, then run `bench flow-server restart`:
+
+```bash
+bench pip install -e apps/frappe/harness
 ```
 
 ## License

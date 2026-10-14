@@ -42,7 +42,31 @@ def watch_studio(context):
 		frappe.destroy()
 
 
+@click.command("studio-demo")
+@pass_context
+def studio_demo(context):
+	"""Set the site up for the Frappeverse demo and replay each of its recorded chats once"""
+	from frappe.ai.demo import import_recordings, play, setup_site, unplayed
+
+	site = get_site(context)
+	frappe.init(site)
+	frappe.connect()
+	frappe.set_user("Administrator")
+	try:
+		setup_site()
+		import_recordings()
+		for recording in unplayed():
+			state = play(recording.name)
+			click.echo(f"{recording.title}: {state['status']}, {state['step']} of {state['steps']} steps")
+			if state["status"] != "Done":
+				click.secho(state["error"] or "", fg="red")
+				raise SystemExit(1)
+	finally:
+		frappe.destroy()
+
+
 commands = [
 	build_studio_app,
+	studio_demo,
 	watch_studio,
 ]
