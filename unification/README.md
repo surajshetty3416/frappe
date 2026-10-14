@@ -259,6 +259,11 @@ run:
    and push to `unified`; the next run carries on from there.
 
 A run that is still checking when the next hour comes round makes systemd skip that hour.
+
+After each run [`deploy_test_site.sh`](deploy_test_site.sh) moves unified.surajshetty.tech (the
+unified bench) to the newest code that passed its checks: the open sync PR's head while it isn't a
+draft, otherwise `unified`. It only moves forward, then installs, builds, migrates and restarts
+`bench-unified`.
 `systemctl start unification-sync` runs it now, `journalctl -u unification-sync` shows the run,
 and `DRY_RUN=1` prints the PR and issue instead of pushing.
 
@@ -277,6 +282,7 @@ cd $B/apps/frappe && sudo -u t3run -i uv pip install --python $B/env/bin/python 
 cd $B/sites && sudo -u t3run ../env/bin/python -m frappe.utils.bench_helper frappe new-site unified-test.localhost \
   --db-root-username root --db-root-password <root> --admin-password admin
 sudo -u t3run ../env/bin/python -m frappe.utils.bench_helper frappe --site unified-test.localhost set-config allow_tests true
+echo 't3run ALL=(root) NOPASSWD: /usr/bin/systemctl restart bench-unified' > /etc/sudoers.d/unification-sync
 cp $B/apps/frappe/unification/systemd/unification-sync.* /etc/systemd/system/
 systemctl daemon-reload && systemctl enable --now unification-sync.timer
 ```
