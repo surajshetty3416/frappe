@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import json
 import re
-from typing import Any, Literal
+from typing import Any, Literal, NoReturn
 
 import frappe
 from frappe import _
@@ -19,6 +19,7 @@ MAX_READ_LIMIT = 200
 LAYOUT_FIELDTYPES = frozenset({"Section Break", "Column Break", "Tab Break", "HTML", "Heading"})
 _CONFIRM_STR_LIMIT = 120
 _ERROR_LIMIT = 300
+_BATCH_SAVEPOINT = "flow_batch"
 _LIFECYCLE_BY_DOCSTATUS = {0: "submit", 1: "cancel", 2: "amend"}
 SOURCE_TOOL_SLUGS = frozenset({"read", "grep"})
 SUBAGENT_TOOL_SLUG = "subagent"
@@ -82,8 +83,14 @@ def find_doctypes(
 		filters["module"] = module
 	if search:
 		filters["name"] = ["like", f"%{search}%"]
-	rows = frappe.get_all("DocType", filters=filters, fields=["name", "module"], order_by="name", limit=limit)
-	return [r for r in rows if frappe.has_permission(r["name"], "read")]
+	rows = frappe.get_all("DocType", filters=filters, fields=["name", "module"], order_by="name")
+	if frappe.session.user != "Administrator":
+		user = frappe.get_user()
+		if not user.can_read:
+			user.build_permissions()
+		readable = {*user.can_read, *user.all_read}
+		rows = [r for r in rows if r["name"] in readable]
+	return rows[:limit]
 
 
 @tool
@@ -424,13 +431,17 @@ _LOAD_SKILL_DESCRIPTION = """Load a skill's full instructions by name, then foll
 
 The skills you can load are listed in the <available_skills> block of your instructions, each with \
 a description of when it applies. When a task matches one, call this with that exact name before \
-starting the task, and treat what you get back as authoritative for it."""
+starting the task, and treat what you get back as authoritative for it. When the instructions \
+mention a file, such as references/forms.md, call this again with the same name and that path as \
+`file` to read it; a folder path lists the files in it."""
 
 
 def bind_load_skill(agent: str | None) -> Tool:
 	"""A `load_skill` tool scoped to `agent`'s skills. Unbound (None), it refuses."""
 
-	def load_skill(name: str, *, ctx: ToolContext) -> str:
+	def load_skill(name: str, file: str | None = None, *, ctx: ToolContext) -> str:
+		from frappe.ai.doctype.flow_skill.flow_skill import skill_file
+
 		if not agent:
 			frappe.throw(_("Skills are not configured for this agent."), title=_("Skill Unavailable"))
 		available = {row.name for row in frappe.get_doc("Flow Agent", agent).visible_skills()}
@@ -439,6 +450,8 @@ def bind_load_skill(agent: str | None) -> Tool:
 				_("No skill named {0}. Available: {1}").format(name, ", ".join(sorted(available)) or "none"),
 				title=_("Unknown Skill"),
 			)
+		if file:
+			return skill_file(name, file)
 		return frappe.db.get_value("Flow Skill", name, "instructions")
 
 	return tool(load_skill, description=_LOAD_SKILL_DESCRIPTION)
@@ -469,7 +482,7 @@ def execute(code: str, description: str, *, ctx: ToolContext) -> Any:
 	  fields=[{"SUM": "qty", "as": "total"}] or [{"COUNT": "*", "as": "n"}]),
 	  frappe.get_doc (returns a dict), frappe.get_meta, frappe.db.get_value/get_single_value/count/exists.
 	- Writes: create, update, delete, run_action, the same permission-checked tools you call directly.
-	  A record they cannot save is in `failures`, not in `created`: check `failures` first.
+	  A record they cannot save raises, and the call saves none of its records.
 	- Also: read_records, describe, find_doctypes, frappe.call (whitelisted methods), frappe.enqueue,
 	  frappe.sendmail, frappe.get_print, frappe.parse_json, frappe.as_json, frappe.safe_json_loads,
 	  frappe.generate_hash, frappe.utils.* (dates, numbers, strings).
@@ -486,7 +499,12 @@ def execute(code: str, description: str, *, ctx: ToolContext) -> Any:
 
 	`print()` output is logged, not returned. The user approves each call before it runs.
 	"""
+	frappe.flags.flow_undone_batch = None
 	exec_globals, _locals = safe_exec(code, script_filename="ai_execute", tool_context=ctx)
+	if frappe.flags.flow_undone_batch:
+		raise ValueError(
+			f"{frappe.flags.flow_undone_batch}\nA failed write fails the whole call, even when caught."
+		)
 	return exec_globals.get("result")
 
 
@@ -558,7 +576,7 @@ def _resolve_method(doc: Any, action: str) -> Any:
 
 
 def _apply_action(doctype: str, name: str, action: str, args: dict[str, Any]) -> Any:
-	doc = frappe.get_doc(doctype, name)
+	doc = frappe.get_doc(doctype, name, check_permission=True)
 	if action == "submit":
 		doc.submit()
 		return {"name": doc.name, "docstatus": int(doc.docstatus)}
@@ -600,26 +618,27 @@ def _with_artifact(result: dict[str, Any], ctx: ToolContext, doctype: str, names
 	),
 )
 def create(doctype: str, records: list[dict[str, Any]], *, ctx: ToolContext) -> dict[str, Any]:
-	"""Create one or more records. `records` is a list of field-value dicts, each validated and inserted."""
+	"""Create one or more records. `records` is a list of field-value dicts, each validated and inserted.
+
+	If any record fails, none are created.
+	"""
 	if not frappe.has_permission(doctype, "create"):
 		raise PermissionError(f"No permission to create {doctype}")
 
 	created: list[str] = []
 	saved: dict[str, Any] = {}
-	failures: list[dict[str, Any]] = []
+	frappe.db.savepoint(_BATCH_SAVEPOINT)
 	for row, values in enumerate(records):
 		try:
 			doc = frappe.new_doc(doctype)
 			_save(doc, values, saved)
 			created.append(doc.name)
 		except Exception as e:
-			failures.append({"row": row, "error": _error_text(e)})
+			_undo_batch(f"Record {row + 1} of {len(records)}", e)
 
 	result: dict[str, Any] = {"doctype": doctype, "created": created}
 	if saved:
 		result["saved"] = saved
-	if failures:
-		result["failures"] = failures
 	return _with_artifact(result, ctx, doctype, created)
 
 
@@ -645,10 +664,13 @@ def _save(doc: Any, values: dict[str, Any] | None, saved: dict[str, Any]) -> Non
 	),
 )
 def update(doctype: str, names: list[str], values: dict[str, Any], *, ctx: ToolContext) -> dict[str, Any]:
-	"""Apply the same field values to one or more existing records. Runs full validation per record."""
+	"""Apply the same field values to one or more existing records. Runs full validation per record.
+
+	If any record fails, none are changed.
+	"""
 	updated: list[str] = []
 	saved: dict[str, Any] = {}
-	failures: list[dict[str, Any]] = []
+	frappe.db.savepoint(_BATCH_SAVEPOINT)
 	for name in names:
 		try:
 			if not frappe.has_permission(doctype, "write", name):
@@ -657,13 +679,11 @@ def update(doctype: str, names: list[str], values: dict[str, Any], *, ctx: ToolC
 			_save(doc, values, saved)
 			updated.append(doc.name)
 		except Exception as e:
-			failures.append({"name": name, "error": _error_text(e)})
+			_undo_batch(name, e)
 
 	result: dict[str, Any] = {"doctype": doctype, "updated": updated}
 	if saved:
 		result["saved"] = saved
-	if failures:
-		result["failures"] = failures
 	return _with_artifact(result, ctx, doctype, updated)
 
 
@@ -678,9 +698,12 @@ def update(doctype: str, names: list[str], values: dict[str, Any], *, ctx: ToolC
 	),
 )
 def delete(doctype: str, names: list[str], *, ctx: ToolContext) -> dict[str, Any]:
-	"""Delete one or more records. Fails per record if another record links to it."""
+	"""Delete one or more records.
+
+	If any record can't be deleted, for example because another record links to it, none are.
+	"""
 	deleted: list[str] = []
-	failures: list[dict[str, Any]] = []
+	frappe.db.savepoint(_BATCH_SAVEPOINT)
 	for name in names:
 		try:
 			if not frappe.has_permission(doctype, "delete", name):
@@ -688,12 +711,8 @@ def delete(doctype: str, names: list[str], *, ctx: ToolContext) -> dict[str, Any
 			frappe.delete_doc(doctype, name, ignore_missing=False)
 			deleted.append(name)
 		except Exception as e:
-			failures.append({"name": name, "error": _error_text(e)})
-
-	result: dict[str, Any] = {"doctype": doctype, "deleted": deleted}
-	if failures:
-		result["failures"] = failures
-	return result
+			_undo_batch(name, e)
+	return {"doctype": doctype, "deleted": deleted}
 
 
 @tool(
@@ -715,7 +734,10 @@ def run_action(
 	*,
 	ctx: ToolContext,
 ) -> dict[str, Any]:
-	"""Run a document action found via describe: submit, cancel, amend, rename, a workflow transition, or a whitelisted method."""
+	"""Run a document action found via describe: submit, cancel, amend, rename, a workflow transition, or a whitelisted method.
+
+	If it fails on any record, none are changed.
+	"""
 	args = args or {}
 
 	if action == "rename":
@@ -728,18 +750,26 @@ def run_action(
 		return _with_artifact({"action": "rename", "old": names[0], "new": renamed}, ctx, doctype, [renamed])
 
 	results: list[dict[str, Any]] = []
-	failures: list[dict[str, Any]] = []
+	frappe.db.savepoint(_BATCH_SAVEPOINT)
 	for name in names:
 		try:
 			results.append({"name": name, "result": _apply_action(doctype, name, action, args)})
 		except Exception as e:
-			failures.append({"name": name, "error": _error_text(e)})
-
-	result: dict[str, Any] = {"action": action, "results": results}
-	if failures:
-		result["failures"] = failures
+			_undo_batch(name, e)
 	written = [r["result"]["name"] if action == "amend" else r["name"] for r in results]
-	return _with_artifact(result, ctx, doctype, written)
+	return _with_artifact({"action": action, "results": results}, ctx, doctype, written)
+
+
+def _undo_batch(record: str, error: Exception) -> NoReturn:
+	"""Undo every write since the batch began, then fail naming the record that broke it."""
+	try:
+		frappe.db.rollback(save_point=_BATCH_SAVEPOINT)
+		undone = "Nothing was saved."
+	except Exception:  # a commit in the batch, such as before a schema change, took the savepoint
+		frappe.db.rollback()
+		undone = "Some earlier changes may already be committed; check the records before retrying."
+	frappe.flags.flow_undone_batch = message = f"{record}: {_error_text(error)}\n{undone}"
+	raise ValueError(message) from error
 
 
 BUILTIN_TOOLS: list[Tool] = [

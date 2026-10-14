@@ -97,11 +97,16 @@ export class FrappeClient {
 		});
 	}
 
+	// a run just ended and its own syncs may race this one: retry once, then stay quiet
 	syncSession(sid) {
-		const synced = this.transport.call("frappe.ai.api.sync_session", { session: sid }).then((data) => {
-			this.hooks.onSession?.(data);
-			return data;
-		});
+		const sync = () => this.transport.call("frappe.ai.api.sync_session", { session: sid });
+		const synced = sync()
+			.catch(sync)
+			.catch(() => null)
+			.then((data) => {
+				if (data) this.hooks.onSession?.(data);
+				return data;
+			});
 		this.syncs.set(sid, synced);
 		return synced;
 	}

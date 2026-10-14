@@ -11,7 +11,6 @@ export interface BreakpointConfig {
 
 export interface CanvasProps {
 	overlayElement: HTMLElement | null
-	background: string
 	scale: number
 	translateX: number
 	translateY: number

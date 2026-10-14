@@ -1,5 +1,9 @@
 <template>
-	<div v-if="error" class="border-ink-red-5 flex flex-col gap-2 border p-2 text-ink-red-5" ref="componentRef">
+	<div
+		v-if="error"
+		class="flex flex-col gap-2 border border-outline-red-3 p-2 text-ink-red-5"
+		ref="componentRef"
+	>
 		<p class="text-sm-semibold">An error occurred while rendering {{ block.componentName }}:</p>
 		<pre class="text-xs">{{ error }}</pre>
 	</div>
@@ -108,7 +112,7 @@ import { useEventListener } from "@vueuse/core"
 import StudioComponentWrapper from "@ui/components/StudioComponentWrapper.vue"
 import SlotScopeProvider from "@ui/components/SlotScopeProvider.vue"
 import ComponentEditor from "@ui/components/ComponentEditor.vue"
-import { customVueComponentsRegistry } from "@ui/globals"
+import { customVueComponentsRegistry } from "@ui/utils/customVueComponents"
 
 import Block from "@ui/utils/block"
 import useCanvasStore from "@ui/stores/canvasStore"

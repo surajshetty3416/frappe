@@ -1,12 +1,29 @@
 import { reactive, watch } from "vue"
 
 import { FlowAPIError } from "./client.js"
-import { applyEvent, approvalToAnswer, initialConversation, normalizeSkillCommand, skillCommand } from "./transcript.js"
+import {
+	applyEvent,
+	approvalToAnswer,
+	initialConversation,
+	normalizeSkillCommand,
+	skillCommand,
+	waitingApprovals,
+} from "./transcript.js"
 
 export const MAX_ATTACHMENTS = 10
 
 function sameArray(left, right) {
 	return left.length === right.length && left.every((value, index) => value === right[index])
+}
+
+// the same files in any order: a host's echo can list inlined files after the rest
+function sameFiles(left, right) {
+	return sameArray([...left].sort(), [...right].sort())
+}
+
+function attachmentNames(content) {
+	const blocks = Array.isArray(content) ? content : []
+	return blocks.filter((block) => block.type === "attachment").map((block) => block.name)
 }
 
 // A run that ended on its own hands the queue its next turn; a pause, a stop, a failure
@@ -68,7 +85,8 @@ export function createFlowStore(client, options = {}) {
 	})
 
 	let stream = null
-	let creating = null // in-flight lazy session creation; a double-send shares it
+	let opening = 0 // keys the newest openSession: an older load of the same chat gives way
+	let creating = null // { blank, session }: in-flight lazy session creation; a double-send shares it
 	let sendCount = 0
 	let queueCount = 0
 	let lastRunEnd = null
@@ -114,6 +132,7 @@ export function createFlowStore(client, options = {}) {
 	}
 
 	async function openSession(sid, { sending = [], config = null } = {}) {
+		const own = ++opening
 		closeStream()
 		swapQueue(sid)
 		state.sessionId = sid
@@ -127,14 +146,13 @@ export function createFlowStore(client, options = {}) {
 		state.conversation.sending = sending
 		state.loading = true
 		const info = await guard(() => client.session(sid))
-		if (state.sessionId !== sid) return
-		const seed = info && (await guard(() => client.entries(sid)))
-		if (state.sessionId !== sid) return
-		if (!seed) {
-			state.session = null
-			state.loading = false
-			return
-		}
+		if (state.sessionId !== sid || own !== opening) return
+		// a chat that failed to load (gone, or not this user's) leaves a blank chat, not one
+		// that can't send
+		if (!info) return startNewChat()
+		const seed = await guard(() => client.entries(sid))
+		if (state.sessionId !== sid || own !== opening) return
+		if (!seed) return startNewChat()
 		if (seed.latest_seq > info.latest_seq) info.latest_seq = seed.latest_seq
 		state.session = info
 		state.conversation.model = info.model
@@ -196,13 +214,17 @@ export function createFlowStore(client, options = {}) {
 				: event.content
 			const text = skillCommand(event) ?? expandedText
 			const attachmentIds = blocks.filter((block) => block.type === "attachment").map((block) => block.id)
+			// by name too: after a reload, /flow's echo can't name the File a message was sent as
 			const steered = state.conversation.steering.findIndex(
-				(item) => item.text === text && sameArray(item.attachmentIds, attachmentIds),
+				(item) =>
+					item.text === text &&
+					(sameFiles(item.attachmentIds, attachmentIds) ||
+						sameFiles(attachmentNames(item.entry.content), attachmentNames(blocks))),
 			)
 			if (steered !== -1) state.conversation.steering.splice(steered, 1)
 		}
 		// the server discards steering it never consumed, and no echo will clear it
-		if (event.type === "run_ended" && ["aborted", "error"].includes(event.reason)) state.conversation.steering = []
+		if (event.type === "run_ended" && event.reason !== "paused") state.conversation.steering = []
 		if (event.type === "run_ended") lastRunEnd = event.reason
 		const live = event.seq > (state.session?.latest_seq ?? 0)
 		if (event.type === "run_ended" && live) void loadRunArtifacts(state.sessionId)
@@ -226,11 +248,13 @@ export function createFlowStore(client, options = {}) {
 	}
 
 	async function newSession({ sending = [] } = {}) {
+		const blank = state.conversation // the chat this one is created from
 		const data = await guard(() =>
 			client.createSession({ auto_approve: state.prefs.mode === "auto", agent: state.agent }),
 		)
 		if (!data) return null
-		await openSession(data.session_id, { sending, config: data.config })
+		// a user who opened another chat meanwhile stays there
+		if (state.conversation === blank) await openSession(data.session_id, { sending, config: data.config })
 		return data.session_id
 	}
 
@@ -303,14 +327,20 @@ export function createFlowStore(client, options = {}) {
 		const pending = { key: `sending:${++sendCount}`, entry: steered.entry }
 		if (await deliver(item.message, item.attachments, pending, steered, item.context)) return
 		unsteer(steered)
-		if (state.sessionId === sid) state.queued.splice(at, 0, item)
+		requeue(sid, item, at)
 	}
 
 	async function sendWaiting(item) {
 		const sid = state.sessionId
 		const at = state.queued.indexOf(item)
 		unqueue(item)
-		if (!(await sendNow(item.message, item.attachments, item.context)) && state.sessionId === sid) state.queued.splice(at, 0, item)
+		if (!(await sendNow(item.message, item.attachments, item.context))) requeue(sid, item, at)
+	}
+
+	// back where it waited, in its own session's queue even if another is open now
+	function requeue(sid, item, at) {
+		if (state.sessionId === sid) state.queued.splice(at, 0, item)
+		else saveQueue(sid, (savedQueues()[sid] ?? []).toSpliced(at, 0, waitingRecord(item)))
 	}
 
 	function removeQueued(item) {
@@ -375,15 +405,20 @@ export function createFlowStore(client, options = {}) {
 
 	// the round trips the bubble hides: the session, the attachments, the run
 	async function deliver(message, attachments, pending, steered, context = null) {
-		if (!state.sessionId) {
-			creating ??= newSession({ sending: state.conversation.sending })
+		let sid = state.sessionId
+		if (!sid) {
+			// only from the same blank chat: one opened since makes a chat of its own
+			if (creating?.blank !== state.conversation)
+				creating = { blank: state.conversation, session: newSession({ sending: state.conversation.sending }) }
+			const own = creating
 			try {
-				if (!(await creating)) return false
+				// the chat created for it, even if the user has opened another since
+				sid = await own.session
+				if (!sid) return false
 			} finally {
-				creating = null
+				if (creating === own) creating = null
 			}
 		}
-		const sid = state.sessionId
 		const staged = await stageAttachments(sid, attachments)
 		if (!staged) return false
 		const attachmentIds = staged.attachments.map((item) => item.id)
@@ -426,8 +461,7 @@ export function createFlowStore(client, options = {}) {
 
 	// Approval answers: "Approve" | "Deny" | free text. Resume fires once every call in the
 	// batch has an answer; a deny settles the batch.
-	async function answerApproval(callId, answer) {
-		const pending = approvalToAnswer(state.conversation)
+	async function answerApproval(callId, answer, pending = approvalToAnswer(state.conversation)) {
 		if (!pending) return
 		pending.answers[callId] = answer
 		if (answer === "Deny") {
@@ -460,14 +494,19 @@ export function createFlowStore(client, options = {}) {
 	async function setMode(mode) {
 		state.prefs.mode = mode
 		savePrefs()
-		if (!state.sessionId) return
-		const data = await guard(() => client.patchConfig(state.sessionId, { auto_approve: mode === "auto" }))
-		if (!data) return
+		const sid = state.sessionId
+		if (!sid) return
+		const data = await guard(() => client.patchConfig(sid, { auto_approve: mode === "auto" }))
+		// the server never switched, or the user moved to another chat meanwhile: don't act on it here
+		if (!data || state.sessionId !== sid) return
 		if (state.session) state.session.config = data.config
-		// a batch already waiting is covered by the new mode
-		const pending = approvalToAnswer(state.conversation)
-		if (mode === "auto" && pending) {
-			for (const call of pending.calls) if (!(call.id in pending.answers)) await answerApproval(call.id, "Approve")
+		if (mode !== "auto") return
+		// the batches already waiting are covered by the new mode
+		for (const pending of waitingApprovals(state.conversation)) {
+			for (const call of pending.calls) {
+				if (state.sessionId !== sid) return
+				if (!(call.id in pending.answers)) await answerApproval(call.id, "Approve", pending)
+			}
 		}
 	}
 

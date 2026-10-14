@@ -10,3 +10,4 @@ frappe.ai.patches.remove_agentless_sessions
 frappe.ai.patches.grant_flow_role
 frappe.ai.patches.drop_memory_keywords
 frappe.ai.patches.rename_read_tools
+frappe.ai.patches.remove_hooked_skills

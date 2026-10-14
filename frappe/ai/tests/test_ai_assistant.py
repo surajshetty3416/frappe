@@ -1,15 +1,19 @@
 # Copyright (c) 2026, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
+import shutil
 from unittest.mock import patch
 
 import frappe
 from frappe.ai.assistant import (
 	ASSISTANT_AGENT_TITLE,
 	ASSISTANT_INSTRUCTIONS,
+	sync_assistant_skills,
 	sync_builtin_assistant,
 )
 from frappe.ai.assistant.assistant import ASSISTANT_MAX_ITERATIONS
+from frappe.ai.doctype.flow_agent.flow_agent import MAX_SKILLS
+from frappe.ai.doctype.flow_skill.test_flow_skill import AppSkills
 from frappe.ai.lib.model import CLAUDE_CODE_MODEL, ensure_claude_code_model
 from frappe.ai.tools.builtins import BUILTIN_TOOLS
 from frappe.tests import IntegrationTestCase
@@ -137,6 +141,40 @@ class TestSyncBuiltinAssistant(IntegrationTestCase):
 
 		doc = frappe.get_doc("Flow Agent", ASSISTANT_AGENT_TITLE)
 		self.assertEqual(doc.instructions, "user customised")
+
+	def test_the_assistant_gets_the_skills_frappe_ships(self):
+		sync_builtin_assistant(model=self.model.name)
+
+		doc = frappe.get_doc("Flow Agent", ASSISTANT_AGENT_TITLE)
+		self.assertEqual(
+			[row.skill for row in doc.skills],
+			["agents", "apps", "dashboards", "data", "email", "print", "website"],
+		)
+
+	def test_the_assistant_gets_every_app_skill_past_the_desk_cap(self):
+		skills = AppSkills(self)
+		names = [f"skill-{i:02d}" for i in range(MAX_SKILLS + 1)]
+		for name in names:
+			skills.write(name)
+
+		sync_builtin_assistant(model=self.model.name)
+
+		doc = frappe.get_doc("Flow Agent", ASSISTANT_AGENT_TITLE)
+		self.assertEqual([row.skill for row in doc.skills], names)
+
+	def test_installing_or_removing_an_app_updates_the_assistant_skills(self):
+		for hook in ("after_app_install", "after_app_uninstall"):
+			self.assertIn("frappe.ai.assistant.sync_assistant_skills", frappe.get_hooks(hook, app_name="frappe"))
+		folder = AppSkills(self).write("close-todos")
+
+		sync_assistant_skills("myapp")
+		doc = frappe.get_doc("Flow Agent", ASSISTANT_AGENT_TITLE)
+		self.assertEqual([row.skill for row in doc.skills], ["close-todos"])
+
+		shutil.rmtree(folder)
+		sync_assistant_skills("myapp")
+		doc.reload()
+		self.assertEqual(doc.skills, [])
 
 	def test_assistant_cannot_be_deleted(self):
 		with self.assertRaisesRegex(frappe.ValidationError, "system-generated"):

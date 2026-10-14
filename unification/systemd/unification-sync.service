@@ -1,0 +1,21 @@
+# The devbox's hourly upstream sync. Copy both units to /etc/systemd/system and
+# `systemctl enable --now unification-sync.timer`; README.md has the one-time setup.
+[Unit]
+Description=Merge upstream frappe, builder, insights, flow and studio into a sync PR, and move the test site forward
+After=network-online.target mariadb.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=t3run
+WorkingDirectory=/home/t3run/unification-sync/apps/frappe
+Environment=REPO=surajshetty3416/frappe BASE=unified BENCH=/home/t3run/unification-sync TEST_SITE=unified-test.localhost
+Environment=PATH=/home/t3run/.local/bin:/usr/local/bin:/usr/bin:/bin
+Environment=SITE_BENCH=/home/t3run/unified-bench SITE=unified.surajshetty.tech SITE_UNIT=bench-unified
+# start from the branch as pushed, so the script never runs a copy it is about to replace
+ExecStartPre=/usr/bin/git fetch --quiet origin
+ExecStartPre=/usr/bin/git reset --quiet --hard origin/unified
+ExecStartPre=/usr/bin/git clean -fdq
+ExecStart=/home/t3run/unification-sync/apps/frappe/unification/sync_pr.sh
+ExecStartPost=/home/t3run/unification-sync/apps/frappe/unification/deploy_test_site.sh
+TimeoutStartSec=3h

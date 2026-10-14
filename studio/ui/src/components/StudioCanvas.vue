@@ -1,6 +1,6 @@
 <template>
 	<div ref="canvasContainer" @click="handleClick">
-		<div class="overlay absolute" ref="overlay" />
+		<div class="overlay absolute" data-theme="light" ref="overlay" />
 		<DropIndicator />
 		<BlockSnapGuides />
 		<Transition name="fade">
@@ -23,11 +23,11 @@
 			<div class="flex">
 				<div
 					class="canvas relative flex min-h-[100dvh] bg-surface-base shadow-2xl contain-layout"
+					data-theme="light"
 					v-for="breakpoint in visibleBreakpoints"
 					:key="breakpoint.device"
 					:style="{
 						...canvasStyles,
-						background: canvasProps.background,
 						width: `${breakpoint.width}px`,
 					}"
 				>
@@ -82,7 +82,6 @@ const showBlocks = ref(false)
 
 const canvasProps = reactive({
 	overlayElement: null,
-	background: "#fff",
 	scale: 1,
 	translateX: 0,
 	translateY: 0,
@@ -327,10 +326,10 @@ defineExpose({
 
 <style>
 .hovered-block {
-	@apply border-outline-blue-3 text-ink-gray-6 dark:border-outline-blue-9 dark:text-ink-gray-4;
+	@apply border-outline-blue-3 text-ink-gray-6;
 }
 .block-selected {
-	@apply border-outline-blue-4 text-ink-gray-8 dark:border-outline-blue-7 dark:text-ink-gray-1;
+	@apply border-outline-blue-4 text-ink-gray-8;
 }
 .slot-selected {
 	@apply border-outline-purple-4 text-ink-gray-8;

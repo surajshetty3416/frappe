@@ -83,8 +83,11 @@ def get_registry() -> dict[str, dict]:
 
 
 def registered_names(root: str) -> list[str]:
+	"""The names globals.ts registers: each by name, and the charts in a loop over FRAPPE_UI_CHARTS."""
 	source = read(os.path.join(root, *STUDIO_UI, "globals.ts"))
-	return re.findall(r'register\(\s*"(\w+)"', source)
+	constants = read(os.path.join(root, *STUDIO_UI, "utils", "constants.js"))
+	charts = re.search(r"FRAPPE_UI_CHARTS = \[([^\]]*)\]", constants).group(1)
+	return re.findall(r'register\(\s*"(\w+)"', source) + re.findall(r'"(\w+)"', charts)
 
 
 def read_json_types(root: str) -> dict[str, dict]:

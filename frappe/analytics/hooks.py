@@ -246,7 +246,6 @@ flow_tools = [
     "frappe.analytics.flow_tools.update_chart",
     "frappe.analytics.flow_tools.update_dashboard",
 ]
-flow_skills = ["analytics/skills/dashboards/SKILL.md"]
 
 # what Studio opens beside the chat for an artifact of this layer
 studio_artifacts = {

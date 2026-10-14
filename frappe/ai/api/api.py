@@ -122,8 +122,10 @@ def skills(session: str | None = None, agent: str | None = None) -> dict[str, An
 @frappe.whitelist()
 def run(session: str, message: str, attachments: list[str] | str | None = None) -> dict[str, Any]:
 	"""Start a turn and answer at once: "started" with its new run, or "steered" with the
-	active run the message joined. `attachments` are File names staged with attach_file."""
-	if not isinstance(message, str) or not message.strip():
+	active run the message joined. `attachments` are File names staged with attach_file;
+	with them, `message` may be empty."""
+	files = _parse_attachments(attachments)
+	if not isinstance(message, str) or not (message.strip() or files):
 		frappe.throw(_("Message is required."), title=_("Invalid Message"))
 	doc = _load_session(session, "write")
 	# a queued message goes out the moment a run ends, racing that run's own syncs
@@ -131,7 +133,7 @@ def run(session: str, message: str, attachments: list[str] | str | None = None) 
 	active = frappe.db.get_value(
 		"Flow Run", {"session": doc.name, "status": "Running"}, "name", order_by="creation desc"
 	)
-	run = doc.chat(message, attachments=_parse_attachments(attachments))
+	run = doc.chat(message, attachments=files)
 	# the flow server names the chat once its model answers; until then its first line does
 	if not doc.title:
 		doc.db_set("title", first_line_title(message.split("<studio_context>")[0]), notify=True)

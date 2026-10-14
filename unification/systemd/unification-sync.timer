@@ -1,0 +1,9 @@
+[Unit]
+Description=Hourly upstream sync for the unified branch
+
+[Timer]
+# a run still checking when the hour comes round makes systemd skip that hour
+OnCalendar=*-*-* *:17:00
+
+[Install]
+WantedBy=timers.target

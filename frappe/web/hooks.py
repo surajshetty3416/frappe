@@ -221,7 +221,6 @@ flow_tools = [
 	"frappe.web.flow_tools.preview_output",
 	"frappe.web.flow_tools.fill_email_group",
 ]
-flow_skills = ["web/skills/website/SKILL.md", "web/skills/print/SKILL.md", "web/skills/email/SKILL.md"]
 
 # what Studio opens beside the chat for an artifact of this layer
 studio_artifacts = {

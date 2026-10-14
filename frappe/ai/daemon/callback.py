@@ -21,7 +21,6 @@ if TYPE_CHECKING:
 	from frappe.ai.lib.tool import Tool
 
 ERROR_LIMIT = 500
-SAVEPOINT = "flow_tool"
 START_WITHIN = 600  # seconds a queued call may wait to start
 JOB_TIMEOUT = 1500  # seconds a background tool may run, unless flow_background_tool_timeout is set
 DELIVERY_RETRY_DELAYS = (0, 1, 5)  # seconds before each try to post a result
@@ -64,11 +63,11 @@ def tool_callback(
 	user = frappe.session.user
 	frappe.set_user(session.owner)
 	frappe.flags.flow_session = session_id  # artifact versions credit the session's run
-	frappe.db.savepoint(SAVEPOINT)
 	try:
 		return _dispatch(session_id, agent, tool, args or {}, mode, result_token)
 	except Exception as exc:
-		_rollback()
+		# the whole transaction, so webhooks and jobs its writes queued for after commit go too
+		frappe.db.rollback()
 		return _error(str(exc).strip() or type(exc).__name__)
 	finally:
 		frappe.flags.flow_session = None
@@ -170,14 +169,6 @@ def _deliver(daemon: DaemonClient, session_id: str, result_token: str, result: d
 		except DaemonError:
 			if attempt == len(DELIVERY_RETRY_DELAYS):
 				raise
-
-
-def _rollback() -> None:
-	"""Undo a failed tool's writes, even if it ended the transaction."""
-	try:
-		frappe.db.rollback(save_point=SAVEPOINT)
-	except Exception:  # the savepoint went with the transaction
-		frappe.db.rollback()
 
 
 def _error(message: str) -> dict:

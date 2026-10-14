@@ -11,5 +11,3 @@ doc_events = {
 }
 
 flow_tools = ["frappe.data.flow_tools.generate_records"]
-
-flow_skills = ["data/skills/data/SKILL.md"]

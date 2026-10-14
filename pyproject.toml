@@ -114,7 +114,7 @@ dependencies = [
     "SQLAlchemy==2.0.41",
 
     # flow, and the AI features of builder and studio
-    "frappe-flow==0.1.15",
+    "frappe-flow==0.1.16",
     "lancedb>=0.33,<1",
     "litellm>=1.103.2,<2",
     "onnxruntime>=1.27,<2",
@@ -245,7 +245,7 @@ nixpkgs-deps = [
 
 [tool.uv]
 exclude-newer = "7 days"
-exclude-newer-package = { sqlparse = false, pyjwt = false, oauthlib = false } # drop sqlparse after 2026-08-20, pyjwt and oauthlib after 2026-10-06
+exclude-newer-package = { sqlparse = false, pyjwt = false, oauthlib = false, frappe-flow = false } # drop sqlparse after 2026-08-20, pyjwt and oauthlib after 2026-10-06; frappe-flow is the harness/ in this repo, released with flow
 
 [tool.mypy]
 strict = false
