@@ -5,12 +5,13 @@ import re
 from typing import Annotated
 from urllib.parse import quote
 
-import frappe
 from bs4 import BeautifulSoup
+
+import frappe
 from frappe import _
-from frappe.utils import validate_email_address
 from frappe.ai import artifacts, tool
 from frappe.ai.lib.tool import ToolContext
+from frappe.utils import validate_email_address
 from frappe.web.ai.block_codec import BlockCodec
 from frappe.web.ai.page_writer import (
 	expand_page_yaml,
@@ -220,11 +221,11 @@ def add_chat_block(
 )
 def set_page_data_script(
 	page: Annotated[str, "The Builder Page name, e.g. page-1a2b3c4d"],
-	script: Annotated[str, "Python that fills the dict `data`, e.g. data.speakers = frappe.get_all(...)"],
+	script: Annotated[str, "Python that fills the dict `data`, e.g. data.speakers = frappe.db.get_all(...)"],
 	*,
 	ctx: ToolContext,
 ) -> dict:
-	"""Set the Python that fills a page's data on every visit, so the page shows live records. It runs in the server script sandbox, as the visitor, and frappe.get_all reads past permissions, so fetch only what the page shows. Read the values in the page's blocks with `repeat: {data: <key>, item: <block>}` and `bind: {text: <field>}` inside the item, or `bind: {text: <key>}` outside one. The script is live at once, on the draft and the published page. Returns a sample of the data it made."""
+	"""Set the Python that fills a page's data on every visit, so the page shows live records. It runs in the server script sandbox, as the visitor, and frappe.db.get_all reads past permissions, so fetch only what the page shows. Read the values in the page's blocks with `repeat: {data: <key>, item: <block>}` and `bind: {text: <field>}` inside the item, or `bind: {text: <key>}` outside one. The script is live at once, on the draft and the published page. Returns a sample of the data it made."""
 	doc = frappe.get_doc("Builder Page", page)
 	doc.check_permission("write")
 	doc.page_data_script = script
@@ -283,7 +284,9 @@ OUTPUT_TREE_GUIDE = """tree_yaml is one YAML block tree whose root is `el: body`
 
 Returns the text the format prints for a sample record, so check it reads right, and `fields_used`, the record's fields it prints. Every field the person asked for must be in it; name any you leave out in your reply.""",
 	requires_confirmation=True,
-	confirm_prompt=lambda args: _("Save the print format {0} for {1}").format(args.get("name"), args.get("doctype")),
+	confirm_prompt=lambda args: _("Save the print format {0} for {1}").format(
+		args.get("name"), args.get("doctype")
+	),
 )
 def save_print_format(
 	name: Annotated[str, "The format's name, e.g. Frappeverse Badge"],
@@ -336,7 +339,9 @@ Returns the subject and text for a sample record, so check they read right, and 
 )
 def save_email_template(
 	name: Annotated[str, "The template's name, e.g. Registration Confirmed"],
-	subject: Annotated[str, "The subject line; Jinja against the record, e.g. Your talk is in: {{ doc.title }}"],
+	subject: Annotated[
+		str, "The subject line; Jinja against the record, e.g. Your talk is in: {{ doc.title }}"
+	],
 	tree_yaml: Annotated[str, "The email's block tree"],
 	doctype: Annotated[str, "The DocType whose record it is rendered against, e.g. Attendee"],
 	*,
@@ -403,14 +408,19 @@ def fill_email_group(
 	title: Annotated[str, "The Email Group's title, e.g. Frappeverse 2027 Attendees"],
 	doctype: Annotated[str, "The DocType whose records join, e.g. Attendee"],
 	email_field: Annotated[str, "The field holding the address; empty finds the DocType's Email field"] = "",
-	filters: Annotated[dict | None, "Only records matching these, e.g. {\"status\": \"Confirmed\"}"] = None,
+	filters: Annotated[dict | None, 'Only records matching these, e.g. {"status": "Confirmed"}'] = None,
 	*,
 	ctx: ToolContext,
 ) -> dict:
 	"""Make an Email Group if it is missing, and add one member per record of a DocType with an email address. A record already in the group is skipped, so run it again to add newer records. Sends nothing."""
 	meta = frappe.get_meta(doctype)
 	field = email_field or next(
-		(df.fieldname for df in meta.fields if df.options == "Email" or df.fieldname in ("email", "email_id")), None
+		(
+			df.fieldname
+			for df in meta.fields
+			if df.options == "Email" or df.fieldname in ("email", "email_id")
+		),
+		None,
 	)
 	if not field or not meta.get_field(field):
 		frappe.throw(_("{0} has no email field. Pass email_field.").format(doctype))
@@ -438,12 +448,16 @@ def checked_tree(tree_yaml: str, doctype: str, *extra: str) -> dict:
 		frappe.throw(_("There is no DocType {0}.").format(doctype))
 	root = expand(tree_yaml)
 	found = problems(root)
-	fields = {df.fieldname for df in frappe.get_meta(doctype).fields} | set(frappe.model.default_fields) | {"get"}
+	fields = (
+		{df.fieldname for df in frappe.get_meta(doctype).fields} | set(frappe.model.default_fields) | {"get"}
+	)
 	unknown = sorted(set(fields_used(root, *extra)) - fields)
 	if unknown:
 		found.append(
 			_("{0} has no field {1}. Its fields: {2}.").format(
-				doctype, ", ".join(unknown), ", ".join(sorted(fields - set(frappe.model.default_fields) - {"get"}))
+				doctype,
+				", ".join(unknown),
+				", ".join(sorted(fields - set(frappe.model.default_fields) - {"get"})),
 			)
 		)
 	if found:

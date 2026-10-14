@@ -10,35 +10,63 @@ A web page is a Builder Page at a route. Its blocks render on the server, so a v
 ## Steps
 
 1. Run `describe` on every DocType a page reads or a form inserts. Use the real fieldnames and the exact Select options.
-2. Create the page with create_web_page. Its `title` is the page's own name, such as "Schedule" or "Register", without the site's name: the header carries that. Give the blocks you will add to later a `name`, such as `name: Register`.
-3. For live records, set the page's data script with set_page_data_script, then bind blocks to it (see Live records). Check the sample it returns before you bind.
-4. Add forms with add_form_block and chats with add_chat_block.
-5. Publish with publish_web_page when the user asks.
+2. On a site that has pages, read one first (see Changing a page) and reuse its Nav, Footer, font, colors and widths. If the site has Builder Tokens, use them: `color: var(--<name>)`, where `<name>` is the Builder Token's name, not its `token_name`.
+3. Create the page with create_web_page. Its `title` is the page's own name, such as "Schedule" or "Register", without the site's name: the header carries that. Give the blocks you will add to later a `name`, such as `name: Register`.
+4. For live records, set the page's data script with set_page_data_script, then bind blocks to it (see Live records). Check the sample it returns before you bind.
+5. Add forms with add_form_block and chats with add_chat_block.
+6. Publish with publish_web_page when the user asks.
 
 ## Changing a page
 
-To change a page, call create_web_page again with its route and the whole new page_yaml. It replaces that page's draft blocks, and the page keeps its name and data script. Forms and chats are blocks, so add them again with add_form_block and add_chat_block. list_web_pages gives each page's name and route.
+To change a page, call create_web_page again with its route and the whole new page_yaml. It replaces that page's draft blocks, and the page keeps its name and data script. A person may have changed the page in its editor since you wrote it, so read its blocks first and keep their changes. list_web_pages gives each page's name and route.
 
-To read a page's blocks, use read_records on Builder Page with the fields `draft_blocks` and `blocks`. They are Builder's block JSON, not page YAML. `draft_blocks` is empty when the page has no changes since it was published, and then `blocks` has them. A Builder Page is not a Studio Page, so the Apps tools, such as get_studio_page, cannot read it.
+To read a page's blocks, use read_records on Builder Page with the fields `draft_blocks` and `blocks`. They are Builder's block JSON, not page YAML: `element` is `el`, `blockName` is `name`, `baseStyles`, `tabletStyles` and `mobileStyles` are `style`, `t_style` and `m_style`, `attributes` and `customAttributes` are `attrs`, `innerHTML` is `text`, and `children` is `c`. `draft_blocks` is empty when the page has no changes since it was published, and then `blocks` has them. A Builder Page is not a Studio Page, so the Apps tools, such as get_studio_page, cannot read it.
+
+A form or a chat keeps its place when you copy its block into the new page_yaml with its `style` and its `form` or `chat` config, such as `form: {doctype: Attendee, fields: [full_name, email], submit_label: Register}`. Otherwise add it again with add_form_block or add_chat_block.
 
 ## Live records
 
-The data script is Python that fills the dict `data` on every visit:
+The data script is Python that fills the dict `data` on every visit. It runs as the visitor, usually Guest, and an error in it fails the whole page.
 
 ```python
-data.speakers = frappe.get_all("Speaker", fields=["full_name", "company"], order_by="full_name asc")
+data.speakers = frappe.db.get_all("Speaker", fields=["full_name", "company"], order_by="full_name asc")
 data.count = len(data.speakers)
 ```
 
-Build strings with f-strings. The sandbox refuses `str.format`, and augmented assignment to an item or attribute, such as `d[k] += 1`: write `d[k] = d.get(k, 0) + 1`.
+Write it to run on every site, also where server scripts are off:
 
-`frappe.get_all` reads past permissions, so fetch only the records and fields the page shows. Never fetch emails, phone numbers or other private fields for a public page.
+- Read with `frappe.db.get_all`, `frappe.db.count`, `frappe.db.exists`, `frappe.db.get_single_value` and `frappe.get_doc(doctype, name).get(field)`. `frappe.get_all`, `frappe.db.get_value`, `frappe.db.sql` and `frappe.utils` work only where server scripts are on.
+- `frappe.db.get_all` reads past permissions, so fetch only the records and fields the page shows. Never fetch emails, phone numbers or other private fields for a public page.
+- Build strings with f-strings. The sandbox refuses imports, `str.format`, `.strftime()`, names that start with `_`, and augmented assignment to an item or attribute, such as `d[k] += 1`: write `d[k] = d.get(k, 0) + 1`. `str(r.start_time)[11:16]` is a Datetime's HH:MM.
+- Name keys after the content, such as `speakers`. `data` merges into the page's template context, so `data.style` and `data.preview` break the page, and `data.title` sets the browser title.
 
-In the page YAML, repeat a block over a list and bind its fields, as in Cards below. Outside a repeat, `bind: {text: count}` reads a top-level key. `bind: {href: url}` binds an attribute.
+In the page YAML, repeat a block over a list and bind its fields, as in Cards below:
+
+- `repeat: {data: speakers, item: <block>}` takes a list of dicts. Inside the item, `bind` reads the item's keys only, so copy a page-level value onto each item that needs it.
+- Outside a repeat, `bind: {text: count}` reads a top-level key, and `bind: {text: speaker.full_name}` a nested one. `bind: {href: url}` binds an attribute. A bound block shows its own `text` when the value is missing.
+- Bound values render as HTML. To show text a visitor wrote, such as a form's answers, escape it in the script: `t.replace("&", "&amp;").replace("<", "&lt;")`.
+- Never give a `repeat` static `items`: create_web_page then writes them as the page's whole data script, over the one set_page_data_script set. Put every list in the data script.
+
+### Detail pages
+
+A route with a variable, such as `frappeverse/speakers/:speaker`, serves one page for every value. The data script reads the value as `frappe.form_dict.speaker`. A missing record renders an empty page, so send the visitor to `/404`:
+
+```python
+rows = frappe.db.get_all("Speaker", filters={"name": frappe.form_dict.speaker}, fields=["full_name", "bio"], limit=1)
+if not rows:
+    redirect("/404")
+data.speaker = rows[0] if rows else {}
+```
+
+set_page_data_script runs the script with no value, so its sample is the empty case. On the list page, set `r.url = f"/frappeverse/speakers/{r.name}"` and bind `href: url`. A fixed route beats a variable one. Never make a route that is only a variable, such as `:slug`: it takes every path of the site, `/login` too.
+
+## Text and code
+
+Block text, attrs and styles go through Jinja on every visit. Never write `{{`, `{%` or `.__` in them: the page fails or shows something else. Read values with `bind`. page_yaml carries no code: create_web_page drops `script`, `style`, `link` and `meta` blocks. A `details` element opens and closes without a script, see Nav.
 
 ## Layout
 
-`style` is the desktop. `t_style` applies below 1024px, and `m_style` below 576px, over `t_style`.
+`style` is the desktop. `t_style` applies at 1023px and below, and `m_style` at 576px and below, over `t_style`.
 
 - Width: at 390px nothing is wider than the screen. Give wide content, such as the schedule grid, its own scroll container (see Schedule), and no block a fixed width over 350px.
 - Header and footer: write one Nav and one Footer and put the same blocks on every page. Link only to pages that exist and to anchors on the home page, such as `/event#speakers` with `attrs: {id: speakers}` on that section. Leave out a link to a page you have not made. Below 1024px the links fold into a Menu button, see Nav.
@@ -57,6 +85,9 @@ In the page YAML, repeat a block over a list and bind its fields, as in Cards be
   Never make a section a row (`justifyContent: center` on a flex row) to center its content: a second child then squeezes in beside it.
 - Identity without images: a hero with a gradient or pattern in the site's colors, such as `backgroundImage: radial-gradient(circle at 80% 0%, rgba(37,99,235,0.45), transparent 60%)`. One wordmark, spelled the same in nav, hero and footer. Link color only on links. All numbers in a row in one color.
 - Card text never clips: no fixed `height`, no `overflow: hidden` or `whiteSpace: nowrap` on a card or its text. A card grows with its text.
+- Font: set `fontFamily` once, on the body, as one Google Fonts family such as `Inter`. It loads by itself. A list such as `Inter, sans-serif` keeps only its first family.
+- States: `'hover:background': '#1D4ED8'` styles a block on hover. `focus:` works the same way. Quote the key.
+- Icons: `- {icon: calendar-days, size: 20, style: {color: '#2563EB'}}` draws a Lucide icon in the color of `style.color`, and `stroke` sets its line width (default 2). An unknown name draws nothing, so use only names you know from lucide.dev.
 
 ### Nav
 
@@ -144,13 +175,13 @@ Sponsors sit in a wrapping row per tier, each tile sized to its content, a highe
 
 Room headers and sessions share one grid, so each header heads its column. The repeat block takes `display: contents`, which makes its cards cells of that grid. The data script gives each session a `cell` with its column and rows as CSS variables. The rows are the session's start and end among the day's sorted times, so a 10-minute talk gets a whole row. A break spans every room with `--col: 1 / -1`.
 
-The grid keeps its columns at every width. Each column has a minimum width, and the grid sits in a block with `overflowX: auto`, so on a phone the grid scrolls sideways inside that block and the page stays as wide as the screen.
+The grid keeps its columns at every width. Each column has a minimum width, and the grid sits in a block with `overflowX: auto`, so on a phone the grid scrolls sideways inside that block and the page stays as wide as the screen. That block fades the edge it clips by itself, so a visitor sees there is more.
 
 ```python
 rooms = ["Main Hall", "Room A", "Room B"]
-rows = frappe.get_all("Session", fields=["session_title", "room", "start_time", "end_time"], filters={"day": "Day 1"}, order_by="start_time asc")
+rows = frappe.db.get_all("Session", fields=["session_title", "room", "start_time", "end_time"], filters={"day": "Day 1"}, order_by="start_time asc")
 times = sorted({r.start_time for r in rows} | {r.end_time for r in rows})
-hhmm = lambda t: frappe.utils.format_datetime(t, "HH:mm")
+hhmm = lambda t: str(t)[11:16]
 for r in rows:
     r.time = f"{hhmm(r.start_time)}–{hhmm(r.end_time)}"
     r.cell = f"--col: {rooms.index(r.room) + 1}; --row: {times.index(r.start_time) + 2} / {times.index(r.end_time) + 2}"
