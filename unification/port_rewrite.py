@@ -25,6 +25,7 @@ ALT = "|".join(LAYERS)
 DOTTED = re.compile(rf"(?<![\w.])(?P<app>{ALT})\.(?:(?P=app)\.)?(?P<head>\w+)(?P<tail>(?:\.\w+)*)")
 REVIEW = re.compile(
 	rf"get_app_path\(\s*[\"'](?:{ALT})[\"']|[\"'](?:{ALT})[\"']\s*(?:in|==|!=)|(?<![\w/])/(?:builder|insights|flow)(?:/|[\"'`])|/studio/app/"
+	rf"|\bapp(?:_name)?\s*(?::\s*str\s*)?=\s*[\"'](?:{ALT})[\"']"
 )
 
 
