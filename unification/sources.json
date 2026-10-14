@@ -3,7 +3,7 @@
 		"frappe": {
 			"repo": "https://github.com/frappe/frappe.git",
 			"branch": "develop",
-			"commit": "d779d87f7250f1d0eaa1e0d4ef353dfd1d764a93"
+			"commit": "f94cedbd1f775e7b0bdf68bc3329c24e429a4bcd"
 		},
 		"builder": {
 			"repo": "https://github.com/frappe/builder.git",
