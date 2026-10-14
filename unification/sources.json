@@ -11,9 +11,18 @@
 			"commit": "acb6d17a9c24e4b9b6bf4ed502eb07471f492e68",
 			"rewritten": "463ed63cf2799c9b9199d0ef6a1663fc0bb19e11",
 			"moves": {
+				"frappe/builder/www/_builder.py": "frappe/web/shell.py",
+				"frappe/builder/www/404.py": "frappe/web/not_found.py",
+				"frappe/builder/www/sitemap.py": "frappe/web/sitemap.py",
+				"frappe/builder/www/404.html": "frappe/www/404.html",
+				"frappe/builder/www/sitemap.xml": "frappe/www/sitemap.xml",
 				"frappe/builder/public/": "frappe/public/web/",
 				"frappe/builder/": "frappe/web/",
 				"frontend/builder/": "studio/web/"
+			},
+			"dependencies": {
+				"frappe/builder/pyproject.toml": "pyproject.toml",
+				"frontend/builder/package.json": "studio/package.json"
 			}
 		},
 		"insights": {
@@ -22,9 +31,14 @@
 			"commit": "ce7fd17e1a0ccc32b7ed3651368b3680789f227a",
 			"rewritten": "8f57545ad6f3b74020fb5e97622419a9957316a4",
 			"moves": {
+				"frappe/insights/www/_insights.py": "frappe/analytics/shell.py",
 				"frappe/insights/public/": "frappe/public/analytics/",
 				"frappe/insights/": "frappe/analytics/",
 				"frontend/insights/": "studio/analytics/"
+			},
+			"dependencies": {
+				"frappe/insights/pyproject.toml": "pyproject.toml",
+				"frontend/insights/package.json": "studio/package.json"
 			},
 			"regenerate": [
 				"python3 -I frappe/analytics/tests/features.py generate"
@@ -36,11 +50,17 @@
 			"commit": "80af5422a369679ac0a6d61df5af6cc15f23456e",
 			"rewritten": "aae3162af0d7904577ac2078bee9d9d408504d91",
 			"moves": {
+				"frappe/flow/www/flow/index.py": "frappe/ai/shell.py",
+				"frappe/flow/commands/__init__.py": "frappe/commands/flow.py",
 				"frappe/flow/harness/": "harness/",
 				"frappe/flow/realtime/handlers.js": "realtime/flow_handlers.js",
 				"frappe/flow/tailwind.config.js": "studio/ai/tailwind.config.js",
 				"frappe/flow/": "frappe/ai/",
 				"frontend/flow/": "studio/ai/"
+			},
+			"dependencies": {
+				"frappe/flow/pyproject.toml": "pyproject.toml",
+				"frappe/flow/package.json": "studio/package.json"
 			}
 		},
 		"studio": {
@@ -49,8 +69,15 @@
 			"commit": "8a4839c97c284736b052900092c7faddae144ef6",
 			"rewritten": "99f6d3308c25be3914d8a02af6415d982d40bc46",
 			"moves": {
+				"frappe/studio/www/studio.py": "frappe/ui/shell.py",
+				"frappe/studio/commands/__init__.py": "frappe/commands/studio.py",
+				"frontend/studio/renderer.html": "frappe/ui/templates/generators/studio_renderer.html",
 				"frappe/studio/": "frappe/ui/",
 				"frontend/studio/": "studio/ui/"
+			},
+			"dependencies": {
+				"frappe/studio/pyproject.toml": "pyproject.toml",
+				"frontend/studio/package.json": "studio/package.json"
 			}
 		}
 	},
@@ -85,6 +112,9 @@
 		"*/package-lock.json",
 		"frontend/*/components.d.ts",
 		"frontend/*/auto-imports.d.ts",
-		"frontend/*/typecheck-baseline.txt"
+		"frontend/*/typecheck-baseline.txt",
+		"frappe/builder/package.json",
+		"frappe/insights/package.json",
+		"frappe/studio/package.json"
 	]
 }

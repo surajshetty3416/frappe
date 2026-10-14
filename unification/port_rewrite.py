@@ -35,6 +35,11 @@ def dotted(match):
 	return f"frappe.{LAYERS[app]}.{head}{match['tail']}"
 
 
+def layer_of(path):
+	parts = path.split("/")
+	return parts[1] if len(parts) > 2 and parts[0] in ("frappe", "studio") and parts[1] in LAYERS.values() else None
+
+
 def rewrite(text, path):
 	for old, new in LAYERS.items():
 		text = re.sub(rf"^(\s*)import {old}$", rf"\1from frappe import {new} as {old}", text, flags=re.M)
@@ -52,6 +57,8 @@ def rewrite(text, path):
 	)
 	for old, new in MODULES.items():
 		text = text.replace(f'"module": "{old}"', f'"module": "{new}"')
+	if layer := layer_of(path):
+		text = re.sub(r"(?<![\w/.-])(?:\./)?frontend/(?=src2?/|public/)", f"studio/{layer}/", text)
 	layer = next((old for old in ALIASES if f"/{LAYERS[old]}/" in f"/{path}"), None)
 	if layer and path.startswith("studio/"):
 		text = re.sub(r"(?<=[\"'`])@/", ALIASES[layer], text)

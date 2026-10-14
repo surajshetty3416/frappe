@@ -23,6 +23,7 @@ from fnmatch import fnmatch
 from pathlib import Path
 from typing import NamedTuple
 
+import dependencies
 import port_rewrite
 import report
 
@@ -235,12 +236,16 @@ class App(Source):
 		return merged[key(commit, self.repo)]
 
 	def settle(self):
-		carried = []
+		carried, notes = [], []
 		for path in unmerged():
-			if not (self.drop(path) or self.remerge(path)) and (new := self.carry(path)):
+			if self.drop(path) or self.remerge(path) or self.adopt(path):
+				continue
+			if (ported := self.port_dependencies(path)) is not None:
+				notes += ported
+			elif new := self.carry(path):
 				carried.append(new)
 		homeless = [path for path in staged() if self.is_old(path) and not self.rehome(path)]
-		review = self.port([*staged(), *carried])
+		review = notes + self.port([*staged(), *carried])
 		self.regenerate()
 		return review, [*unmerged(), *homeless, *(path for path in carried if has_markers(path))]
 
@@ -250,7 +255,8 @@ class App(Source):
 		if None in (base, ours):
 			return False
 		if theirs is None:
-			if ported(base, path) != ours:
+			# docs follow upstream even where the unification touched them
+			if ported(base, path) != ours and not path.endswith(".md"):
 				return False
 			git("rm", "--quiet", path)
 			return True
@@ -258,6 +264,31 @@ class App(Source):
 		if merge_file(path, ported(base, path), ported(theirs, path)):
 			git("add", path)
 		return True
+
+	def adopt(self, path):
+		"""Take a file upstream brings to a path that never existed here, like a doc promoted out of tooling."""
+		if stage(path, 2) is not None or stage(path, 3) is None or self.is_old(path) or self.ignored(path):
+			return False
+		if git("log", "-1", "--format=%h", "HEAD", "--", path):
+			return False
+		(ROOT / path).write_bytes(ported(stage(path, 3), path))
+		git("add", path)
+		return True
+
+	def port_dependencies(self, path):
+		"""Carry a change to an app's dependency file into the unified one; None if path isn't one."""
+		target = self.config.get("dependencies", {}).get(path)
+		base, ours, theirs = stage(path, 1), stage(path, 2), stage(path, 3)
+		if not target or ours is not None or None in (base, theirs):
+			return None
+		notes = dependencies.port(base.decode(), theirs.decode(), ROOT / target)
+		git("rm", "--quiet", path)
+		if target.endswith("package.json") and notes:
+			lock = subprocess.run(["yarn", "--cwd", "studio", "install", "--non-interactive"], cwd=ROOT, capture_output=True)
+			notes += [] if lock.returncode == 0 else ["studio/yarn.lock: `yarn install` failed, refresh it by hand"]
+			git("add", "studio/yarn.lock")
+		git("add", target)
+		return [f"{target}: {note}" for note in notes]
 
 	def carry(self, path):
 		"""Merge an upstream change into a file rename detection lost track of; returns its path here."""
