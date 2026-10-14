@@ -155,7 +155,7 @@ class TestSyncBuiltinAssistant(IntegrationTestCase):
 
 	def test_installing_or_removing_an_app_updates_the_assistant_skills(self):
 		for hook in ("after_app_install", "after_app_uninstall"):
-			self.assertIn("frappe.ai.assistant.sync_assistant_skills", frappe.get_hooks(hook, app_name="flow"))
+			self.assertIn("frappe.ai.assistant.sync_assistant_skills", frappe.get_hooks(hook, app_name="frappe"))
 		folder = AppSkills(self).write("close-todos")
 
 		sync_assistant_skills("myapp")

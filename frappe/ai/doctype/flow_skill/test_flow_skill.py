@@ -181,7 +181,7 @@ class AppSkills:
 		self,
 		name: str,
 		*,
-		app: str = "flow",
+		app: str = "frappe",
 		description: str = "Close overdue ToDos.",
 		body: str = "Close each one.",
 		text: str | None = None,
@@ -209,7 +209,7 @@ class TestAppSkills(IntegrationTestCase):
 		doc = frappe.get_doc("Flow Skill", "close-todos")
 		self.assertEqual(
 			(doc.app, doc.description, doc.instructions, doc.is_system_generated),
-			("flow", "Close overdue ToDos.", "Close each one.", 1),
+			("frappe", "Close overdue ToDos.", "Close each one.", 1),
 		)
 		self.assertEqual((doc.enabled, doc.is_global, doc.user_invocable), (1, 0, 0))
 
@@ -274,9 +274,13 @@ class TestAppSkills(IntegrationTestCase):
 
 	def test_two_apps_cannot_ship_the_same_skill(self):
 		self.skills.write("close-todos", app="frappe")
-		self.skills.write("close-todos", app="flow")
+		self.skills.write("close-todos", app="crm")
 
-		with self.assertRaisesRegex(frappe.ValidationError, "shipped by both frappe and flow"):
+		# flow is part of frappe here, so another installed app stands in for it
+		with (
+			patch("frappe.get_installed_apps", return_value=["frappe", "crm"]),
+			self.assertRaisesRegex(frappe.ValidationError, "shipped by both frappe and crm"),
+		):
 			sync_skills()
 
 		self.assertFalse(frappe.db.exists("Flow Skill", "close-todos"))
