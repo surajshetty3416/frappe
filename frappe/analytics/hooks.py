@@ -253,6 +253,7 @@ studio_artifacts = {
         "label": "Dashboard",
         "route": "/studio/analytics/dashboards/{name}",
         "title_field": "title",
+        "view": "frappe.analytics.doctype.insights_dashboard_v3.insights_dashboard_v3.view_route",
     },
     "Insights Chart v3": {"label": "Chart", "route": "/studio/analytics/charts/{name}", "title_field": "title"},
 }

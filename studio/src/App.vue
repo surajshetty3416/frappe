@@ -17,7 +17,8 @@
 			},
 		}"
 	/>
-	<div class="flex h-full w-full overflow-hidden bg-surface-base">
+	<HomeShell v-if="onHome" />
+	<div v-else class="flex h-full w-full overflow-hidden bg-surface-base">
 		<StudioSidebar v-if="showShell" />
 		<div class="flex min-w-0 flex-1 flex-col">
 			<TopBar
@@ -74,6 +75,7 @@ import SearchDialog from "./components/SearchDialog.vue"
 import StudioChat from "./components/StudioChat.vue"
 import StudioSidebar from "./components/StudioSidebar.vue"
 import TopBar from "./components/TopBar.vue"
+import HomeShell from "./home/HomeShell.vue"
 import { layers } from "./layers"
 import { layout, searchOpen } from "./layout"
 import { activeProject, lastProject, newChatRoute, projectRoute, projectTitle, routeProject } from "./projects"
@@ -93,7 +95,8 @@ const TOAST_ICONS = {
 const route = useRoute()
 const router = useRouter()
 
-const showShell = computed(() => isLoggedIn() && !route.matched.some((record) => record.meta.hideRail))
+const onHome = computed(() => route.matched.some((record) => record.meta.home))
+const showShell = computed(() => isLoggedIn() && !onHome.value && !route.matched.some((record) => record.meta.hideRail))
 const onArtifact = computed(() => route.matched.some((record) => record.meta.artifact))
 // the home's or a project's new chat, a chat, or an artifact's editor with the chat that builds it
 const CHAT_ROUTES = ["studio-home", "studio-project", "studio-chat"]

@@ -2040,3 +2040,9 @@ def parse_static_value(value: str, prop_type: str) -> Any:
 				return None
 		case _:
 			return str(value)
+
+
+def view_route(name: str) -> str | None:
+	"""Where a person reads the page, once it is published."""
+	route, published = frappe.db.get_value("Builder Page", name, ["route", "published"])
+	return f"/{route}" if published and route else None

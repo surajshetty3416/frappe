@@ -530,3 +530,9 @@ def get_vite_dev_server_port():
 
 def get_vite_dev_server_host():
 	return f"{frappe.local.site}:{get_vite_dev_server_port()}"
+
+
+def view_route(name: str) -> str | None:
+	"""Where a person uses the app, once one of its pages is published."""
+	app = frappe.get_doc("Studio App", name)
+	return f"/{app.route}" if app.route and app.is_published() else None

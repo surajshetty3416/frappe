@@ -67,6 +67,8 @@ website_route_rules = [
 	# Studio, the one page for every layer: chat, websites, dashboards, apps
 	{"from_route": "/studio/<path:app_path>", "to_route": "_studio"},
 	{"from_route": "/studio", "to_route": "_studio"},
+	{"from_route": "/home/<path:app_path>", "to_route": "_studio"},
+	{"from_route": "/home", "to_route": "_studio"},
 ]
 
 website_redirects = [
@@ -635,6 +637,12 @@ after_app_build = "frappe.bundler.build_page_islands"
 
 
 add_to_apps_screen = [
+	{
+		"name": "home",
+		"logo": "/assets/frappe/studio/studio-logo.svg",
+		"title": "Home",
+		"route": "/home",
+	},
 	{
 		"name": "studio",
 		"logo": "/assets/frappe/studio/studio-logo.svg",

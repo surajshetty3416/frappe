@@ -19,7 +19,7 @@ HISTORY_LIMIT = 100
 
 
 def artifact_types() -> dict[str, dict[str, str]]:
-	"""{doctype: {label, route, title_field}} from every layer's `studio_artifacts` hook."""
+	"""{doctype: {label, route, title_field, view}} from every layer's `studio_artifacts` hook."""
 	# get_hooks merges dict hooks into lists of every app's value; the last one wins
 	return {
 		doctype: {key: values[-1] for key, values in spec.items()}

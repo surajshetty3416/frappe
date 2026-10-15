@@ -3,6 +3,7 @@ import { createRouter, createWebHistory, type RouteRecordRaw } from "vue-router"
 
 import type { Layer } from "./layer"
 import { layers } from "./layers"
+import { homeRoutes } from "./home/routes"
 import { keepLayerLinksInApp } from "./links"
 import { isLoggedIn } from "./session"
 
@@ -49,6 +50,7 @@ export function createAppRouter(app: App) {
 				withChat.beforeEnter,
 			],
 		},
+		...homeRoutes(withChat.beforeEnter),
 		// the app editor's addresses before it moved under /studio/ui
 		{ path: "/studio/home", redirect: "/studio/ui" },
 		{ path: "/studio/app/:rest(.*)", redirect: (to) => `/studio/ui/app/${to.params.rest}` },

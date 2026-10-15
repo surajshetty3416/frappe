@@ -14,7 +14,7 @@ def get_boot() -> dict:
 	return {"flow_boot": boot(), "studio_artifacts": artifact_types()}
 
 
-def make_chat_the_home():
-	"""A new site opens on Studio, where people ask for websites, dashboards and apps."""
+def make_home_the_landing():
+	"""A new site opens on the home, where people find and use what was built, and ask for more."""
 	if not frappe.db.get_single_value("System Settings", "default_app"):
-		frappe.db.set_single_value("System Settings", "default_app", "studio")
+		frappe.db.set_single_value("System Settings", "default_app", "home")

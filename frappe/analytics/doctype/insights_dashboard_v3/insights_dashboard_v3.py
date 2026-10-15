@@ -855,3 +855,8 @@ def create_preview_file(content: bytes, dashboard_name: str):
         file.save()
 
     return file.file_url
+
+
+def view_route(name: str) -> str:
+    """The dashboard as a reader sees it, without the editor; it checks their access itself."""
+    return f"/studio/analytics/shared/dashboard/{name}"

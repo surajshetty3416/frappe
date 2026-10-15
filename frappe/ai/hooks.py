@@ -45,8 +45,10 @@ scheduler_events = {
 	},
 }
 
+flow_tools = ["frappe.ai.home.get_home_layout", "frappe.ai.home.set_home_layout"]
+
 after_install = [
-	"frappe.ai.shell.make_chat_the_home",
+	"frappe.ai.shell.make_home_the_landing",
 	"frappe.ai.permissions.ensure_assistant_role",
 	"frappe.ai.lib.model.ensure_claude_code_model",
 	"frappe.ai.assistant.sync_builtin_assistant",

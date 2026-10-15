@@ -47,6 +47,7 @@ def watch_studio(context):
 def studio_demo(context):
 	"""Set the site up for the Frappeverse demo and replay each of its recorded chats once"""
 	from frappe.ai.demo import import_recordings, play, project, setup_site, unplayed
+	from frappe.ai.demo.personas import demo_artifacts, setup_personas
 
 	site = get_site(context)
 	frappe.init(site)
@@ -62,6 +63,9 @@ def studio_demo(context):
 			if state["status"] != "Done":
 				click.secho(state["error"] or "", fg="red")
 				raise SystemExit(1)
+		click.echo("\nOpen /home as:")
+		for login in setup_personas(demo_artifacts(demo_project)):
+			click.echo(f"  {login['user']} / {login['password']}  {login['persona']}")
 	finally:
 		frappe.destroy()
 

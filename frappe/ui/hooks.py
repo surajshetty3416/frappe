@@ -244,5 +244,10 @@ flow_tools = [
 
 # what Studio opens beside the chat for an artifact of this layer
 studio_artifacts = {
-	"Studio App": {"label": "App", "route": "/studio/ui/app/{name}", "title_field": "app_title"},
+	"Studio App": {
+		"label": "App",
+		"route": "/studio/ui/app/{name}",
+		"title_field": "app_title",
+		"view": "frappe.ui.doctype.studio_app.studio_app.view_route",
+	},
 }

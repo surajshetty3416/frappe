@@ -56,3 +56,10 @@ export function onListUpdate(doctype: string, callback: (name: string) => void) 
 		if (data.doctype === doctype) callback(data.name)
 	})
 }
+
+// an event Frappe publishes to the person, which reaches each of their sockets
+export function onUserEvent(event: string, callback: () => void) {
+	const s = connect()
+	s.on(event, callback)
+	return () => void s.off(event, callback)
+}

@@ -224,7 +224,12 @@ flow_tools = [
 
 # what Studio opens beside the chat for an artifact of this layer
 studio_artifacts = {
-	"Builder Page": {"label": "Web page", "route": "/studio/web/page/{name}", "title_field": "page_title"},
+	"Builder Page": {
+		"label": "Web page",
+		"route": "/studio/web/page/{name}",
+		"title_field": "page_title",
+		"view": "frappe.web.doctype.builder_page.builder_page.view_route",
+	},
 	"Print Format": {"label": "Print format", "route": "/studio/print/format/{name}", "title_field": "name"},
 	"Email Template": {"label": "Email", "route": "/studio/email/template/{name}", "title_field": "name"},
 }
