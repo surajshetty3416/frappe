@@ -40,7 +40,7 @@ import { computed, nextTick, ref, watch } from "vue"
 import { type RouteLocationRaw, useRouter } from "vue-router"
 
 import { artifactIcon } from "../artifacts"
-import { chats } from "../chats"
+import { chatRoute, chats } from "../chats"
 import { searchOpen } from "../layout"
 import { projectRoute, projects } from "../projects"
 
@@ -75,7 +75,7 @@ const entries = computed(() => {
 		key: chat.name,
 		title: chat.title || "Untitled chat",
 		icon: "lucide-message-square",
-		route: `/studio/chat/${chat.name}`,
+		route: chatRoute(chat.name),
 		kind: "Chats",
 		modified: chat.modified,
 	}))

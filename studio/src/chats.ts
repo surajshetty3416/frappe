@@ -1,6 +1,7 @@
 import { useDebounceFn } from "@vueuse/core"
 import { call } from "frappe-ui"
 import { computed, ref } from "vue"
+import type { RouteLocationRaw } from "vue-router"
 
 import { type Chat, getHistory } from "./artifacts"
 import { onListUpdate } from "./realtime"
@@ -47,3 +48,9 @@ export function watchChats() {
 
 export const chatTitle = (session: string | null) =>
 	computed(() => chats.value.find((chat) => chat.name === session)?.title)
+
+// a chat opens on its latest artifact, so its editor is beside it from the start
+export function chatRoute(session: string): RouteLocationRaw {
+	const latest = chats.value.find((chat) => chat.name === session)?.artifacts.at(-1)
+	return latest ? { path: latest.route, query: { chat: session } } : { name: "studio-chat", params: { session } }
+}

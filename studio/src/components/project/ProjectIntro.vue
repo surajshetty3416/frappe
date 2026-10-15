@@ -1,17 +1,15 @@
 <template>
-	<div class="flex items-start gap-3">
-		<div class="min-w-0 flex-1">
-			<h1 class="text-3xl font-semibold text-ink-gray-9">What do you want to build in {{ projectTitle(project) }}?</h1>
-			<p class="mt-1.5 text-p-base text-ink-gray-6">
-				{{ projectPage?.project.description || "A website, a dashboard, an app, or any change to the data on this site." }}
-			</p>
-		</div>
+	<!-- the menu sits at the edge, so the question stays centered over the chatbox -->
+	<div class="relative">
+		<h1 class="px-10 text-center text-3xl font-semibold text-ink-gray-9">What do you want to build in {{ projectTitle(project) }}?</h1>
 		<template v-if="projectPage?.project.can_write">
-			<Dropdown :options="options" align="end">
-				<template #trigger>
-					<Button variant="ghost" icon="lucide-ellipsis" :aria-label="`${projectPage.project.title} options`" />
-				</template>
-			</Dropdown>
+			<div class="absolute right-0 top-0">
+				<Dropdown :options="options" align="end">
+					<template #trigger>
+						<Button variant="ghost" icon="lucide-ellipsis" :aria-label="`${projectPage.project.title} options`" />
+					</template>
+				</Dropdown>
+			</div>
 			<ProjectDialog v-model:open="editing" :project="projectPage.project" />
 		</template>
 	</div>

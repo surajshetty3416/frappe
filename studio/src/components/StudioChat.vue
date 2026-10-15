@@ -15,12 +15,11 @@
 			<template #intro>
 				<div data-layer="shell" class="mx-auto w-full max-w-[760px]">
 					<template v-if="artifact">
-						<h1 class="text-3xl font-semibold text-ink-gray-9">What should change?</h1>
-						<p class="mt-1.5 text-p-base text-ink-gray-6">Ask for any change to {{ openTitle }}, or comment on its preview.</p>
+						<h1 class="text-center text-3xl font-semibold text-ink-gray-9">What should change?</h1>
 					</template>
 					<ProjectIntro v-else-if="onProject && activeProject" :project="activeProject" />
 					<template v-else>
-						<h1 class="text-3xl font-semibold text-ink-gray-9">
+						<h1 class="text-center text-3xl font-semibold text-ink-gray-9">
 							What do you want to build<template v-if="activeProject">
 								in
 								<!-- the home's new chat can still move to another project -->
@@ -35,7 +34,6 @@
 								<template v-else>{{ projectTitle(activeProject) }}</template>
 							</template>?
 						</h1>
-						<p class="mt-1.5 text-p-base text-ink-gray-6">A website, a dashboard, an app, or any change to the data on this site.</p>
 					</template>
 					<Alert
 						v-if="needsSetup"
@@ -148,7 +146,6 @@ chatSender.value = (message) => flowApp.value?.send(message) ?? false
 onBeforeUnmount(() => (chatSender.value = null))
 
 const needsSetup = !window.flow_boot?.models?.length
-const openTitle = computed(() => (artifact.value && findTab(artifact.value.doctype, artifact.value.name)?.title) || "this artifact")
 const ideas = computed(() => {
 	const layer = route.matched[0]?.meta.layer
 	if (!artifact.value) return IDEAS

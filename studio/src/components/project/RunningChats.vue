@@ -4,7 +4,7 @@
 		<ProjectRow
 			v-for="chat in running"
 			:key="chat.name"
-			:to="{ name: 'studio-chat', params: { session: chat.name } }"
+			:to="chatRoute(chat.name)"
 			:title="chat.title || 'Untitled chat'"
 			:subtitle="chat.tasks ? `${chat.tasks.done} of ${chat.tasks.total} tasks done` : null"
 		>
@@ -28,6 +28,7 @@ import { useDebounceFn } from "@vueuse/core"
 import { Badge, LoadingIndicator } from "frappe-ui"
 import { onBeforeUnmount, ref, watch } from "vue"
 
+import { chatRoute } from "../../chats"
 import { type RunningChat, getRunningChats } from "../../projects"
 import { onListUpdate } from "../../realtime"
 import ProjectRow from "./ProjectRow.vue"

@@ -22,7 +22,7 @@
 		<SidebarItem
 			v-for="chat in shown"
 			:key="chat.name"
-			:route="{ name: 'studio-chat', params: { session: chat.name } }"
+			:route="chatRoute(chat.name)"
 			:active="chat.name === currentChat"
 			:label="chat.title || 'Untitled chat'"
 		>
@@ -44,6 +44,7 @@ import { computed, ref } from "vue"
 import { useRoute } from "vue-router"
 
 import type { Chat } from "../artifacts"
+import { chatRoute } from "../chats"
 import { type Project, activeProject, projectRoute } from "../projects"
 
 const CHATS_SHOWN = 5
