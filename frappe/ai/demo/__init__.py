@@ -10,6 +10,9 @@ from frappe.ai.replay import get_replay, import_recording, list_recordings, play
 
 RECORDINGS = Path(__file__).parent / "frappeverse"
 SPEED = 50
+PROJECT = "Frappeverse 2027"
+PROJECT_CONTEXT = """Frappeverse 2027 is Frappe's yearly conference, on 20 and 21 August 2027 at Nehru Centre, Worli, Mumbai.
+Its DocTypes live in the Frappeverse module. Amounts are in INR and times in Asia/Kolkata."""
 
 
 def setup_site() -> None:
@@ -59,15 +62,31 @@ def import_recordings() -> None:
 	frappe.db.commit()
 
 
+def project() -> str:
+	"""The demo's project, which its recorded chats replay into."""
+	name = frappe.db.get_value("Studio Project", {"title": PROJECT})
+	if not name:
+		name = frappe.get_doc(
+			{
+				"doctype": "Studio Project",
+				"title": PROJECT,
+				"description": "Everything for the conference: data, apps, website, dashboards, badges, emails and agents.",
+				"context": PROJECT_CONTEXT,
+			}
+		).insert().name
+		frappe.db.commit()
+	return name
+
+
 def unplayed() -> list[dict[str, Any]]:
 	"""Recordings no chat has replayed: a second replay makes the same artifacts again and fails."""
 	played = set(frappe.get_all("Flow Replay", pluck="recording"))
 	return [r for r in list_recordings() if r.name not in played]
 
 
-def play(recording: str) -> dict[str, Any]:
-	"""Replay a recording into a new chat, step by step, until it ends."""
-	session = start_replay(recording)["session"]
+def play(recording: str, project: str | None = None) -> dict[str, Any]:
+	"""Replay a recording into a new chat in `project`, step by step, until it ends."""
+	session = start_replay(recording, project)["session"]
 	while True:
 		state = play_step(session, SPEED)
 		while state["status"] == "Playing":

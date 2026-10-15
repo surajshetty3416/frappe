@@ -53,14 +53,16 @@ def create_session(
 	model: str | None = None,
 	title: str | None = None,
 	auto_approve: bool | int | str = False,
+	project: str | None = None,
 ) -> dict[str, Any]:
-	"""Start a session with `agent` (the Assistant by default)."""
+	"""Start a session with `agent` (the Assistant by default), in `project` when given."""
 	frappe.has_permission("Flow Session", "create", throw=True)
 	doc = new_session(
 		agent or None,
 		model=model or None,
 		title=(title or "").strip() or None,
 		auto_approve=cint(auto_approve),
+		project=project or None,
 	)
 	return _session_payload(doc)
 
@@ -103,18 +105,23 @@ def list_sessions(
 
 
 @frappe.whitelist()
-def skills(session: str | None = None, agent: str | None = None) -> dict[str, Any]:
+def skills(
+	session: str | None = None, agent: str | None = None, project: str | None = None
+) -> dict[str, Any]:
 	"""The skills a user may start by typing /skill:<name>: those of `session`'s agent, of
-	`agent`, or of the Assistant a new chat starts with."""
+	`agent`, or of the Assistant a new chat starts with, and of the chat's `project`."""
 	if session:
-		agent = _load_session(session, "read").agent
+		doc = _load_session(session, "read")
+		agent, project = doc.agent, doc.project
 	else:
 		agent = (agent or "").strip() or _default_agent_name()
 		frappe.has_permission("Flow Agent", "read", agent, throw=True)
+		if project:
+			frappe.has_permission("Studio Project", "read", project, throw=True)
 	return {
 		"skills": [
 			{"name": row["command"], "description": row["description"]}
-			for row in frappe.get_doc("Flow Agent", agent).invocable_skills()
+			for row in frappe.get_doc("Flow Agent", agent).for_project(project or None).invocable_skills()
 		]
 	}
 
@@ -264,6 +271,7 @@ def _session_payload(doc: FlowSession) -> dict[str, Any]:
 		"agent": doc.agent,
 		"model": model,
 		"source": doc.source,
+		"project": doc.project,
 		"auto_approve": bool(doc.auto_approve),
 		"read_only": not frappe.has_permission("Flow Session", "write", doc),
 		"runs": frappe.get_all(

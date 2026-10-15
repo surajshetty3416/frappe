@@ -1,0 +1,111 @@
+{
+ "actions": [],
+ "allow_bulk_edit": 1,
+ "allow_rename": 1,
+ "autoname": "hash",
+ "creation": "2026-10-14 15:25:32.055295",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "title",
+  "description",
+  "context",
+  "section_break_resources",
+  "skills",
+  "knowledge_bases",
+  "artifacts"
+ ],
+ "fields": [
+  {
+   "bold": 1,
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Title",
+   "reqd": 1
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "label": "Description"
+  },
+  {
+   "description": "What every new chat in this project starts knowing: its goal, conventions, people and terms. Chats already open keep the context they started with.",
+   "fieldname": "context",
+   "fieldtype": "Long Text",
+   "ignore_xss_filter": 1,
+   "label": "Context"
+  },
+  {
+   "fieldname": "section_break_resources",
+   "fieldtype": "Section Break"
+  },
+  {
+   "description": "Flow Skills this project's chats can load, besides the global ones.",
+   "fieldname": "skills",
+   "fieldtype": "Table MultiSelect",
+   "label": "Skills",
+   "options": "Studio Project Skill"
+  },
+  {
+   "description": "Knowledge bases this project's chats can search.",
+   "fieldname": "knowledge_bases",
+   "fieldtype": "Table MultiSelect",
+   "label": "Knowledge Bases",
+   "options": "Studio Project Knowledge Base"
+  },
+  {
+   "description": "What this project's chats made or changed.",
+   "fieldname": "artifacts",
+   "fieldtype": "Table",
+   "label": "Artifacts",
+   "options": "Studio Project Artifact",
+   "read_only": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "links": [],
+ "modified": "2026-10-14 15:25:32.055295",
+ "modified_by": "Administrator",
+ "module": "AI",
+ "name": "Studio Project",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "if_owner": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Assistant User",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "search_fields": "title",
+ "show_title_field_in_link": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "title",
+ "track_changes": 1
+}

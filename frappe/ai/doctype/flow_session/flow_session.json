@@ -7,6 +7,7 @@
  "field_order": [
   "title",
   "agent",
+  "project",
   "model",
   "source",
   "auto_approve",
@@ -106,6 +107,14 @@
    "label": "Artifacts",
    "options": "Flow Session Artifact",
    "read_only": 1
+  },
+  {
+   "fieldname": "project",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Project",
+   "options": "Studio Project",
+   "search_index": 1
   }
  ],
  "links": [
@@ -115,7 +124,7 @@
    "link_fieldname": "session"
   }
  ],
- "modified": "2026-10-12 16:17:43.001884",
+ "modified": "2026-10-14 15:25:32.135725",
  "modified_by": "Administrator",
  "module": "AI",
  "name": "Flow Session",

@@ -46,7 +46,7 @@ def watch_studio(context):
 @pass_context
 def studio_demo(context):
 	"""Set the site up for the Frappeverse demo and replay each of its recorded chats once"""
-	from frappe.ai.demo import import_recordings, play, setup_site, unplayed
+	from frappe.ai.demo import import_recordings, play, project, setup_site, unplayed
 
 	site = get_site(context)
 	frappe.init(site)
@@ -55,8 +55,9 @@ def studio_demo(context):
 	try:
 		setup_site()
 		import_recordings()
+		demo_project = project()
 		for recording in unplayed():
-			state = play(recording.name)
+			state = play(recording.name, demo_project)
 			click.echo(f"{recording.title}: {state['status']}, {state['step']} of {state['steps']} steps")
 			if state["status"] != "Done":
 				click.secho(state["error"] or "", fg="red")

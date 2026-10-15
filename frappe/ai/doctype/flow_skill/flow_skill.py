@@ -101,8 +101,9 @@ class FlowSkill(Document):
 			)
 
 
-def expand_skill_command(agent: str, text: str) -> str:
-	"""Put the instructions of each skill named with `/skill:<command>` before the message."""
+def expand_skill_command(agent: str, text: str, project: str | None = None) -> str:
+	"""Put the instructions of each skill named with `/skill:<command>` before the message; in a
+	project's chat, the project's skills count too."""
 	stripped = text.strip()
 	leading = _SKILL_COMMAND_RE.match(stripped)
 	instructions = (leading.group(2) or "").strip() if leading else stripped
@@ -120,7 +121,7 @@ def expand_skill_command(agent: str, text: str) -> str:
 	if not commands:
 		return text
 	skills: dict[str, dict] = {}
-	for row in frappe.get_doc("Flow Agent", agent).invocable_skills():
+	for row in frappe.get_doc("Flow Agent", agent).for_project(project).invocable_skills():
 		skills.setdefault(row["command"], row)
 	if leading and leading.group(1) not in skills:
 		frappe.throw(

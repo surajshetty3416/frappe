@@ -54,8 +54,12 @@ def new_session(
 	title: str | None = None,
 	source: str = "Manual",
 	auto_approve: bool = False,
+	project: str | None = None,
 ) -> FlowSession:
-	"""Start a Flow Session and its flow server twin. `agent` defaults to the Assistant."""
+	"""Start a Flow Session and its flow server twin. `agent` defaults to the Assistant; a chat
+	in `project` starts with the project's context, skills and knowledge bases."""
+	if project:
+		frappe.has_permission("Studio Project", "read", project, throw=True)
 	if agent is None:
 		agent_doc = frappe.get_doc("Flow Agent", _default_agent_name())
 	else:
@@ -69,6 +73,7 @@ def new_session(
 			"title": title,
 			"source": source,
 			"auto_approve": source == "Trigger" or bool(auto_approve),
+			"project": project,
 		}
 	).insert(ignore_permissions=True)
 	with flow_server() as client:
