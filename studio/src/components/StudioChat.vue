@@ -24,7 +24,7 @@
 							What do you want to build<template v-if="activeProject">
 								in
 								<!-- the home's new chat can still move to another project -->
-								<ProjectPicker v-if="route.name === 'studio-home'" :model-value="activeProject" @update:model-value="moveTo">
+								<ProjectPicker v-if="route.name === 'studio-home'" :model-value="activeProject" can-create @update:model-value="moveTo">
 									<template #default="{ title }">
 										<button
 											type="button"
@@ -51,11 +51,17 @@
 					<ProjectHome :project="activeProject" @prefill="prefill" />
 				</div>
 				<div v-else data-layer="shell" class="mx-auto w-full max-w-[760px]">
-					<div class="flex flex-wrap gap-1.5">
+					<div class="flex flex-wrap gap-1">
 						<!-- a starter that waits for the rest of the sentence trails off -->
-						<Button v-for="idea in ideas" :key="idea.text" variant="outline" :icon-left="idea.icon" @click="prefill(idea.text)">
-							{{ idea.text.trim() }}<span v-if="idea.text.endsWith(' ')" class="text-ink-gray-4">…</span>
-						</Button>
+						<button
+							v-for="idea in ideas"
+							:key="idea.text"
+							type="button"
+							class="rounded-4 px-2 py-1 text-sm text-ink-gray-5 hover:bg-surface-gray-2 hover:text-ink-gray-7"
+							@click="prefill(idea.text)"
+						>
+							{{ idea.text.trim() }}<span v-if="idea.text.endsWith(' ')">…</span>
+						</button>
 					</div>
 					<RecordingList v-if="!artifact" :project="activeProject" class="mt-8" />
 				</div>
@@ -68,7 +74,7 @@
 </template>
 
 <script setup lang="ts">
-import { Alert, Button, LoadingIndicator } from "frappe-ui"
+import { Alert, LoadingIndicator } from "frappe-ui"
 import { computed, defineAsyncComponent, onBeforeUnmount, ref, watch } from "vue"
 import { useRoute, useRouter } from "vue-router"
 
@@ -170,47 +176,44 @@ const context = {
 
 <script lang="ts">
 const IDEAS = [
-	{ icon: "lucide-database", text: "A DocType for sponsors" },
-	{ icon: "lucide-blocks", text: "An app to check in attendees" },
-	{ icon: "lucide-globe", text: "A website for our conference" },
-	{ icon: "lucide-chart-column", text: "A dashboard of registrations" },
-	{ icon: "lucide-printer", text: "Make an attendee badge with a QR code" },
-	{ icon: "lucide-mail", text: "Make a confirmation email for new registrations" },
+	{ text: "An app to check in attendees" },
+	{ text: "A website for our conference" },
+	{ text: "A dashboard of registrations" },
 ]
 
 // what a person usually asks of an artifact open beside the chat, by layer
-const CHANGES: Record<string, { icon: string; text: string }[]> = {
+const CHANGES: Record<string, { text: string }[]> = {
 	data: [
-		{ icon: "lucide-plus", text: "Add a field for " },
-		{ icon: "lucide-table", text: "Add demo records" },
-		{ icon: "lucide-shield", text: "Let this role " },
+		{ text: "Add a field for " },
+		{ text: "Add demo records" },
+		{ text: "Let this role " },
 	],
 	web: [
-		{ icon: "lucide-type", text: "Rewrite the copy to " },
-		{ icon: "lucide-plus", text: "Add a section about " },
-		{ icon: "lucide-palette", text: "Restyle the page to " },
+		{ text: "Rewrite the copy to " },
+		{ text: "Add a section about " },
+		{ text: "Restyle the page to " },
 	],
 	analytics: [
-		{ icon: "lucide-chart-column", text: "Add a chart of " },
-		{ icon: "lucide-funnel", text: "Filter it by " },
+		{ text: "Add a chart of " },
+		{ text: "Filter it by " },
 	],
 	ui: [
-		{ icon: "lucide-plus", text: "Add a page to " },
-		{ icon: "lucide-text-cursor-input", text: "Add a form for " },
+		{ text: "Add a page to " },
+		{ text: "Add a form for " },
 	],
 	print: [
-		{ icon: "lucide-qr-code", text: "Add a QR code of " },
-		{ icon: "lucide-file", text: "Change the page size to " },
-		{ icon: "lucide-palette", text: "Restyle it to " },
+		{ text: "Add a QR code of " },
+		{ text: "Change the page size to " },
+		{ text: "Restyle it to " },
 	],
 	email: [
-		{ icon: "lucide-heading", text: "Change the subject to " },
-		{ icon: "lucide-panel-bottom", text: "Add a footer with " },
-		{ icon: "lucide-type", text: "Rewrite the message to " },
+		{ text: "Change the subject to " },
+		{ text: "Add a footer with " },
+		{ text: "Rewrite the message to " },
 	],
 	agents: [
-		{ icon: "lucide-wrench", text: "Let it " },
-		{ icon: "lucide-pencil", text: "Change it to " },
+		{ text: "Let it " },
+		{ text: "Change it to " },
 	],
 }
 </script>
