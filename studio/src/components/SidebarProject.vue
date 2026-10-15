@@ -17,7 +17,7 @@
 			</button>
 		</template>
 	</SidebarItem>
-	<!-- a chat's status takes the icon lane, so chat titles line up with the project's -->
+	<!-- an empty icon lane, so chat titles line up with the project's -->
 	<template v-if="open">
 		<SidebarItem
 			v-for="chat in shown"
@@ -26,15 +26,7 @@
 			:active="chat.name === currentChat"
 			:label="chat.title || 'Untitled chat'"
 		>
-			<template #prefix>
-				<span class="grid size-4 place-items-center">
-					<LoadingIndicator v-if="chatStatus(chat, currentChat) === 'running'" class="size-3.5 text-ink-gray-5" />
-					<Tooltip v-else-if="chatStatus(chat, currentChat) === 'waiting'" text="Waiting for approval">
-						<span class="size-2 rounded-full bg-surface-amber-3" />
-					</Tooltip>
-					<span v-else-if="chatStatus(chat, currentChat) === 'unread'" class="size-2 rounded-full bg-surface-blue-6" />
-				</span>
-			</template>
+			<template #prefix><span class="size-4" /></template>
 			<template #suffix>
 				<span class="mr-2 hidden pl-2 text-xs text-ink-gray-4 group-hover/sidebar-item:inline">{{ ago(chat.modified) }}</span>
 			</template>
@@ -47,12 +39,11 @@
 </template>
 
 <script setup lang="ts">
-import { LoadingIndicator, SidebarItem, Tooltip, dayjs } from "frappe-ui"
+import { SidebarItem, dayjs } from "frappe-ui"
 import { computed, ref } from "vue"
 import { useRoute } from "vue-router"
 
 import type { Chat } from "../artifacts"
-import { chatStatus } from "../chats"
 import { type Project, activeProject, projectRoute } from "../projects"
 
 const CHATS_SHOWN = 5

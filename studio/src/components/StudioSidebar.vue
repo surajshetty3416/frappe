@@ -80,7 +80,7 @@ import { computed, ref, watch } from "vue"
 import { useRoute } from "vue-router"
 
 import { artifactKinds } from "../artifacts"
-import { chats, markSeen, superseded, watchChats } from "../chats"
+import { chats, superseded, watchChats } from "../chats"
 import { layout, searchOpen } from "../layout"
 import { activeProject, newChatRoute, projects, projectsLoaded, watchProjects } from "../projects"
 import { sessionUser } from "../session"
@@ -111,11 +111,6 @@ function toggle(project: string) {
 	if (open.includes(project)) open.splice(open.indexOf(project), 1)
 	else open.push(project)
 }
-watch(
-	() => [currentChat.value, chats.value],
-	() => currentChat.value && markSeen(currentChat.value),
-	{ immediate: true }
-)
 
 const user = sessionUser()
 const fullName = decodeURIComponent(document.cookie.match(/full_name=([^;]*)/)?.[1] ?? user).replace(/\+/g, " ")
