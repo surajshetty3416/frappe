@@ -119,6 +119,12 @@ export async function createProject(title: string, description: string) {
 	return doc.name
 }
 
+// the project and its chats; what they made stays
+export async function deleteProject(project: string) {
+	await call("frappe.client.delete", { doctype: "Studio Project", name: project })
+	await loadProjects()
+}
+
 export async function updateProject(project: string, values: Record<string, unknown>) {
 	await call("frappe.client.set_value", { doctype: "Studio Project", name: project, fieldname: values })
 	if ("title" in values || "description" in values) await loadProjects()

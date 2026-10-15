@@ -148,6 +148,18 @@ class TestStudioProject(IntegrationTestCase):
 		frappe.set_user(OWNER)
 		self.assertEqual(projects.get_project(mine)["artifacts"], [])
 
+	def test_deleting_a_project_deletes_its_chats_and_keeps_what_they_made(self):
+		mine = project(OWNER)
+		session = chat(OWNER, mine)
+		app = studio_app("Badge Desk")
+		frappe.set_user(OWNER)
+		artifacts.link(session, "Studio App", app)
+
+		frappe.delete_doc("Studio Project", mine)
+
+		self.assertFalse(frappe.db.exists("Flow Session", session))
+		self.assertTrue(frappe.db.exists("Studio App", app))
+
 	def test_the_lists_name_the_project_that_made_each_artifact_and_filter_by_it(self):
 		mine = project(OWNER)
 		session = chat(OWNER, mine)

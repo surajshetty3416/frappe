@@ -32,6 +32,11 @@ class StudioProject(Document):
 	def validate(self):
 		self.validate_resource_access()
 
+	def on_trash(self):
+		"""The project's chats go with it. What they made stays."""
+		for session in frappe.get_all("Flow Session", filters={"project": self.name}, pluck="name"):
+			frappe.delete_doc("Flow Session", session)
+
 	def validate_resource_access(self):
 		"""The project's chats load its skills and search its knowledge bases, so whoever adds one
 		must be able to read it."""
