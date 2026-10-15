@@ -46,7 +46,7 @@
 			</template>
 			<template #starters="{ prefill }">
 				<div v-if="onProject && activeProject" data-layer="shell" class="mx-auto w-full max-w-[760px] pt-8">
-					<ProjectHome :project="activeProject" @prefill="prefill" />
+					<ProjectHome :project="activeProject" />
 				</div>
 				<div v-else data-layer="shell" class="mx-auto w-full max-w-[760px]">
 					<div class="flex flex-wrap gap-1">

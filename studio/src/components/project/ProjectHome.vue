@@ -15,7 +15,7 @@
 				<ArtifactViewToggle v-if="tab === 'artifacts' && projectPage.artifacts.length" />
 				<AddSkill v-else-if="tab === 'skills' && projectPage.project.can_write" :page="projectPage" @changed="load" />
 			</div>
-			<component :is="section" :page="projectPage" @changed="load" @prefill="(text: string) => emit('prefill', text)" />
+			<component :is="section" :page="projectPage" @changed="load" />
 		</div>
 	</div>
 </template>
@@ -42,7 +42,6 @@ type Section = keyof typeof SECTIONS
 
 // what sits under a project's chatbox: its chats at work, then what it made and the skills its chats use
 const props = defineProps<{ project: string }>()
-const emit = defineEmits<{ prefill: [text: string] }>()
 const route = useRoute()
 const tab = computed(() => (route.params.tab || "artifacts") as Section)
 const section = computed(() => SECTIONS[tab.value].component)
