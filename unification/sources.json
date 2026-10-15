@@ -47,8 +47,8 @@
 		"flow": {
 			"repo": "https://github.com/frappe/flow.git",
 			"branch": "main",
-			"commit": "76f1df7511d3df765681f4f208252a9979187ac5",
-			"rewritten": "7b2f2298d070b6fe6934a8919d65ea4e2f20ade4",
+			"commit": "ce896c88bdfdd8e3a8a5d213ca09a24dc5015bee",
+			"rewritten": "c1068a5bec3d12a00e99930c97c87dc26ce53bc5",
 			"moves": {
 				"frappe/flow/www/flow/index.py": "frappe/ai/shell.py",
 				"frappe/flow/commands/__init__.py": "frappe/commands/flow.py",
