@@ -17,7 +17,8 @@
 			</button>
 		</template>
 	</SidebarItem>
-	<div v-if="open && chats.length" class="flex flex-col gap-0.5 pl-6">
+	<!-- a chat's status takes the icon lane, so chat titles line up with the project's -->
+	<template v-if="open">
 		<SidebarItem
 			v-for="chat in shown"
 			:key="chat.name"
@@ -25,7 +26,6 @@
 			:active="chat.name === currentChat"
 			:label="chat.title || 'Untitled chat'"
 		>
-			<!-- the status takes the icon column, so titles line up -->
 			<template #prefix>
 				<span class="grid size-4 place-items-center">
 					<LoadingIndicator v-if="chatStatus(chat, currentChat) === 'running'" class="size-3.5 text-ink-gray-5" />
@@ -43,7 +43,7 @@
 			<template #prefix><span class="size-4" /></template>
 			<span class="text-sm text-ink-gray-5">{{ showAll ? "Show less" : `Show ${chats.length - shown.length} more` }}</span>
 		</SidebarItem>
-	</div>
+	</template>
 </template>
 
 <script setup lang="ts">
