@@ -24,9 +24,6 @@
 				v-if="showShell"
 				:title="title"
 				:crumb="crumb"
-				:can-toggle-panel="canTogglePanel"
-				:panel-visible="panelVisible"
-				@toggle-panel="togglePanel"
 			/>
 			<div v-if="chatLayout" ref="body" class="flex min-h-0 flex-1">
 				<!-- beside the editor the chat keeps room for its composer's controls; the editor gives way -->
@@ -81,7 +78,7 @@ import { layers } from "./layers"
 import { layout, searchOpen } from "./layout"
 import { activeProject, lastProject, newChatRoute, projectRoute, projectTitle, routeProject } from "./projects"
 import { isLoggedIn } from "./session"
-import { tabChat, tabs } from "./tabs"
+import { tabChat } from "./tabs"
 import { Toaster } from "vue-sonner"
 import "vue-sonner/style.css"
 
@@ -101,8 +98,8 @@ const onArtifact = computed(() => route.matched.some((record) => record.meta.art
 // the home's or a project's new chat, a chat, or an artifact's editor with the chat that builds it
 const CHAT_ROUTES = ["studio-home", "studio-project", "studio-chat"]
 const chatLayout = computed(() => showShell.value && (CHAT_ROUTES.includes(String(route.name)) || onArtifact.value))
-const panelVisible = computed(() => chatLayout.value && onArtifact.value && layout.value.panelOpen)
-const canTogglePanel = computed(() => chatLayout.value && (onArtifact.value || tabs.value.length > 0))
+// an artifact's editor always shows beside its chat
+const panelVisible = computed(() => chatLayout.value && onArtifact.value)
 
 const currentChat = computed(() => {
 	const session = route.name === "studio-chat" ? route.params.session : route.query.chat
@@ -135,18 +132,6 @@ const crumb = computed(() =>
 		? { label: projectTitle(activeProject.value), route: projectRoute(activeProject.value) }
 		: null
 )
-
-function togglePanel() {
-	if (onArtifact.value) {
-		layout.value.panelOpen = !layout.value.panelOpen
-		return
-	}
-	// from a chat, the panel opens on the last tab
-	const last = tabs.value.at(-1)
-	if (!last) return
-	layout.value.panelOpen = true
-	router.push(last.path)
-}
 
 const body = ref<HTMLElement | null>(null)
 const { width: bodyWidth } = useElementSize(body)

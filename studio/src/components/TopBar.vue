@@ -15,13 +15,6 @@
 		</nav>
 		<!-- the open chat's menu, which the chat renders here -->
 		<div id="studio-chat-menu" class="flex items-center" />
-		<Button
-			v-if="canTogglePanel"
-			variant="ghost"
-			icon="lucide-panel-right"
-			:tooltip="panelVisible ? 'Hide editor' : 'Show editor'"
-			@click="emit('toggle-panel')"
-		/>
 	</header>
 </template>
 
@@ -34,8 +27,5 @@ import { layout } from "../layout"
 defineProps<{
 	title: string
 	crumb: { label: string; route: RouteLocationRaw } | null
-	canTogglePanel: boolean
-	panelVisible: boolean
 }>()
-const emit = defineEmits<{ "toggle-panel": [] }>()
 </script>
