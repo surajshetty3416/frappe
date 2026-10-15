@@ -13,8 +13,8 @@
 		<div v-if="blank" class="flex flex-col justify-end px-4 pb-6 pt-12" :class="introAtTop ? 'flex-none' : 'flex-[1_0_auto]'">
 			<slot name="intro" />
 		</div>
-		<ReplayIntro v-else-if="replayIntro" :key="viewKey" :replay="replayIntro" />
-		<MessageList v-else :key="viewKey">
+		<ReplayIntro v-else-if="replayIntro" :key="`replay-intro-${viewKey}`" :replay="replayIntro" />
+		<MessageList v-else :key="`messages-${viewKey}`">
 			<template #end>
 				<div
 					v-if="replayError"
@@ -23,15 +23,15 @@
 				>{{ replayError }}</div>
 			</template>
 		</MessageList>
-		<ReplayBar v-if="!readOnly" :key="viewKey" />
-		<Composer v-if="!readOnly" ref="composer" :key="viewKey" />
+		<ReplayBar v-if="!readOnly" :key="`replay-bar-${viewKey}`" />
+		<Composer v-if="!readOnly" ref="composer" :key="`composer-${viewKey}`" />
 		<p v-else class="flex-none px-4 pb-4 text-center text-sm text-ink-gray-5">
 			Only the owner of this chat can send messages.
 		</p>
 		<div v-if="blank" class="flex-[1_0_auto] px-4 pb-6">
 			<slot name="starters" :prefill="(text) => composer?.prefill(text)" />
 		</div>
-		<TranscriptDialog :key="viewKey" />
+		<TranscriptDialog :key="`transcript-${viewKey}`" />
 	</div>
 </template>
 
