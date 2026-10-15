@@ -26,7 +26,8 @@ import { useRouter } from "vue-router"
 
 import { type Recording, listRecordings, startReplay } from "../replay"
 
-// recorded chats replay into a new chat, in the order the demo walks them
+// recorded chats replay into a new chat of the project, in the order the demo walks them
+const props = defineProps<{ project: string | null }>()
 const router = useRouter()
 const recordings = ref<Recording[]>([])
 const starting = ref<string | null>(null)
@@ -36,7 +37,7 @@ onMounted(async () => (recordings.value = await listRecordings().catch(() => [])
 async function start(recording: string) {
 	starting.value = recording
 	try {
-		const replay = await startReplay(recording)
+		const replay = await startReplay(recording, props.project)
 		router.push({ name: "studio-chat", params: { session: replay.session } })
 	} finally {
 		starting.value = null

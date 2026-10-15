@@ -8,8 +8,10 @@ import { isReplaying, replays } from "./replay"
 
 export type ChatStatus = "running" | "waiting" | "unread" | null
 
+// as many as the server lists, so each project's section in the sidebar can show all of its own
+const CHAT_LIMIT = 100
+
 export const chats = ref<Chat[]>([])
-export const loaded = ref(false)
 // a recording's earlier replays, which its latest one replaces in the list
 export const superseded = ref(new Set<string>())
 const runs = ref<Record<string, string>>({})
@@ -17,19 +19,19 @@ const runs = ref<Record<string, string>>({})
 const seen = useStorage<{ since: string; chats: Record<string, string> }>("studio-seen-chats", { since: "", chats: {} })
 
 export async function loadChats() {
-	const history = await getHistory(50)
+	const history = await getHistory(CHAT_LIMIT)
 	const open = await call("frappe.client.get_list", {
 		doctype: "Flow Run",
 		filters: { status: ["in", ["Running", "Paused"]], session: ["in", history.map((chat) => chat.name)] },
 		fields: ["session", "status"],
-		limit_page_length: 50,
+		limit_page_length: CHAT_LIMIT,
 	}).catch(() => [])
 	runs.value = Object.fromEntries(open.map((run: { session: string; status: string }) => [run.session, run.status]))
 	const replayed = await call<{ session: string; recording: string }[]>("frappe.client.get_list", {
 		doctype: "Flow Replay",
 		filters: { session: ["in", history.map((chat) => chat.name)] },
 		fields: ["session", "recording"],
-		limit_page_length: 50,
+		limit_page_length: CHAT_LIMIT,
 	}).catch(() => [])
 	const recordingOf = new Map(replayed.map((replay) => [replay.session, replay.recording]))
 	// the history is newest first, so the first replay of a recording is its latest
@@ -43,7 +45,6 @@ export async function loadChats() {
 		}).map((chat) => chat.name)
 	)
 	chats.value = history
-	loaded.value = true
 	// the first visit has read everything before it, by the server's clock
 	if (!seen.value.since) seen.value.since = history.reduce((latest, chat) => (chat.modified > latest ? chat.modified : latest), "0")
 }

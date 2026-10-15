@@ -9,7 +9,8 @@
 			</div>
 		</Teleport>
 		<!-- a new chat: the host's intro over the composer, its starters under it -->
-		<div v-if="blank" class="flex flex-[1_0_auto] flex-col justify-end px-4 pb-6 pt-12">
+		<!-- centered over the composer, or at the top when the starters under it are a page of their own -->
+		<div v-if="blank" class="flex flex-col justify-end px-4 pb-6 pt-12" :class="introAtTop ? 'flex-none' : 'flex-[1_0_auto]'">
 			<slot name="intro" />
 		</div>
 		<ReplayIntro v-else-if="replayIntro" :key="viewKey" :replay="replayIntro" />
@@ -59,7 +60,10 @@ const props = defineProps({
 	context: { type: Object, default: null },
 	// the chat on screen (none is a new one) and a first message to send
 	session: { type: String, default: null },
+	// the Studio project a new chat starts in
+	project: { type: String, default: null },
 	initialMessage: { type: String, default: "" },
+	introAtTop: { type: Boolean, default: false },
 	// (artifact) => icon class, for the artifact cards in the transcript
 	artifactIcon: { type: Function, default: null },
 });
@@ -79,6 +83,7 @@ const client = new FrappeClient({
 	transport,
 	hooks: {
 		onSession: (payload) => (readOnlyBySession[payload.name] = Boolean(payload.read_only)),
+		project: () => props.project,
 	},
 });
 const stores = [];
@@ -159,6 +164,11 @@ show(props.session);
 watch(
 	() => props.session,
 	(session) => session !== shown.value.state.sessionId && show(session)
+);
+// a blank chat moved to another project offers that project's skills
+watch(
+	() => props.project,
+	() => isBlank(shown.value) && shown.value.startNewChat()
 );
 watch(
 	() => [props.session, props.initialMessage],

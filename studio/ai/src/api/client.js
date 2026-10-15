@@ -8,7 +8,8 @@ const contextBlock = (context) => `\n\n<studio_context>\n${JSON.stringify(contex
 // The store's client surface over frappe.ai.api. Sessions are Flow Session docs, models are
 // Flow Model docs (the daemon's provider ids are mapped back to them), attachments are
 // private Files staged through attach_file. `transport` is the page's Frappe transport
-// (frappe.js); `hooks` mirror what the server reports about a session.
+// (frappe.js); `hooks` mirror what the server reports about a session, and `hooks.project`
+// names the Studio project a new session starts in.
 export class FrappeClient {
 	constructor({ socket, boot, transport, hooks = {} }) {
 		this.socket = socket;
@@ -68,6 +69,7 @@ export class FrappeClient {
 		const data = await this.transport.call("frappe.ai.api.create_session", {
 			auto_approve: config.auto_approve ? 1 : 0,
 			agent: config.agent ?? null,
+			project: this.hooks.project?.() ?? null,
 		});
 		this.hooks.onSession?.(data);
 		return {
@@ -215,6 +217,6 @@ export class FrappeClient {
 	}
 
 	previewSkills() {
-		return this.transport.call("frappe.ai.api.skills");
+		return this.transport.call("frappe.ai.api.skills", { project: this.hooks.project?.() ?? null });
 	}
 }

@@ -23,6 +23,7 @@
 			<TopBar
 				v-if="showShell"
 				:title="title"
+				:crumb="crumb"
 				:can-toggle-panel="canTogglePanel"
 				:panel-visible="panelVisible"
 				@toggle-panel="togglePanel"
@@ -69,6 +70,7 @@ import { Dialogs } from "frappe-ui"
 import { computed, h, onBeforeUnmount, onMounted, ref, watch, watchEffect } from "vue"
 import { useRoute, useRouter } from "vue-router"
 
+import { artifactKind } from "./artifacts"
 import { chats, loadChats } from "./chats"
 import EditorPanel from "./components/EditorPanel.vue"
 import SearchDialog from "./components/SearchDialog.vue"
@@ -77,6 +79,7 @@ import StudioSidebar from "./components/StudioSidebar.vue"
 import TopBar from "./components/TopBar.vue"
 import { layers } from "./layers"
 import { layout, searchOpen } from "./layout"
+import { activeProject, lastProject, newChatRoute, projectRoute, projectTitle, routeProject } from "./projects"
 import { isLoggedIn } from "./session"
 import { tabChat, tabs } from "./tabs"
 import { Toaster } from "vue-sonner"
@@ -95,10 +98,9 @@ const router = useRouter()
 
 const showShell = computed(() => isLoggedIn() && !route.matched.some((record) => record.meta.hideRail))
 const onArtifact = computed(() => route.matched.some((record) => record.meta.artifact))
-// a chat, or an artifact's editor with the chat that builds it
-const chatLayout = computed(
-	() => showShell.value && (route.name === "studio-home" || route.name === "studio-chat" || onArtifact.value)
-)
+// the home's or a project's new chat, a chat, or an artifact's editor with the chat that builds it
+const CHAT_ROUTES = ["studio-home", "studio-project", "studio-chat"]
+const chatLayout = computed(() => showShell.value && (CHAT_ROUTES.includes(String(route.name)) || onArtifact.value))
 const panelVisible = computed(() => chatLayout.value && onArtifact.value && layout.value.panelOpen)
 const canTogglePanel = computed(() => chatLayout.value && (onArtifact.value || tabs.value.length > 0))
 
@@ -107,10 +109,17 @@ const currentChat = computed(() => {
 	return typeof session === "string" && session !== "new" ? session : null
 })
 watchEffect(() => (tabChat.value = currentChat.value))
+watchEffect(() => {
+	const project = routeProject(route)
+	activeProject.value = project
+	if (project) lastProject.value = project
+})
 const openChat = computed(() => chats.value.find((chat) => chat.name === currentChat.value))
 // a chat started here, like a replay, is not in the list until the list hears of it
 watch(currentChat, (session) => session && !openChat.value && loadChats())
 const title = computed(() => {
+	if (route.name === "studio-project") return projectTitle(activeProject.value)
+	if (route.name === "studio-artifacts") return artifactKind(route)?.title ?? ""
 	// the chat's title; the artifact's is on the artifact bar
 	if (chatLayout.value) {
 		if (!currentChat.value) return "New chat"
@@ -119,6 +128,13 @@ const title = computed(() => {
 	}
 	return layers.find((layer) => layer.name === route.matched[0]?.meta.layer)?.title ?? "Studio"
 })
+
+// a chat sits under its project
+const crumb = computed(() =>
+	chatLayout.value && activeProject.value && route.name !== "studio-project"
+		? { label: projectTitle(activeProject.value), route: projectRoute(activeProject.value) }
+		: null
+)
 
 function togglePanel() {
 	if (onArtifact.value) {
@@ -159,7 +175,7 @@ function onKeydown(event: KeyboardEvent) {
 	if (!showShell.value || !(event.metaKey || event.ctrlKey)) return
 	if (event.key === "k") searchOpen.value = true
 	else if (event.key === "\\") layout.value.sidebarOpen = !layout.value.sidebarOpen
-	else if (event.key === "n" && !event.shiftKey) router.push("/studio")
+	else if (event.key === "n" && !event.shiftKey) router.push(newChatRoute(activeProject.value))
 	else return
 	event.preventDefault()
 }

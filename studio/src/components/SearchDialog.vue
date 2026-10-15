@@ -7,7 +7,7 @@
 					v-model="query"
 					variant="ghost"
 					size="md"
-					placeholder="Search chats and artifacts"
+					placeholder="Search projects, chats and artifacts"
 					@keydown.enter="pick(results[0])"
 				>
 					<template #prefix><span class="lucide-search size-4 text-ink-gray-5" /></template>
@@ -37,11 +37,12 @@
 <script setup lang="ts">
 import { Dialog, SidebarItem, TextInput, dayjs } from "frappe-ui"
 import { computed, nextTick, ref, watch } from "vue"
-import { useRouter } from "vue-router"
+import { type RouteLocationRaw, useRouter } from "vue-router"
 
 import { artifactIcon } from "../artifacts"
 import { chats } from "../chats"
 import { searchOpen } from "../layout"
+import { projectRoute, projects } from "../projects"
 
 const router = useRouter()
 const query = ref("")
@@ -54,7 +55,7 @@ watch(searchOpen, (open) => {
 })
 
 const entries = computed(() => {
-	const artifacts = new Map<string, { key: string; title: string; icon: string; route: string; kind: string; modified: string }>()
+	const artifacts = new Map<string, { key: string; title: string; icon: string; route: RouteLocationRaw; kind: string; modified: string }>()
 	for (const chat of chats.value) {
 		for (const artifact of chat.artifacts) {
 			const key = `${artifact.doctype}/${artifact.name}`
@@ -78,7 +79,15 @@ const entries = computed(() => {
 		kind: "Chats",
 		modified: chat.modified,
 	}))
-	return [...artifacts.values(), ...chatEntries]
+	const projectEntries = projects.value.map((project) => ({
+		key: project.name,
+		title: project.title,
+		icon: "lucide-folder",
+		route: projectRoute(project.name),
+		kind: "Projects",
+		modified: project.modified,
+	}))
+	return [...projectEntries, ...artifacts.values(), ...chatEntries]
 })
 
 const results = computed(() => {
@@ -88,13 +97,13 @@ const results = computed(() => {
 
 // Enter opens the first result, so it shows as the active one
 const groups = computed(() =>
-	["Artifacts", "Chats"]
+	["Projects", "Artifacts", "Chats"]
 		.map((label) => ({ label, results: results.value.filter((result) => result.kind === label) }))
 		.filter((group) => group.results.length)
 )
 const ago = (modified: string) => dayjs(modified).fromNow()
 
-function pick(result?: { route: string }) {
+function pick(result?: { route: RouteLocationRaw }) {
 	if (!result) return
 	searchOpen.value = false
 	router.push(result.route)
