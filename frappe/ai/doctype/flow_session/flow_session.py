@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING, Any
 import frappe
 from frappe import _
 from frappe.ai.daemon.client import DaemonClient, DaemonError
+from frappe.ai.doctype.studio_project.studio_project import add_artifact as add_project_artifact
 from frappe.ai.lib.session import (
 	ABANDONED,
 	GONE,
@@ -49,6 +50,7 @@ class FlowSession(Document):
 		last_synced_seq: DF.Int
 		messages: DF.Table[FlowSessionMessage]
 		model: DF.Link | None
+		project: DF.Link | None
 		source: DF.Literal["Manual", "Trigger"]
 		title: DF.Data | None
 	# end: auto-generated types
@@ -119,7 +121,7 @@ class FlowSession(Document):
 		from frappe.ai.daemon import lifecycle
 		from frappe.ai.doctype.flow_agent.flow_agent import DEFAULT_MAX_ITERATIONS
 
-		agent = frappe.get_doc("Flow Agent", self.agent)
+		agent = frappe.get_doc("Flow Agent", self.agent).for_project(self.project)
 		if not agent.enabled:
 			frappe.throw(_("Flow Agent {0} is disabled.").format(agent.name), title=_("Disabled Agent"))
 		context = {
@@ -146,6 +148,8 @@ class FlowSession(Document):
 			"user_context": context,
 			"cwd": str(lifecycle.session_root()),
 		}
+		if self.project:
+			config["system_prompt"] += frappe.get_doc("Studio Project", self.project).context_prompt()
 		if agent.token_budget:  # none: no cap
 			config["token_budget"] = agent.token_budget
 		if frappe.conf.flow_callback_timeout:
@@ -178,7 +182,7 @@ class FlowSession(Document):
 			frappe.throw(_("Message is required."), title=_("Invalid Message"))
 		self._assert_can_run()
 		self.sync()
-		turn = build_turn(self, expand_skill_command(self.agent, input), attachments or [])
+		turn = build_turn(self, expand_skill_command(self.agent, input, self.project), attachments or [])
 		turn.message += memory_block(self.agent, self.owner, input)
 		uploaded = []
 		try:
@@ -316,6 +320,8 @@ class FlowSession(Document):
 			}
 		).db_insert()
 		self.update_modified()
+		if self.project:
+			add_project_artifact(self.project, doctype, name)
 
 	def entries(self, *, since: int = 0, path: str = "active") -> dict[str, Any]:
 		"""The flow server's log: a snapshot of the active branch, or every row after `since`."""

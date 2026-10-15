@@ -21,17 +21,33 @@ export function createAppRouter(app: App) {
 		children: layer.routes,
 	})
 
-	// Studio's home and its chats are the shell's own pages, drawn with the AI layer's chat
+	// Studio starts from its chat, in a project; the home, a project, the lists of what was made and
+	// the chats are the shell's own pages, the home and a project drawn around a new chat
 	const aiLayer = layers.find((layer) => layer.name === "ai")
 	const withChat = { meta: { layer: "ai" }, beforeEnter: async () => void (aiLayer && (await setUp(aiLayer))) }
 	const studioRoutes: RouteRecordRaw[] = [
-		// a new chat; the chat itself is the shell's
 		{ path: "/studio", name: "studio-home", component: () => import("./pages/ChatPane.vue"), ...withChat },
+		{
+			path: "/studio/project/:project/:tab(artifacts|skills)?",
+			name: "studio-project",
+			component: () => import("./pages/ChatPane.vue"),
+			...withChat,
+		},
+		{
+			path: "/studio/:kind(apps|websites|dashboards)",
+			name: "studio-artifacts",
+			component: () => import("./pages/Artifacts.vue"),
+		},
 		{
 			path: "/studio/chat/:session",
 			name: "studio-chat",
 			component: () => import("./pages/ChatPane.vue"),
-			...withChat,
+			meta: withChat.meta,
+			// a new chat, which a layer starts with its first message, is the home's
+			beforeEnter: [
+				(to) => (to.params.session === "new" ? { name: "studio-home", query: to.query } : undefined),
+				withChat.beforeEnter,
+			],
 		},
 		// the app editor's addresses before it moved under /studio/ui
 		{ path: "/studio/home", redirect: "/studio/ui" },

@@ -5,67 +5,50 @@
 		:class="layout.sidebarOpen ? 'w-[260px] border-r' : 'w-0'"
 	>
 		<Sidebar :collapsible="false" width="260px" aria-label="Studio">
-			<SidebarHeader title="Studio">
-				<template #prefix>
-					<span class="grid size-7 place-items-center bg-surface-gray-10 text-ink-base">
-						<span class="lucide-sparkles size-4" />
-					</span>
-				</template>
-			</SidebarHeader>
+			<SidebarHeader title="Studio" :logo="STUDIO_LOGO" />
 			<div class="flex flex-col gap-0.5 px-2">
-				<SidebarItem label="New chat" icon="lucide-square-pen" route="/studio" :active="route.name === 'studio-home'">
+				<SidebarItem label="New chat" icon="lucide-square-pen" :route="newChatRoute(activeProject)" :active="route.name === 'studio-home'">
 					<template #suffix><span class="mr-2 text-xs text-ink-gray-4">⌘N</span></template>
 				</SidebarItem>
 				<SidebarItem label="Search" icon="lucide-search" @click="searchOpen = true">
 					<template #suffix><span class="mr-2 text-xs text-ink-gray-4">⌘K</span></template>
 				</SidebarItem>
 			</div>
+			<div class="mt-4 flex flex-col gap-0.5 px-2">
+				<SidebarItem
+					v-for="kind in artifactKinds"
+					:key="kind.kind"
+					:label="kind.title"
+					:icon="kind.icon"
+					:route="{ name: 'studio-artifacts', params: { kind: kind.kind } }"
+					:active="route.name === 'studio-artifacts' && route.params.kind === kind.kind"
+				/>
+			</div>
 
 			<div class="mt-4 flex min-h-0 flex-1 flex-col overflow-y-auto px-2 pb-2">
-				<SidebarLabel>Build</SidebarLabel>
-				<div class="flex flex-col gap-0.5">
-					<SidebarItem
-						v-for="layer in buildLayers"
-						:key="layer.name"
-						:label="layer.title"
-						:icon="layer.icon"
-						:route="layer.path"
-						:active="activeLayer === layer.name"
-					/>
+				<div class="flex items-center justify-between">
+					<SidebarLabel>Projects</SidebarLabel>
+					<Button variant="ghost" size="sm" icon="lucide-plus" tooltip="New project" @click="creating = true" />
 				</div>
-
-				<SidebarLabel class="mt-4">Chats</SidebarLabel>
-				<div v-if="!loaded" class="flex h-7 items-center pl-2">
+				<div v-if="!projectsLoaded" class="flex h-7 items-center pl-2">
 					<LoadingIndicator class="size-3.5 text-ink-gray-4" />
 				</div>
-				<p v-else-if="!chats.length" class="px-2 py-1 text-sm text-ink-gray-5">Your chats show up here.</p>
+				<p v-else-if="!projects.length" class="px-2 py-1 text-sm text-ink-gray-5">Everything you build starts in a project.</p>
 				<div v-else class="flex flex-col gap-0.5">
-					<SidebarItem
-						v-for="chat in listed"
-						:key="chat.name"
-						:route="{ name: 'studio-chat', params: { session: chat.name } }"
-						:active="chat.name === currentChat"
-						:label="chat.title || 'Untitled chat'"
-					>
-						<!-- the status takes the icon column, so titles line up with the layers -->
-						<template #prefix>
-							<span class="grid size-4 place-items-center">
-								<LoadingIndicator v-if="chatStatus(chat, currentChat) === 'running'" class="size-3.5 text-ink-gray-5" />
-								<Tooltip v-else-if="chatStatus(chat, currentChat) === 'waiting'" text="Waiting for approval">
-									<span class="size-2 rounded-full bg-surface-amber-3" />
-								</Tooltip>
-								<span v-else-if="chatStatus(chat, currentChat) === 'unread'" class="size-2 rounded-full bg-surface-blue-6" />
-							</span>
-						</template>
-						<template #suffix>
-							<span class="mr-2 hidden pl-2 text-xs text-ink-gray-4 group-hover/sidebar-item:inline">{{ ago(chat.modified) }}</span>
-						</template>
-					</SidebarItem>
+					<SidebarProject
+						v-for="project in projects"
+						:key="project.name"
+						:project="project"
+						:chats="chatsOf(project.name)"
+						:open="openProjects.includes(project.name)"
+						:current-chat="currentChat"
+						@toggle="toggle(project.name)"
+					/>
 				</div>
 			</div>
 
 			<div class="flex flex-col gap-0.5 border-t border-outline-gray-1 p-2">
-				<SidebarItem label="Settings" icon="lucide-settings" route="/studio/settings" :active="activeLayer === 'settings'" />
+				<SidebarItem label="Settings" icon="lucide-settings" route="/studio/settings" :active="route.matched[0]?.meta.layer === 'settings'" />
 				<Dropdown :options="userMenu" side="top" align="start">
 					<template #trigger>
 						<SidebarItem :label="fullName">
@@ -75,63 +58,62 @@
 				</Dropdown>
 			</div>
 		</Sidebar>
+		<ProjectDialog v-model:open="creating" />
 	</div>
 </template>
 
 <script setup lang="ts">
+import { useStorage } from "@vueuse/core"
 import {
 	Avatar,
+	Button,
 	Dropdown,
 	LoadingIndicator,
 	Sidebar,
 	SidebarHeader,
 	SidebarItem,
 	SidebarLabel,
-	Tooltip,
 	call,
-	dayjs,
 	useColorScheme,
 } from "frappe-ui"
-import { computed, watch } from "vue"
+import { computed, ref, watch } from "vue"
 import { useRoute } from "vue-router"
 
-import { chatStatus, chats, loaded, markSeen, superseded, watchChats } from "../chats"
-import { layers } from "../layers"
+import { artifactKinds } from "../artifacts"
+import { chats, superseded, watchChats } from "../chats"
 import { layout, searchOpen } from "../layout"
+import { activeProject, newChatRoute, projects, projectsLoaded, watchProjects } from "../projects"
 import { sessionUser } from "../session"
+import ProjectDialog from "./ProjectDialog.vue"
+import SidebarProject from "./SidebarProject.vue"
+
+const STUDIO_LOGO = `${import.meta.env.BASE_URL}studio-logo.svg`
 
 const route = useRoute()
-const activeLayer = computed(() => {
-	const layer = route.matched[0]?.meta.layer
-	// the chats and the home belong to no layer of their own
-	return route.name === "studio-home" || route.name === "studio-chat" || route.query.chat ? null : layer
-})
 const currentChat = computed(() => {
 	const session = route.name === "studio-chat" ? route.params.session : route.query.chat
-	return typeof session === "string" ? session : null
+	return typeof session === "string" && session !== "new" ? session : null
 })
+const creating = ref(false)
 
+watchProjects()
 watchChats()
 const listed = computed(() => chats.value.filter((chat) => chat.name === currentChat.value || !superseded.value.has(chat.name)))
-watch(
-	() => [currentChat.value, chats.value],
-	() => currentChat.value && markSeen(currentChat.value),
-	{ immediate: true }
-)
+const chatsOf = (project: string) => listed.value.filter((chat) => chat.project === project)
 
-const ago = (modified: string) => {
-	const minutes = dayjs().diff(dayjs(modified), "minute")
-	if (minutes < 1) return "now"
-	if (minutes < 60) return `${minutes}m`
-	if (minutes < 60 * 24) return `${Math.floor(minutes / 60)}h`
-	return `${Math.floor(minutes / 60 / 24)}d`
+// the projects whose chats show, kept across reloads; the one on screen opens
+const openProjects = useStorage<string[]>("studio-open-projects", [])
+watch(activeProject, (project) => project && !openProjects.value.includes(project) && openProjects.value.push(project), {
+	immediate: true,
+})
+function toggle(project: string) {
+	const open = openProjects.value
+	if (open.includes(project)) open.splice(open.indexOf(project), 1)
+	else open.push(project)
 }
 
 const user = sessionUser()
 const fullName = decodeURIComponent(document.cookie.match(/full_name=([^;]*)/)?.[1] ?? user).replace(/\+/g, " ")
-
-// Settings sits at the bottom, not among the layers a person builds with
-const buildLayers = layers.filter((layer) => layer.name !== "settings" && !layer.hidden)
 
 const { resolvedColorScheme, toggleColorScheme } = useColorScheme()
 const userMenu = computed(() => [

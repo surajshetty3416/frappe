@@ -71,12 +71,13 @@ def sync() -> None:
 
 @tool
 def list_chats(*, ctx: ToolContext) -> list[dict]:
-	"""The person's chats with the builder assistant, newest first: `chat` id, `title`, whether a
-	turn is `running`, and the artifacts it `owns`, the ones it changed last. A DocType's records
-	belong to the chat that owns the DocType."""
+	"""The person's chats with the builder assistant in this project, newest first: `chat` id,
+	`title`, whether a turn is `running`, and the artifacts it `owns`, the ones it changed last. A
+	DocType's records belong to the chat that owns the DocType."""
+	project = frappe.db.get_value("Flow Session", ctx.session_id, "project")
 	sessions = frappe.get_all(
 		"Flow Session",
-		filters=builder_chats(ctx.user),
+		filters=builder_chats(ctx.user, project),
 		fields=["name", "title"],
 		order_by="modified desc",
 		limit=CHAT_LIMIT,
@@ -107,6 +108,7 @@ def start_chat(title: str, message: str, *, ctx: ToolContext) -> dict:
 		ASSISTANT_AGENT_TITLE,
 		title=title.strip()[:TITLE_LIMIT] or None,
 		auto_approve=bool(orchestrator.auto_approve),
+		project=orchestrator.project,
 	)
 	return routed(doc, message, send(doc, message, orchestrator.name))
 
@@ -116,20 +118,24 @@ def send_to_chat(chat: str, message: str, *, ctx: ToolContext) -> dict:
 	"""Send `message` to one of the person's chats from list_chats. When that chat is running, the
 	message waits and goes once its turn ends."""
 	doc = frappe.get_doc("Flow Session", chat)
-	if doc.owner != ctx.user or doc.agent != ASSISTANT_AGENT_TITLE:
+	project = frappe.db.get_value("Flow Session", ctx.session_id, "project")
+	if doc.owner != ctx.user or doc.agent != ASSISTANT_AGENT_TITLE or doc.project != project:
 		frappe.throw(_("{0} is not one of the person's chats with the builder assistant.").format(chat))
 	if hold(doc.name, message, ctx.session_id):
 		return routed(doc, message, None)
 	return routed(doc, message, send(doc, message, ctx.session_id))
 
 
-def builder_chats(user: str) -> list[list]:
-	return [
+def builder_chats(user: str, project: str | None = None) -> list[list]:
+	filters = [
 		["owner", "=", user],
 		["title", "is", "set"],
 		["source", "!=", "Trigger"],
 		["agent", "=", ASSISTANT_AGENT_TITLE],
 	]
+	if project:
+		filters.append(["project", "=", project])
+	return filters
 
 
 def owned_artifacts(sessions: list[str]) -> dict[str, list[dict]]:
@@ -217,8 +223,27 @@ def queued(chat: str) -> list[dict]:
 
 
 def waiting_for(orchestrator: str) -> bool:
+	return bool(queued_for(orchestrator))
+
+
+def queued_for(orchestrator: str) -> list[dict]:
 	chats = {chat.decode() for chat in frappe.cache.lrange(routed_key(orchestrator), 0, -1)}
-	return any(item["orchestrator"] == orchestrator for chat in chats for item in queued(chat))
+	return [item for chat in chats for item in queued(chat) if item["orchestrator"] == orchestrator]
+
+
+def progress(orchestrator: str) -> dict[str, int] | None:
+	"""How many of the tasks routed since the last report have ended, of how many; None when there are none."""
+	seen = reported(orchestrator)
+	runs = frappe.get_all(
+		"Flow Run",
+		filters={"reference_doctype": "Flow Session", "reference_name": orchestrator},
+		fields=["name", "status"],
+	)
+	runs = [run for run in runs if run.name not in seen]
+	total = len(runs) + len(queued_for(orchestrator))
+	if not total:
+		return None
+	return {"done": sum(run.status in ENDED for run in runs), "total": total}
 
 
 def task_ended(run) -> None:

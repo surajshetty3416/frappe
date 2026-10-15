@@ -124,13 +124,14 @@ def list_recordings() -> list[dict[str, Any]]:
 
 
 @frappe.whitelist()
-def start_replay(recording: str) -> dict[str, Any]:
-	"""A new chat of the current user's, ready to play `recording` from its first step."""
+def start_replay(recording: str, project: str | None = None) -> dict[str, Any]:
+	"""A new chat of the current user's, in `project` when given, ready to play `recording` from
+	its first step."""
 	rec = frappe.get_doc("Flow Recording", recording)
 	rec.check_permission("read")
 	frappe.has_permission("Flow Session", "create", throw=True)
 	auto_approve = frappe.parse_json(rec.data).get("auto_approve")
-	session = new_session(rec.agent, title=rec.title, auto_approve=bool(auto_approve))
+	session = new_session(rec.agent, title=rec.title, auto_approve=bool(auto_approve), project=project or None)
 	replay = frappe.get_doc(
 		{"doctype": "Flow Replay", "session": session.name, "recording": rec.name, "names": "{}"}
 	).insert()

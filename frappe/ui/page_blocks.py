@@ -103,7 +103,7 @@ class PageSpec:
 		block["componentProps"] = {key: to_prop(value) for key, value in (node.get("props") or {}).items()}
 		block["children"] = [self.block(child) for child in node.get("children") or []]
 		block["componentSlots"] = {
-			slot: {"slotName": slot, "slotContent": [self.block(child) for child in content]}
+			slot: self.slot(block["componentId"], slot, content)
 			for slot, content in (node.get("slots") or {}).items()
 		}
 		block["componentEvents"] = {
@@ -114,6 +114,15 @@ class PageSpec:
 		if visible := node.get("visible"):
 			block["visibilityCondition"] = visible
 		return block
+
+	def slot(self, component_id: str, name: str, content: list) -> dict:
+		# the ids the editor gives a slot when it loads the page; without them its first load saves a draft
+		return {
+			"slotName": name,
+			"slotId": f"{component_id}:{name}",
+			"parentBlockId": component_id,
+			"slotContent": [self.block(child) for child in content],
+		}
 
 	def event(self, event: str, handler) -> dict:
 		if isinstance(handler, str):

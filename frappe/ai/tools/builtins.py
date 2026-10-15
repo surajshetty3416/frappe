@@ -436,15 +436,18 @@ mention a file, such as references/forms.md, call this again with the same name 
 `file` to read it; a folder path lists the files in it."""
 
 
-def bind_load_skill(agent: str | None) -> Tool:
-	"""A `load_skill` tool scoped to `agent`'s skills. Unbound (None), it refuses."""
+def bind_load_skill(agent: str | None, project: str | None = None) -> Tool:
+	"""A `load_skill` tool scoped to `agent`'s skills, and `project`'s in a project's chat. Unbound
+	(None), it refuses."""
 
 	def load_skill(name: str, file: str | None = None, *, ctx: ToolContext) -> str:
 		from frappe.ai.doctype.flow_skill.flow_skill import skill_file
 
 		if not agent:
 			frappe.throw(_("Skills are not configured for this agent."), title=_("Skill Unavailable"))
-		available = {row.name for row in frappe.get_doc("Flow Agent", agent).visible_skills()}
+		available = {
+			row.name for row in frappe.get_doc("Flow Agent", agent).for_project(project).visible_skills()
+		}
 		if name not in available:
 			frappe.throw(
 				_("No skill named {0}. Available: {1}").format(name, ", ".join(sorted(available)) or "none"),

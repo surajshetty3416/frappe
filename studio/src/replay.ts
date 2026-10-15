@@ -44,8 +44,8 @@ export const isReplaying = (session: string) => playing.has(session) || stepping
 
 export const listRecordings = () => call<Recording[]>("frappe.ai.replay.list_recordings")
 
-export async function startReplay(recording: string) {
-	const replay = await call<Replay>("frappe.ai.replay.start_replay", { recording })
+export async function startReplay(recording: string, project: string | null = null) {
+	const replay = await call<Replay>("frappe.ai.replay.start_replay", { recording, project })
 	replays.set(replay.session, replay)
 	return replay
 }

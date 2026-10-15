@@ -6,8 +6,6 @@ export default defineLayer({
 	title: "Agents",
 	icon: "lucide-bot",
 	path: "/studio/ai",
-	// the chat is the shell's own; the Agents layer is the one in the sidebar
-	hidden: true,
 	component: () => import("./App.vue"),
 	routes: [
 		{ path: "", redirect: "/studio" },

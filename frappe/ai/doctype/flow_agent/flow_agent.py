@@ -172,6 +172,25 @@ class FlowAgent(Document):
 		if frappe.db.exists("Flow Tool", SUBAGENT_TOOL_SLUG):
 			self.append("tools", {"tool": SUBAGENT_TOOL_SLUG})
 
+	def for_project(self, project: str | None) -> FlowAgent:
+		"""This agent as a chat in `project` runs it: the project's skills and knowledge bases beside
+		its own, with the tools that use them. Only this copy changes; it is never saved."""
+		if not project:
+			return self
+		doc = frappe.get_doc("Studio Project", project)
+		skills = {row.skill for row in self.skills}
+		for row in doc.skills:
+			if row.skill not in skills:
+				self.append("skills", {"skill": row.skill})
+		knowledge_bases = {row.knowledge_base for row in self.knowledge_bases}
+		for row in doc.knowledge_bases:
+			if row.knowledge_base not in knowledge_bases:
+				self.append("knowledge_bases", {"knowledge_base": row.knowledge_base})
+		self._ensure_knowledge_search_tool()
+		self._ensure_skill_tool()
+		self.flags.project = project
+		return self
+
 	def client_tool_config(self, session: str | None = None) -> dict[str, list[Any]]:
 		"""The tools' schemas and which pause for approval. `session` binds attachment search."""
 		tools = self.client_tools(session)
@@ -205,7 +224,7 @@ class FlowAgent(Document):
 			elif tool_doc.name == MEMORY_TOOL_SLUG:
 				resolved.append(bind_update_memory(self.name, session))
 			elif tool_doc.name == SKILL_TOOL_SLUG:
-				resolved.append(bind_load_skill(self.name))
+				resolved.append(bind_load_skill(self.name, self.flags.project))
 			else:
 				resolved.append(tool_doc.to_tool())
 		return resolved

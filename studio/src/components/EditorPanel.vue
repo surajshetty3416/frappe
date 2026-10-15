@@ -186,6 +186,7 @@ import { commenting } from "../context"
 import { type ArtifactEditor, type EditorMode, editorMode } from "../editor"
 import { layers } from "../layers"
 import { overlayOpen } from "../layout"
+import { activeProject, newChatRoute } from "../projects"
 import { onDocUpdate } from "../realtime"
 import { type Tab, closeTab, findTab, openTab, tabKey, tabs } from "../tabs"
 import EditorDrawer from "./EditorDrawer.vue"
@@ -363,7 +364,7 @@ function close(tab: Tab) {
 	if (!wasActive) return
 	if (next) return router.push(next.path)
 	const chat = route.query.chat
-	router.push(typeof chat === "string" ? { name: "studio-chat", params: { session: chat } } : "/studio")
+	router.push(typeof chat === "string" ? { name: "studio-chat", params: { session: chat } } : newChatRoute(activeProject.value))
 }
 
 const renaming = ref(false)

@@ -4,21 +4,36 @@
 			v-if="ready"
 			ref="flowApp"
 			:session="current"
+			:project="activeProject"
 			:initial-message="initialMessage"
 			:context="context"
 			:artifact-icon="artifactIcon"
+			:intro-at-top="onProject"
 			@session="onSession"
 			@artifact="onArtifact"
 		>
 			<template #intro>
 				<div data-layer="shell" class="mx-auto w-full max-w-[760px]">
 					<template v-if="artifact">
-						<h1 class="text-3xl font-semibold text-ink-gray-9">What should change?</h1>
-						<p class="mt-1.5 text-p-base text-ink-gray-6">Ask for any change to {{ openTitle }}, or comment on its preview.</p>
+						<h1 class="text-center text-3xl font-semibold text-ink-gray-9">What should change?</h1>
 					</template>
+					<ProjectIntro v-else-if="onProject && activeProject" :project="activeProject" />
 					<template v-else>
-						<h1 class="text-3xl font-semibold text-ink-gray-9">What do you want to build?</h1>
-						<p class="mt-1.5 text-p-base text-ink-gray-6">A website, a dashboard, an app, or any change to the data on this site.</p>
+						<h1 class="text-center text-3xl font-semibold text-ink-gray-9">
+							What do you want to build<template v-if="activeProject">
+								in
+								<!-- the home's new chat can still move to another project -->
+								<ProjectPicker v-if="route.name === 'studio-home'" :model-value="activeProject" can-create @update:model-value="moveTo">
+									<template #default="{ title }">
+										<button
+											type="button"
+											class="rounded-4 underline decoration-outline-gray-3 decoration-2 underline-offset-[6px] hover:decoration-outline-gray-4"
+										>{{ title }}</button>
+									</template>
+								</ProjectPicker>
+								<template v-else>{{ projectTitle(activeProject) }}</template>
+							</template>?
+						</h1>
 					</template>
 					<Alert
 						v-if="needsSetup"
@@ -30,28 +45,23 @@
 				</div>
 			</template>
 			<template #starters="{ prefill }">
-				<div data-layer="shell" class="mx-auto w-full max-w-[760px]">
-					<div class="flex flex-wrap gap-1.5">
+				<div v-if="onProject && activeProject" data-layer="shell" class="mx-auto w-full max-w-[760px] pt-8">
+					<ProjectHome :project="activeProject" />
+				</div>
+				<div v-else data-layer="shell" class="mx-auto w-full max-w-[760px]">
+					<div class="flex flex-wrap gap-1">
 						<!-- a starter that waits for the rest of the sentence trails off -->
-						<Button v-for="idea in ideas" :key="idea.text" variant="outline" :icon-left="idea.icon" @click="prefill(idea.text)">
-							{{ idea.text.trim() }}<span v-if="idea.text.endsWith(' ')" class="text-ink-gray-4">…</span>
-						</Button>
-					</div>
-					<RecordingList v-if="!artifact" class="mt-8" />
-					<section v-if="recent.length && !artifact" class="mt-8">
-						<h2 class="px-2 text-sm font-medium text-ink-gray-5">Recent</h2>
-						<router-link
-							v-for="item in recent"
-							:key="item.key"
-							:to="{ path: item.route, query: { chat: item.chat } }"
-							class="mt-1 flex h-9 items-center gap-2 rounded-4 px-2 hover:bg-surface-gray-2"
+						<button
+							v-for="idea in ideas"
+							:key="idea.text"
+							type="button"
+							class="rounded-4 px-2 py-1 text-sm text-ink-gray-5 hover:bg-surface-gray-2 hover:text-ink-gray-7"
+							@click="prefill(idea.text)"
 						>
-							<span :class="item.icon" class="size-4 shrink-0 text-ink-gray-5" />
-							<span class="min-w-0 flex-1 truncate text-base text-ink-gray-8">{{ item.title }}</span>
-							<span class="shrink-0 text-sm text-ink-gray-5">{{ item.label }}</span>
-							<span class="w-28 shrink-0 whitespace-nowrap text-right text-sm text-ink-gray-4">{{ dayjs(item.modified).fromNow() }}</span>
-						</router-link>
-					</section>
+							{{ idea.text.trim() }}<span v-if="idea.text.endsWith(' ')">…</span>
+						</button>
+					</div>
+					<RecordingList v-if="!artifact" :project="activeProject" class="mt-8" />
 				</div>
 			</template>
 		</FlowApp>
@@ -62,15 +72,18 @@
 </template>
 
 <script setup lang="ts">
-import { Alert, Button, LoadingIndicator, dayjs } from "frappe-ui"
+import { Alert, LoadingIndicator } from "frappe-ui"
 import { computed, defineAsyncComponent, onBeforeUnmount, ref, watch } from "vue"
 import { useRoute, useRouter } from "vue-router"
 
-import { type Artifact, artifactIcon, artifactLabel, getArtifactSession, linkArtifact, routeArtifact } from "../artifacts"
-import { chats } from "../chats"
+import { type Artifact, artifactIcon, getArtifactSession, linkArtifact, routeArtifact } from "../artifacts"
+import { activeProject, newChatRoute, projectRoute, projectTitle } from "../projects"
 import { attachedChips, chatContext, clearSent, contextChips, detach, pendingChips, pick } from "../context"
 import { chatSender } from "../editor"
 import { findTab } from "../tabs"
+import ProjectPicker from "./ProjectPicker.vue"
+import ProjectHome from "./project/ProjectHome.vue"
+import ProjectIntro from "./project/ProjectIntro.vue"
 import RecordingList from "./RecordingList.vue"
 
 const route = useRoute()
@@ -81,7 +94,9 @@ const FlowApp = defineAsyncComponent(async () => {
 	return import("@ai/App.vue")
 })
 
-const onChatRoute = computed(() => route.name === "studio-chat")
+// the home and a project's page are each a new chat
+const onProject = computed(() => route.name === "studio-project")
+const onChatRoute = computed(() => route.name === "studio-chat" || route.name === "studio-home" || onProject.value)
 // the artifact the editor beside the chat has open
 const artifact = computed(() => routeArtifact(route))
 const routeSession = computed(() => {
@@ -110,9 +125,9 @@ watch(() => [routeSession.value, artifact.value?.doctype, artifact.value?.name],
 function onSession(session: string | null) {
 	if (session === current.value) return
 	// the open chat was deleted
-	if (!session) return router.push("/studio")
+	if (!session) return router.push(activeProject.value ? projectRoute(activeProject.value) : newChatRoute(null))
 	current.value = session
-	if (onChatRoute.value || route.name === "studio-home") {
+	if (onChatRoute.value) {
 		router.replace({ name: "studio-chat", params: { session } })
 		return
 	}
@@ -131,32 +146,13 @@ chatSender.value = (message) => flowApp.value?.send(message) ?? false
 onBeforeUnmount(() => (chatSender.value = null))
 
 const needsSetup = !window.flow_boot?.models?.length
-const openTitle = computed(() => (artifact.value && findTab(artifact.value.doctype, artifact.value.name)?.title) || "this artifact")
 const ideas = computed(() => {
 	const layer = route.matched[0]?.meta.layer
 	if (!artifact.value) return IDEAS
 	return (typeof layer === "string" && CHANGES[layer]) || []
 })
 
-// a new chat starts from the artifacts the latest chats made
-const recent = computed(() => {
-	const seen = new Map<string, { key: string; title: string; icon: string; label: string; route: string; chat: string; modified: string }>()
-	for (const chat of chats.value)
-		for (const made of chat.artifacts) {
-			const key = `${made.doctype}/${made.name}`
-			if (!seen.has(key))
-				seen.set(key, {
-					key,
-					title: made.title,
-					icon: artifactIcon(made),
-					label: artifactLabel(made.doctype),
-					route: made.route,
-					chat: chat.name,
-					modified: chat.modified,
-				})
-		}
-	return [...seen.values()].slice(0, 6)
-})
+const moveTo = (project: string | null) => router.replace(newChatRoute(project))
 
 // the editor beside the chat, so "this page" or "these" in a message has a referent
 function openArtifact() {
@@ -177,47 +173,44 @@ const context = {
 
 <script lang="ts">
 const IDEAS = [
-	{ icon: "lucide-database", text: "A DocType for sponsors" },
-	{ icon: "lucide-blocks", text: "An app to check in attendees" },
-	{ icon: "lucide-globe", text: "A website for our conference" },
-	{ icon: "lucide-chart-column", text: "A dashboard of registrations" },
-	{ icon: "lucide-printer", text: "Make an attendee badge with a QR code" },
-	{ icon: "lucide-mail", text: "Make a confirmation email for new registrations" },
+	{ text: "An app to check in attendees" },
+	{ text: "A website for our conference" },
+	{ text: "A dashboard of registrations" },
 ]
 
 // what a person usually asks of an artifact open beside the chat, by layer
-const CHANGES: Record<string, { icon: string; text: string }[]> = {
+const CHANGES: Record<string, { text: string }[]> = {
 	data: [
-		{ icon: "lucide-plus", text: "Add a field for " },
-		{ icon: "lucide-table", text: "Add demo records" },
-		{ icon: "lucide-shield", text: "Let this role " },
+		{ text: "Add a field for " },
+		{ text: "Add demo records" },
+		{ text: "Let this role " },
 	],
 	web: [
-		{ icon: "lucide-type", text: "Rewrite the copy to " },
-		{ icon: "lucide-plus", text: "Add a section about " },
-		{ icon: "lucide-palette", text: "Restyle the page to " },
+		{ text: "Rewrite the copy to " },
+		{ text: "Add a section about " },
+		{ text: "Restyle the page to " },
 	],
 	analytics: [
-		{ icon: "lucide-chart-column", text: "Add a chart of " },
-		{ icon: "lucide-funnel", text: "Filter it by " },
+		{ text: "Add a chart of " },
+		{ text: "Filter it by " },
 	],
 	ui: [
-		{ icon: "lucide-plus", text: "Add a page to " },
-		{ icon: "lucide-text-cursor-input", text: "Add a form for " },
+		{ text: "Add a page to " },
+		{ text: "Add a form for " },
 	],
 	print: [
-		{ icon: "lucide-qr-code", text: "Add a QR code of " },
-		{ icon: "lucide-file", text: "Change the page size to " },
-		{ icon: "lucide-palette", text: "Restyle it to " },
+		{ text: "Add a QR code of " },
+		{ text: "Change the page size to " },
+		{ text: "Restyle it to " },
 	],
 	email: [
-		{ icon: "lucide-heading", text: "Change the subject to " },
-		{ icon: "lucide-panel-bottom", text: "Add a footer with " },
-		{ icon: "lucide-type", text: "Rewrite the message to " },
+		{ text: "Change the subject to " },
+		{ text: "Add a footer with " },
+		{ text: "Rewrite the message to " },
 	],
 	agents: [
-		{ icon: "lucide-wrench", text: "Let it " },
-		{ icon: "lucide-pencil", text: "Change it to " },
+		{ text: "Let it " },
+		{ text: "Change it to " },
 	],
 }
 </script>

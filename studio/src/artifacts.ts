@@ -24,6 +24,7 @@ export interface Chat {
 	name: string
 	title: string
 	modified: string
+	project: string | null
 	artifacts: Artifact[]
 }
 
@@ -100,3 +101,16 @@ export const restoreVersion = (version: string) => call("frappe.ai.versions.rest
 
 export const artifactIcon = (artifact: Pick<Artifact, "route">) =>
 	layers.find((layer) => layer.name === artifact.route.split("/")[2])?.icon ?? "lucide-file"
+
+// the kinds the sidebar lists on their own page, every project's together, each named as its layer
+export const artifactKinds = [
+	{ kind: "apps", layer: "ui", doctypes: ["Studio App"] },
+	{ kind: "websites", layer: "web", doctypes: ["Builder Page"] },
+	{ kind: "dashboards", layer: "analytics", doctypes: ["Insights Dashboard v3"] },
+].map((kind) => {
+	const layer = layers.find((layer) => layer.name === kind.layer)
+	return { ...kind, title: layer?.title ?? kind.kind, icon: layer?.icon ?? "lucide-file" }
+})
+
+export const artifactKind = (route: RouteLocationNormalizedLoaded) =>
+	artifactKinds.find((kind) => kind.kind === route.params.kind)

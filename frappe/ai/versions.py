@@ -53,6 +53,9 @@ def delete(doc, method: str | None = None) -> None:
 		ref = {"reference_doctype": doc.doctype, "reference_name": doc.name}
 		frappe.db.delete("Artifact Version", ref)
 		frappe.db.delete("Flow Session Artifact", {"parenttype": "Flow Session", "parentfield": "artifacts", **ref})
+		frappe.db.delete(
+			"Studio Project Artifact", {"parenttype": "Studio Project", "parentfield": "artifacts", **ref}
+		)
 
 
 def unlink_sessions(sessions: list[str]) -> None:
