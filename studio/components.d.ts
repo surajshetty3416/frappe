@@ -12,6 +12,7 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    AddSkill: typeof import('./src/components/project/AddSkill.vue')['default']
     ArtifactGrid: typeof import('./src/components/ArtifactGrid.vue')['default']
     ArtifactViewToggle: typeof import('./src/components/ArtifactViewToggle.vue')['default']
     EditorDrawer: typeof import('./src/components/EditorDrawer.vue')['default']
@@ -48,6 +49,7 @@ declare module 'vue' {
 
 // For TSX support
 declare global {
+  const AddSkill: typeof import('./src/components/project/AddSkill.vue')['default']
   const ArtifactGrid: typeof import('./src/components/ArtifactGrid.vue')['default']
   const ArtifactViewToggle: typeof import('./src/components/ArtifactViewToggle.vue')['default']
   const EditorDrawer: typeof import('./src/components/EditorDrawer.vue')['default']

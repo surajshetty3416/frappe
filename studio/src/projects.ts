@@ -119,6 +119,9 @@ export async function createProject(title: string, description: string) {
 	return doc.name
 }
 
+export const setProjectSkills = (project: string, skills: string[]) =>
+	updateProject(project, { skills: skills.map((skill) => ({ skill })) })
+
 // the project and its chats; what they made stays
 export async function deleteProject(project: string) {
 	await call("frappe.client.delete", { doctype: "Studio Project", name: project })

@@ -15,4 +15,4 @@ export const overlayOpen = () =>
 	Boolean(document.querySelector("[data-reka-popper-content-wrapper]:not(:has([role=tooltip])), [role=dialog]"))
 
 // how artifacts show, as cards or rows, on every page that lists them
-export const artifactView = useStorage<"grid" | "list">("studio-artifact-view", "grid")
+export const artifactView = useStorage<"grid" | "list">("studio-artifacts-view", "list")

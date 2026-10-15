@@ -6,13 +6,14 @@
 	<div v-else class="flex flex-col gap-8">
 		<RunningChats :project="project" />
 		<div class="flex flex-col gap-3">
-			<div class="flex items-center gap-2">
-				<Tabs class="min-w-0 flex-1" :model-value="tab" :tabs="tabs">
-					<template #tab-suffix="{ tab: item }">
-						<span v-if="item.data?.count" class="text-sm text-ink-gray-4">{{ item.data.count }}</span>
+			<div class="flex items-center justify-between gap-2">
+				<TabButtons :model-value="tab" :options="tabs">
+					<template #suffix="{ button }">
+						<span v-if="count(button.value)" class="text-ink-gray-4">{{ count(button.value) }}</span>
 					</template>
-				</Tabs>
+				</TabButtons>
 				<ArtifactViewToggle v-if="tab === 'artifacts' && projectPage.artifacts.length" />
+				<AddSkill v-else-if="tab === 'skills' && projectPage.project.can_write" :page="projectPage" @changed="load" />
 			</div>
 			<component :is="section" :page="projectPage" @changed="load" @prefill="(text: string) => emit('prefill', text)" />
 		</div>
@@ -21,13 +22,14 @@
 
 <script setup lang="ts">
 import { useDebounceFn } from "@vueuse/core"
-import { LoadingIndicator, Tabs } from "frappe-ui"
+import { LoadingIndicator, TabButtons } from "frappe-ui"
 import { computed, onBeforeUnmount, watch } from "vue"
 import { useRoute } from "vue-router"
 
 import { loadProjectPage, projectPage, projectPageFailed, projectRoute } from "../../projects"
 import { onListUpdate } from "../../realtime"
 import ArtifactViewToggle from "../ArtifactViewToggle.vue"
+import AddSkill from "./AddSkill.vue"
 import ProjectArtifacts from "./ProjectArtifacts.vue"
 import ProjectSkills from "./ProjectSkills.vue"
 import RunningChats from "./RunningChats.vue"
@@ -61,7 +63,7 @@ const reload = useDebounceFn(load, 500)
 const stops = ["Studio Project", "Flow Session"].map((doctype) => onListUpdate(doctype, reload))
 onBeforeUnmount(() => stops.forEach((stop) => stop()))
 
-const count = (key: Section) => {
+const count = (key: string | number) => {
 	if (!projectPage.value) return 0
 	if (key === "skills") return projectPage.value.skills.filter((skill) => skill.own).length
 	return projectPage.value.artifacts.length
@@ -71,7 +73,6 @@ const tabs = computed(() =>
 		value: key,
 		label: SECTIONS[key].label,
 		route: projectRoute(props.project, key),
-		data: { count: count(key) },
 	}))
 )
 </script>

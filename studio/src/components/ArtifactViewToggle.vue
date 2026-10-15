@@ -3,8 +3,8 @@
 		v-model="artifactView"
 		variant="ghost"
 		:options="[
-			{ value: 'grid', label: 'Grid', icon: 'lucide-layout-grid' },
 			{ value: 'list', label: 'List', icon: 'lucide-list' },
+			{ value: 'grid', label: 'Grid', icon: 'lucide-layout-grid' },
 		]"
 	/>
 </template>
