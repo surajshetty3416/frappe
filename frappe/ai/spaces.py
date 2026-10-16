@@ -170,7 +170,6 @@ def permitted(space: str):
 def visible(workspace) -> bool:
 	"""Whether the user may see the workspace, by its module and roles, as the desk decides."""
 	from frappe.desk.desktop import Workspace
-
 	from frappe.model.document import Document
 
 	return Workspace(
