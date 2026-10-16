@@ -38,30 +38,18 @@ class Workspace(Document, DeskViews):
 		charts: DF.Table[WorkspaceChart]
 		content: DF.LongText | None
 		custom_blocks: DF.Table[WorkspaceCustomBlock]
+		description: DF.SmallText | None
 		external_link: DF.Data | None
 		for_user: DF.Data | None
 		hide_custom: DF.Check
 		icon: DF.Icon | None
-		indicator_color: DF.Literal[
-			"green",
-			"cyan",
-			"blue",
-			"orange",
-			"yellow",
-			"gray",
-			"grey",
-			"red",
-			"pink",
-			"darkgrey",
-			"purple",
-			"light-blue",
-		]
+		indicator_color: DF.Literal["green", "cyan", "blue", "orange", "yellow", "gray", "grey", "red", "pink", "darkgrey", "purple", "light-blue"]
 		is_hidden: DF.Check
 		label: DF.Data
 		link_to: DF.DynamicLink | None
 		link_type: DF.Literal["DocType", "Page", "Report"]
 		links: DF.Table[WorkspaceLink]
-		module: DF.Link | None
+		module: DF.Link
 		module_onboarding: DF.Link | None
 		number_cards: DF.Table[WorkspaceNumberCard]
 		parent_page: DF.Link | None
@@ -74,6 +62,7 @@ class Workspace(Document, DeskViews):
 		standard: DF.Check
 		title: DF.Data
 		type: DF.Literal["Workspace", "Link", "URL"]
+		widgets: DF.JSON | None
 	# end: auto-generated types
 
 	def before_validate(self):

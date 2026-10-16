@@ -7,6 +7,7 @@ import json
 from typing import Any
 
 import frappe
+from frappe import _
 from frappe.ai.home import viewable
 from frappe.ai.permissions import ASSISTANT_USER_ROLE
 from frappe.ai.workspace import SETUP_CHAT_KEY, SETUP_KEY, SITE_SETUP_KEY, WORKSPACE_KEY, clean
@@ -283,3 +284,19 @@ def demo_artifacts(project: str) -> list[dict[str, Any]]:
 		for row in frappe.get_doc("Studio Project", project).artifacts
 		if row.reference_doctype in types and frappe.db.exists(row.reference_doctype, row.reference_name)
 	]
+
+
+@frappe.whitelist()
+def get_personas() -> list[dict[str, str]]:
+	"""The personas someone showing the demo can switch to, when the site turns switching on with
+	`demo_personas` in its config and the user is one of them."""
+	personas = frappe.conf.get("demo_personas") or []
+	return personas if frappe.session.user in {persona["user"] for persona in personas} else []
+
+
+@frappe.whitelist(methods=["POST"])
+def switch_persona(user: str) -> None:
+	"""Sign in as another persona, without their password, from one of the listed personas only."""
+	if user not in {persona["user"] for persona in get_personas()}:
+		frappe.throw(_("Switching to {0} is not on for this account.").format(user), frappe.PermissionError)
+	frappe.local.login_manager.login_as(user)

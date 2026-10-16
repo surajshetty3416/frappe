@@ -12,6 +12,12 @@ no_cache = 1
 
 
 def get_context(context):
+	# a customer, supplier or portal user signed in for another app's portal, not for the shell
+	if frappe.session.user != "Guest" and frappe.session.data.user_type == "Website User":
+		from frappe.website.utils import get_home_page
+
+		frappe.local.flags.redirect_location = f"/{get_home_page()}"
+		raise frappe.Redirect
 	context.boot = get_boot()
 
 

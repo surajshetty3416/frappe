@@ -53,6 +53,9 @@ flow_tools = [
 	"frappe.ai.workspace.invite_people",
 ]
 
+# the Spaces any organization can start with, and how a Space's conversation is filled (by an app)
+space_templates = ["frappe.ai.setup_flow.default_templates"]
+
 after_install = [
 	"frappe.ai.shell.make_home_the_landing",
 	"frappe.ai.permissions.ensure_assistant_role",

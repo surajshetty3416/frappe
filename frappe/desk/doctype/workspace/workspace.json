@@ -42,7 +42,10 @@
   "custom_blocks_tab",
   "custom_blocks",
   "roles_tab",
-  "roles"
+  "roles",
+  "space_tab",
+  "description",
+  "widgets"
  ],
  "fields": [
   {
@@ -80,14 +83,14 @@
    "search_index": 1
   },
   {
+   "description": "The module this workspace belongs to. Decides which module's dock entry and sidebar it appears under.",
    "fieldname": "module",
    "fieldtype": "Link",
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Module",
    "options": "Module Def",
-   "reqd": 1,
-   "description": "The module this workspace belongs to. Decides which module's dock entry and sidebar it appears under."
+   "reqd": 1
   },
   {
    "fieldname": "column_break_3",
@@ -269,11 +272,28 @@
    "fieldtype": "Link",
    "label": "Module Onboarding",
    "options": "Module Onboarding"
+  },
+  {
+   "fieldname": "space_tab",
+   "fieldtype": "Tab Break",
+   "label": "Space"
+  },
+  {
+   "description": "What the team does here, shown under the Space's title",
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "label": "Description"
+  },
+  {
+   "description": "The Space's widgets, top to bottom. Empty, the Space shows its number cards, charts and quick lists",
+   "fieldname": "widgets",
+   "fieldtype": "JSON",
+   "label": "Widgets"
   }
  ],
  "in_create": 1,
  "links": [],
- "modified": "2026-08-12 06:00:00.000000",
+ "modified": "2026-10-16 09:18:53.942405",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Workspace",

@@ -28,6 +28,7 @@ from frappe.utils import nowdate
 WORKSPACE_KEY = "studio_workspace"
 SETUP_KEY = "studio_setup_done"
 SETUP_CHAT_KEY = "studio_setup_chat"
+WELCOMED_KEY = "studio_welcomed"
 SITE_SETUP_KEY = "studio_site_setup_done"
 ORGANIZATION_KEY = "studio_organization"
 
@@ -73,6 +74,8 @@ WIDGETS = {
 		(),
 	),
 	"note": ("Text the person keeps in view: a plan, a checklist, a reminder", ("text",), ()),
+	"number_card": ("A desk Number Card, by name, as a tile", ("number_card",), ()),
+	"dashboard_chart": ("A desk Dashboard Chart, by name", ("dashboard_chart",), ()),
 }
 
 DEFAULT_WORKSPACE = [{"type": "inbox", "size": "l"}]
@@ -82,8 +85,10 @@ DEFAULT_WORKSPACE = [{"type": "inbox", "size": "l"}]
 def get_workspace() -> dict[str, Any]:
 	"""The user's widgets, and what the user still has to set up. A chart widget says its chart's
 	type, so the workspace can set numbers apart from charts."""
+	from frappe.ai.spaces import home_slices
+
 	user = frappe.session.user
-	widgets = workspace()
+	widgets = workspace() + home_slices()
 	charts = [widget["chart"] for widget in widgets if widget["type"] == "chart"]
 	types = dict(
 		frappe.get_all(
@@ -126,9 +131,9 @@ def reset_workspace() -> None:
 
 
 @frappe.whitelist()
-def get_widget(widget: str, txt: str | None = None) -> dict[str, Any]:
-	"""What one of the user's widgets shows now."""
-	spec = find_widget(widget)
+def get_widget(widget: str, txt: str | None = None, space: str | None = None) -> dict[str, Any]:
+	"""What one of the user's widgets, or of `space`'s, shows now."""
+	spec = find_widget(widget, space)
 	kind = spec["type"]
 	if kind == "queue":
 		return queue_rows(spec, txt)
@@ -138,13 +143,17 @@ def get_widget(widget: str, txt: str | None = None) -> dict[str, Any]:
 		return {"fields": form_fields(spec["doctype"], spec["fields"]), "can_create": can("create", spec)}
 	if kind == "embed":
 		return {"view": get_view(spec["doctype"], spec["name"]) if readable(spec) else None}
+	if kind == "number_card":
+		return number_card(spec["number_card"])
+	if kind == "dashboard_chart":
+		return dashboard_chart(spec["dashboard_chart"])
 	return {}
 
 
 @frappe.whitelist(methods=["POST"])
-def act(widget: str, action: int, name: str) -> dict[str, Any]:
+def act(widget: str, action: int, name: str, space: str | None = None) -> dict[str, Any]:
 	"""Run a queue widget's `action` on the record `name`."""
-	spec = find_widget(widget)
+	spec = find_widget(widget, space)
 	if spec["type"] != "queue":
 		frappe.throw(_("Only a queue widget acts on its records."))
 	try:
@@ -169,9 +178,9 @@ def act(widget: str, action: int, name: str) -> dict[str, Any]:
 
 
 @frappe.whitelist(methods=["POST"])
-def create(widget: str, values: dict[str, Any] | str) -> dict[str, Any]:
+def create(widget: str, values: dict[str, Any] | str, space: str | None = None) -> dict[str, Any]:
 	"""Create a record from a quick entry widget: its fields from `values`, the rest from its defaults."""
-	spec = find_widget(widget)
+	spec = find_widget(widget, space)
 	if spec["type"] != "quick_entry":
 		frappe.throw(_("Only a quick entry widget creates records."))
 	values = frappe.parse_json(values)
@@ -183,8 +192,13 @@ def create(widget: str, values: dict[str, Any] | str) -> dict[str, Any]:
 
 @frappe.whitelist(methods=["POST"])
 def respond(kind: str, name: str, action: str | None = None) -> None:
-	"""Act on an inbox item: close an assignment, or apply a workflow action to the record an
-	approval waits on."""
+	"""Act on an inbox item: close an assignment, mark a mention read, or apply a workflow action
+	to the record an approval waits on."""
+	if kind == "mention":
+		from frappe.desk.doctype.notification_log.notification_log import mark_as_read
+
+		mark_as_read(name)
+		return
 	if kind == "assignment":
 		todo = frappe.get_doc("ToDo", name)
 		if todo.allocated_to != frappe.session.user:
@@ -245,9 +259,15 @@ def keep_setup_chat(session: str) -> None:
 
 
 @frappe.whitelist(methods=["POST"])
+def dismiss_welcome() -> None:
+	frappe.defaults.set_user_default(WELCOMED_KEY, "1")
+
+
+@frappe.whitelist(methods=["POST"])
 def finish_setup() -> None:
-	"""The user has set up their workspace; the home stops sending them to the setup."""
-	frappe.defaults.set_user_default(SETUP_KEY, "1")
+	"""The admin is done setting the site up, or skips the rest of it."""
+	frappe.only_for("System Manager")
+	frappe.defaults.set_global_default(SITE_SETUP_KEY, "1")
 
 
 @tool
@@ -322,15 +342,9 @@ def configure_site(
 ) -> dict[str, Any]:
 	"""Set the site up for the organization: its name and what it does, its country, currency, time
 	zone and language. Only a System Manager, once, in the first-run setup."""
-	frappe.only_for("System Manager")
-	settings = frappe.get_single("System Settings")
-	settings.update({"country": country, "currency": currency, "time_zone": time_zone, "language": language})
-	settings.save()
-	for key in ("country", "currency", "time_zone"):
-		frappe.db.set_default(key, settings.get(key))
-	frappe.db.set_value("Currency", currency, "enabled", 1)
-	frappe.defaults.set_global_default(ORGANIZATION_KEY, json.dumps({"name": organization, "about": about}))
-	frappe.defaults.set_global_default(SITE_SETUP_KEY, "1")
+	from frappe.ai.setup_flow import save_organization
+
+	save_organization(organization, about, country, currency, time_zone, language)
 	return {"organization": organization, "country": country, "currency": currency, "time_zone": time_zone}
 
 
@@ -345,36 +359,25 @@ def invite_people(
 ) -> list[dict[str, Any]]:
 	"""Invite people to the site with the roles their work needs. Each gets a welcome email, and sets
 	up their own workspace when they first sign in. Only a System Manager."""
+	from frappe.ai.setup_flow import invite_person
+
 	frappe.only_for("System Manager")
-	invited = []
-	for person in people:
-		roles = [role for role in person.get("roles") or [] if role != "Administrator"]
-		missing = [role for role in roles if not frappe.db.exists("Role", role)]
-		if missing:
-			frappe.throw(_("No role named {0}.").format(", ".join(missing)))
-		email = person["email"].strip().lower()
-		if not frappe.db.exists("User", email):
-			frappe.get_doc(
-				{
-					"doctype": "User",
-					"email": email,
-					"first_name": person.get("first_name") or email.split("@")[0],
-					"last_name": person.get("last_name"),
-					"send_welcome_email": 1,
-				}
-			).insert()
-		# everyone sets their workspace up with the assistant, so everyone may talk to it
-		frappe.get_doc("User", email).add_roles(ASSISTANT_USER_ROLE, *roles)
-		invited.append({"email": email, "roles": roles})
+	invited = [
+		invite_person(person["email"].strip().lower(), person.get("first_name"), person.get("roles") or [])
+		for person in people
+	]
 	return invited
 
 
 def setup_state() -> dict[str, Any]:
+	"""Only an admin sets up, and only the site; everyone else's Home is ready when they arrive,
+	with a welcome until they put it away."""
 	site = "System Manager" in frappe.get_roles() and not frappe.defaults.get_global_default(SITE_SETUP_KEY)
 	return {
-		"needed": not frappe.defaults.get_user_default(SETUP_KEY),
+		"needed": site,
 		"site": site,
 		"chat": frappe.defaults.get_user_default(SETUP_CHAT_KEY),
+		"welcome": not frappe.defaults.get_user_default(WELCOMED_KEY),
 	}
 
 
@@ -388,8 +391,11 @@ def workspace() -> list[dict[str, Any]]:
 	return json.loads(saved) if saved else clean(DEFAULT_WORKSPACE)
 
 
-def find_widget(widget: str) -> dict[str, Any]:
-	found = next((spec for spec in workspace() if spec["id"] == widget), None)
+def find_widget(widget: str, space: str | None = None) -> dict[str, Any]:
+	from frappe.ai.spaces import permitted, space_widgets
+
+	widgets = space_widgets(permitted(space)) if space else workspace()
+	found = next((spec for spec in widgets if spec["id"] == widget), None)
 	if not found:
 		frappe.throw(_("This widget is no longer on your workspace."))
 	return found
@@ -419,6 +425,9 @@ def clean(widgets: list[dict[str, Any]]) -> list[dict[str, Any]]:
 		for key in extra:
 			if widget.get(key) not in (None, "", [], {}):
 				row[key] = widget[key]
+		# a Space's widget for its members' Homes
+		if widget.get("home"):
+			row["home"] = 1
 		check(row)
 		cleaned.append(row)
 	return cleaned
@@ -428,6 +437,9 @@ def check(widget: dict[str, Any]) -> None:
 	kind = widget["type"]
 	if kind == "chart" and not frappe.db.exists("Insights Chart v3", widget["chart"]):
 		frappe.throw(_("No chart named {0}.").format(widget["chart"]), title=_("Invalid Widget"))
+	for doctype, key in (("Number Card", "number_card"), ("Dashboard Chart", "dashboard_chart")):
+		if kind == key and not frappe.db.exists(doctype, widget[key]):
+			frappe.throw(_("No {0} named {1}.").format(_(doctype), widget[key]), title=_("Invalid Widget"))
 	if kind == "embed" and widget["doctype"] not in viewable():
 		frappe.throw(
 			_("{0} cannot be shown in the workspace.").format(widget["doctype"]), title=_("Invalid Widget")
@@ -555,6 +567,25 @@ def inbox() -> list[dict[str, Any]]:
 				"actions": actions,
 			}
 		)
+	for mention in frappe.get_list(
+		"Notification Log",
+		filters={"for_user": frappe.session.user, "type": "Mention", "read": 0},
+		fields=["name", "subject", "document_type", "document_name", "from_user", "modified"],
+		order_by="modified desc",
+		limit=INBOX_LIMIT,
+	):
+		items.append(
+			{
+				"kind": "mention",
+				"name": mention.name,
+				"text": frappe.utils.strip_html(mention.subject or ""),
+				"doctype": mention.document_type,
+				"record": mention.document_name,
+				"title": reference_title(mention.document_type, mention.document_name),
+				"modified": mention.modified,
+				"actions": ["Mark read"],
+			}
+		)
 	items.sort(key=lambda item: item["modified"], reverse=True)
 	return items
 
@@ -643,3 +674,32 @@ def reference_title(doctype: str | None, name: str | None) -> str | None:
 	if not doctype or not name or not frappe.db.exists(doctype, name):
 		return None
 	return title_of(frappe.get_doc(doctype, name))
+
+
+def number_card(name: str) -> dict[str, Any]:
+	"""A desk Number Card's value, as the desk computes it, or None for a kind it leaves to a report."""
+	from frappe.desk.doctype.number_card.number_card import get_result
+
+	card = frappe.get_doc("Number Card", name)
+	value = None
+	if card.type == "Custom" and card.method:
+		value = frappe.call(card.method, filters=card.filters_json)
+	elif card.type == "Document Type" and frappe.has_permission(card.document_type, "read"):
+		value = get_result(card.as_dict(), card.filters_json)
+	if isinstance(value, dict):
+		value = value.get("value")
+	return {"label": _(card.label), "value": value, "currency": card.currency}
+
+
+def dashboard_chart(name: str) -> dict[str, Any]:
+	"""A desk Dashboard Chart's labels and series, as the desk computes them."""
+	from frappe.desk.doctype.dashboard_chart.dashboard_chart import get
+
+	chart = frappe.get_doc("Dashboard Chart", name)
+	data = get(chart_name=name) or {}
+	return {
+		"label": _(chart.chart_name),
+		"type": chart.type,
+		"labels": data.get("labels") or [],
+		"datasets": data.get("datasets") or [],
+	}

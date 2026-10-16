@@ -164,10 +164,13 @@ class TestWorkspace(IntegrationTestCase):
 		with self.assertRaises(frappe.PermissionError):
 			workspace.save_workspace([{"type": "inbox"}], for_everyone=True)
 
-	def test_setup_ends_when_the_user_finishes_it(self):
-		self.assertTrue(workspace.get_workspace()["setup"]["needed"])
-		workspace.finish_setup()
-		self.assertFalse(workspace.get_workspace()["setup"]["needed"])
+	def test_only_an_admin_sets_up_and_everyone_is_welcomed(self):
+		setup = workspace.get_workspace()["setup"]
+		self.assertFalse(setup["needed"])
+		self.assertTrue(setup["welcome"])
+		workspace.dismiss_welcome()
+		self.assertFalse(workspace.get_workspace()["setup"]["welcome"])
+		frappe.defaults.clear_user_default(workspace.WELCOMED_KEY)
 
 	def test_only_a_system_manager_sets_the_site_up(self):
 		self.assertFalse(workspace.get_workspace()["setup"]["site"])
@@ -185,10 +188,15 @@ class TestWorkspace(IntegrationTestCase):
 		frappe.set_user("Administrator")
 		workspace.invite_people.func(
 			people=[
-				{"email": "workspace-invited@example.com", "first_name": "Invited", "roles": ["Website Manager"]}
+				{
+					"email": "workspace-invited@example.com",
+					"first_name": "Invited",
+					"roles": ["Website Manager"],
+				}
 			],
 			ctx=None,
 		)
 		self.assertEqual(
-			{"Website Manager", ASSISTANT_USER_ROLE} - set(frappe.get_roles("workspace-invited@example.com")), set()
+			{"Website Manager", ASSISTANT_USER_ROLE} - set(frappe.get_roles("workspace-invited@example.com")),
+			set(),
 		)
