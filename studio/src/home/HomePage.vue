@@ -4,11 +4,9 @@
 			<header class="flex h-9 flex-wrap items-center gap-2">
 				<h1 class="text-lg font-semibold text-ink-gray-9">{{ greeting }}</h1>
 				<span class="mr-auto text-sm text-ink-gray-5">{{ today }}</span>
-				<template v-if="workspace && !editing">
-					<Button variant="ghost" size="sm" icon-left="lucide-sparkles" label="Improve with AI" @click="improve" />
-					<Button variant="ghost" size="sm" icon-left="lucide-layout-dashboard" label="Arrange" @click="startEditing" />
-				</template>
+				<Button v-if="workspace && !editing" variant="ghost" size="sm" icon-left="lucide-layout-dashboard" label="Arrange" @click="startEditing" />
 				<template v-if="editing">
+					<Button variant="ghost" size="sm" icon-left="lucide-sparkles" label="Arrange with AI" @click="arrangeWithAI" />
 					<Button v-if="workspace?.customized" variant="ghost" size="sm" label="Reset" @click="reset" />
 					<Button v-if="workspace?.can_set_default" variant="ghost" size="sm" label="Save for everyone" @click="save(true)" />
 					<Button size="sm" label="Cancel" @click="editing = false" />
@@ -107,9 +105,12 @@ function tailor() {
 	ask("Ask me what I work on day to day, then tailor my Home to it. Ask before you change it.")
 }
 
-const improve = () =>
+// the assistant saves the layout itself, so a draft left open would overwrite what it does
+function arrangeWithAI() {
+	editing.value = false
 	ask(
 		"Look at how I've been working lately (what I changed, what's assigned to me, what waits on me) and at my workspace. " +
 			"Suggest what to add, change or drop so I can do more from here. Ask me before you change it."
 	)
+}
 </script>
