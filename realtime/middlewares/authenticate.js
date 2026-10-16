@@ -18,7 +18,10 @@ function authenticate_with_frappe(socket, next) {
 		next(new Error("Invalid namespace"));
 	}
 
-	if (get_hostname(socket.request.headers.host) != get_hostname(socket.request.headers.origin)) {
+	// a same-origin polling handshake is a GET, which browsers send with a Referer and no Origin;
+	// behind nginx the proxy sets Origin, but a socket served without it only has the Referer
+	const { host, origin, referer } = socket.request.headers;
+	if (get_hostname(host) != get_hostname(origin || referer)) {
 		next(new Error("Invalid origin"));
 		return;
 	}
