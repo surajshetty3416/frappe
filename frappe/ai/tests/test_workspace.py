@@ -211,3 +211,7 @@ class TestWorkspace(IntegrationTestCase):
 		self.assertEqual(
 			workspace.resolve({"_assign": ["like", "%@me%"]}), {"_assign": ["like", f"%{WORKER}%"]}
 		)
+
+	def test_a_record_links_to_its_full_form(self):
+		mine = todo(WORKER, "Call the venue")
+		self.assertEqual(workspace.get_record("ToDo", mine)["url"], f"/desk/todo/{mine}")

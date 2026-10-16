@@ -46,6 +46,8 @@ def get_spaces() -> dict[str, list[dict[str, Any]]]:
 @frappe.whitelist()
 def get_space(space: str) -> dict[str, Any]:
 	"""A Space as its page shows it: its widgets, its people and what fills its conversation."""
+	from frappe.ai.workspace import with_charts
+
 	doc = permitted(space)
 	members = frappe.get_all("Space Member", filters={"space": space}, pluck="user")
 	return {
@@ -53,7 +55,7 @@ def get_space(space: str) -> dict[str, Any]:
 		"title": doc.title,
 		"icon": doc.icon,
 		"description": doc.description,
-		"widgets": [{**widget, "space": doc.name} for widget in space_widgets(doc)],
+		"widgets": with_charts([{**widget, "space": doc.name} for widget in space_widgets(doc)]),
 		"members": [
 			{
 				"user": user,

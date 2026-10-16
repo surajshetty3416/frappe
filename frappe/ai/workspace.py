@@ -91,25 +91,12 @@ DEFAULT_WORKSPACE = [{"id": "inbox", "type": "inbox", "size": "l"}]
 
 @frappe.whitelist()
 def get_workspace() -> dict[str, Any]:
-	"""The user's widgets, and what the user still has to set up. A chart widget says its chart's
-	type, so the workspace can set numbers apart from charts."""
+	"""The user's widgets, and what the user still has to set up."""
 	from frappe.ai.spaces import home_slices
 
 	user = frappe.session.user
-	widgets = one_inbox(workspace(personal_default=[]) + home_slices())
-	charts = [widget["chart"] for widget in widgets if widget["type"] == "chart"]
-	types = dict(
-		frappe.get_all(
-			"Insights Chart v3", filters={"name": ("in", charts)}, fields=["name", "chart_type"], as_list=True
-		)
-		if charts
-		else []
-	)
 	return {
-		"widgets": [
-			{**widget, "chart_type": types.get(widget["chart"])} if widget["type"] == "chart" else widget
-			for widget in widgets
-		],
+		"widgets": with_charts(one_inbox(workspace(personal_default=[]) + home_slices())),
 		"customized": bool(frappe.defaults.get_defaults_for(user).get(WORKSPACE_KEY)),
 		"setup": setup_state(),
 		"organization": (organization() or {}).get("name"),
@@ -256,6 +243,7 @@ def get_record(doctype: str, name: str) -> dict[str, Any]:
 		"doctype": doctype,
 		"name": name,
 		"title": title_of(doc),
+		"url": doc.get_url(),
 		"fields": fields,
 		"values": {field["fieldname"]: doc.get(field["fieldname"]) for field in fields},
 		"can_write": can_write,
@@ -429,6 +417,27 @@ def find_widget(widget: str, space: str | None = None) -> dict[str, Any]:
 	if not found:
 		frappe.throw(_("This widget is no longer on your workspace."))
 	return found
+
+
+def with_charts(widgets: list[dict[str, Any]]) -> list[dict[str, Any]]:
+	"""Widgets with each chart's type and title, so a page sets numbers apart from charts and names
+	a chart its reader may view but not open."""
+	charts = [widget["chart"] for widget in widgets if widget["type"] == "chart"]
+	found = {
+		chart.name: chart
+		for chart in frappe.get_all(
+			"Insights Chart v3",
+			filters={"name": ("in", charts or [""])},
+			fields=["name", "chart_type", "title"],
+		)
+	}
+	labelled = []
+	for widget in widgets:
+		if widget["type"] == "chart":
+			chart = found.get(widget["chart"]) or {}
+			widget = {**widget, "chart_type": chart.get("chart_type"), "chart_title": chart.get("title")}
+		labelled.append(widget)
+	return labelled
 
 
 def clean(widgets: list[dict[str, Any]]) -> list[dict[str, Any]]:

@@ -1,6 +1,6 @@
 <template>
 	<!-- a number chart's readings, each a tile as a dashboard cell draws it -->
-	<div data-layer="analytics" class="relative h-[88px]" :class="editing ? 'opacity-60' : ''">
+	<div data-layer="analytics" class="relative min-h-[88px]" :class="editing ? 'opacity-60' : ''">
 		<ChartBodyView v-if="ready" :key="`${widget.chart}/${refreshed}`" :chart="widget.chart!" />
 		<Button
 			v-if="editing"

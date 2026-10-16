@@ -5,7 +5,10 @@
 		</div>
 		<template v-else>
 			<div class="flex flex-col gap-2 border-b border-outline-gray-1 p-4">
-				<p class="text-sm text-ink-gray-5">{{ record.doctype }} · {{ record.name }}</p>
+				<div class="flex items-center justify-between gap-2">
+					<p class="truncate text-sm text-ink-gray-5">{{ record.doctype }} · {{ record.name }}</p>
+					<Button variant="ghost" size="sm" icon-right="lucide-arrow-up-right" label="Open full form" :href="record.url" />
+				</div>
 				<p class="text-lg font-medium text-ink-gray-9">{{ record.title }}</p>
 				<div v-if="record.transitions.length" class="flex flex-wrap gap-1.5 pt-1">
 					<Button
@@ -46,6 +49,7 @@ interface Record {
 	doctype: string
 	name: string
 	title: string
+	url: string
 	fields: FieldSpec[]
 	values: { [field: string]: unknown }
 	can_write: boolean
