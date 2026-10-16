@@ -1455,3 +1455,27 @@ class TestSystemGeneratedProtection(IntegrationTestCase):
 		source.is_system_generated = 0
 		with self.assertRaisesRegex(frappe.ValidationError, "Cannot remove the system-generated flag"):
 			source.save()
+
+
+class TestStoreWithoutAVX2(IntegrationTestCase):
+	"""LanceDB's x86-64 builds use AVX2, and loading them on a CPU without it kills the process."""
+
+	def setUp(self):
+		store.available.cache_clear()
+		self.addCleanup(store.available.cache_clear)
+		flags = patch("frappe.ai.knowledge.store._cpu_flags", return_value={"sse4_2", "popcnt"})
+		flags.start()
+		self.addCleanup(flags.stop)
+		frappe.set_user("test@example.com")
+		self.addCleanup(frappe.set_user, "Administrator")
+
+	def test_the_store_refuses_to_open(self):
+		with self.assertRaises(frappe.ValidationError):
+			store.table_exists()
+
+	def test_a_turn_finds_no_memories(self):
+		from frappe.ai.memory import store as memory_store
+
+		self.assertEqual(
+			memory_store.search("Where do we bill Acme?", agent="any", user="test@example.com"), []
+		)

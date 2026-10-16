@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING, Any
 import frappe
 import pyarrow as pa
 
-from frappe.ai.knowledge.store import _connect, _ensure_fts_index, _quote
+from frappe.ai.knowledge.store import _connect, _ensure_fts_index, _quote, available
 
 if TYPE_CHECKING:
 	from frappe.ai.doctype.flow_agent_memory.flow_agent_memory import FlowAgentMemory
@@ -48,7 +48,10 @@ def remove(name: str) -> None:
 
 
 def search(query: str, *, agent: str, user: str) -> list[str]:
-	"""Names of the memories relevant to `query`, best first, within `agent` and `user`'s scope."""
+	"""Names of the memories relevant to `query`, best first, within `agent` and `user`'s scope;
+	none on a machine that cannot run the index."""
+	if not available():
+		return []
 	table = ensure_table()
 	scope = f"agent = {_quote(agent)} AND (scope = 'Agent' OR user = {_quote(user)})"
 	in_scope = table.count_rows(scope)

@@ -13,12 +13,14 @@ be rebuilt from MariaDB at any time.
 from __future__ import annotations
 
 import atexit
+import functools
+import platform
 import shutil
+import sys
 import tempfile
 from typing import Any
 
 import frappe
-import lancedb
 import pyarrow as pa
 from frappe import _
 
@@ -45,7 +47,36 @@ def _test_db_path() -> str:
 	return _test_db
 
 
+@functools.cache
+def available() -> bool:
+	"""Whether this machine can load LanceDB. Its x86-64 builds use AVX2, and loading them on a CPU
+	without it kills the process instead of raising."""
+	flags = _cpu_flags()
+	return flags is None or "avx2" in flags
+
+
+def _cpu_flags() -> set[str] | None:
+	"""The CPU's feature flags on x86-64 Linux; None elsewhere, or when they cannot be read."""
+	if sys.platform != "linux" or platform.machine() != "x86_64":
+		return None
+	try:
+		with open("/proc/cpuinfo") as cpuinfo:
+			for line in cpuinfo:
+				if line.startswith("flags"):
+					return set(line.partition(":")[2].split())
+	except OSError:
+		pass
+	return None
+
+
 def _connect():
+	if not available():
+		frappe.throw(
+			_("This server's processor lacks AVX2, which the knowledge store needs."),
+			title=_("Knowledge Store Unavailable"),
+		)
+	import lancedb
+
 	return lancedb.connect(db_path())
 
 
