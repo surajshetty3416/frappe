@@ -44,7 +44,11 @@ def get_setup(time_zone: str | None = None) -> dict[str, Any]:
 			"language": settings.language or "en",
 		},
 		"templates": [
-			{key: template.get(key) for key in ("name", "title", "icon", "description", "app")}
+			{
+				**{key: template.get(key) for key in ("name", "title", "icon", "description")},
+				# the app a Space is built on, when it is another app's work, by that app's title
+				"uses": app_title(template.get("uses")),
+			}
 			for template in templates()
 		],
 		"workspaces": [
@@ -126,6 +130,12 @@ def invite_person(email: str, first_name: str | None, roles: list[str]) -> dict[
 	# everyone may ask the assistant, and tailor their Home with it
 	frappe.get_doc("User", email).add_roles(ASSISTANT_USER_ROLE, *roles)
 	return {"email": email, "roles": roles}
+
+
+def app_title(app: str | None) -> str | None:
+	if not app or app not in frappe.get_installed_apps():
+		return None
+	return (frappe.get_hooks("app_title", app_name=app) or [app])[0]
 
 
 def country_of(time_zone: str | None) -> str | None:

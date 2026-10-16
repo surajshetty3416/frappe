@@ -21,20 +21,15 @@
 			</div>
 			<template v-else>
 				<!-- once, for someone new: their Home is already set up from their Spaces -->
-				<section v-if="workspace.setup.welcome && !editing" class="flex items-start gap-4 rounded-3 border border-outline-gray-2 p-4">
-					<span class="lucide-sparkles mt-0.5 size-4 shrink-0 text-ink-gray-6" />
-					<div class="min-w-0 flex-1">
-						<p class="text-sm font-medium text-ink-gray-8">Welcome{{ workspace.organization ? ` to ${workspace.organization}` : "" }}, {{ firstName }}</p>
-						<p class="mt-0.5 text-sm text-ink-gray-6">
-							This is your Home: what waits on you from each of your Spaces, ready to work in. Your Spaces are on the left; open one to see
-							what your team is doing. Ask anything with ⌘K.
-						</p>
-						<div class="mt-3 flex gap-2">
-							<Button size="sm" variant="solid" label="Got it" @click="dismissWelcome" />
-							<Button size="sm" variant="ghost" icon-left="lucide-sparkles" label="Tailor my Home with the assistant" @click="tailor" />
-						</div>
-					</div>
-				</section>
+				<Alert
+					v-if="workspace.setup.welcome && !editing"
+					icon="lucide-sparkles"
+					:title="`Welcome${workspace.organization ? ` to ${workspace.organization}` : ''}, ${firstName}`"
+					description="This is your Home: what waits on you from each of your Spaces, ready to work in. Your Spaces are on the left; open one to see what your team is doing. Ask anything with ⌘K."
+					:primary-action="{ label: 'Tailor my Home with the assistant', onClick: tailor }"
+					dismissible
+					@dismiss="dismissWelcome"
+				/>
 				<p v-if="editing" class="text-sm text-ink-gray-5">
 					Move, resize or remove your own widgets. Widgets from your Spaces are arranged in each Space. To add one, describe it to the
 					assistant, like “a queue of sponsors who haven't replied”.
@@ -43,7 +38,7 @@
 				<button
 					v-if="!editing"
 					type="button"
-					class="flex h-9 items-center justify-center gap-2 rounded-3 border border-dashed border-outline-gray-2 text-sm text-ink-gray-5 hover:border-outline-gray-3 hover:text-ink-gray-7"
+					class="flex h-9 items-center justify-center gap-2 rounded-4 border border-dashed border-outline-gray-2 text-sm text-ink-gray-5 hover:border-outline-gray-3 hover:text-ink-gray-7"
 					@click="addWidget"
 				>
 					<span class="lucide-plus size-3.5" />Add a widget by describing it<kbd class="ml-1 font-mono text-xs text-ink-gray-4">⌘K</kbd>
@@ -54,7 +49,7 @@
 </template>
 
 <script setup lang="ts">
-import { Button, LoadingIndicator, call, dayjs } from "frappe-ui"
+import { Alert, Button, LoadingIndicator, call, dayjs } from "frappe-ui"
 import { computed, ref } from "vue"
 
 import { sessionUser } from "../session"

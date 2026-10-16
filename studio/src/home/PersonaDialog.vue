@@ -6,7 +6,7 @@
 				v-for="persona in personas"
 				:key="persona.user"
 				type="button"
-				class="flex items-center gap-3 rounded-2 px-2 py-2 text-left hover:bg-surface-gray-1 disabled:opacity-60"
+				class="flex items-center gap-3 rounded-4 px-2 py-2 text-left hover:bg-surface-gray-1 disabled:opacity-60"
 				:disabled="persona.user === me || switching !== null"
 				@click="switchTo(persona.user)"
 			>

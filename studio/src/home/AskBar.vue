@@ -3,13 +3,13 @@
 		<div class="pointer-events-auto w-full max-w-[640px]">
 			<div
 				v-if="focused && matches.length"
-				class="mb-2 flex flex-col gap-0.5 rounded-3 border border-outline-gray-2 bg-surface-base p-1.5 shadow-xl"
+				class="mb-2 flex flex-col gap-0.5 rounded-6 border border-outline-gray-2 bg-surface-base p-1.5 shadow-xl"
 			>
 				<RouterLink
 					v-for="(match, i) in matches"
 					:key="`${match.doctype}/${match.name}`"
 					:to="viewRoute(match)"
-					class="flex items-center gap-2 rounded-2 px-2 py-1.5 text-base text-ink-gray-8"
+					class="flex items-center gap-2 rounded-4 px-2 py-1.5 text-base text-ink-gray-8"
 					:class="i === picked ? 'bg-surface-gray-2' : 'hover:bg-surface-gray-1'"
 					@mousedown.prevent
 					@click="reset"
@@ -21,7 +21,7 @@
 				<p class="px-2 pt-1 text-xs text-ink-gray-4">↑↓ to pick a view · Enter to ask</p>
 			</div>
 			<form
-				class="flex items-center gap-2 rounded-full border border-outline-gray-2 bg-surface-base py-1.5 pl-4 pr-1.5 shadow-xl"
+				class="flex items-center gap-2 rounded-6 border border-outline-gray-2 bg-surface-base py-1.5 pl-3 pr-1.5 shadow-xl"
 				@submit.prevent="submit"
 			>
 				<span class="lucide-sparkles size-4 shrink-0 text-ink-gray-5" />

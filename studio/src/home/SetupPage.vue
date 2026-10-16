@@ -2,10 +2,10 @@
 	<div data-layer="shell" class="relative h-full overflow-y-auto bg-surface-gray-1 pr-[400px]">
 		<div class="mx-auto flex min-h-full w-full max-w-[560px] flex-col justify-center gap-6 px-6 py-12">
 			<div class="flex items-center gap-2.5">
-				<img :src="LOGO" alt="" class="size-7 rounded-2" />
+				<img :src="LOGO" alt="" class="size-7 rounded-4" />
 				<span class="text-base font-semibold text-ink-gray-9">Set up {{ org.name || "your organization" }}</span>
 			</div>
-			<div class="flex flex-col gap-6 rounded-3 border border-outline-gray-2 bg-surface-base p-6 shadow-sm">
+			<div class="flex flex-col gap-6 rounded-6 border border-outline-gray-2 bg-surface-base p-6 shadow-sm">
 				<header class="flex flex-col gap-3">
 					<ol class="flex items-center gap-2 text-sm">
 						<li v-for="(title, i) in STEPS" :key="title" class="flex items-center gap-2">
@@ -43,36 +43,43 @@
 
 				<!-- 2: the Spaces the installed apps offer, and the workspaces they brought -->
 				<div v-else-if="step === 1" class="flex flex-col gap-4">
+					<!-- each Space on offer, as a row of the list a checkbox picks from -->
 					<div class="grid grid-cols-2 gap-2">
-						<button
+						<label
 							v-for="template in setup.templates"
 							:key="template.name"
-							type="button"
-							class="flex items-start gap-3 rounded-3 border p-3 text-left transition-colors duration-75"
-							:class="chosen.has(template.name) ? 'border-outline-gray-5 bg-surface-gray-1' : 'border-outline-gray-2 hover:border-outline-gray-3'"
-							@click="toggle(chosen, template.name)"
+							class="flex cursor-pointer items-start gap-3 rounded-4 border p-3 transition-colors duration-75"
+							:class="chosen.has(template.name) ? 'border-outline-gray-4 bg-surface-gray-1' : 'border-outline-gray-2 hover:bg-surface-gray-1'"
 						>
-							<span :class="spaceIcon(template.icon)" class="mt-0.5 size-4 shrink-0 text-ink-gray-6" />
+							<Checkbox class="mt-0.5" :model-value="chosen.has(template.name)" @update:model-value="toggle(chosen, template.name)" />
 							<span class="min-w-0 flex-1">
-								<span class="flex items-center gap-2">
-									<span class="text-sm font-medium text-ink-gray-8">{{ template.title }}</span>
-									<span v-if="template.app && template.app !== 'frappe'" class="text-xs text-ink-gray-4">{{ template.app }}</span>
+								<span class="flex flex-wrap items-center gap-x-2 gap-y-1">
+									<span :class="spaceIcon(template.icon)" class="size-4 shrink-0 text-ink-gray-6" />
+									<span class="text-base font-medium text-ink-gray-8">{{ template.title }}</span>
+									<Badge v-if="template.uses" theme="gray" variant="subtle" size="sm" :label="`on ${template.uses}`" />
 								</span>
-								<span class="mt-0.5 line-clamp-2 block text-sm text-ink-gray-5">{{ template.description }}</span>
+								<span class="mt-1 line-clamp-2 block text-sm text-ink-gray-5">{{ template.description }}</span>
 							</span>
-							<span class="mt-0.5 size-4 shrink-0" :class="chosen.has(template.name) ? 'lucide-circle-check text-ink-gray-8' : 'lucide-circle text-ink-gray-3'" />
-						</button>
+						</label>
 					</div>
-					<details v-if="setup.workspaces.length" class="rounded-3 border border-outline-gray-2">
-						<summary class="cursor-pointer px-3 py-2 text-sm text-ink-gray-6">
-							Also join workspaces your apps brought <span class="tabular-nums text-ink-gray-4">({{ setup.workspaces.length }})</span>
-						</summary>
-						<div class="grid grid-cols-2 gap-x-3 gap-y-1 px-3 pb-3">
-							<label v-for="space in setup.workspaces" :key="space.name" class="flex items-center gap-2 text-sm text-ink-gray-7">
-								<input type="checkbox" :checked="workspaces.has(space.name)" @change="toggle(workspaces, space.name)" />{{ space.title }}
-							</label>
+					<div v-if="setup.workspaces.length" class="flex flex-col gap-2">
+						<Button
+							variant="ghost"
+							class="self-start"
+							:icon-left="showWorkspaces ? 'lucide-chevron-down' : 'lucide-chevron-right'"
+							:label="`Also join workspaces your apps brought (${setup.workspaces.length})`"
+							@click="showWorkspaces = !showWorkspaces"
+						/>
+						<div v-if="showWorkspaces" class="grid grid-cols-2 gap-x-4 gap-y-2 rounded-4 border border-outline-gray-2 p-3">
+							<Checkbox
+								v-for="space in setup.workspaces"
+								:key="space.name"
+								:label="space.title"
+								:model-value="workspaces.has(space.name)"
+								@update:model-value="toggle(workspaces, space.name)"
+							/>
 						</div>
-					</details>
+					</div>
 					<footer class="flex items-center gap-2 pt-2">
 						<Button
 							variant="solid"
@@ -87,20 +94,19 @@
 
 				<!-- 3: people, each into the Spaces they work in -->
 				<div v-else class="flex flex-col gap-3">
-					<div v-for="(person, i) in people" :key="i" class="flex flex-col gap-2 rounded-3 border border-outline-gray-2 p-3">
+					<div v-for="(person, i) in people" :key="i" class="flex flex-col gap-3 rounded-4 border border-outline-gray-2 p-3">
 						<div class="flex items-center gap-2">
 							<TextInput v-model="person.email" class="flex-1" type="email" placeholder="name@company.com" />
 							<Button variant="ghost" icon="lucide-x" :disabled="people.length === 1" @click="people.splice(i, 1)" />
 						</div>
-						<div class="flex flex-wrap gap-1.5">
-							<button
+						<div class="flex flex-wrap gap-x-4 gap-y-2">
+							<Checkbox
 								v-for="space in mySpaces"
 								:key="space"
-								type="button"
-								class="rounded-full border px-2.5 py-0.5 text-xs transition-colors duration-75"
-								:class="person.spaces.includes(space) ? 'border-outline-gray-5 bg-surface-gray-2 text-ink-gray-8' : 'border-outline-gray-2 text-ink-gray-5 hover:border-outline-gray-3'"
-								@click="person.spaces.includes(space) ? person.spaces.splice(person.spaces.indexOf(space), 1) : person.spaces.push(space)"
-							>{{ space }}</button>
+								:label="space"
+								:model-value="person.spaces.includes(space)"
+								@update:model-value="person.spaces.includes(space) ? person.spaces.splice(person.spaces.indexOf(space), 1) : person.spaces.push(space)"
+							/>
 						</div>
 					</div>
 					<Button variant="ghost" icon-left="lucide-plus" label="Add someone" class="self-start" @click="people.push({ email: '', spaces: [] })" />
@@ -120,7 +126,7 @@
 </template>
 
 <script setup lang="ts">
-import { Button, FormControl, LoadingIndicator, TextInput, call, toast } from "frappe-ui"
+import { Badge, Button, Checkbox, FormControl, LoadingIndicator, TextInput, call, toast } from "frappe-ui"
 import { computed, reactive, ref } from "vue"
 import { useRouter } from "vue-router"
 
@@ -145,7 +151,7 @@ pane.value.open = false
 
 interface Setup {
 	organization: { name: string; about: string; country: string; currency: string; time_zone: string; language: string }
-	templates: { name: string; title: string; icon: string; description: string; app: string }[]
+	templates: { name: string; title: string; icon: string; description: string; uses: string | null }[]
 	workspaces: { name: string; title: string }[]
 	time_zones: string[]
 }
@@ -153,6 +159,7 @@ const setup = ref<Setup | null>(null)
 const org = reactive({ name: "", about: "", country: "", currency: "", time_zone: "", language: "en" })
 
 const chosen = ref(new Set<string>())
+const showWorkspaces = ref(false)
 const workspaces = ref(new Set<string>())
 const toggle = (set: Set<string>, value: string) => (set.has(value) ? set.delete(value) : set.add(value))
 

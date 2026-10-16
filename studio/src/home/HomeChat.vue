@@ -30,7 +30,7 @@
 						v-for="idea in SETUP_IDEAS"
 						:key="idea"
 						type="button"
-						class="rounded-2 px-2 py-1 text-left text-sm text-ink-gray-6 hover:bg-surface-gray-2 hover:text-ink-gray-8"
+						class="rounded-4 px-2 py-1 text-left text-sm text-ink-gray-6 hover:bg-surface-gray-2 hover:text-ink-gray-8"
 						@click="prefill(idea)"
 					>
 						{{ idea }}

@@ -1,5 +1,6 @@
 <template>
-	<WidgetFrame v-bind="$attrs" :widget="widget" :count="items?.length">
+	<!-- on a Home the inbox holds only what its queues do not show, and stays away while that is nothing -->
+	<WidgetFrame v-if="!(onHome && items && !items.length)" v-bind="$attrs" :widget="widget" :count="items?.length">
 		<div v-if="!items" class="flex flex-col gap-2 p-3">
 			<Skeleton v-for="i in 3" :key="i" class="h-4 w-full rounded" />
 		</div>
@@ -64,6 +65,7 @@ defineOptions({ inheritAttrs: false })
 const props = defineProps<{ widget: Widget }>()
 
 const items = ref<Item[] | null>(null)
+const onHome = !props.widget.space
 async function load() {
 	items.value = (await getWidget<{ items: Item[] }>(props.widget).catch(() => ({ items: [] }))).items
 }

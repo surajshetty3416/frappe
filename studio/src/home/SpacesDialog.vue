@@ -11,7 +11,7 @@
 				<div
 					v-for="space in matches"
 					:key="space.name"
-					class="flex items-center gap-3 rounded-2 px-2 py-2 hover:bg-surface-gray-1"
+					class="flex items-center gap-3 rounded-4 px-2 py-2 hover:bg-surface-gray-1"
 				>
 					<span :class="spaceIcon(space.icon)" class="size-4 shrink-0 text-ink-gray-6" />
 					<RouterLink :to="`/home/s/${encodeURIComponent(space.name)}`" class="min-w-0 flex-1" @click="open = false">

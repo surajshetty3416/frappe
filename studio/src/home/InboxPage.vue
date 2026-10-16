@@ -14,7 +14,7 @@
 					/>
 				</div>
 			</header>
-			<div class="overflow-hidden rounded-3 border border-outline-gray-2">
+			<div class="overflow-hidden rounded-6 border border-outline-gray-2">
 				<div v-if="!items" class="flex flex-col gap-2 p-3">
 					<Skeleton v-for="i in 5" :key="i" class="h-4 w-full rounded" />
 				</div>

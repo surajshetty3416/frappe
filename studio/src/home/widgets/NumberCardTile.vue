@@ -1,7 +1,7 @@
 <template>
 	<!-- a desk Number Card in the strip of numbers -->
 	<div
-		class="relative flex h-[88px] w-[240px] flex-col justify-between rounded-3 border border-outline-gray-2 bg-surface-base px-4 py-3"
+		class="relative flex h-[88px] w-[240px] flex-col justify-between rounded-6 border border-outline-gray-2 bg-surface-base px-4 py-3"
 		:class="editing ? 'opacity-60' : ''"
 	>
 		<p class="truncate text-sm text-ink-gray-5">{{ widget.title || data?.label }}</p>
