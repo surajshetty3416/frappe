@@ -149,7 +149,9 @@ interface Setup {
 }
 const setup = ref<Setup | null>(null)
 const org = reactive({ name: "", about: "", country: "", currency: "", time_zone: "", language: "en" })
-const timeZones = (Intl as unknown as { supportedValuesOf: (key: string) => string[] }).supportedValuesOf("timeZone")
+const timeZones = (Intl as unknown as { supportedValuesOf: (key: string) => string[] })
+	.supportedValuesOf("timeZone")
+	.map((zone) => ({ label: zone.replace(/_/g, " "), value: zone }))
 
 const chosen = ref(new Set<string>())
 const workspaces = ref(new Set<string>())

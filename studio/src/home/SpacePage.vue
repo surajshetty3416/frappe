@@ -54,7 +54,7 @@ import { computed, onBeforeUnmount, ref, watch } from "vue"
 import { useRoute } from "vue-router"
 
 import WorkspaceGrid from "./WorkspaceGrid.vue"
-import { type Space, type Widget, joinSpace, openSpace, openView, pane, refreshed } from "./home"
+import { type Space, type Widget, joinSpace, openSpace, openView, pane, refreshed, spaceIcon } from "./home"
 import { errorText } from "./widgets/format"
 
 const route = useRoute()
@@ -62,6 +62,9 @@ const name = computed(() => String(route.params.space))
 
 const space = openSpace
 const error = ref("")
+const editing = ref(false)
+const draft = ref<Widget[]>([])
+const saving = ref(false)
 async function load() {
 	error.value = ""
 	try {
@@ -92,9 +95,6 @@ async function join() {
 	}
 }
 
-const editing = ref(false)
-const draft = ref<Widget[]>([])
-const saving = ref(false)
 function startEditing() {
 	draft.value = JSON.parse(JSON.stringify(space.value?.widgets ?? []))
 	editing.value = true

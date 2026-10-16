@@ -33,6 +33,13 @@ SITE_SETUP_KEY = "studio_site_setup_done"
 ORGANIZATION_KEY = "studio_organization"
 
 QUEUE_LIMIT = 20
+# the fields every DocType has, which a queue may show though its meta does not list them
+STANDARD_FIELDS = {
+	"name": {"label": "ID", "fieldtype": "Data"},
+	"owner": {"label": "Created By", "fieldtype": "Data"},
+	"creation": {"label": "Created", "fieldtype": "Datetime"},
+	"modified": {"label": "Updated", "fieldtype": "Datetime"},
+}
 INBOX_LIMIT = 30
 COUNT_LIMIT = 1000
 # a third, two thirds or the whole row, so widgets always pack; a half (m) is read as a third
@@ -79,7 +86,7 @@ WIDGETS = {
 	"dashboard_chart": ("A desk Dashboard Chart, by name", ("dashboard_chart",), ()),
 }
 
-DEFAULT_WORKSPACE = [{"type": "inbox", "size": "l"}]
+DEFAULT_WORKSPACE = [{"id": "inbox", "type": "inbox", "size": "l"}]
 
 
 @frappe.whitelist()
@@ -89,7 +96,7 @@ def get_workspace() -> dict[str, Any]:
 	from frappe.ai.spaces import home_slices
 
 	user = frappe.session.user
-	widgets = workspace() + home_slices()
+	widgets = one_inbox(workspace(personal_default=[]) + home_slices())
 	charts = [widget["chart"] for widget in widgets if widget["type"] == "chart"]
 	types = dict(
 		frappe.get_all(
@@ -140,7 +147,7 @@ def get_widget(widget: str, txt: str | None = None, space: str | None = None) ->
 	if kind == "queue":
 		return queue_rows(spec, txt)
 	if kind == "inbox":
-		return {"items": inbox()}
+		return {"items": inbox(skip=queued_assignments() if not space else ())}
 	if kind == "quick_entry":
 		return {"fields": form_fields(spec["doctype"], spec["fields"]), "can_create": can("create", spec)}
 	if kind == "embed":
@@ -400,9 +407,18 @@ def organization() -> dict[str, str] | None:
 	return json.loads(saved) if saved else None
 
 
-def workspace() -> list[dict[str, Any]]:
+def workspace(personal_default: list[dict[str, Any]] | None = None) -> list[dict[str, Any]]:
 	saved = frappe.defaults.get_user_default(WORKSPACE_KEY)
-	return json.loads(saved) if saved else clean(DEFAULT_WORKSPACE)
+	if saved:
+		return json.loads(saved)
+	return clean(DEFAULT_WORKSPACE if personal_default is None else personal_default)
+
+
+def one_inbox(widgets: list[dict[str, Any]]) -> list[dict[str, Any]]:
+	"""A Home has one inbox: the first of its widgets', or one on top when none brings it."""
+	inboxes = [widget for widget in widgets if widget["type"] == "inbox"]
+	rest = [widget for widget in widgets if widget["type"] != "inbox"]
+	return [inboxes[0] if inboxes else clean(DEFAULT_WORKSPACE)[0], *rest]
 
 
 def find_widget(widget: str, space: str | None = None) -> dict[str, Any]:
@@ -462,7 +478,7 @@ def check(widget: dict[str, Any]) -> None:
 		return
 	meta = frappe.get_meta(widget["doctype"])
 	for field in widget.get("fields") or []:
-		if not meta.get_field(field) and field != "name":
+		if not meta.get_field(field) and field not in STANDARD_FIELDS:
 			frappe.throw(
 				_("{0} has no field {1}.").format(widget["doctype"], field), title=_("Invalid Widget")
 			)
@@ -525,7 +541,20 @@ def queue_rows(spec: dict[str, Any], txt: str | None) -> dict[str, Any]:
 	return {"rows": rows, "count": count, "fields": form_fields(doctype, shown)}
 
 
-def inbox() -> list[dict[str, Any]]:
+def queued_assignments() -> set[str]:
+	"""The DocTypes whose records a queue on the user's Home already lists as theirs, by assignment."""
+	from frappe.ai.spaces import home_slices
+
+	return {
+		widget["doctype"]
+		for widget in workspace(personal_default=[]) + home_slices()
+		if widget["type"] == "queue"
+		and "@me" in frappe.as_json((widget.get("filters") or {}).get("_assign") or "")
+	}
+
+
+def inbox(skip: set[str] | tuple = ()) -> list[dict[str, Any]]:
+	"""What waits on the user; assignments of the DocTypes in `skip` are left to the queues that show them."""
 	from frappe.model.workflow import get_transitions
 
 	items = []
@@ -536,6 +565,8 @@ def inbox() -> list[dict[str, Any]]:
 		order_by="modified desc",
 		limit=INBOX_LIMIT,
 	):
+		if todo.reference_type in skip:
+			continue
 		items.append(
 			{
 				"kind": "assignment",
@@ -610,6 +641,9 @@ def form_fields(doctype: str, fieldnames: list[str]) -> list[dict[str, Any]]:
 	meta = frappe.get_meta(doctype)
 	fields = []
 	for fieldname in fieldnames:
+		if fieldname in STANDARD_FIELDS and fieldname != "name":
+			fields.append({"fieldname": fieldname, **STANDARD_FIELDS[fieldname], "read_only": 1})
+			continue
 		df = meta.get_field(fieldname)
 		if not df or df.fieldtype in table_fields or df.fieldtype not in data_fieldtypes:
 			continue
@@ -705,7 +739,9 @@ def number_card(name: str) -> dict[str, Any]:
 		value = get_result(card.as_dict(), card.filters_json)
 	if isinstance(value, dict):
 		value = value.get("value")
-	return {"label": _(card.label), "value": value, "currency": card.currency}
+	# a count is a number of records; only a sum or an average of money is money
+	money = card.function != "Count" and card.currency
+	return {"label": _(card.label), "value": value, "currency": money or None}
 
 
 def dashboard_chart(name: str) -> dict[str, Any]:

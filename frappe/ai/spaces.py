@@ -279,6 +279,10 @@ def space_module() -> str:
 		frappe.get_doc(
 			{"doctype": "Module Def", "module_name": "Spaces", "custom": 1, "app_name": "frappe"}
 		).insert(ignore_permissions=True)
+		# a new module gets a page to open on in the desk; Spaces open from the Home, so that page
+		# would be an empty Space everyone sees
+		if frappe.db.exists("Workspace", "Spaces"):
+			frappe.delete_doc("Workspace", "Spaces", ignore_permissions=True, force=True)
 	return "Spaces"
 
 

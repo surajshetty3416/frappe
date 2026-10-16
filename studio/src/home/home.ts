@@ -185,18 +185,19 @@ export async function loadInboxCount() {
 	if (items) inboxCount.value = items.length
 }
 
-export const spaceIcon = (icon: string | null | undefined) => `lucide-${SPACE_ICONS[icon ?? ""] ?? "layers"}`
+// a Space's icon, by the name its workspace keeps; whole class names, so the icon build finds them
+export const spaceIcon = (icon: string | null | undefined) => SPACE_ICONS[icon ?? ""] ?? "lucide-layers"
 const SPACE_ICONS: Record<string, string> = {
-	organization: "building-2",
-	users: "users",
-	support: "life-buoy",
-	handshake: "handshake",
-	product: "map",
-	code: "code-xml",
-	calendar: "calendar-days",
-	money: "wallet",
-	community: "messages-square",
-	folder: "folder",
+	organization: "lucide-building-2",
+	users: "lucide-users",
+	support: "lucide-life-buoy",
+	handshake: "lucide-handshake",
+	product: "lucide-map",
+	code: "lucide-code-xml",
+	calendar: "lucide-calendar-days",
+	money: "lucide-wallet",
+	community: "lucide-messages-square",
+	folder: "lucide-folder",
 }
 
 // for showing the demo: the personas this one may switch to, when the site turns that on

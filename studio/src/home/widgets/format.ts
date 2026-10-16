@@ -1,3 +1,5 @@
+import { dayjs } from "frappe-ui"
+
 export interface FieldSpec {
 	fieldname: string
 	label: string
@@ -15,6 +17,8 @@ export function shown(field: FieldSpec, value: unknown) {
 	if (value === null || value === undefined || value === "") return "—"
 	if (field.fieldtype === "Check") return value ? field.label : `Not ${field.label.toLowerCase()}`
 	if (NUMBERS.has(field.fieldtype)) return Number(value).toLocaleString()
+	if (field.fieldtype === "Datetime") return dayjs(String(value)).fromNow()
+	if (field.fieldtype === "Date") return dayjs(String(value)).format("D MMM")
 	return String(value)
 }
 

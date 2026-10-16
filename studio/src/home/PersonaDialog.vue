@@ -37,6 +37,8 @@ const switching = ref<string | null>(null)
 async function switchTo(user: string) {
 	switching.value = user
 	await call("frappe.ai.demo.personas.switch_persona", { user })
+	// each persona starts with the pane closed, as they would on their own machine
+	localStorage.removeItem("home-pane")
 	window.location.href = "/home"
 }
 </script>
