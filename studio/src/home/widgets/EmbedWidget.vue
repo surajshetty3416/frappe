@@ -3,9 +3,9 @@
 		<template #header>
 			<Button v-if="view" variant="ghost" size="sm" icon="lucide-maximize-2" tooltip="Open" :route="viewRoute(view)" />
 		</template>
-		<div class="h-[480px]">
+		<div :class="view?.view ? 'h-[480px]' : ''">
 			<iframe v-if="view?.view" :src="view.view" :title="view.title" class="size-full border-0" />
-			<p v-else-if="loaded" class="p-4 text-base text-ink-gray-5">
+			<p v-else-if="loaded" class="px-3 py-2.5 text-sm text-ink-gray-5">
 				{{ view ? `This ${view.label.toLowerCase()} is not published yet.` : "You cannot open what this shows." }}
 			</p>
 		</div>

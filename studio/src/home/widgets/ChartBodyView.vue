@@ -1,6 +1,6 @@
 <template>
 	<ChartView :chart="shown" v-slot="{ chart, onSegmentClick }">
-		<div v-if="chart.doc.chart_type === 'Number'" class="flex h-full gap-3">
+		<div v-if="chart.doc.chart_type === 'Number'" class="grid h-full auto-cols-[240px] grid-flow-col gap-3">
 			<ChartBody v-for="reading in numberReadings(chart.doc.config)" :key="reading" :chart="chart" :reading="reading" readonly />
 		</div>
 		<ChartBody v-else :chart="chart" readonly @segment-click="onSegmentClick" />

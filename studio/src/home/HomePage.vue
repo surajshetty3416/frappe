@@ -1,20 +1,18 @@
 <template>
 	<div data-layer="shell" class="h-full overflow-y-auto">
-		<div class="mx-auto flex w-full max-w-[1280px] flex-col gap-6 px-6 pb-32 pt-8">
-			<header class="flex flex-wrap items-center gap-2">
-				<div class="mr-auto flex flex-col gap-0.5">
-					<h1 class="text-2xl font-semibold text-ink-gray-9">{{ greeting }}</h1>
-					<p class="text-base text-ink-gray-5">{{ today }}</p>
-				</div>
+		<div class="mx-auto flex w-full max-w-[1600px] flex-col gap-3 px-5 pb-28 pt-4">
+			<header class="flex h-9 flex-wrap items-center gap-2">
+				<h1 class="text-lg font-semibold text-ink-gray-9">{{ greeting }}</h1>
+				<span class="mr-auto text-sm text-ink-gray-5">{{ today }}</span>
 				<template v-if="workspace && !editing">
-					<Button variant="ghost" icon-left="lucide-sparkles" label="Improve with AI" @click="improve" />
-					<Button variant="ghost" icon-left="lucide-layout-dashboard" label="Arrange" @click="startEditing" />
+					<Button variant="ghost" size="sm" icon-left="lucide-sparkles" label="Improve with AI" @click="improve" />
+					<Button variant="ghost" size="sm" icon-left="lucide-layout-dashboard" label="Arrange" @click="startEditing" />
 				</template>
 				<template v-if="editing">
-					<Button v-if="workspace?.customized" variant="ghost" label="Reset" @click="reset" />
-					<Button v-if="workspace?.can_set_default" variant="ghost" label="Save for everyone" @click="save(true)" />
-					<Button label="Cancel" @click="editing = false" />
-					<Button variant="solid" label="Save" :loading="saving" @click="save(false)" />
+					<Button v-if="workspace?.customized" variant="ghost" size="sm" label="Reset" @click="reset" />
+					<Button v-if="workspace?.can_set_default" variant="ghost" size="sm" label="Save for everyone" @click="save(true)" />
+					<Button size="sm" label="Cancel" @click="editing = false" />
+					<Button variant="solid" size="sm" label="Save" :loading="saving" @click="save(false)" />
 				</template>
 			</header>
 
@@ -22,17 +20,17 @@
 				<LoadingIndicator class="size-4 text-ink-gray-5" />
 			</div>
 			<template v-else>
-				<p v-if="editing" class="rounded-6 bg-surface-gray-1 px-3 py-2 text-base text-ink-gray-6">
+				<p v-if="editing" class="text-sm text-ink-gray-5">
 					Move, resize or remove widgets. To add one, describe it to the assistant, like “a queue of sponsors who haven't replied”.
 				</p>
 				<WorkspaceGrid :widgets="editing ? draft : workspace.widgets" :editing="editing" @update="(widgets) => (draft = widgets)" />
 				<button
 					v-if="!editing"
 					type="button"
-					class="flex items-center justify-center gap-2 rounded-8 border border-dashed border-outline-gray-2 py-4 text-base text-ink-gray-5 hover:border-outline-gray-3 hover:text-ink-gray-7"
+					class="flex h-9 items-center justify-center gap-2 rounded-8 border border-dashed border-outline-gray-2 text-sm text-ink-gray-5 hover:border-outline-gray-3 hover:text-ink-gray-7"
 					@click="addWidget"
 				>
-					<span class="lucide-plus size-4" />Add a widget by describing it
+					<span class="lucide-plus size-3.5" />Add a widget by describing it<kbd class="ml-1 font-mono text-xs text-ink-gray-4">⌘K</kbd>
 				</button>
 			</template>
 		</div>
@@ -59,7 +57,7 @@ const greeting = computed(() => {
 	const part = hour < 12 ? "morning" : hour < 17 ? "afternoon" : "evening"
 	return `Good ${part}, ${firstName}`
 })
-const today = dayjs().format("dddd, D MMMM")
+const today = dayjs().format("ddd, D MMM")
 
 const editing = ref(false)
 const draft = ref<Widget[]>([])

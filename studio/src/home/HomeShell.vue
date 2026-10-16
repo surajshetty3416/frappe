@@ -6,9 +6,10 @@
 			<AskBar v-show="!chatOpen && !inSetup" />
 		</div>
 		<!-- beside the page on a wide screen, over its edge on a narrow one -->
+		<!-- setup has its own chat; a second on the same conversation would fight it -->
 		<RightPane
-			v-if="paneSeen"
-			v-show="pane.open && !inSetup"
+			v-if="paneSeen && !inSetup"
+			v-show="pane.open"
 			class="w-[400px] shrink-0 border-l border-outline-gray-1 max-xl:absolute max-xl:inset-y-0 max-xl:right-0 max-xl:z-20 max-xl:shadow-xl"
 		/>
 	</div>

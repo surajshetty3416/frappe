@@ -39,6 +39,8 @@ export interface Widget {
 	doctype?: string
 	name?: string
 	chart?: string
+	// a chart's type, which the server tells and the widget does not keep
+	chart_type?: string
 	text?: string
 	search?: boolean
 	actions?: Action[]

@@ -1,6 +1,6 @@
 <template>
 	<WidgetFrame v-bind="$attrs" :widget="widget">
-		<p class="whitespace-pre-wrap p-3 text-base leading-relaxed text-ink-gray-7">{{ widget.text }}</p>
+		<p class="whitespace-pre-wrap px-3 py-2.5 text-sm leading-relaxed text-ink-gray-7">{{ widget.text }}</p>
 	</WidgetFrame>
 </template>
 

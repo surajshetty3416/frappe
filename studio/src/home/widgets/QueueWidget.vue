@@ -1,54 +1,53 @@
 <template>
 	<WidgetFrame v-bind="$attrs" :widget="widget" :count="data?.count">
-		<div v-if="widget.search" class="border-b border-outline-gray-1 p-2">
-			<TextInput v-model="txt" size="sm" variant="ghost" :placeholder="`Search ${widgetTitle(widget).toLowerCase()}`">
-				<template #prefix><span class="lucide-search size-3.5 text-ink-gray-5" /></template>
+		<template #header>
+			<TextInput v-if="widget.search" v-model="txt" class="w-44" size="sm" variant="subtle" placeholder="Search">
+				<template #prefix><span class="lucide-search size-3.5 text-ink-gray-4" /></template>
 			</TextInput>
+		</template>
+		<div v-if="!data" class="flex flex-col gap-2 p-3">
+			<Skeleton v-for="i in 3" :key="i" class="h-4 w-full rounded" />
 		</div>
-		<div class="h-[360px] overflow-y-auto">
-			<div v-if="!data" class="flex h-full items-center justify-center">
-				<LoadingIndicator class="size-4 text-ink-gray-5" />
-			</div>
-			<p v-else-if="data.denied" class="p-4 text-base text-ink-gray-5">You cannot see {{ widget.doctype }} records.</p>
-			<p v-else-if="!data.rows.length" class="p-4 text-base text-ink-gray-5">{{ txt ? "Nothing matches." : "Nothing waits here. All done." }}</p>
-			<ul v-else class="divide-y divide-outline-gray-1">
-				<li
-					v-for="row in data.rows"
-					:key="row.name"
-					class="group flex cursor-pointer items-center gap-3 px-3 py-2 hover:bg-surface-gray-1"
-					@click="showRecord(widget.doctype!, row.name, row._title)"
-				>
-					<div class="min-w-0 flex-1">
-						<p class="truncate text-base text-ink-gray-8">{{ row._title }}</p>
-						<p class="truncate text-sm text-ink-gray-5">
-							<template v-for="(field, i) in data.fields" :key="field.fieldname">
-								<span v-if="i" class="text-ink-gray-3"> · </span>{{ shown(field, row[field.fieldname]) }}
-							</template>
-						</p>
-					</div>
-					<div class="flex shrink-0 items-center gap-1" @click.stop>
-						<Button
-							v-for="action in row._actions"
-							:key="action"
-							size="sm"
-							:variant="action === row._actions[0] ? 'subtle' : 'ghost'"
-							:label="widget.actions![action].label"
-							:loading="busy === `${row.name}/${action}`"
-							@click="run(row, action)"
-						/>
-					</div>
-				</li>
-			</ul>
-		</div>
+		<p v-else-if="data.denied" class="px-3 py-2.5 text-sm text-ink-gray-5">You cannot see {{ widget.doctype }} records.</p>
+		<p v-else-if="!data.rows.length" class="flex items-center gap-2 px-3 py-2.5 text-sm text-ink-gray-5">
+			<span class="lucide-check size-3.5" />{{ txt ? "Nothing matches." : "All clear." }}
+		</p>
+		<ul v-else class="max-h-[384px] divide-y divide-outline-gray-1 overflow-y-auto [scrollbar-gutter:stable]">
+			<li
+				v-for="row in data.rows"
+				:key="row.name"
+				class="group flex h-9 cursor-pointer items-center gap-3 px-3 transition-colors duration-75 hover:bg-surface-gray-1"
+				@click="showRecord(widget.doctype!, row.name, row._title)"
+			>
+				<span class="min-w-0 shrink truncate text-sm text-ink-gray-8">{{ row._title }}</span>
+				<span class="min-w-0 flex-1 truncate text-sm tabular-nums text-ink-gray-5">
+					<template v-for="(field, i) in details(row)" :key="field.fieldname">
+						<span v-if="i" class="text-ink-gray-3"> · </span>{{ shown(field, row[field.fieldname]) }}
+					</template>
+				</span>
+				<span class="flex shrink-0 items-center gap-1" @click.stop>
+					<Button
+						v-for="(action, i) in row._actions"
+						:key="action"
+						size="sm"
+						:variant="i === 0 ? 'subtle' : 'ghost'"
+						:class="i === 0 ? '' : 'opacity-0 group-hover:opacity-100 focus-visible:opacity-100'"
+						:label="widget.actions![action].label"
+						:loading="busy === `${row.name}/${action}`"
+						@click="run(row, action)"
+					/>
+				</span>
+			</li>
+		</ul>
 	</WidgetFrame>
 </template>
 
 <script setup lang="ts">
 import { watchDebounced } from "@vueuse/core"
-import { Button, LoadingIndicator, TextInput, call, toast } from "frappe-ui"
+import { Button, Skeleton, TextInput, call, toast } from "frappe-ui"
 import { ref, watch } from "vue"
 
-import { type Widget, getWidget, refreshed, showRecord, widgetTitle } from "../home"
+import { type Widget, getWidget, refreshed, showRecord } from "../home"
 import WidgetFrame from "./WidgetFrame.vue"
 import { type FieldSpec, errorText, shown } from "./format"
 
@@ -59,6 +58,9 @@ const props = defineProps<{ widget: Widget }>()
 
 const data = ref<{ rows: Row[]; count: number; fields: FieldSpec[]; denied?: boolean } | null>(null)
 const txt = ref("")
+
+// a row's details, less any that only repeats its title
+const details = (row: Row) => data.value!.fields.filter((field) => row[field.fieldname] !== row._title)
 
 async function load() {
 	data.value = await getWidget<NonNullable<typeof data.value>>(props.widget.id, txt.value || undefined).catch((error) => {

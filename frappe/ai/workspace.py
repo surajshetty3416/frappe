@@ -34,7 +34,8 @@ ORGANIZATION_KEY = "studio_organization"
 QUEUE_LIMIT = 20
 INBOX_LIMIT = 30
 COUNT_LIMIT = 1000
-SIZES = ("s", "m", "l", "xl")
+# a third, two thirds or the whole row, so widgets always pack; a half (m) is read as a third
+SIZES = ("s", "l", "xl")
 
 # what each widget does, and the keys it takes besides `type`, `title` and `size`
 WIDGETS = {
@@ -79,10 +80,23 @@ DEFAULT_WORKSPACE = [{"type": "inbox", "size": "l"}]
 
 @frappe.whitelist()
 def get_workspace() -> dict[str, Any]:
-	"""The user's widgets, and what the user still has to set up."""
+	"""The user's widgets, and what the user still has to set up. A chart widget says its chart's
+	type, so the workspace can set numbers apart from charts."""
 	user = frappe.session.user
+	widgets = workspace()
+	charts = [widget["chart"] for widget in widgets if widget["type"] == "chart"]
+	types = dict(
+		frappe.get_all(
+			"Insights Chart v3", filters={"name": ("in", charts)}, fields=["name", "chart_type"], as_list=True
+		)
+		if charts
+		else []
+	)
 	return {
-		"widgets": workspace(),
+		"widgets": [
+			{**widget, "chart_type": types.get(widget["chart"])} if widget["type"] == "chart" else widget
+			for widget in widgets
+		],
 		"customized": bool(frappe.defaults.get_defaults_for(user).get(WORKSPACE_KEY)),
 		"setup": setup_state(),
 		"can_set_default": "System Manager" in frappe.get_roles(),
@@ -200,7 +214,7 @@ def get_record(doctype: str, name: str) -> dict[str, Any]:
 		if not frappe.get_meta(doctype).get_field(field["fieldname"]).hidden
 	]
 	try:
-		transitions = sorted({t.action for t in get_transitions(doc)})
+		transitions = list(dict.fromkeys(t.action for t in get_transitions(doc)))
 	except frappe.ValidationError:
 		transitions = []
 	return {
@@ -246,7 +260,7 @@ def read_workspace(*, ctx: ToolContext) -> dict[str, Any]:
 			kind: {"does": does, "needs": needs, "may_have": extra}
 			for kind, (does, needs, extra) in WIDGETS.items()
 		},
-		"sizes": "s is a third of the row, m half, l two thirds, xl the whole row",
+		"sizes": "s is a third of the row, l two thirds, xl the whole row",
 	}
 
 
@@ -396,7 +410,7 @@ def clean(widgets: list[dict[str, Any]]) -> list[dict[str, Any]]:
 			"id": widget.get("id") or frappe.generate_hash(length=8),
 			"type": kind,
 			"title": widget.get("title") or None,
-			"size": widget.get("size") if widget.get("size") in SIZES else "m",
+			"size": widget.get("size") if widget.get("size") in SIZES else "s",
 		}
 		for key in needs:
 			if widget.get(key) in (None, "", []):
@@ -524,7 +538,7 @@ def inbox() -> list[dict[str, Any]]:
 			continue
 		doc = frappe.get_doc(pending.reference_doctype, pending.reference_name)
 		try:
-			actions = sorted({t.action for t in get_transitions(doc)})
+			actions = list(dict.fromkeys(t.action for t in get_transitions(doc)))
 		except frappe.ValidationError:
 			actions = []
 		if not actions:

@@ -26,7 +26,7 @@ A message whose studio_context has `setup` comes from the setup screen. The pers
 - A quick entry is for a record the person makes often from nothing: a few fields, the rest in `defaults`.
 - A chart widget shows an existing analytics chart by its name. When the number the person watches has no chart, build one with the dashboards skill first.
 - An embed shows an app the person already uses, when no queue can do its job.
-- Sizes: s is a third of the row, m half, l two thirds, xl the whole row. Give a queue l or xl, a number s.
+- Sizes: s is a third of the row, l two thirds, xl the whole row. Give a queue or the inbox l, a chart s, and fill each row: an l beside an s, or three s. A number chart shows as a tile in a strip above the rest, whatever its size.
 - Six to eight widgets at most. Each one earns its place by work the person does in it.
 - Keep the `id` of every widget that stays; send the whole list each time.
 - Never put a widget that only links somewhere.

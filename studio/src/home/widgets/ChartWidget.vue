@@ -1,6 +1,6 @@
 <template>
 	<WidgetFrame v-bind="$attrs" :widget="{ ...widget, title: widget.title || title }">
-		<div data-layer="analytics" class="min-h-0 p-2" :class="number ? 'h-[150px]' : 'h-[300px]'">
+		<div data-layer="analytics" class="h-[240px] min-h-0 p-2">
 			<ChartBodyView v-if="ready" :key="`${widget.chart}/${refreshed}`" :chart="widget.chart!" />
 		</div>
 	</WidgetFrame>
@@ -25,11 +25,7 @@ import("@analytics/session").then(async ({ default: session }) => {
 })
 
 const title = ref("")
-const number = ref(false)
-call("frappe.client.get_value", { doctype: "Insights Chart v3", filters: props.widget.chart, fieldname: ["title", "chart_type"] })
-	.then((doc) => {
-		title.value = doc?.title ?? ""
-		number.value = doc?.chart_type === "Number"
-	})
+call("frappe.client.get_value", { doctype: "Insights Chart v3", filters: props.widget.chart, fieldname: "title" })
+	.then((doc) => (title.value = doc?.title ?? ""))
 	.catch(() => {})
 </script>
