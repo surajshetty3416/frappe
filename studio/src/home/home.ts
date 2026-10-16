@@ -162,7 +162,7 @@ export interface Space {
 	joined: boolean
 	can_edit: boolean
 	// what fills its conversation, from the app that provides it, or nothing and its activity shows
-	conversation: { provider: string; url: string } | null
+	conversation: { provider: string; url: string; theme_key?: string } | null
 }
 
 export const spaces = ref<{ mine: SpaceSummary[]; others: SpaceSummary[] } | null>(null)

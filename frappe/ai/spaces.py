@@ -14,7 +14,8 @@ Apps take part through two hooks:
   name, title, icon, description, roles and widgets.
 - `space_conversation`: a function that takes a Space's name and gives what fills its
   conversation, {"provider", "url"}, or None; the last app's answer that is not None wins. Without
-  one, a Space shows the activity on the records its widgets show."""
+  one, a Space shows the activity on the records its widgets show. An app that keeps its light or
+  dark theme in localStorage adds "theme_key", and the shell writes its own theme there first."""
 
 from __future__ import annotations
 

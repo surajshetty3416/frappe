@@ -1,6 +1,6 @@
 <template>
 	<!-- the conversation an app provides for the Space, or what people did on its records -->
-	<iframe v-if="space.conversation?.url" :key="space.conversation.url" :src="space.conversation.url" :title="`${space.title} conversation`" class="size-full border-0" />
+	<iframe v-if="space.conversation?.url" :key="`${space.conversation.url}/${resolvedColorScheme}`" :src="themed(space.conversation)" :title="`${space.title} conversation`" class="size-full border-0" />
 	<div v-else class="flex h-full flex-col overflow-y-auto">
 		<p class="border-b border-outline-gray-1 px-3 py-2 text-xs text-ink-gray-5">
 			Recent activity on this Space's records. Install a chat app such as Raven to talk here.
@@ -29,12 +29,18 @@
 </template>
 
 <script setup lang="ts">
-import { Avatar, Skeleton, call, dayjs } from "frappe-ui"
+import { Avatar, Skeleton, call, dayjs, useColorScheme } from "frappe-ui"
 import { ref, watch } from "vue"
 
 import { type Space, showRecord } from "./home"
 
 const props = defineProps<{ space: Space }>()
+
+const { resolvedColorScheme } = useColorScheme()
+function themed(conversation: NonNullable<Space["conversation"]>) {
+	if (conversation.theme_key) localStorage.setItem(conversation.theme_key, resolvedColorScheme.value)
+	return conversation.url
+}
 
 interface Entry {
 	name: string
