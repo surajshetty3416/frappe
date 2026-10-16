@@ -124,6 +124,29 @@ const TOOLS = {
 	list_chats: { icon: "lucide-messages-square", label: "Reading Chats", stat: (result) => count(result.length, "chat") },
 	start_chat: { icon: "lucide-message-square-plus", label: "Starting Chat", subject: (args) => subject({ name: args.title }) },
 	send_to_chat: { icon: "lucide-send", label: "Sending to Chat", subject: (args) => subject({ content: args.message }) },
+	get_setup_state: { icon: "lucide-compass", label: "Reading Your Setup" },
+	configure_site: {
+		icon: "lucide-building-2",
+		label: "Setting Up the Organization",
+		subject: (args) => [args.organization, args.country, args.currency, args.time_zone].filter(Boolean).join(" · "),
+		view: JsonView,
+		asks: true,
+	},
+	invite_people: {
+		icon: "lucide-user-plus",
+		label: "Inviting People",
+		subject: (args) => (args.people ?? []).map((person) => person.first_name || person.email).join(", "),
+		view: JsonView,
+		asks: true,
+		stat: (result) => count(result.length ?? 0, "person", "people"),
+	},
+	read_workspace: { icon: "lucide-layout-dashboard", label: "Reading Workspace" },
+	arrange_workspace: {
+		icon: "lucide-layout-dashboard",
+		label: "Arranging Workspace",
+		subject: (args) => (args.widgets ?? []).map((widget) => widget.title || widget.type).join(", "),
+		stat: (result) => count(result.length ?? 0, "widget"),
+	},
 };
 
 const ACTIONS = {

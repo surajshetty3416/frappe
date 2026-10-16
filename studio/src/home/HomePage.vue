@@ -1,68 +1,55 @@
 <template>
 	<div data-layer="shell" class="h-full overflow-y-auto">
-		<div class="mx-auto flex w-full max-w-[960px] flex-col gap-10 px-6 pb-32 pt-12">
-			<header class="flex items-start gap-4">
-				<div class="mr-auto flex flex-col gap-1">
-					<h1 class="text-3xl font-semibold text-ink-gray-9">{{ greeting }}</h1>
-					<p class="text-base text-ink-gray-5">Open what your team built, or ask about it below.</p>
+		<div class="mx-auto flex w-full max-w-[1280px] flex-col gap-6 px-6 pb-32 pt-8">
+			<header class="flex flex-wrap items-center gap-2">
+				<div class="mr-auto flex flex-col gap-0.5">
+					<h1 class="text-2xl font-semibold text-ink-gray-9">{{ greeting }}</h1>
+					<p class="text-base text-ink-gray-5">{{ today }}</p>
 				</div>
-				<Button v-if="home && !editing" variant="ghost" icon-left="lucide-layout-dashboard" label="Customize" @click="startEditing" />
+				<template v-if="workspace && !editing">
+					<Button variant="ghost" icon-left="lucide-sparkles" label="Improve with AI" @click="improve" />
+					<Button variant="ghost" icon-left="lucide-layout-dashboard" label="Arrange" @click="startEditing" />
+				</template>
+				<template v-if="editing">
+					<Button v-if="workspace?.customized" variant="ghost" label="Reset" @click="reset" />
+					<Button v-if="workspace?.can_set_default" variant="ghost" label="Save for everyone" @click="save(true)" />
+					<Button label="Cancel" @click="editing = false" />
+					<Button variant="solid" label="Save" :loading="saving" @click="save(false)" />
+				</template>
 			</header>
 
-			<div v-if="!home" class="flex h-24 items-center justify-center">
+			<div v-if="!workspace" class="flex h-24 items-center justify-center">
 				<LoadingIndicator class="size-4 text-ink-gray-5" />
 			</div>
-
-			<template v-else-if="editing">
-				<p class="rounded-6 bg-surface-gray-1 px-3 py-2 text-base text-ink-gray-6">
-					Move, remove or add sections. You can also ask the assistant, like “Put the registrations dashboard at the top of my home”.
-				</p>
-				<div
-					v-for="(section, i) in draft"
-					:key="section.id"
-					class="rounded-8 border border-dashed border-outline-gray-3 p-4"
-				>
-					<HomeSection :section="section">
-						<template #actions>
-							<Button variant="ghost" size="sm" icon="lucide-arrow-up" tooltip="Move up" :disabled="i === 0" @click="move(i, -1)" />
-							<Button variant="ghost" size="sm" icon="lucide-arrow-down" tooltip="Move down" :disabled="i === draft.length - 1" @click="move(i, 1)" />
-							<Button variant="ghost" size="sm" icon="lucide-trash-2" tooltip="Remove" @click="draft.splice(i, 1)" />
-						</template>
-					</HomeSection>
-				</div>
-				<Dropdown :options="addOptions" align="start">
-					<Button icon-left="lucide-plus" label="Add section" />
-				</Dropdown>
-				<footer class="flex flex-wrap items-center gap-2 border-t border-outline-gray-1 pt-4">
-					<Button variant="solid" label="Save" :loading="saving" @click="save(false)" />
-					<Button label="Cancel" @click="editing = false" />
-					<span class="flex-1" />
-					<Button v-if="home.customized" variant="ghost" label="Reset to default" @click="reset" />
-					<Button v-if="home.can_set_default" variant="ghost" label="Save as everyone's home" @click="save(true)" />
-				</footer>
-			</template>
-
 			<template v-else>
-				<HomeSection v-for="section in shown" :key="section.id" :section="section" />
+				<p v-if="editing" class="rounded-6 bg-surface-gray-1 px-3 py-2 text-base text-ink-gray-6">
+					Move, resize or remove widgets. To add one, describe it to the assistant, like “a queue of sponsors who haven't replied”.
+				</p>
+				<WorkspaceGrid :widgets="editing ? draft : workspace.widgets" :editing="editing" @update="(widgets) => (draft = widgets)" />
+				<button
+					v-if="!editing"
+					type="button"
+					class="flex items-center justify-center gap-2 rounded-8 border border-dashed border-outline-gray-2 py-4 text-base text-ink-gray-5 hover:border-outline-gray-3 hover:text-ink-gray-7"
+					@click="addWidget"
+				>
+					<span class="lucide-plus size-4" />Add a widget by describing it
+				</button>
 			</template>
 		</div>
-		<ViewPicker v-model:open="picking" @pick="addEmbed" />
 	</div>
 </template>
 
 <script setup lang="ts">
-import { Button, Dropdown, LoadingIndicator } from "frappe-ui"
+import { Button, LoadingIndicator, dayjs } from "frappe-ui"
 import { computed, ref } from "vue"
 
-import { artifactKinds } from "../artifacts"
 import { sessionUser } from "../session"
-import HomeSection from "./HomeSection.vue"
-import ViewPicker from "./ViewPicker.vue"
-import { type HomeArtifact, type Section, home, loadHome, openView, resetLayout, saveLayout } from "./home"
+import WorkspaceGrid from "./WorkspaceGrid.vue"
+import { type Widget, ask, askFocus, loadWorkspace, openView, resetWorkspace, saveWorkspace, workspace } from "./home"
 
 openView.value = null
 document.title = "Home"
-loadHome()
+loadWorkspace()
 
 const firstName = decodeURIComponent(document.cookie.match(/full_name=([^;]*)/)?.[1] ?? sessionUser())
 	.replace(/\+/g, " ")
@@ -72,48 +59,21 @@ const greeting = computed(() => {
 	const part = hour < 12 ? "morning" : hour < 17 ? "afternoon" : "evening"
 	return `Good ${part}, ${firstName}`
 })
-
-// an empty pinned section says how to fill it only while the home is arranged
-const shown = computed(() => home.value?.sections.filter((section) => section.type !== "pinned" || section.artifacts?.length) ?? [])
+const today = dayjs().format("dddd, D MMMM")
 
 const editing = ref(false)
-const draft = ref<Section[]>([])
+const draft = ref<Widget[]>([])
 const saving = ref(false)
-const picking = ref(false)
 
 function startEditing() {
-	draft.value = JSON.parse(JSON.stringify(home.value?.sections ?? []))
+	draft.value = JSON.parse(JSON.stringify(workspace.value?.widgets ?? []))
 	editing.value = true
-}
-
-function move(i: number, step: number) {
-	const [section] = draft.value.splice(i, 1)
-	draft.value.splice(i + step, 0, section)
-}
-
-const add = (section: Omit<Section, "id" | "title">) =>
-	draft.value.push({ id: Math.random().toString(36).slice(2, 10), title: null, ...section })
-
-const addOptions = computed(() => [
-	{ label: "Pinned", icon: "lucide-pin", onClick: () => add({ type: "pinned" }) },
-	{ label: "Recently updated", icon: "lucide-clock", onClick: () => add({ type: "recent" }) },
-	{ label: "Browse", icon: "lucide-layout-grid", onClick: () => add({ type: "browse" }) },
-	...artifactKinds.map((kind) => ({
-		label: `All ${kind.title.toLowerCase()}`,
-		icon: kind.icon,
-		onClick: () => add({ type: "list", doctype: kind.doctypes[0] }),
-	})),
-	{ label: "A view, shown in the page", icon: "lucide-app-window", onClick: () => (picking.value = true) },
-])
-
-function addEmbed(artifact: HomeArtifact) {
-	add({ type: "embed", doctype: artifact.doctype, name: artifact.name })
 }
 
 async function save(forEveryone: boolean) {
 	saving.value = true
 	try {
-		await saveLayout(draft.value, forEveryone)
+		await saveWorkspace(draft.value, forEveryone)
 		editing.value = false
 	} finally {
 		saving.value = false
@@ -121,7 +81,15 @@ async function save(forEveryone: boolean) {
 }
 
 async function reset() {
-	await resetLayout()
+	await resetWorkspace()
 	editing.value = false
 }
+
+const addWidget = () => askFocus.value++
+
+const improve = () =>
+	ask(
+		"Look at how I've been working lately (what I changed, what's assigned to me, what waits on me) and at my workspace. " +
+			"Suggest what to add, change or drop so I can do more from here. Ask me before you change it."
+	)
 </script>

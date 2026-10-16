@@ -2,7 +2,7 @@
 	<aside class="flex h-full flex-col bg-surface-base">
 		<header data-layer="shell" class="flex h-12 shrink-0 items-center gap-1 border-b border-outline-gray-1 px-2">
 			<Button
-				v-for="tab in TABS"
+				v-for="tab in tabs"
 				:key="tab.value"
 				:variant="pane.tab === tab.value ? 'subtle' : 'ghost'"
 				:label="tab.label"
@@ -31,6 +31,9 @@
 		<div v-if="chatSeen" v-show="pane.tab === 'chat'" class="min-h-0 flex-1">
 			<HomeChat />
 		</div>
+		<div v-if="pane.tab === 'record'" data-layer="shell" class="min-h-0 flex-1 overflow-y-auto">
+			<RecordPane v-if="openRecord" :doctype="openRecord.doctype" :name="openRecord.name" />
+		</div>
 		<div v-if="pane.tab === 'details'" data-layer="shell" class="min-h-0 flex-1 overflow-y-auto">
 			<ViewDetails v-if="openView" :view="openView" />
 			<p v-else class="p-4 text-base text-ink-gray-5">Open a view to see its details.</p>
@@ -40,16 +43,18 @@
 
 <script setup lang="ts">
 import { Button } from "frappe-ui"
-import { ref, watchEffect } from "vue"
+import { computed, ref, watchEffect } from "vue"
 
 import HomeChat from "./HomeChat.vue"
+import RecordPane from "./RecordPane.vue"
 import ViewDetails from "./ViewDetails.vue"
-import { homeChat, openView, pane, question } from "./home"
+import { homeChat, openRecord, openView, pane, question } from "./home"
 
-const TABS = [
-	{ label: "Chat", value: "chat" },
-	{ label: "Details", value: "details" },
-] as const
+const tabs = computed(() => [
+	{ label: "Chat", value: "chat" as const },
+	...(openRecord.value ? [{ label: "Record", value: "record" as const }] : []),
+	...(openView.value ? [{ label: "Details", value: "details" as const }] : []),
+])
 
 const chatSeen = ref(false)
 watchEffect(() => pane.value.tab === "chat" && (chatSeen.value = true))

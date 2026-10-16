@@ -11,8 +11,10 @@
 		>
 			<template #intro>
 				<div data-layer="shell" class="px-2 text-center">
-					<h2 class="text-xl font-semibold text-ink-gray-9">Ask about anything here</h2>
-					<p class="mt-1 text-base text-ink-gray-5">Find a view, or ask a question of the one you have open.</p>
+					<h2 class="text-xl font-semibold text-ink-gray-9">{{ setup ? "Let's set you up" : "Ask about anything here" }}</h2>
+					<p class="mt-1 text-base text-ink-gray-5">
+						{{ setup ? "Tell me what you work on, and I'll build your workspace." : "Ask about your work, or change your workspace." }}
+					</p>
 				</div>
 			</template>
 		</FlowApp>
@@ -25,12 +27,15 @@ import { useRouter } from "vue-router"
 
 import { type Artifact, artifactIcon } from "../artifacts"
 import { type ChatContext, contextChips } from "../context"
-import { chatSend, homeChat, kindOf, openView, question, viewInChat, viewRoute } from "./home"
+import { chatSend, homeChat, kindOf, openRecord, openView, pane, question, viewInChat, viewRoute } from "./home"
 
 const FlowApp = defineAsyncComponent(async () => {
 	await import("@ai/index.css")
 	return import("@ai/App.vue")
 })
+
+// in the first-run setup, every message tells the assistant so, and it leads the person through it
+const props = defineProps<{ setup?: { site: boolean } }>()
 
 const router = useRouter()
 
@@ -48,16 +53,19 @@ function onArtifact(artifact: Artifact) {
 	router.push(kindOf(artifact.doctype) ? viewRoute(artifact) : artifact.route)
 }
 
-// the view on screen rides along with each message, unless the person took it off
+// the view on screen, or the record open beside the workspace, rides along with each message, unless the person took it off
 function attached(): ChatContext["artifact"] | null {
+	if (!viewInChat.value) return null
 	const view = openView.value
-	if (!view || !viewInChat.value) return null
-	return { doctype: view.doctype, name: view.name, title: view.title, path: view.route }
+	if (view) return { doctype: view.doctype, name: view.name, title: view.title, path: view.route }
+	const record = pane.value.open && pane.value.tab === "record" ? openRecord.value : null
+	return record ? { doctype: record.doctype, name: record.name, title: record.title ?? record.name, path: "/home" } : null
 }
 const context = {
 	snapshot: () => {
 		const artifact = attached()
-		return artifact ? { artifact } : null
+		const snapshot = { ...(artifact ? { artifact } : {}), ...(props.setup ? { setup: props.setup } : {}) }
+		return Object.keys(snapshot).length ? snapshot : null
 	},
 	sent: () => {},
 	pending: () => [],

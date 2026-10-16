@@ -45,7 +45,13 @@ scheduler_events = {
 	},
 }
 
-flow_tools = ["frappe.ai.home.get_home_layout", "frappe.ai.home.set_home_layout"]
+flow_tools = [
+	"frappe.ai.workspace.read_workspace",
+	"frappe.ai.workspace.arrange_workspace",
+	"frappe.ai.workspace.get_setup_state",
+	"frappe.ai.workspace.configure_site",
+	"frappe.ai.workspace.invite_people",
+]
 
 after_install = [
 	"frappe.ai.shell.make_home_the_landing",

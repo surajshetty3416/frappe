@@ -26,6 +26,7 @@ export function createAppRouter(app: App) {
 	// the chats are the shell's own pages, the home and a project drawn around a new chat
 	const aiLayer = layers.find((layer) => layer.name === "ai")
 	const withChat = { meta: { layer: "ai" }, beforeEnter: async () => void (aiLayer && (await setUp(aiLayer))) }
+	const analyticsLayer = layers.find((layer) => layer.name === "analytics")
 	const studioRoutes: RouteRecordRaw[] = [
 		{ path: "/studio", name: "studio-home", component: () => import("./pages/ChatPane.vue"), ...withChat },
 		{
@@ -50,7 +51,10 @@ export function createAppRouter(app: App) {
 				withChat.beforeEnter,
 			],
 		},
-		...homeRoutes(withChat.beforeEnter),
+		...homeRoutes(async () => {
+			await withChat.beforeEnter()
+			if (analyticsLayer) await setUp(analyticsLayer)
+		}),
 		// the app editor's addresses before it moved under /studio/ui
 		{ path: "/studio/home", redirect: "/studio/ui" },
 		{ path: "/studio/app/:rest(.*)", redirect: (to) => `/studio/ui/app/${to.params.rest}` },
