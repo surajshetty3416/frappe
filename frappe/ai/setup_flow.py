@@ -50,6 +50,8 @@ def get_setup(time_zone: str | None = None) -> dict[str, Any]:
 		"workspaces": [
 			space for space in visible_spaces() if not frappe.db.exists("Space Member", {"space": space.name})
 		],
+		# the names the site stores, which a browser's own list may spell differently (Asia/Calcutta)
+		"time_zones": list(pytz.common_timezones),
 		"roles": frappe.get_all(
 			"Role",
 			filters={"disabled": 0, "desk_access": 1, "name": ("not in", ("Administrator", "Guest", "All"))},

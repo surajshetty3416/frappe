@@ -1,7 +1,11 @@
 <template>
-	<div data-layer="shell" class="flex h-full min-h-0">
-		<div class="flex min-w-0 flex-1 flex-col overflow-y-auto">
-			<div class="mx-auto flex w-full max-w-[640px] flex-col gap-6 px-6 py-10">
+	<div data-layer="shell" class="relative h-full overflow-y-auto bg-surface-gray-1 pr-[400px]">
+		<div class="mx-auto flex min-h-full w-full max-w-[560px] flex-col justify-center gap-6 px-6 py-12">
+			<div class="flex items-center gap-2.5">
+				<img :src="LOGO" alt="" class="size-7 rounded-2" />
+				<span class="text-base font-semibold text-ink-gray-9">Set up {{ org.name || "your organization" }}</span>
+			</div>
+			<div class="flex flex-col gap-6 rounded-3 border border-outline-gray-2 bg-surface-base p-6 shadow-sm">
 				<header class="flex flex-col gap-3">
 					<ol class="flex items-center gap-2 text-sm">
 						<li v-for="(title, i) in STEPS" :key="title" class="flex items-center gap-2">
@@ -28,7 +32,7 @@
 					<div class="grid grid-cols-2 gap-3">
 						<label class="flex flex-col gap-1.5"><span class="text-xs text-ink-gray-5">Country</span><RecordField :field="LINK('Country')" :model-value="org.country" @update:model-value="(v) => (org.country = v as string)" /></label>
 						<label class="flex flex-col gap-1.5"><span class="text-xs text-ink-gray-5">Currency</span><RecordField :field="LINK('Currency')" :model-value="org.currency" @update:model-value="(v) => (org.currency = v as string)" /></label>
-						<FormControl v-model="org.time_zone" type="select" label="Time zone" :options="timeZones" />
+						<FormControl v-model="org.time_zone" type="select" label="Time zone" :options="setup.time_zones" />
 						<label class="flex flex-col gap-1.5"><span class="text-xs text-ink-gray-5">Language</span><RecordField :field="LINK('Language')" :model-value="org.language" @update:model-value="(v) => (org.language = v as string)" /></label>
 					</div>
 					<footer class="flex items-center gap-2 pt-2">
@@ -108,12 +112,8 @@
 			</div>
 		</div>
 
-		<!-- the assistant, for describing instead of clicking -->
-		<aside class="flex h-full w-[360px] shrink-0 flex-col border-l border-outline-gray-1">
-			<header class="flex h-10 shrink-0 items-center gap-2 border-b border-outline-gray-1 px-3">
-				<span class="lucide-sparkles size-3.5 text-ink-gray-5" />
-				<h2 class="text-sm font-medium text-ink-gray-8">Or describe it</h2>
-			</header>
+		<!-- the assistant beside the steps, for describing instead of clicking -->
+		<aside class="fixed inset-y-0 right-0 flex w-[400px] flex-col border-l border-outline-gray-2 bg-surface-base">
 			<div class="min-h-0 flex-1"><HomeChat :setup="{ site: true }" /></div>
 		</aside>
 	</div>
@@ -136,6 +136,7 @@ const HINTS = [
 	"Each Space is where a team works together. You can add more any time.",
 	"Each person lands on a Home made from their Spaces, ready to work in.",
 ]
+const LOGO = `${import.meta.env.BASE_URL}studio-logo.svg`
 const LINK = (options: string) => ({ fieldname: options.toLowerCase(), fieldtype: "Link", options, label: options })
 
 const router = useRouter()
@@ -146,12 +147,10 @@ interface Setup {
 	organization: { name: string; about: string; country: string; currency: string; time_zone: string; language: string }
 	templates: { name: string; title: string; icon: string; description: string; app: string }[]
 	workspaces: { name: string; title: string }[]
+	time_zones: string[]
 }
 const setup = ref<Setup | null>(null)
 const org = reactive({ name: "", about: "", country: "", currency: "", time_zone: "", language: "en" })
-const timeZones = (Intl as unknown as { supportedValuesOf: (key: string) => string[] })
-	.supportedValuesOf("timeZone")
-	.map((zone) => ({ label: zone.replace(/_/g, " "), value: zone }))
 
 const chosen = ref(new Set<string>())
 const workspaces = ref(new Set<string>())

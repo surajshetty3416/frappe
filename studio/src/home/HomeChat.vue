@@ -6,15 +6,35 @@
 			:initial-message="question"
 			:context="context"
 			:artifact-icon="artifactIcon"
+			:orchestrate="false"
+			:intro-at-top="Boolean(setup)"
+			:placeholder="setup ? 'Tell me about your organization…' : 'Ask about your work…'"
 			@session="onSession"
 			@artifact="onArtifact"
 		>
 			<template #intro>
-				<div data-layer="shell" class="px-2 text-center">
-					<h2 class="text-xl font-semibold text-ink-gray-9">{{ setup ? "Let's set you up" : "Ask about anything here" }}</h2>
-					<p class="mt-1 text-base text-ink-gray-5">
-						{{ setup ? "Tell me what you work on, and I'll build your workspace." : "Ask about your work, or change your workspace." }}
+				<div data-layer="shell" class="px-2" :class="setup ? '' : 'text-center'">
+					<h2 class="text-base font-semibold text-ink-gray-9">{{ setup ? "Describe it instead" : "Ask about anything here" }}</h2>
+					<p class="mt-1 text-sm text-ink-gray-5">
+						{{
+							setup
+								? "Tell me what your organization does and who works on what. I'll fill in the steps and set up the Spaces."
+								: "Ask about your work, or change your workspace."
+						}}
 					</p>
+				</div>
+			</template>
+			<template v-if="setup" #starters="{ prefill }">
+				<div data-layer="shell" class="flex flex-col items-start gap-1 px-1 pt-2">
+					<button
+						v-for="idea in SETUP_IDEAS"
+						:key="idea"
+						type="button"
+						class="rounded-2 px-2 py-1 text-left text-sm text-ink-gray-6 hover:bg-surface-gray-2 hover:text-ink-gray-8"
+						@click="prefill(idea)"
+					>
+						{{ idea }}
+					</button>
 				</div>
 			</template>
 		</FlowApp>
@@ -36,6 +56,12 @@ const FlowApp = defineAsyncComponent(async () => {
 
 // in the first-run setup, every message tells the assistant so, and it leads the person through it
 const props = defineProps<{ setup?: { site: boolean } }>()
+
+const SETUP_IDEAS = [
+	"We're a software company of about 70 people in Mumbai.",
+	"Support and partnerships are our busiest teams.",
+	"Set up a Space for our events team.",
+]
 
 const router = useRouter()
 

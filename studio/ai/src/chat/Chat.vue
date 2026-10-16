@@ -64,6 +64,9 @@ const props = defineProps({
 	project: { type: String, default: null },
 	initialMessage: { type: String, default: "" },
 	introAtTop: { type: Boolean, default: false },
+	// a host that only converses, such as the home, offers no orchestration and says what to type
+	orchestrate: { type: Boolean, default: true },
+	placeholder: { type: String, default: null },
 	// (artifact) => icon class, for the artifact cards in the transcript
 	artifactIcon: { type: Function, default: null },
 });
@@ -114,7 +117,8 @@ function createStore() {
 			return true;
 		},
 		context: props.context,
-		agents: AGENTS,
+		agents: props.orchestrate ? AGENTS : AGENTS.slice(0, 1),
+		...(props.placeholder ? { placeholder: props.placeholder } : {}),
 		taskCard: TaskCard,
 	});
 	watch(
