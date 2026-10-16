@@ -3,7 +3,7 @@
 	<div :class="SPAN[widget.size]" :style="{ gridRowEnd: `span ${rows}` }">
 		<section
 			ref="card"
-			class="flex min-w-0 flex-col overflow-hidden rounded-8 border bg-surface-base"
+			class="flex min-w-0 flex-col overflow-hidden rounded-3 border bg-surface-base"
 			:class="editing ? 'border-dashed border-outline-gray-3' : 'border-outline-gray-2'"
 		>
 			<header class="flex h-9 shrink-0 items-center gap-2 border-b border-outline-gray-1 pl-3 pr-1.5">

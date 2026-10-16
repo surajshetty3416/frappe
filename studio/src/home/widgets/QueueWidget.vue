@@ -12,7 +12,7 @@
 		<p v-else-if="!data.rows.length" class="flex items-center gap-2 px-3 py-2.5 text-sm text-ink-gray-5">
 			<span class="lucide-check size-3.5" />{{ txt ? "Nothing matches." : "All clear." }}
 		</p>
-		<ul v-else class="max-h-[384px] divide-y divide-outline-gray-1 overflow-y-auto [scrollbar-gutter:stable]">
+		<ul v-else class="max-h-[384px] divide-y divide-outline-gray-1 overflow-y-auto">
 			<li
 				v-for="row in data.rows"
 				:key="row.name"

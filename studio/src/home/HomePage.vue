@@ -21,7 +21,7 @@
 			</div>
 			<template v-else>
 				<!-- once, for someone new: their Home is already set up from their Spaces -->
-				<section v-if="workspace.setup.welcome && !editing" class="flex items-start gap-4 rounded-8 border border-outline-gray-2 p-4">
+				<section v-if="workspace.setup.welcome && !editing" class="flex items-start gap-4 rounded-3 border border-outline-gray-2 p-4">
 					<span class="lucide-sparkles mt-0.5 size-4 shrink-0 text-ink-gray-6" />
 					<div class="min-w-0 flex-1">
 						<p class="text-sm font-medium text-ink-gray-8">Welcome{{ workspace.organization ? ` to ${workspace.organization}` : "" }}, {{ firstName }}</p>
@@ -43,7 +43,7 @@
 				<button
 					v-if="!editing"
 					type="button"
-					class="flex h-9 items-center justify-center gap-2 rounded-8 border border-dashed border-outline-gray-2 text-sm text-ink-gray-5 hover:border-outline-gray-3 hover:text-ink-gray-7"
+					class="flex h-9 items-center justify-center gap-2 rounded-3 border border-dashed border-outline-gray-2 text-sm text-ink-gray-5 hover:border-outline-gray-3 hover:text-ink-gray-7"
 					@click="addWidget"
 				>
 					<span class="lucide-plus size-3.5" />Add a widget by describing it<kbd class="ml-1 font-mono text-xs text-ink-gray-4">⌘K</kbd>

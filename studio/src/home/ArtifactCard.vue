@@ -1,7 +1,7 @@
 <template>
 	<RouterLink
 		:to="viewRoute(artifact)"
-		class="flex min-w-0 items-center gap-3 rounded-6 border border-outline-gray-2 bg-surface-base p-3 transition-colors hover:border-outline-gray-3 hover:bg-surface-gray-1"
+		class="flex min-w-0 items-center gap-3 rounded-2 border border-outline-gray-2 bg-surface-base p-3 transition-colors hover:border-outline-gray-3 hover:bg-surface-gray-1"
 	>
 		<span class="grid size-9 shrink-0 place-items-center rounded-4 bg-surface-gray-2 text-ink-gray-6">
 			<span :class="artifactIcon(artifact)" class="size-4" />

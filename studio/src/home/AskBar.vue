@@ -3,13 +3,13 @@
 		<div class="pointer-events-auto w-full max-w-[640px]">
 			<div
 				v-if="focused && matches.length"
-				class="mb-2 flex flex-col gap-0.5 rounded-8 border border-outline-gray-2 bg-surface-base p-1.5 shadow-xl"
+				class="mb-2 flex flex-col gap-0.5 rounded-3 border border-outline-gray-2 bg-surface-base p-1.5 shadow-xl"
 			>
 				<RouterLink
 					v-for="(match, i) in matches"
 					:key="`${match.doctype}/${match.name}`"
 					:to="viewRoute(match)"
-					class="flex items-center gap-2 rounded-6 px-2 py-1.5 text-base text-ink-gray-8"
+					class="flex items-center gap-2 rounded-2 px-2 py-1.5 text-base text-ink-gray-8"
 					:class="i === picked ? 'bg-surface-gray-2' : 'hover:bg-surface-gray-1'"
 					@mousedown.prevent
 					@click="reset"

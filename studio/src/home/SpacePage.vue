@@ -4,7 +4,7 @@
 			<div v-if="error" class="py-16 text-center text-sm text-ink-gray-5">{{ error }}</div>
 			<template v-else-if="space">
 				<header class="flex flex-wrap items-center gap-3">
-					<span class="grid size-8 shrink-0 place-items-center rounded-8 bg-surface-gray-2 text-ink-gray-7">
+					<span class="grid size-8 shrink-0 place-items-center rounded-3 bg-surface-gray-2 text-ink-gray-7">
 						<span :class="spaceIcon(space.icon)" class="size-4" />
 					</span>
 					<div class="mr-auto min-w-0">

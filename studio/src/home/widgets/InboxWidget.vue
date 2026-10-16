@@ -6,7 +6,7 @@
 		<p v-else-if="!items.length" class="flex items-center gap-2 px-3 py-2.5 text-sm text-ink-gray-5">
 			<span class="lucide-check size-3.5" />Nothing waits on you.
 		</p>
-		<ul v-else class="max-h-[384px] divide-y divide-outline-gray-1 overflow-y-auto [scrollbar-gutter:stable]">
+		<ul v-else class="max-h-[384px] divide-y divide-outline-gray-1 overflow-y-auto">
 			<li
 				v-for="item in items"
 				:key="`${item.kind}/${item.name}`"

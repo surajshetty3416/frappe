@@ -1,5 +1,5 @@
 <template>
-	<div class="relative flex h-full w-full overflow-hidden bg-surface-base">
+	<div data-home-shell class="relative flex h-full w-full overflow-hidden bg-surface-base">
 		<HomeSidebar v-if="!inSetup" />
 		<div class="relative flex min-w-0 flex-1 flex-col">
 			<RouterView />
@@ -58,3 +58,14 @@ function onKeydown(event: KeyboardEvent) {
 onMounted(() => window.addEventListener("keydown", onKeydown))
 onBeforeUnmount(() => window.removeEventListener("keydown", onKeydown))
 </script>
+
+<style>
+/* everything in the shell scrolls without a scrollbar on show */
+[data-home-shell] *,
+[data-home-shell] {
+	scrollbar-width: none;
+}
+[data-home-shell] *::-webkit-scrollbar {
+	display: none;
+}
+</style>

@@ -1,12 +1,12 @@
 <template>
 	<Dialog v-model:open="open" bare position="top" size="md">
-		<div data-layer="shell" class="flex flex-col p-2">
+		<div data-layer="shell" data-home-shell class="flex flex-col p-2">
 			<p class="px-2 pb-1 pt-1.5 text-xs font-medium text-ink-gray-5">Switch persona</p>
 			<button
 				v-for="persona in personas"
 				:key="persona.user"
 				type="button"
-				class="flex items-center gap-3 rounded-6 px-2 py-2 text-left hover:bg-surface-gray-1 disabled:opacity-60"
+				class="flex items-center gap-3 rounded-2 px-2 py-2 text-left hover:bg-surface-gray-1 disabled:opacity-60"
 				:disabled="persona.user === me || switching !== null"
 				@click="switchTo(persona.user)"
 			>

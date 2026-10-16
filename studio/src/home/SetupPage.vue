@@ -44,7 +44,7 @@
 							v-for="template in setup.templates"
 							:key="template.name"
 							type="button"
-							class="flex items-start gap-3 rounded-8 border p-3 text-left transition-colors duration-75"
+							class="flex items-start gap-3 rounded-3 border p-3 text-left transition-colors duration-75"
 							:class="chosen.has(template.name) ? 'border-outline-gray-5 bg-surface-gray-1' : 'border-outline-gray-2 hover:border-outline-gray-3'"
 							@click="toggle(chosen, template.name)"
 						>
@@ -59,7 +59,7 @@
 							<span class="mt-0.5 size-4 shrink-0" :class="chosen.has(template.name) ? 'lucide-circle-check text-ink-gray-8' : 'lucide-circle text-ink-gray-3'" />
 						</button>
 					</div>
-					<details v-if="setup.workspaces.length" class="rounded-8 border border-outline-gray-2">
+					<details v-if="setup.workspaces.length" class="rounded-3 border border-outline-gray-2">
 						<summary class="cursor-pointer px-3 py-2 text-sm text-ink-gray-6">
 							Also join workspaces your apps brought <span class="tabular-nums text-ink-gray-4">({{ setup.workspaces.length }})</span>
 						</summary>
@@ -83,7 +83,7 @@
 
 				<!-- 3: people, each into the Spaces they work in -->
 				<div v-else class="flex flex-col gap-3">
-					<div v-for="(person, i) in people" :key="i" class="flex flex-col gap-2 rounded-8 border border-outline-gray-2 p-3">
+					<div v-for="(person, i) in people" :key="i" class="flex flex-col gap-2 rounded-3 border border-outline-gray-2 p-3">
 						<div class="flex items-center gap-2">
 							<TextInput v-model="person.email" class="flex-1" type="email" placeholder="name@company.com" />
 							<Button variant="ghost" icon="lucide-x" :disabled="people.length === 1" @click="people.splice(i, 1)" />

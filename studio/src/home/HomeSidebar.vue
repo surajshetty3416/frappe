@@ -31,7 +31,7 @@
 					<button
 						v-if="spaces && !spaces.mine.length"
 						type="button"
-						class="rounded-6 px-2 py-1.5 text-left text-sm text-ink-gray-5 hover:bg-surface-gray-2"
+						class="rounded-2 px-2 py-1.5 text-left text-sm text-ink-gray-5 hover:bg-surface-gray-2"
 						@click="finding = true"
 					>
 						Join your team's Space to see its work here.
