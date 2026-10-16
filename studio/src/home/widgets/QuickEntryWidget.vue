@@ -4,13 +4,12 @@
 			<Skeleton v-for="i in 2" :key="i" class="h-4 w-full rounded" />
 		</div>
 		<p v-else-if="!canCreate" class="px-3 py-2.5 text-sm text-ink-gray-5">You cannot create {{ widget.doctype }} records.</p>
-		<!-- the fields side by side as the width allows, the button at the end of the last row -->
-		<form v-else class="grid grid-cols-[repeat(auto-fit,minmax(140px,1fr))] items-end gap-2 p-3" @submit.prevent="submit">
-			<label v-for="field in fields" :key="field.fieldname" class="flex min-w-0 flex-col gap-1">
+		<form v-else class="flex flex-col gap-3 p-3" @submit.prevent="submit">
+			<label v-for="field in fields" :key="field.fieldname" class="flex min-w-0 flex-col gap-1.5">
 				<span class="text-xs text-ink-gray-5">{{ field.label }}<span v-if="field.reqd" class="text-ink-red-4"> *</span></span>
 				<RecordField :field="field" :model-value="values[field.fieldname]" @update:model-value="(value) => (values[field.fieldname] = value)" />
 			</label>
-			<Button variant="solid" type="submit" label="Create" :loading="saving" />
+			<Button class="self-end" variant="solid" size="sm" type="submit" label="Create" :loading="saving" />
 		</form>
 	</WidgetFrame>
 </template>

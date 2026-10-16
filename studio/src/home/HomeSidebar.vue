@@ -56,10 +56,11 @@
 </template>
 
 <script setup lang="ts">
-import { Avatar, Button, Dropdown, Sidebar, SidebarHeader, SidebarItem, SidebarLabel, call, useColorScheme } from "frappe-ui"
+import { Avatar, Button, Dropdown, Sidebar, SidebarHeader, SidebarItem, SidebarLabel, call } from "frappe-ui"
 import { computed, ref } from "vue"
 import { useRoute } from "vue-router"
 
+import { useSharedColorScheme } from "../colorScheme"
 import { sessionUser } from "../session"
 import PersonaDialog from "./PersonaDialog.vue"
 import SpacesDialog from "./SpacesDialog.vue"
@@ -77,7 +78,7 @@ loadInboxCount()
 const organization = computed(() => workspace.value?.organization || "Home")
 const fullName = decodeURIComponent(document.cookie.match(/full_name=([^;]*)/)?.[1] ?? sessionUser()).replace(/\+/g, " ")
 
-const { resolvedColorScheme, toggleColorScheme } = useColorScheme()
+const { resolvedColorScheme, toggleColorScheme } = useSharedColorScheme()
 const userMenu = computed(() => [
 	...(personas.value.length ? [{ label: "Switch persona", icon: "lucide-repeat", onClick: () => (switching.value = true) }] : []),
 	{

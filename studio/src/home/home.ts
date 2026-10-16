@@ -182,8 +182,8 @@ export async function joinSpace(space: string, join = true) {
 // what waits on the person across their Spaces, which the sidebar counts
 export const inboxCount = ref(0)
 export async function loadInboxCount() {
-	const items = await call<unknown[]>("frappe.ai.workspace.get_inbox").catch(() => null)
-	if (items) inboxCount.value = items.length
+	const inbox = await call<{ items: unknown[] }>("frappe.ai.workspace.get_inbox").catch(() => null)
+	if (inbox) inboxCount.value = inbox.items.length
 }
 
 // a Space's icon, by the name its workspace keeps; whole class names, so the icon build finds them

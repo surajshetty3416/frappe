@@ -13,16 +13,9 @@
 					</div>
 					<template v-if="!editing">
 						<!-- who is in it -->
-						<div v-if="space.members.length" class="flex items-center -space-x-1.5" :title="space.members.map((member) => member.full_name).join(', ')">
-							<Avatar
-								v-for="member in space.members.slice(0, 5)"
-								:key="member.user"
-								:label="member.full_name"
-								:image="member.image"
-								size="sm"
-								class="ring-2 ring-surface-base"
-							/>
-							<span v-if="space.members.length > 5" class="pl-2.5 text-xs tabular-nums text-ink-gray-5">+{{ space.members.length - 5 }}</span>
+						<div v-if="space.members.length" class="flex items-center gap-0.5" :title="space.members.map((member) => member.full_name).join(', ')">
+							<Avatar v-for="member in space.members.slice(0, 4)" :key="member.user" :label="member.full_name" :image="member.image" size="sm" />
+							<span v-if="space.members.length > 4" class="pl-1 text-xs tabular-nums text-ink-gray-5">+{{ space.members.length - 4 }}</span>
 						</div>
 						<Button size="sm" variant="ghost" icon-left="lucide-messages-square" label="Conversation" @click="pane = { open: true, tab: 'conversation' }" />
 						<Button v-if="space.can_edit" size="sm" variant="ghost" icon-left="lucide-layout-dashboard" label="Arrange" @click="startEditing" />

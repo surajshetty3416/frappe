@@ -74,13 +74,13 @@ import {
 	SidebarItem,
 	SidebarLabel,
 	call,
-	useColorScheme,
 } from "frappe-ui"
 import { computed, ref, watch } from "vue"
 import { useRoute } from "vue-router"
 
 import { artifactKinds } from "../artifacts"
 import { chats, superseded, watchChats } from "../chats"
+import { useSharedColorScheme } from "../colorScheme"
 import { layout, searchOpen } from "../layout"
 import { activeProject, newChatRoute, projects, projectsLoaded, watchProjects } from "../projects"
 import { sessionUser } from "../session"
@@ -115,7 +115,7 @@ function toggle(project: string) {
 const user = sessionUser()
 const fullName = decodeURIComponent(document.cookie.match(/full_name=([^;]*)/)?.[1] ?? user).replace(/\+/g, " ")
 
-const { resolvedColorScheme, toggleColorScheme } = useColorScheme()
+const { resolvedColorScheme, toggleColorScheme } = useSharedColorScheme()
 const userMenu = computed(() => [
 	{ label: "AI model", icon: "lucide-cpu", route: "/studio/settings/model" },
 	{

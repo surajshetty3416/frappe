@@ -215,3 +215,115 @@ class TestWorkspace(IntegrationTestCase):
 	def test_a_record_links_to_its_full_form(self):
 		mine = todo(WORKER, "Call the venue")
 		self.assertEqual(workspace.get_record("ToDo", mine)["url"], f"/desk/todo/{mine}")
+
+
+TASKS = {
+	"type": "queue",
+	"title": "Tasks to settle",
+	"doctype": "ToDo",
+	"filters": {"allocated_to": "@me", "status": "Open"},
+	"fields": ["description"],
+	"actions": [
+		{"label": "Drop", "kind": "set", "field": "status", "value": "Cancelled", "comment": "required"},
+		{"label": "Finish", "kind": "set", "field": "status", "value": "Closed", "fields": ["date"]},
+		{"label": "Raise", "kind": "set", "field": "priority", "value": "High"},
+	],
+}
+
+
+class TestTaskActions(IntegrationTestCase):
+	def setUp(self):
+		user(WORKER)
+		for name in frappe.get_all("ToDo", filters={"allocated_to": WORKER}, pluck="name"):
+			frappe.delete_doc("ToDo", name, force=True, ignore_permissions=True)
+		frappe.set_user(WORKER)
+		self.queue = workspace.save_workspace([TASKS])[0]["id"]
+
+	def tearDown(self):
+		frappe.set_user(WORKER)
+		workspace.reset_workspace()
+		frappe.set_user("Administrator")
+
+	def comments(self, name: str) -> list[str]:
+		return frappe.get_all(
+			"Comment",
+			filters={"reference_doctype": "ToDo", "reference_name": name, "comment_type": "Comment"},
+			pluck="content",
+		)
+
+	def test_an_action_that_needs_a_reason_asks_for_it_and_keeps_it(self):
+		mine = todo(WORKER, "Call the venue")
+		with self.assertRaises(frappe.ValidationError):
+			workspace.act(self.queue, 0, mine)
+		workspace.act(self.queue, 0, mine, comment="The venue cancelled on us.")
+		self.assertEqual(frappe.db.get_value("ToDo", mine, "status"), "Cancelled")
+		self.assertEqual(self.comments(mine), ["The venue cancelled on us."])
+
+	def test_an_action_saves_the_fields_it_asks_for(self):
+		mine = todo(WORKER, "Call the venue")
+		workspace.act(self.queue, 1, mine, values={"date": "2026-10-20", "priority": "High"})
+		self.assertEqual(
+			frappe.db.get_value("ToDo", mine, ["status", "date", "priority"], as_dict=True),
+			{"status": "Closed", "date": frappe.utils.getdate("2026-10-20"), "priority": "Medium"},
+		)
+
+	def test_what_an_action_did_today_is_listed_and_can_be_undone(self):
+		mine = todo(WORKER, "Call the venue")
+		handed_on = frappe.get_doc("ToDo", todo(WORKER, "Book the caterer"))
+		handed_on.allocated_to = user(OTHER)
+		handed_on.save(ignore_version=False)
+		workspace.act(self.queue, 1, mine, values={"date": "2026-10-20"})
+
+		done = workspace.get_widget(self.queue)["done"]
+		self.assertEqual([entry["name"] for entry in done], [mine])
+		self.assertIn("Closed", done[0]["what"])
+		self.assertTrue(done[0]["undo"])
+
+		workspace.undo(self.queue, mine)
+		self.assertEqual(frappe.db.get_value("ToDo", mine, "status"), "Open")
+		self.assertEqual([row.name for row in workspace.get_widget(self.queue)["rows"]], [mine])
+
+	def test_an_assignment_marked_done_keeps_the_note_and_can_be_reopened(self):
+		work = todo(WORKER, "Call the venue")
+		assignment = (
+			frappe.get_doc(
+				{
+					"doctype": "ToDo",
+					"allocated_to": WORKER,
+					"description": "Follow up",
+					"reference_type": "ToDo",
+					"reference_name": work,
+				}
+			)
+			.insert()
+			.name
+		)
+		workspace.respond("assignment", assignment, comment="Called; they confirmed.")
+		self.assertEqual(frappe.db.get_value("ToDo", assignment, "status"), "Closed")
+		self.assertEqual(self.comments(work), ["Called; they confirmed."])
+		self.assertIn(assignment, [entry["name"] for entry in workspace.get_inbox()["done"]])
+
+		workspace.reopen(assignment)
+		self.assertEqual(frappe.db.get_value("ToDo", assignment, "status"), "Open")
+
+	def test_a_task_says_who_it_is_from_and_what_was_said(self):
+		mine = todo(WORKER, "Call the venue")
+		frappe.get_doc("ToDo", mine).add_comment("Comment", "They open at nine.")
+		task = workspace.get_task("ToDo", mine)
+		self.assertEqual(task["who"], frappe.utils.get_fullname(WORKER))
+		self.assertEqual([entry["text"] for entry in task["timeline"]], ["They open at nine."])
+
+	def test_a_record_still_waiting_says_what_was_done_to_it_today(self):
+		mine = todo(WORKER, "Call the venue")
+		workspace.act(self.queue, 2, mine)
+		(row,) = workspace.get_widget(self.queue)["rows"]
+		self.assertEqual(row["_did"]["what"], "Priority → High")
+
+	def test_a_home_has_its_own_inbox_whatever_its_spaces_bring(self):
+		from unittest.mock import patch
+
+		slice_ = {"id": "approvals", "type": "inbox", "title": "Approvals", "space": "Finance"}
+		with patch("frappe.ai.spaces.home_slices", return_value=[slice_]):
+			(inbox, _queue) = workspace.get_workspace()["widgets"]
+		self.assertEqual((inbox["id"], inbox.get("space"), inbox["title"]), ("inbox", None, None))
+		self.assertIn("items", workspace.get_widget(inbox["id"]))
