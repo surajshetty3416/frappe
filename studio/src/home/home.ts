@@ -33,7 +33,7 @@ export interface Action {
 
 export interface Widget {
 	id: string
-	type: "queue" | "inbox" | "chart" | "quick_entry" | "embed" | "note"
+	type: "queue" | "inbox" | "chart" | "quick_entry" | "embed" | "note" | "number_card" | "dashboard_chart"
 	title: string | null
 	size: "s" | "m" | "l" | "xl"
 	doctype?: string
@@ -44,6 +44,12 @@ export interface Widget {
 	text?: string
 	search?: boolean
 	actions?: Action[]
+	number_card?: string
+	dashboard_chart?: string
+	// the Space the widget belongs to, and on a Home its title; a Space's widget for its members' Homes is `home`
+	space?: string
+	space_title?: string
+	home?: 0 | 1
 }
 
 export interface Workspace {
@@ -51,7 +57,8 @@ export interface Workspace {
 	// the person arranged their own, rather than getting everyone's
 	customized: boolean
 	// the setup conversation, once one started
-	setup: { needed: boolean; site: boolean; chat: string | null }
+	setup: { needed: boolean; site: boolean; chat: string | null; welcome: boolean }
+	organization: string | null
 	can_set_default: boolean
 }
 
@@ -77,7 +84,11 @@ export async function resetWorkspace() {
 	await loadWorkspace()
 }
 
-export const getWidget = <T>(widget: string, txt?: string) => call<T>("frappe.ai.workspace.get_widget", { widget, txt })
+export const getWidget = <T>(widget: Widget, txt?: string) =>
+	call<T>("frappe.ai.workspace.get_widget", { widget: widget.id, txt, space: widget.space })
+
+// a widget's key among others, which may come from different Spaces
+export const widgetKey = (widget: Widget) => `${widget.space ?? ""}/${widget.id}`
 
 export const getView = (doctype: string, name: string) => call<View>("frappe.ai.home.get_view", { doctype, name })
 
@@ -92,7 +103,10 @@ export const viewRoute = (artifact: Pick<Artifact, "doctype" | "name">) =>
 	`/home/${kindOf(artifact.doctype)?.kind}/${encodeURIComponent(artifact.name)}`
 
 // the pane beside the page: the chat, the record a widget opened, or the open view's details
-export const pane = useStorage<{ open: boolean; tab: "chat" | "record" | "details" }>("home-pane", { open: false, tab: "chat" })
+export const pane = useStorage<{ open: boolean; tab: "chat" | "conversation" | "record" | "details" }>("home-pane", {
+	open: false,
+	tab: "chat",
+})
 
 // the record open in the pane, which the chat talks about too
 export const openRecord = ref<{ doctype: string; name: string; title?: string } | null>(null)
@@ -129,3 +143,64 @@ const WIDGET_TITLES: Record<string, string> = {
 export function widgetTitle(widget: Widget) {
 	return widget.title || WIDGET_TITLES[widget.type] || widget.doctype || ""
 }
+
+export interface SpaceSummary {
+	name: string
+	title: string
+	icon: string | null
+	description: string | null
+	members: number
+}
+
+export interface Space {
+	name: string
+	title: string
+	icon: string | null
+	description: string | null
+	widgets: Widget[]
+	members: { user: string; full_name: string; image: string | null }[]
+	joined: boolean
+	can_edit: boolean
+	// what fills its conversation, from the app that provides it, or nothing and its activity shows
+	conversation: { provider: string; url: string } | null
+}
+
+export const spaces = ref<{ mine: SpaceSummary[]; others: SpaceSummary[] } | null>(null)
+export async function loadSpaces() {
+	spaces.value = await call("frappe.ai.spaces.get_spaces")
+}
+
+// the Space on screen, which the pane's conversation is for
+export const openSpace = ref<Space | null>(null)
+
+export async function joinSpace(space: string, join = true) {
+	await call(join ? "frappe.ai.spaces.join_space" : "frappe.ai.spaces.leave_space", { space })
+	await Promise.all([loadSpaces(), loadWorkspace()])
+}
+
+// what waits on the person across their Spaces, which the sidebar counts
+export const inboxCount = ref(0)
+export async function loadInboxCount() {
+	const items = await call<unknown[]>("frappe.ai.workspace.get_inbox").catch(() => null)
+	if (items) inboxCount.value = items.length
+}
+
+export const spaceIcon = (icon: string | null | undefined) => `lucide-${SPACE_ICONS[icon ?? ""] ?? "layers"}`
+const SPACE_ICONS: Record<string, string> = {
+	organization: "building-2",
+	users: "users",
+	support: "life-buoy",
+	handshake: "handshake",
+	product: "map",
+	code: "code-xml",
+	calendar: "calendar-days",
+	money: "wallet",
+	community: "messages-square",
+	folder: "folder",
+}
+
+// for showing the demo: the personas this one may switch to, when the site turns that on
+export const personas = ref<{ user: string; title: string; role: string }[]>([])
+call<typeof personas.value>("frappe.ai.demo.personas.get_personas")
+	.then((list) => (personas.value = list))
+	.catch(() => {})

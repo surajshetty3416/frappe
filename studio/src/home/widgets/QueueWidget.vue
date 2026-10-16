@@ -63,7 +63,7 @@ const txt = ref("")
 const details = (row: Row) => data.value!.fields.filter((field) => row[field.fieldname] !== row._title)
 
 async function load() {
-	data.value = await getWidget<NonNullable<typeof data.value>>(props.widget.id, txt.value || undefined).catch((error) => {
+	data.value = await getWidget<NonNullable<typeof data.value>>(props.widget, txt.value || undefined).catch((error) => {
 		toast.error(errorText(error))
 		return { rows: [], count: 0, fields: [] }
 	})
@@ -75,7 +75,7 @@ const busy = ref<string | null>(null)
 async function run(row: Row, action: number) {
 	busy.value = `${row.name}/${action}`
 	try {
-		await call("frappe.ai.workspace.act", { widget: props.widget.id, action, name: row.name })
+		await call("frappe.ai.workspace.act", { widget: props.widget.id, action, name: row.name, space: props.widget.space })
 		toast.success(`${props.widget.actions![action].label}: ${row._title}`)
 		refreshed.value++
 	} catch (error) {

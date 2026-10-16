@@ -27,7 +27,7 @@ const loaded = ref(false)
 watch(
 	() => props.widget.id,
 	async () => {
-		view.value = (await getWidget<{ view: View | null }>(props.widget.id).catch(() => ({ view: null }))).view
+		view.value = (await getWidget<{ view: View | null }>(props.widget).catch(() => ({ view: null }))).view
 		loaded.value = true
 	},
 	{ immediate: true }

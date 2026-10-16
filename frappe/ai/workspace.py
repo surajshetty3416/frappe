@@ -46,7 +46,8 @@ WIDGETS = {
 		"'@me' is the person, '@today' is today). `fields` are up to four fields shown on each row. "
 		"`order_by` is 'field asc|desc'. `search` adds a search box over the title and `search_fields`. "
 		"`actions` are buttons on each row: {label, kind: 'set', field, value} changes a field; "
-		"{label, kind: 'workflow', action} applies a workflow action; {label, kind: 'create', doctype, "
+		"{label, kind: 'workflow', action} applies a workflow action; {label, kind: 'assign'} assigns the "
+		"record to the person; {label, kind: 'create', doctype, "
 		"values} creates a record from the row, where '{name}' or '{field}' in a value is the row's. "
 		"An action with `when: {field: value}` shows only on rows that match.",
 		("doctype",),
@@ -104,6 +105,7 @@ def get_workspace() -> dict[str, Any]:
 		],
 		"customized": bool(frappe.defaults.get_defaults_for(user).get(WORKSPACE_KEY)),
 		"setup": setup_state(),
+		"organization": (organization() or {}).get("name"),
 		"can_set_default": "System Manager" in frappe.get_roles(),
 	}
 
@@ -166,6 +168,12 @@ def act(widget: str, action: int, name: str, space: str | None = None) -> dict[s
 		doc.set(button["field"], resolve(button["value"]))
 		doc.save()
 		return {"doctype": doc.doctype, "name": doc.name}
+	if button["kind"] == "assign":
+		from frappe.desk.form.assign_to import add
+
+		doc.check_permission("read")
+		add({"doctype": doc.doctype, "name": doc.name, "assign_to": [frappe.session.user]})
+		return {"doctype": doc.doctype, "name": doc.name}
 	if button["kind"] == "workflow":
 		from frappe.model.workflow import apply_workflow
 
@@ -188,6 +196,12 @@ def create(widget: str, values: dict[str, Any] | str, space: str | None = None) 
 	defaults = {field: resolve(value) for field, value in (spec.get("defaults") or {}).items()}
 	doc = frappe.get_doc({"doctype": spec["doctype"], **defaults, **given}).insert()
 	return {"doctype": doc.doctype, "name": doc.name, "title": title_of(doc)}
+
+
+@frappe.whitelist()
+def get_inbox() -> list[dict[str, Any]]:
+	"""What waits on the user: their assignments, the approvals for their roles, and @mentions."""
+	return inbox()
 
 
 @frappe.whitelist(methods=["POST"])
@@ -468,8 +482,10 @@ def check(widget: dict[str, Any]) -> None:
 		elif action.get("kind") == "create":
 			if not action.get("doctype") or not frappe.db.exists("DocType", action["doctype"]):
 				frappe.throw(_("A create action needs a DocType."), title=_("Invalid Widget"))
+		elif action.get("kind") == "assign":
+			pass
 		elif action.get("kind") != "workflow" or not action.get("action"):
-			frappe.throw(_("An action is set, workflow or create."), title=_("Invalid Widget"))
+			frappe.throw(_("An action is set, assign, workflow or create."), title=_("Invalid Widget"))
 		if not action.get("label"):
 			frappe.throw(_("An action needs a label."), title=_("Invalid Widget"))
 
@@ -624,15 +640,16 @@ def order_by(given: str | None, meta) -> str:
 
 
 def resolve(value: Any) -> Any:
-	"""Filters and values with '@me' as the person and '@today' as today's date."""
+	"""Filters and values with '@me' as the person, also inside a pattern such as '%@me%', and
+	'@today' as today's date."""
 	if isinstance(value, dict):
 		return {key: resolve(item) for key, item in value.items()}
 	if isinstance(value, list):
 		return [resolve(item) for item in value]
-	if value == "@me":
-		return frappe.session.user
 	if value == "@today":
 		return nowdate()
+	if isinstance(value, str) and "@me" in value:
+		return value.replace("@me", frappe.session.user)
 	return value
 
 

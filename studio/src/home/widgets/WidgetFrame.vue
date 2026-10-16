@@ -9,6 +9,12 @@
 			<header class="flex h-9 shrink-0 items-center gap-2 border-b border-outline-gray-1 pl-3 pr-1.5">
 				<h2 class="min-w-0 truncate text-sm font-medium text-ink-gray-8">{{ widgetTitle(widget) }}</h2>
 				<span v-if="count !== undefined && count !== null" class="text-sm tabular-nums text-ink-gray-5">{{ count }}</span>
+				<!-- on a Home, the Space a widget comes from -->
+				<RouterLink
+					v-if="widget.space_title"
+					:to="`/home/s/${encodeURIComponent(widget.space!)}`"
+					class="truncate text-xs text-ink-gray-4 hover:text-ink-gray-7"
+				>{{ widget.space_title }}</RouterLink>
 				<span class="flex-1" />
 				<slot v-if="!editing" name="header" />
 				<template v-if="editing">
@@ -31,6 +37,7 @@
 import { useResizeObserver } from "@vueuse/core"
 import { Button, Dropdown } from "frappe-ui"
 import { computed, ref } from "vue"
+import { RouterLink } from "vue-router"
 
 import { type Widget, widgetTitle } from "../home"
 

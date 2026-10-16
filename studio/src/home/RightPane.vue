@@ -31,6 +31,9 @@
 		<div v-if="chatSeen" v-show="pane.tab === 'chat'" class="min-h-0 flex-1">
 			<HomeChat />
 		</div>
+		<div v-if="pane.tab === 'conversation' && openSpace" data-layer="shell" class="min-h-0 flex-1">
+			<SpaceConversation :space="openSpace" />
+		</div>
 		<div v-if="pane.tab === 'record'" data-layer="shell" class="min-h-0 flex-1 overflow-y-auto">
 			<RecordPane v-if="openRecord" :doctype="openRecord.doctype" :name="openRecord.name" />
 		</div>
@@ -47,11 +50,13 @@ import { computed, ref, watchEffect } from "vue"
 
 import HomeChat from "./HomeChat.vue"
 import RecordPane from "./RecordPane.vue"
+import SpaceConversation from "./SpaceConversation.vue"
 import ViewDetails from "./ViewDetails.vue"
-import { homeChat, openRecord, openView, pane, question } from "./home"
+import { homeChat, openRecord, openSpace, openView, pane, question } from "./home"
 
 const tabs = computed(() => [
-	{ label: "Chat", value: "chat" as const },
+	...(openSpace.value ? [{ label: "Conversation", value: "conversation" as const }] : []),
+	{ label: "Assistant", value: "chat" as const },
 	...(openRecord.value ? [{ label: "Record", value: "record" as const }] : []),
 	...(openView.value ? [{ label: "Details", value: "details" as const }] : []),
 ])

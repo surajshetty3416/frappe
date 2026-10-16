@@ -20,8 +20,24 @@
 				<LoadingIndicator class="size-4 text-ink-gray-5" />
 			</div>
 			<template v-else>
+				<!-- once, for someone new: their Home is already set up from their Spaces -->
+				<section v-if="workspace.setup.welcome && !editing" class="flex items-start gap-4 rounded-8 border border-outline-gray-2 p-4">
+					<span class="lucide-sparkles mt-0.5 size-4 shrink-0 text-ink-gray-6" />
+					<div class="min-w-0 flex-1">
+						<p class="text-sm font-medium text-ink-gray-8">Welcome{{ workspace.organization ? ` to ${workspace.organization}` : "" }}, {{ firstName }}</p>
+						<p class="mt-0.5 text-sm text-ink-gray-6">
+							This is your Home: what waits on you from each of your Spaces, ready to work in. Your Spaces are on the left; open one to see
+							what your team is doing. Ask anything with ⌘K.
+						</p>
+						<div class="mt-3 flex gap-2">
+							<Button size="sm" variant="solid" label="Got it" @click="dismissWelcome" />
+							<Button size="sm" variant="ghost" icon-left="lucide-sparkles" label="Tailor my Home with the assistant" @click="tailor" />
+						</div>
+					</div>
+				</section>
 				<p v-if="editing" class="text-sm text-ink-gray-5">
-					Move, resize or remove widgets. To add one, describe it to the assistant, like “a queue of sponsors who haven't replied”.
+					Move, resize or remove your own widgets. Widgets from your Spaces are arranged in each Space. To add one, describe it to the
+					assistant, like “a queue of sponsors who haven't replied”.
 				</p>
 				<WorkspaceGrid :widgets="editing ? draft : workspace.widgets" :editing="editing" @update="(widgets) => (draft = widgets)" />
 				<button
@@ -38,7 +54,7 @@
 </template>
 
 <script setup lang="ts">
-import { Button, LoadingIndicator, dayjs } from "frappe-ui"
+import { Button, LoadingIndicator, call, dayjs } from "frappe-ui"
 import { computed, ref } from "vue"
 
 import { sessionUser } from "../session"
@@ -63,8 +79,9 @@ const editing = ref(false)
 const draft = ref<Widget[]>([])
 const saving = ref(false)
 
+// only the person's own widgets; the Spaces' slices are each Space's to arrange
 function startEditing() {
-	draft.value = JSON.parse(JSON.stringify(workspace.value?.widgets ?? []))
+	draft.value = JSON.parse(JSON.stringify(workspace.value?.widgets.filter((widget) => !widget.space) ?? []))
 	editing.value = true
 }
 
@@ -84,6 +101,16 @@ async function reset() {
 }
 
 const addWidget = () => askFocus.value++
+
+async function dismissWelcome() {
+	await call("frappe.ai.workspace.dismiss_welcome")
+	await loadWorkspace()
+}
+
+function tailor() {
+	dismissWelcome()
+	ask("Ask me what I work on day to day, then tailor my Home to it. Ask before you change it.")
+}
 
 const improve = () =>
 	ask(

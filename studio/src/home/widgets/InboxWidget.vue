@@ -65,7 +65,7 @@ const props = defineProps<{ widget: Widget }>()
 
 const items = ref<Item[] | null>(null)
 async function load() {
-	items.value = (await getWidget<{ items: Item[] }>(props.widget.id).catch(() => ({ items: [] }))).items
+	items.value = (await getWidget<{ items: Item[] }>(props.widget).catch(() => ({ items: [] }))).items
 }
 watch(() => [props.widget.id, refreshed.value], load, { immediate: true })
 

@@ -2,9 +2,10 @@
 	<div class="flex flex-col gap-3">
 		<!-- the numbers the person watches, as one strip of tiles over the work -->
 		<div v-if="numbers.length" class="flex flex-wrap gap-3">
-			<NumberTile
+			<component
+				:is="widget.type === 'number_card' ? NumberCardTile : NumberTile"
 				v-for="widget in numbers"
-				:key="widget.id"
+				:key="widgetKey(widget)"
 				:widget="widget"
 				:editing="editing"
 				@remove="remove(widget)"
@@ -14,7 +15,7 @@
 			<component
 				:is="WIDGETS[widget.type]"
 				v-for="widget in rest"
-				:key="widget.id"
+				:key="widgetKey(widget)"
 				:widget="widget"
 				:editing="editing"
 				:first="widget === rest[0]"
@@ -30,11 +31,13 @@
 <script setup lang="ts">
 import { type Component, computed } from "vue"
 
-import type { Widget } from "./home"
+import { type Widget, widgetKey } from "./home"
 import ChartWidget from "./widgets/ChartWidget.vue"
+import DashboardChartWidget from "./widgets/DashboardChartWidget.vue"
 import EmbedWidget from "./widgets/EmbedWidget.vue"
 import InboxWidget from "./widgets/InboxWidget.vue"
 import NoteWidget from "./widgets/NoteWidget.vue"
+import NumberCardTile from "./widgets/NumberCardTile.vue"
 import NumberTile from "./widgets/NumberTile.vue"
 import QueueWidget from "./widgets/QueueWidget.vue"
 import QuickEntryWidget from "./widgets/QuickEntryWidget.vue"
@@ -46,12 +49,14 @@ const WIDGETS: Record<Widget["type"], Component> = {
 	quick_entry: QuickEntryWidget,
 	embed: EmbedWidget,
 	note: NoteWidget,
+	number_card: NumberCardTile,
+	dashboard_chart: DashboardChartWidget,
 }
 
 const props = defineProps<{ widgets: Widget[]; editing?: boolean }>()
 const emit = defineEmits<{ update: [widgets: Widget[]] }>()
 
-const isNumber = (widget: Widget) => widget.type === "chart" && widget.chart_type === "Number"
+const isNumber = (widget: Widget) => widget.type === "number_card" || (widget.type === "chart" && widget.chart_type === "Number")
 const numbers = computed(() => props.widgets.filter(isNumber))
 const rest = computed(() => props.widgets.filter((widget) => !isNumber(widget)))
 

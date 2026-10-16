@@ -34,7 +34,7 @@ const values = reactive<Record<string, unknown>>({})
 watch(
 	() => props.widget.id,
 	async () => {
-		const data = await getWidget<{ fields: FieldSpec[]; can_create: boolean }>(props.widget.id)
+		const data = await getWidget<{ fields: FieldSpec[]; can_create: boolean }>(props.widget)
 		fields.value = data.fields
 		canCreate.value = data.can_create
 	},
@@ -45,7 +45,7 @@ const saving = ref(false)
 async function submit() {
 	saving.value = true
 	try {
-		const made = await call("frappe.ai.workspace.create", { widget: props.widget.id, values })
+		const made = await call("frappe.ai.workspace.create", { widget: props.widget.id, values, space: props.widget.space })
 		toast.success(`Created ${made.title}`)
 		Object.keys(values).forEach((key) => delete values[key])
 		refreshed.value++

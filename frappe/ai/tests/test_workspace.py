@@ -56,6 +56,7 @@ QUEUE = {
 			"value": "High",
 			"when": {"priority": "Medium"},
 		},
+		{"label": "Take it", "kind": "assign"},
 	],
 }
 
@@ -85,7 +86,7 @@ class TestWorkspace(IntegrationTestCase):
 		todo(OTHER, "Not mine")
 		rows = workspace.get_widget(self.queue)["rows"]
 		self.assertEqual([row.name for row in rows], [mine])
-		self.assertEqual(rows[0]["_actions"], [0, 1, 2])
+		self.assertEqual(rows[0]["_actions"], [0, 1, 2, 3])
 
 	def test_a_queue_searches(self):
 		todo(WORKER, "Call the venue")
@@ -114,7 +115,7 @@ class TestWorkspace(IntegrationTestCase):
 	def test_a_conditional_action_shows_only_on_matching_rows(self):
 		mine = todo(WORKER, "Call the venue")
 		frappe.db.set_value("ToDo", mine, "priority", "High")
-		self.assertEqual(workspace.get_widget(self.queue)["rows"][0]["_actions"], [0, 1])
+		self.assertEqual(workspace.get_widget(self.queue)["rows"][0]["_actions"], [0, 1, 3])
 
 	def test_a_quick_entry_takes_only_its_fields(self):
 		entry = workspace.save_workspace(
@@ -199,4 +200,14 @@ class TestWorkspace(IntegrationTestCase):
 		self.assertEqual(
 			{"Website Manager", ASSISTANT_USER_ROLE} - set(frappe.get_roles("workspace-invited@example.com")),
 			set(),
+		)
+
+	def test_an_assign_action_gives_the_record_to_the_user(self):
+		mine = todo(WORKER, "Call the venue")
+		workspace.act(self.queue, 3, mine)
+		self.assertIn(WORKER, frappe.parse_json(frappe.db.get_value("ToDo", mine, "_assign") or "[]"))
+
+	def test_me_resolves_inside_a_pattern(self):
+		self.assertEqual(
+			workspace.resolve({"_assign": ["like", "%@me%"]}), {"_assign": ["like", f"%{WORKER}%"]}
 		)

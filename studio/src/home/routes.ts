@@ -5,6 +5,8 @@ export const homeRoutes = (setUpLayers: NavigationGuard): RouteRecordRaw[] =>
 	[
 		{ path: "/home", name: "home", component: () => import("./HomePage.vue") },
 		{ path: "/home/setup", name: "home-setup", component: () => import("./SetupPage.vue") },
+		{ path: "/home/inbox", name: "home-inbox", component: () => import("./InboxPage.vue") },
+		{ path: "/home/s/:space", name: "home-space", component: () => import("./SpacePage.vue") },
 		{ path: "/home/:kind(apps|websites|dashboards)", name: "home-kind", component: () => import("./KindPage.vue") },
 		{ path: "/home/:kind(apps|websites|dashboards)/:name", name: "home-view", component: () => import("./ViewPage.vue") },
 	].map((route) => ({ ...route, meta: { layer: "ai", home: true }, beforeEnter: setUpLayers }))
