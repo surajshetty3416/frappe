@@ -11,6 +11,9 @@
 			<span class="flex-1" />
 			<!-- the open chat's menu, which the chat renders here -->
 			<div v-show="pane.tab === 'chat'" id="studio-chat-menu" class="flex items-center" />
+			<Dropdown v-if="pane.tab === 'chat'" :options="history" align="end">
+				<Button variant="ghost" icon="lucide-history" tooltip="Your chats" />
+			</Dropdown>
 			<Button
 				v-if="pane.tab === 'chat' && homeChat"
 				variant="ghost"
@@ -45,9 +48,10 @@
 </template>
 
 <script setup lang="ts">
-import { Button } from "frappe-ui"
-import { computed, ref, watchEffect } from "vue"
+import { Button, Dropdown, dayjs } from "frappe-ui"
+import { computed, ref, watch, watchEffect } from "vue"
 
+import { type Chat, getHistory } from "../artifacts"
 import HomeChat from "./HomeChat.vue"
 import RecordPane from "./RecordPane.vue"
 import SpaceConversation from "./SpaceConversation.vue"
@@ -63,6 +67,20 @@ const tabs = computed(() => [
 
 const chatSeen = ref(false)
 watchEffect(() => pane.value.tab === "chat" && (chatSeen.value = true))
+
+// the person's latest chats, newest first, to pick one up again
+const HISTORY_LIMIT = 15
+const chats = ref<Chat[]>([])
+watch(homeChat, async () => (chats.value = await getHistory(HISTORY_LIMIT).catch(() => [])), { immediate: true })
+const history = computed(() =>
+	chats.value.length
+		? chats.value.map((chat) => ({
+				label: `${chat.title || "Untitled"} · ${dayjs(chat.modified).fromNow()}`,
+				icon: chat.name === homeChat.value ? "lucide-check" : undefined,
+				onClick: () => (homeChat.value = chat.name),
+			}))
+		: [{ label: "No chats yet", disabled: true }]
+)
 
 function newChat() {
 	homeChat.value = null

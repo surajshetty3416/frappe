@@ -517,7 +517,9 @@ def find_widget(widget: str, space: str | None = None) -> dict[str, Any]:
 
 def with_charts(widgets: list[dict[str, Any]]) -> list[dict[str, Any]]:
 	"""Widgets with each chart's type and title, so a page sets numbers apart from charts and names
-	a chart its reader may view but not open."""
+	a chart its reader may view but not open; and whether the reader may edit it."""
+	from frappe.analytics.permissions import can_write
+
 	charts = [widget["chart"] for widget in widgets if widget["type"] == "chart"]
 	found = {
 		chart.name: chart
@@ -531,7 +533,12 @@ def with_charts(widgets: list[dict[str, Any]]) -> list[dict[str, Any]]:
 	for widget in widgets:
 		if widget["type"] == "chart":
 			chart = found.get(widget["chart"]) or {}
-			widget = {**widget, "chart_type": chart.get("chart_type"), "chart_title": chart.get("title")}
+			widget = {
+				**widget,
+				"chart_type": chart.get("chart_type"),
+				"chart_title": chart.get("title"),
+				"chart_editable": bool(chart) and can_write(frappe.get_doc("Insights Chart v3", chart.name)),
+			}
 		labelled.append(widget)
 	return labelled
 

@@ -47,7 +47,7 @@ import { useRouter } from "vue-router"
 
 import { type Artifact, artifactIcon } from "../artifacts"
 import { type ChatContext, contextChips } from "../context"
-import { chatSend, homeChat, kindOf, openRecord, openView, pane, question, viewInChat, viewRoute } from "./home"
+import { chatSend, homeChat, kindOf, openRecord, openSpace, openView, pane, question, viewInChat, viewRoute } from "./home"
 
 const FlowApp = defineAsyncComponent(async () => {
 	await import("@ai/index.css")
@@ -79,13 +79,15 @@ function onArtifact(artifact: Artifact) {
 	router.push(kindOf(artifact.doctype) ? viewRoute(artifact) : artifact.route)
 }
 
-// the view on screen, or the record open beside the workspace, rides along with each message, unless the person took it off
+// the view on screen, the record open beside the workspace, or the Space open, rides along with each message, unless the person took it off
 function attached(): ChatContext["artifact"] | null {
 	if (!viewInChat.value) return null
 	const view = openView.value
 	if (view) return { doctype: view.doctype, name: view.name, title: view.title, path: view.route }
 	const record = pane.value.open && pane.value.tab === "record" ? openRecord.value : null
-	return record ? { doctype: record.doctype, name: record.name, title: record.title ?? record.name, path: "/home" } : null
+	if (record) return { doctype: record.doctype, name: record.name, title: record.title ?? record.name, path: "/home" }
+	const space = openSpace.value
+	return space ? { doctype: "Workspace", name: space.name, title: space.title, path: `/home/s/${encodeURIComponent(space.name)}` } : null
 }
 const context = {
 	snapshot: () => {

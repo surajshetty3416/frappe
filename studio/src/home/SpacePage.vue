@@ -19,7 +19,10 @@
 						</div>
 						<Button size="sm" variant="ghost" icon-left="lucide-messages-square" label="Conversation" @click="pane = { open: true, tab: 'conversation' }" />
 						<Button v-if="space.can_edit" size="sm" variant="ghost" icon-left="lucide-layout-dashboard" label="Arrange" @click="startEditing" />
-						<Button v-if="!space.joined" size="sm" variant="solid" label="Join" :loading="joining" @click="join" />
+						<Button v-if="!space.joined" size="sm" variant="solid" label="Join" :loading="joining" @click="join(true)" />
+						<Dropdown v-else :options="[{ label: 'Leave Space', icon: 'lucide-log-out', onClick: () => join(false) }]" align="end">
+							<Button size="sm" variant="ghost" icon="lucide-ellipsis" tooltip="More" :loading="joining" />
+						</Dropdown>
 					</template>
 					<template v-else>
 						<Button size="sm" label="Cancel" @click="editing = false" />
@@ -42,7 +45,7 @@
 </template>
 
 <script setup lang="ts">
-import { Avatar, Button, LoadingIndicator, call } from "frappe-ui"
+import { Avatar, Button, Dropdown, LoadingIndicator, call } from "frappe-ui"
 import { computed, onBeforeUnmount, ref, watch } from "vue"
 import { useRoute } from "vue-router"
 
@@ -78,10 +81,10 @@ watch(refreshed, load)
 onBeforeUnmount(() => (openSpace.value = null))
 
 const joining = ref(false)
-async function join() {
+async function join(joined: boolean) {
 	joining.value = true
 	try {
-		await joinSpace(name.value)
+		await joinSpace(name.value, joined)
 		await load()
 	} finally {
 		joining.value = false

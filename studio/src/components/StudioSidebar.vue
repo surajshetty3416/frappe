@@ -48,6 +48,7 @@
 			</div>
 
 			<div class="flex flex-col gap-0.5 border-t border-outline-gray-1 p-2">
+				<SidebarItem label="Home" icon="lucide-house" route="/home" />
 				<SidebarItem label="Settings" icon="lucide-settings" route="/studio/settings" :active="route.matched[0]?.meta.layer === 'settings'" />
 				<Dropdown :options="userMenu" side="top" align="start">
 					<template #trigger>

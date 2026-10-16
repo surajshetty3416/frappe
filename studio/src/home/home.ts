@@ -4,6 +4,7 @@ import { ref } from "vue"
 
 import { type Artifact, artifactKinds } from "../artifacts"
 import { onUserEvent } from "../realtime"
+import { sessionUser } from "../session"
 
 // The home is where a person does their work: their workspace of widgets, the artifacts they open,
 // and the assistant beside them. Studio is where things are built.
@@ -39,9 +40,10 @@ export interface Widget {
 	doctype?: string
 	name?: string
 	chart?: string
-	// a chart's type and title, which the server tells and the widget does not keep
+	// a chart's type and title, and whether the person may edit it, which the server tells and the widget does not keep
 	chart_type?: string
 	chart_title?: string | null
+	chart_editable?: boolean
 	text?: string
 	search?: boolean
 	actions?: Action[]
@@ -121,8 +123,8 @@ export function showRecord(doctype: string, name: string, title?: string) {
 export const openView = ref<View | null>(null)
 export const viewInChat = ref(true)
 
-// the home's conversation, kept while the person moves between views
-export const homeChat = ref<string | null>(null)
+// the home's conversation, kept while the person moves between views and across reloads; each person's own
+export const homeChat = useStorage<string | null>(`home-chat:${sessionUser()}`, null)
 // a question the ask bar hands a chat that has not started; one that has takes it through `chatSend`
 export const question = ref("")
 export const chatSend = ref<((message: string) => boolean) | null>(null)

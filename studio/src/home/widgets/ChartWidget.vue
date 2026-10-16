@@ -1,5 +1,9 @@
 <template>
-	<WidgetFrame v-bind="$attrs" :widget="{ ...widget, title: widget.title || widget.chart_title || null }">
+	<WidgetFrame
+		v-bind="$attrs"
+		:widget="{ ...widget, title: widget.title || widget.chart_title || null }"
+		:studio="widget.chart_editable ? `/studio/analytics/charts/${encodeURIComponent(widget.chart!)}` : undefined"
+	>
 		<div data-layer="analytics" class="h-[240px] min-h-0 p-2">
 			<ChartBodyView v-if="ready" :key="`${widget.chart}/${refreshed}`" :chart="widget.chart!" />
 		</div>

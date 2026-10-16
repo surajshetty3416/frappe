@@ -327,3 +327,51 @@ class TestTaskActions(IntegrationTestCase):
 			(inbox, _queue) = workspace.get_workspace()["widgets"]
 		self.assertEqual((inbox["id"], inbox.get("space"), inbox["title"]), ("inbox", None, None))
 		self.assertIn("items", workspace.get_widget(inbox["id"]))
+
+
+class TestChartWidgets(IntegrationTestCase):
+	def setUp(self):
+		frappe.set_user("Administrator")
+		workbook = frappe.get_doc({"doctype": "Insights Workbook", "title": "Widget Charts"}).insert().name
+		source = {"type": "table", "data_source": "Site DB", "table_name": "tabToDo"}
+		query = frappe.get_doc(
+			{
+				"doctype": "Insights Query v3",
+				"title": "To Dos",
+				"workbook": workbook,
+				"is_builder_query": 1,
+				"use_live_connection": 1,
+				"operations": frappe.as_json([{"type": "source", "table": source}]),
+			}
+		).insert()
+		count = {
+			"measure_name": "To Dos",
+			"column_name": "count",
+			"data_type": "Integer",
+			"aggregation": "count",
+		}
+		self.chart = (
+			frappe.get_doc(
+				{
+					"doctype": "Insights Chart v3",
+					"title": "To Dos",
+					"workbook": workbook,
+					"query": query.name,
+					"chart_type": "Number",
+					"config": frappe.as_json({"number_columns": [count]}),
+					"visibility": "Everyone",
+				}
+			)
+			.insert()
+			.name
+		)
+
+	def tearDown(self):
+		frappe.set_user("Administrator")
+
+	def test_a_chart_says_whether_its_reader_may_edit_it(self):
+		widgets = [{"id": "to-dos", "type": "chart", "chart": self.chart}]
+		self.assertTrue(workspace.with_charts(widgets)[0]["chart_editable"])
+		frappe.set_user(user(WORKER))
+		(widget,) = workspace.with_charts(widgets)
+		self.assertEqual((widget["chart_title"], widget["chart_editable"]), ("To Dos", False))

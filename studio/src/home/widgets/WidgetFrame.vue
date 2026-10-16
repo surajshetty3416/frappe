@@ -16,6 +16,7 @@
 					class="truncate text-xs text-ink-gray-4 hover:text-ink-gray-7"
 				>{{ widget.space_title }}</RouterLink>
 				<span class="flex-1" />
+				<Button v-if="studio" variant="ghost" size="sm" icon="lucide-pencil" tooltip="Edit in Studio" :route="studio" />
 				<slot v-if="!editing" name="header" />
 				<template v-if="editing">
 					<Dropdown :options="sizes">
@@ -41,7 +42,15 @@ import { RouterLink } from "vue-router"
 
 import { type Widget, widgetTitle } from "../home"
 
-const props = defineProps<{ widget: Widget; count?: number | null; editing?: boolean; first?: boolean; last?: boolean }>()
+const props = defineProps<{
+	widget: Widget
+	count?: number | null
+	editing?: boolean
+	first?: boolean
+	last?: boolean
+	// where the widget's own content is edited, for whoever may
+	studio?: string
+}>()
 const emit = defineEmits<{ move: [step: number]; remove: []; resize: [size: Widget["size"]] }>()
 
 // a third, two thirds or the whole of the row, so widgets always pack; the whole row on a narrow screen.
