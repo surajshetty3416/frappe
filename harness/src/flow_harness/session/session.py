@@ -720,7 +720,7 @@ class Session:
 		operation_type: Literal["run", "compact"],
 	) -> None:
 		"""Commit the loop's events; when it raises instead, settle the run here."""
-		if previous is not None:
+		if previous is not None and not previous.done():
 			await asyncio.wait({previous})  # two Claude Code processes must not write one session
 		aborted_terminal = False
 		ended = False
