@@ -1471,7 +1471,32 @@ class TestStoreWithoutAVX2(IntegrationTestCase):
 
 	def test_the_store_refuses_to_open(self):
 		with self.assertRaises(frappe.ValidationError):
-			store.table_exists()
+			store.ensure_table_for_dimension(8)
+
+	def test_deleting_a_chat_shows_no_error(self):
+		from frappe.ai.api.api import delete_session
+		from frappe.ai.tests.test_artifacts import chat
+
+		user = "flow-no-avx2@example.com"
+		frappe.set_user("Administrator")
+		if not frappe.db.exists("User", user):
+			frappe.get_doc(
+				{
+					"doctype": "User",
+					"email": user,
+					"first_name": "No AVX2",
+					"send_welcome_email": 0,
+					"roles": [{"role": "Assistant User"}],
+				}
+			).insert()
+		session = chat(user)
+		frappe.set_user(user)
+		frappe.local.message_log = []
+
+		delete_session(session)
+
+		self.assertFalse(frappe.db.exists("Flow Session", session))
+		self.assertEqual(frappe.local.message_log, [])
 
 	def test_a_turn_finds_no_memories(self):
 		from frappe.ai.memory import store as memory_store

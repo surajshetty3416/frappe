@@ -39,6 +39,8 @@ def sync(doc: FlowAgentMemory) -> None:
 
 
 def remove(name: str) -> None:
+	if not available():
+		return
 	try:
 		db = _connect()
 		if TABLE_NAME in db.list_tables().tables:

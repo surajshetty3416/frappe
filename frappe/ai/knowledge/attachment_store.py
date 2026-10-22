@@ -16,7 +16,7 @@ from typing import Any
 
 import pyarrow as pa
 
-from frappe.ai.knowledge.store import _connect, _ensure_fts_index, _quote, _vector_dim
+from frappe.ai.knowledge.store import _connect, _ensure_fts_index, _quote, _vector_dim, available
 
 TABLE_NAME = "chat_attachment_chunks"
 MAX_SEARCH_LIMIT = 50
@@ -134,7 +134,7 @@ def drop_table() -> None:
 
 
 def _table_exists() -> bool:
-	return TABLE_NAME in _connect().list_tables().tables
+	return available() and TABLE_NAME in _connect().list_tables().tables
 
 
 def _open_table():

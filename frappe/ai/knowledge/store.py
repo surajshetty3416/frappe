@@ -81,7 +81,7 @@ def _connect():
 
 
 def table_exists() -> bool:
-	return TABLE_NAME in _connect().list_tables().tables
+	return available() and TABLE_NAME in _connect().list_tables().tables
 
 
 def _vector_dim(table) -> int:
