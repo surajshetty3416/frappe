@@ -23,6 +23,14 @@ def user(email: str, *roles: str) -> str:
 	return email
 
 
+def a_call(space: str) -> dict:
+	return {"provider": "Test", "url": f"/call/{space}"}
+
+
+def in_the_call(space: str) -> list[dict]:
+	return [{"user": MEMBER, "full_name": "Member", "image": None}]
+
+
 def space(title: str, roles: list[str] | None = None, widgets: list | None = None) -> str:
 	if frappe.db.exists("Workspace", title):
 		frappe.delete_doc("Workspace", title, force=True)
@@ -99,6 +107,24 @@ class TestSpaces(IntegrationTestCase):
 			spaces.join_space(self.closed)
 		with self.assertRaises(frappe.PermissionError):
 			spaces.get_space(self.closed)
+
+	def test_an_app_gives_a_space_its_call_and_who_is_in_it(self):
+		frappe.set_user(MEMBER)
+		with self.patch_hooks({"space_call": [], "space_call_people": []}):
+			self.assertIsNone(spaces.get_space(self.open)["call"])
+			self.assertEqual(spaces.get_call_people(self.open), [])
+		hooks = {
+			"space_call": ["frappe.ai.tests.test_spaces.a_call"],
+			"space_call_people": ["frappe.ai.tests.test_spaces.in_the_call"],
+		}
+		with self.patch_hooks(hooks):
+			self.assertEqual(
+				spaces.get_space(self.open)["call"], {"provider": "Test", "url": f"/call/{self.open}"}
+			)
+			self.assertEqual([person["user"] for person in spaces.get_call_people(self.open)], [MEMBER])
+			frappe.set_user(OUTSIDER)
+			with self.assertRaises(frappe.PermissionError):
+				spaces.get_call_people(self.closed)
 
 	def test_only_a_workspace_manager_adds_someone_else(self):
 		frappe.set_user(OUTSIDER)

@@ -17,6 +17,15 @@
 							<Avatar v-for="member in space.members.slice(0, 4)" :key="member.user" :label="member.full_name" :image="member.image" size="sm" />
 							<span v-if="space.members.length > 4" class="pl-1 text-xs tabular-nums text-ink-gray-5">+{{ space.members.length - 4 }}</span>
 						</div>
+						<Button v-if="space.call" size="sm" :variant="inCall.length ? 'subtle' : 'ghost'" :tooltip="inCall.map((person) => person.full_name).join(', ')" @click="joinCall">
+							<template #prefix>
+								<span v-if="inCall.length" class="flex -space-x-1">
+									<Avatar v-for="person in inCall.slice(0, 3)" :key="person.user" :label="person.full_name" :image="person.image" size="xs" />
+								</span>
+								<span v-else class="lucide-video size-4" />
+							</template>
+							{{ inCall.length ? "Join call" : "Start call" }}
+						</Button>
 						<Button size="sm" variant="ghost" icon-left="lucide-messages-square" label="Conversation" @click="pane = { open: true, tab: 'conversation' }" />
 						<Button v-if="space.can_edit" size="sm" variant="ghost" icon-left="lucide-layout-dashboard" label="Arrange" @click="startEditing" />
 						<Button v-if="!space.joined" size="sm" variant="solid" label="Join" :loading="joining" @click="join(true)" />
@@ -53,6 +62,8 @@ import WorkspaceGrid from "./WorkspaceGrid.vue"
 import { type Space, type Widget, joinSpace, openSpace, openView, pane, refreshed, spaceIcon } from "./home"
 import { errorText } from "./widgets/format"
 
+const CALL_REFRESH_MS = 20000
+
 const route = useRoute()
 const name = computed(() => String(route.params.space))
 
@@ -79,6 +90,25 @@ watch(name, () => {
 }, { immediate: true })
 watch(refreshed, load)
 onBeforeUnmount(() => (openSpace.value = null))
+
+const inCall = ref<Space["members"]>([])
+async function loadCall() {
+	if (!space.value?.call || document.hidden) return
+	inCall.value = await call("frappe.ai.spaces.get_call_people", { space: name.value })
+}
+watch(() => space.value?.call?.url, () => {
+	inCall.value = []
+	loadCall()
+})
+const callTimer = setInterval(loadCall, CALL_REFRESH_MS)
+document.addEventListener("visibilitychange", loadCall)
+onBeforeUnmount(() => {
+	clearInterval(callTimer)
+	document.removeEventListener("visibilitychange", loadCall)
+})
+function joinCall() {
+	window.open(space.value?.call?.url, "_blank", "noopener")
+}
 
 const joining = ref(false)
 async function join(joined: boolean) {

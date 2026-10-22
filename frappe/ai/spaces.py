@@ -9,13 +9,17 @@ Space that sets `widgets` shows those instead.
 A widget marked `home` is the Space's slice of a member's Home, so a person's Home is ready the
 moment they join their Spaces.
 
-Apps take part through two hooks:
+Apps take part through these hooks:
 - `space_templates`: functions that return the Spaces an app offers to set up, each a dict of
   name, title, icon, description, roles and widgets.
 - `space_conversation`: a function that takes a Space's name and gives what fills its
   conversation, {"provider", "url"}, or None; the last app's answer that is not None wins. Without
   one, a Space shows the activity on the records its widgets show. An app that keeps its light or
-  dark theme in localStorage adds "theme_key", and the shell writes its own theme there first."""
+  dark theme in localStorage adds "theme_key", and the shell writes its own theme there first.
+- `space_call`: a function that takes a Space's name and gives the call its people join,
+  {"provider", "url"}, or None; the last app's answer that is not None wins.
+- `space_call_people`: a function that takes a Space's name and gives who is in its call now, each
+  {"user", "full_name", "image"}. The page asks again while it is open, so it should answer fast."""
 
 from __future__ import annotations
 
@@ -67,6 +71,7 @@ def get_space(space: str) -> dict[str, Any]:
 		"joined": frappe.session.user in members,
 		"can_edit": can_edit(),
 		"conversation": conversation(doc.name),
+		"call": call(doc.name),
 	}
 
 
@@ -234,9 +239,24 @@ def home_slices() -> list[dict[str, Any]]:
 	return slices
 
 
+@frappe.whitelist()
+def get_call_people(space: str) -> list[dict[str, Any]]:
+	"""Who is in the Space's call now."""
+	permitted(space)
+	return last_answer("space_call_people", space) or []
+
+
 def conversation(space: str) -> dict[str, Any] | None:
+	return last_answer("space_conversation", space)
+
+
+def call(space: str) -> dict[str, Any] | None:
+	return last_answer("space_call", space)
+
+
+def last_answer(hook: str, space: str) -> Any:
 	found = None
-	for method in frappe.get_hooks("space_conversation"):
+	for method in frappe.get_hooks(hook):
 		found = frappe.get_attr(method)(space) or found
 	return found
 
