@@ -1,7 +1,7 @@
 <template>
 	<div>
-		<component
-			:is="expandable ? 'button' : 'div'"
+		<StepRow
+			:button="expandable"
 			:type="expandable ? 'button' : undefined"
 			class="-mx-1.5 flex w-fit select-none items-center gap-2 rounded-4 px-1.5 py-1 text-sm text-ink-gray-5"
 			:class="expandable ? 'transition-colors duration-150 ease-out hover:text-ink-gray-7' : ''"
@@ -15,7 +15,7 @@
 				class="lucide-chevron-right size-3.5 flex-none transition-transform duration-150 ease-out"
 				:class="open ? 'rotate-90' : ''"
 			/>
-		</component>
+		</StepRow>
 
 		<div v-if="open && expandable" class="mb-1 ml-2 mt-1 border-l border-outline-gray-2 pl-4">
 			<div ref="panelEl" class="max-h-[260px] overflow-y-auto" @scroll="onPanelScroll">
@@ -31,6 +31,7 @@ import { computed, nextTick, ref, watch } from "vue"
 import { usePanelOpen } from "../panels.js"
 import { formatDuration } from "../transcript.js"
 import MarkdownContent from "./MarkdownContent.vue"
+import StepRow from "./StepRow.js"
 
 const props = defineProps({
 	id: { type: String, required: true },

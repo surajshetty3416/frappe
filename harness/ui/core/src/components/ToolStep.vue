@@ -1,7 +1,7 @@
 <template>
 	<div>
-		<component
-			:is="expandable ? 'button' : 'div'"
+		<StepRow
+			:button="expandable"
 			class="-mx-1.5 flex w-[calc(100%+0.75rem)] items-center gap-2 rounded-4 px-1.5 py-1 text-left text-sm"
 			:class="[expandable ? 'group' : '', live ? 'flow-tool-live' : '']"
 			@click="expandable && (open = !open)"
@@ -18,7 +18,7 @@
 			<span class="flex-none text-ink-gray-6">{{ label }}</span>
 			<span class="min-w-0 flex-1 truncate text-ink-gray-5">{{ subject }}</span>
 			<span v-if="stat" class="flex-none" :class="statClass">{{ stat }}</span>
-		</component>
+		</StepRow>
 
 		<div v-if="open && expandable" ref="payloadEl" class="mb-1 mt-1 overflow-hidden rounded-4 border border-outline-gray-1 bg-surface-base">
 			<div v-if="reasoning" class="max-h-[200px] overflow-y-auto border-b border-outline-gray-1 px-3 py-2 last:border-b-0">
@@ -48,6 +48,7 @@ import { usePanelOpen } from "../panels.js"
 import { stepDecision, stepIcon, stepLabel, stepStat, stepSubject } from "../transcript.js"
 import CopyButton from "./CopyButton.vue"
 import MarkdownContent from "./MarkdownContent.vue"
+import StepRow from "./StepRow.js"
 
 const props = defineProps({
 	step: { type: Object, required: true },
