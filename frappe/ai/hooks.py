@@ -6,19 +6,28 @@ doc_events = {
 		"before_validate": "frappe.ai.artifacts.claim",
 		"on_trash": ["frappe.ai.artifacts.claim", "frappe.ai.versions.delete"],
 		"on_update": "frappe.ai.versions.record",
-	}
+	},
+	# a viewer taken off a chat stops following it live
+	"DocShare": {"on_trash": "frappe.ai.doctype.flow_session.flow_session.on_share_removed"},
 }
 
-# a session's tools run as its owner, so its content is theirs alone
+# a session's tools run as its owner, so its content is theirs alone. An agent's or model's
+# roles limit who may use it directly, and an agent's skills are read with it.
 has_permission = {
 	"Flow Session": "frappe.ai.permissions.has_session_permission",
 	"Flow Run": "frappe.ai.permissions.has_session_permission",
 	"Flow Agent Memory": "frappe.ai.permissions.has_memory_permission",
+	"Flow Agent": "frappe.ai.permissions.has_role_permission",
+	"Flow Model": "frappe.ai.permissions.has_role_permission",
+	"Flow Skill": "frappe.ai.permissions.has_skill_permission",
 }
 permission_query_conditions = {
 	"Flow Session": "frappe.ai.permissions.session_query_conditions",
 	"Flow Run": "frappe.ai.permissions.session_query_conditions",
 	"Flow Agent Memory": "frappe.ai.permissions.memory_query_conditions",
+	"Flow Agent": "frappe.ai.permissions.role_query_conditions",
+	"Flow Model": "frappe.ai.permissions.role_query_conditions",
+	"Flow Skill": "frappe.ai.permissions.skill_query_conditions",
 }
 
 # Flow's references to other docs are bookkeeping — they must never block deleting

@@ -94,7 +94,7 @@ test("the room is joined before the log is fetched, and live events are deduplic
 	assert.equal(socket.has("flow:event"), false);
 });
 
-test("a seq gap, a resync notice, a reconnect and a new stream id each re-fetch the log", async () => {
+test("a seq gap, a resync notice, a reconnect, a relay drop and a new stream id each re-fetch the log", async () => {
 	const socket = fakeSocket();
 	const fetches = [];
 	let rows = [];
@@ -131,22 +131,27 @@ test("a seq gap, a resync notice, a reconnect and a new stream id each re-fetch 
 	socket.fire("connect");
 	assert.equal((await iterator.next()).value.seq, 5);
 	assert.equal(subscribes(), 2);
+	// dropped by the relay on an access check: the same
+	rows = [...rows, { type: "user_message", seq: 6 }];
+	socket.fire("flow:resubscribe", { session: "s1" });
+	assert.equal((await iterator.next()).value.seq, 6);
+	assert.equal(subscribes(), 3);
 	// a restarted daemon publishes under a new stream id
-	rows = [...rows, { type: "user_message", seq: 6 }, { type: "user_message", seq: 7 }];
+	rows = [...rows, { type: "user_message", seq: 7 }, { type: "user_message", seq: 8 }];
 	socket.fire("flow:event", {
 		type: "user_message",
-		seq: 7,
+		seq: 8,
 		session_id: "s1",
 		stream_id: "b",
 		revision: 1,
 	});
-	assert.equal((await iterator.next()).value.seq, 6);
 	assert.equal((await iterator.next()).value.seq, 7);
-	assert.deepEqual(fetches, [0, 1, 3, 4, 5]);
+	assert.equal((await iterator.next()).value.seq, 8);
+	assert.deepEqual(fetches, [0, 1, 3, 4, 5, 6]);
 	stream.close();
 });
 
-test("each terminal run_ended is reported exactly once, replayed or re-fetched", async () => {
+test("each terminal run_ended is reported exactly once, replayed or re-fetched; a sub-agent's is not terminal", async () => {
 	const socket = fakeSocket();
 	const terminals = [];
 	const stream = new SessionStream({
@@ -154,12 +159,15 @@ test("each terminal run_ended is reported exactly once, replayed or re-fetched",
 		session: "s1",
 		since: 0,
 		fetchEntries: async (cursor) => ({
-			entries: [ended(2), ended(5)].filter((row) => row.seq > cursor),
+			entries: [ended(2), ended(3, { subagent_id: "c1" }), ended(5)].filter(
+				(row) => row.seq > cursor
+			),
 		}),
 		onTerminal: (seq) => terminals.push(seq),
 	});
 	const iterator = stream[Symbol.asyncIterator]();
 	assert.equal((await iterator.next()).value.seq, 2);
+	assert.equal((await iterator.next()).value.seq, 3);
 	assert.equal((await iterator.next()).value.seq, 5);
 	socket.fire("flow:event", ended(5, { stream_id: "a", revision: 9 }));
 	socket.fire("flow:event", ended(2, { stream_id: "a", revision: 9 }));
@@ -176,21 +184,6 @@ test("each terminal run_ended is reported exactly once, replayed or re-fetched",
 	stream.close();
 });
 
-test("a sub-agent's run_ended is not a terminal event", async () => {
-	const socket = fakeSocket();
-	const terminals = [];
-	const stream = new SessionStream({
-		socket,
-		session: "s1",
-		since: 0,
-		fetchEntries: async () => ({ entries: [ended(3, { subagent_id: "c1" }), ended(4)] }),
-		onTerminal: (seq) => terminals.push(seq),
-	});
-	await collect(stream, 2);
-	assert.deepEqual(terminals, [4]);
-	stream.close();
-});
-
 test("a refused subscription ends the stream with an error, and releases the room once acked", async () => {
 	const socket = fakeSocket({ subscribed: false });
 	const stream = new SessionStream({
@@ -203,6 +196,21 @@ test("a refused subscription ends the stream with an error, and releases the roo
 		socket.emitted.some(([name]) => name === "flow:unsubscribe"),
 		false
 	);
+
+	// dropped by the relay and refused on asking again, as a removed viewer is: the same error
+	const dropped = fakeSocket();
+	const viewing = collect(
+		new SessionStream({
+			socket: dropped,
+			session: "s1",
+			fetchEntries: async () => ({ entries: [] }),
+		}),
+		1
+	);
+	await new Promise((resolve) => setTimeout(resolve, 0));
+	dropped.subscribed = false;
+	dropped.fire("flow:resubscribe", { session: "s1" });
+	await assert.rejects(viewing, /Live updates are unavailable/);
 
 	// closed before the ack arrives: the room is left as soon as it is joined
 	const late = fakeSocket();
@@ -220,8 +228,8 @@ test("a refused subscription ends the stream with an error, and releases the roo
 	assert.deepEqual(late.emitted.at(-1), ["flow:unsubscribe", "s1"]);
 });
 
-for (const notice of ["connect", "flow:resync"]) {
-	test(`${notice} replaces the streaming preview instead of appending it`, async (t) => {
+test("a reconnect or a resync replaces the streaming preview instead of appending it", async (t) => {
+	for (const notice of ["connect", "flow:resync"]) {
 		const socket = fakeSocket();
 		let preview = "Hello";
 		const stream = new SessionStream({
@@ -235,17 +243,17 @@ for (const notice of ["connect", "flow:resync"]) {
 		t.after(() => stream.close());
 		const state = initialConversation();
 		const iterator = stream[Symbol.asyncIterator]();
-		async function readPreview() {
+		const readPreview = async () => {
 			let event;
 			do {
 				event = (await iterator.next()).value;
 				applyEvent(state, event);
 			} while (event.type !== "text_delta");
-		}
+		};
 		await readPreview();
 		preview = "Hello world";
 		socket.fire(notice, { session: "s1" });
 		await readPreview();
-		assert.deepEqual(state.partial, [{ type: "text", text: "Hello world" }]);
-	});
-}
+		assert.deepEqual(state.partial, [{ type: "text", text: "Hello world" }], notice);
+	}
+});

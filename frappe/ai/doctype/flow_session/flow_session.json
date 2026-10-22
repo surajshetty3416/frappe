@@ -11,6 +11,7 @@
   "model",
   "source",
   "auto_approve",
+  "general_access",
   "last_synced_seq",
   "section_break_transcript",
   "transcript_html",
@@ -61,6 +62,15 @@
    "fieldname": "auto_approve",
    "fieldtype": "Check",
    "label": "Auto Approve Tool Calls",
+   "read_only": 1
+  },
+  {
+   "default": "Restricted",
+   "description": "Who else may view this conversation: only the people it is shared with, or every Flow user. Set from its Share dialog.",
+   "fieldname": "general_access",
+   "fieldtype": "Select",
+   "label": "General Access",
+   "options": "Restricted\nEveryone",
    "read_only": 1
   },
   {
@@ -124,7 +134,7 @@
    "link_fieldname": "session"
   }
  ],
- "modified": "2026-10-14 15:25:32.135725",
+ "modified": "2026-10-16 20:41:00",
  "modified_by": "Administrator",
  "module": "AI",
  "name": "Flow Session",
@@ -151,7 +161,12 @@
    "if_owner": 1,
    "read": 1,
    "role": "Assistant User",
+   "share": 1,
    "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Assistant User"
   }
  ],
  "row_format": "Dynamic",

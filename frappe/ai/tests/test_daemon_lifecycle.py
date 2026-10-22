@@ -22,6 +22,9 @@ class TestDaemonLifecycle(UnitTestCase):
 		self.addCleanup(tmp.cleanup)
 		(Path(tmp.name) / "config").mkdir()
 		self.enterContext(patch("frappe.utils.synchronization.get_bench_path", return_value=tmp.name))
+		self.bench_path = lifecycle.get_bench_path
+		self.enterContext(patch.object(lifecycle, "get_bench_path", return_value=tmp.name))
+		self.sites = Path(tmp.name).resolve() / "sites"
 		self.state = Path(tmp.name) / "sites" / "flow-server"
 		self.runtime = Path(tmp.name) / "flow-server"
 		self.log = Path(tmp.name) / "logs" / "flow-server.log"
@@ -43,65 +46,79 @@ class TestDaemonLifecycle(UnitTestCase):
 		self.enterContext(patch.object(lifecycle, "_flow_bin", return_value=self.flow_bin))
 		self.site = frappe.local.site
 
-	def test_callbacks_go_to_the_local_web_server_unless_overridden(self):
+	def test_the_template_finds_each_site_and_calls_back_to_the_bench(self):
+		site = self.sites / "{site}"
 		method = "/api/method/frappe.ai.daemon.callback.callback"
-		with patch.dict(frappe.local.conf, {"flow_server_url": None, "webserver_port": 8001}):
-			self.assertEqual(lifecycle.callback_url(), f"http://127.0.0.1:8001{method}")
-			self.assertEqual(lifecycle.callback_host(), "127.0.0.1:8001")
-		with patch.dict(frappe.local.conf, {"flow_server_url": "https://erp.example.com/"}):
-			self.assertEqual(lifecycle.callback_url(), f"https://erp.example.com{method}")
-			self.assertEqual(lifecycle.callback_host(), "erp.example.com")
-		self.assertEqual(lifecycle.callback_headers(), {"X-Frappe-Site-Name": self.site})
-
-	def test_durable_state_uses_the_sites_directory(self):
-		bench = self.state.parents[1]
-		with patch.object(lifecycle, "get_bench_path", return_value=str(bench)):
-			self.assertEqual(self.state_dir(), bench / "sites" / "flow-server")
-			self.assertEqual(self.runtime_dir(), bench / "flow-server")
-			self.assertEqual(self.log_path(), bench / "logs" / "flow-server.log")
-
-	def test_provision_site_writes_secret_and_tenants_entry(self):
 		with (
-			patch.dict(frappe.local.conf, {"flow_server_secret": None}),
-			patch.object(
-				lifecycle, "update_site_config", side_effect=frappe.local.conf.__setitem__
-			) as config,
+			patch.object(frappe, "get_common_site_config", return_value=frappe._dict(webserver_port=8001)),
+			patch.dict(frappe.local.conf, {"flow_server_url": "https://site.example.com"}),
 		):
-			lifecycle.provision_site()
-		key, secret = config.call_args.args
-		self.assertEqual(key, "flow_server_secret")
-		self.assertEqual(
-			self.tenants()[self.site],
-			{
-				"token": secret,
-				"allowed_roots": [str(root) for root in lifecycle.allowed_roots()],
-				"ignore_hidden_files": True,
-				"callback_hosts": [lifecycle.callback_host()],
-				"data_dir": str(self.partition),
-				"extensions": [str(self.partition / "extensions")],
-			},
-		)
-		self.assertEqual((self.state / "tenants.json").stat().st_mode & 0o777, 0o600)
+			self.assertEqual(lifecycle.callback_url(), f"http://127.0.0.1:8001{method}")
+			self.assertEqual(
+				lifecycle.tenant_template(),
+				{
+					"token_file": str(site / "site_config.json"),
+					"token_key": "flow_server_secret",
+					"allowed_roots": [str(site / "public" / "files"), str(self.sites.parent / "apps")],
+					"ignore_hidden_files": True,
+					"callback_hosts": ["127.0.0.1:8001"],
+					"callback_headers": {"X-Frappe-Site-Name": "{site}"},
+					"data_dir": str(site / "private" / "flow"),
+					"extensions": [str(site / "private" / "flow" / "extensions")],
+				},
+			)
+		bench = frappe._dict(flow_server_url="https://erp.example.com/")
+		with patch.object(frappe, "get_common_site_config", return_value=bench):
+			self.assertEqual(lifecycle.callback_url(), f"https://erp.example.com{method}")
+			self.assertEqual(lifecycle.tenant_template()["callback_hosts"], ["erp.example.com"])
 
-	def test_provision_site_keeps_an_existing_secret(self):
+	def test_the_daemon_files_live_in_the_bench_and_each_site(self):
+		bench = self.state.parents[1]
+		self.assertEqual(self.state_dir(), bench / "sites" / "flow-server")
+		self.assertEqual(self.runtime_dir(), bench / "flow-server")
+		self.assertEqual(self.log_path(), bench / "logs" / "flow-server.log")
+		with (
+			patch.object(lifecycle, "get_bench_path", self.bench_path),
+			patch.object(lifecycle, "site_data_dir", self.site_data_dir),
+		):
+			template = json.loads(json.dumps(lifecycle.tenant_template()).replace("{site}", self.site))
+			self.assertEqual(template["allowed_roots"][0], str(lifecycle.session_root()))
+			self.assertEqual(template["data_dir"], str(lifecycle.site_data_dir()))
+			self.assertEqual(template["extensions"], [str(lifecycle.site_extensions_dir())])
+
+	def test_a_site_gets_its_secret_once_and_uninstall_drops_it_and_its_data(self):
 		with patch.object(lifecycle, "update_site_config") as config:
 			lifecycle.provision_site()
-			lifecycle.provision_site()
-		config.assert_not_called()
-		self.assertEqual(self.tenants()[self.site]["token"], "site-token")
+			config.assert_not_called()  # the site already has one
+			with patch.dict(frappe.local.conf, {"flow_server_secret": None}):
+				lifecycle.provision_site()
+		key, secret = config.call_args.args
+		self.assertEqual(key, "flow_server_secret")
+		self.assertEqual(len(secret), 48)
 
-	def test_session_root_is_the_sites_public_files_folder(self):
-		root = lifecycle.session_root()
-		self.assertEqual(root, Path(frappe.get_site_path("public", "files")).resolve())
-		self.assertTrue(root.is_absolute())
+		self.partition.mkdir(parents=True)
+		with (
+			patch.object(lifecycle, "update_site_config") as config,
+			patch.object(lifecycle, "stop") as stop,
+			patch.object(lifecycle, "restart") as restart,
+		):
+			lifecycle.remove_site()
+		config.assert_called_once_with("flow_server_secret", "None")
+		self.assertFalse(self.partition.exists())
+		stop.assert_not_called()
+		restart.assert_not_called()
 
-	def test_site_data_dir_is_inside_the_site(self):
-		self.assertEqual(self.site_data_dir(), Path(frappe.get_site_path("private", "flow")).resolve())
-
-	def test_allowed_roots_are_the_site_files_and_the_whole_bench_apps_dir(self):
-		bench = self.state.parents[1]
-		with patch.object(lifecycle, "get_bench_path", return_value=str(bench)):
-			self.assertEqual(lifecycle.allowed_roots(), (lifecycle.session_root(), bench.resolve() / "apps"))
+	def test_flow_sites_are_the_ones_whose_config_holds_a_secret(self):
+		for site, config in (
+			("a.localhost", '{"flow_server_secret": "s"}'),
+			("b.localhost", "{}"),
+			("c.localhost", "{"),
+		):
+			(self.sites / site).mkdir(parents=True)
+			(self.sites / site / "site_config.json").write_text(config)
+		(self.sites / "assets").mkdir()
+		self.assertEqual(lifecycle.flow_sites(), ["a.localhost"])
+		self.assertTrue(lifecycle.status().endswith("sites: a.localhost"))
 
 	def test_app_source_prompt_is_only_added_when_an_app_code_tool_is_selected(self):
 		self.assertEqual(lifecycle.app_source_prompt([]), "")
@@ -110,40 +127,14 @@ class TestDaemonLifecycle(UnitTestCase):
 		self.assertIn("Use grep", prompt)
 		self.assertIn("custom_app: /apps/custom", prompt)
 
-	def test_remove_site_drops_the_entry_and_the_daemon_data(self):
-		self.partition.mkdir(parents=True)
-		lifecycle.provision_site()
-		lifecycle._edit_tenants(lambda t: t.__setitem__("other.localhost", {"token": "t2"}))
-		with (
-			patch.object(lifecycle, "reload_tenants", return_value=True) as reload,
-			patch.object(lifecycle, "stop") as stop,
-		):
-			lifecycle.remove_site()
-		self.assertEqual(list(self.tenants()), ["other.localhost"])
-		self.assertFalse(self.partition.exists())
-		reload.assert_called_once_with("site-token")
-		stop.assert_not_called()
-
-	def test_remove_site_restarts_when_tenant_reload_fails(self):
-		lifecycle.provision_site()
-		lifecycle._edit_tenants(lambda t: t.__setitem__("other.localhost", {"token": "t2"}))
-		with (
-			patch.object(lifecycle, "reload_tenants", return_value=False),
-			patch.object(lifecycle, "restart") as restart,
-		):
-			lifecycle.remove_site()
-		restart.assert_called_once()
-
-	def test_removing_the_last_site_stops_the_daemon(self):
-		lifecycle.provision_site()
-		with patch.object(lifecycle, "stop") as stop:
-			lifecycle.remove_site()
-		self.assertEqual(self.tenants(), {})
-		stop.assert_called_once()
-
-	def test_start_passes_a_scrubbed_environment(self):
+	def test_start_launches_a_scrubbed_server_that_allows_every_sites_extension_tools(self):
 		self.install_flow_bin()
-		lifecycle.provision_site()
+		folder = self.sites / "a.localhost" / "private" / "flow" / "extensions"
+		folder.mkdir(parents=True)
+		other = self.sites / "b.localhost" / "private" / "flow" / "extensions"
+		other.mkdir(parents=True)
+		(self.sites / "c.localhost" / "private" / "flow").mkdir(parents=True)
+		rows = [{"name": "helpdesk_ticket", "description": "Fetch a ticket.", "extension": "helpdesk"}]
 		environ = {
 			"PATH": "/usr/bin",
 			"FLOW_AUTH_TOKEN": "x",
@@ -153,15 +144,19 @@ class TestDaemonLifecycle(UnitTestCase):
 		with (
 			patch.dict(os.environ, environ, clear=True),
 			patch.object(lifecycle, "healthy", side_effect=[False, True]),
+			patch.object(lifecycle, "extension_tools", return_value=rows) as listing,
 			patch.object(subprocess, "Popen", return_value=FakeProcess()) as popen,
 			patch.object(
 				frappe, "get_common_site_config", return_value=frappe._dict(redis_queue="redis://q")
 			),
 		):
 			lifecycle.start()
+			template = lifecycle.tenant_template()
+		# one listing per folder that exists, like the daemon loads them
+		self.assertCountEqual([c.args[0] for c in listing.call_args_list], [[folder], [other]])
 		command, kwargs = popen.call_args.args[0], popen.call_args.kwargs
 		self.assertEqual(command[:2], [str(self.flow_bin), "serve"])
-		self.assertEqual(
+		self.assertEqual(  # each site's extensions folder comes from the template
 			command[2:],
 			[
 				"--uds",
@@ -176,40 +171,15 @@ class TestDaemonLifecycle(UnitTestCase):
 			kwargs["env"],
 			{
 				"PATH": "/usr/bin",
-				"FLOW_TENANTS_FILE": str(self.state / "tenants.json"),
-				"FLOW_POLICY": '{"tool_allowlist": ["read", "grep", "subagent"]}',
+				"FLOW_TENANTS": json.dumps(template),
+				# the same tool in two sites is allowed once
+				"FLOW_POLICY": '{"tool_allowlist": ["read", "grep", "subagent", "helpdesk_ticket"]}',
 				"FLOW_REDIS_URL": "redis://q",
 			},
 		)
 		self.assertTrue(kwargs["start_new_session"])
 		self.assertEqual(kwargs["umask"], 0o077)
 		self.assertEqual(lifecycle.pid_file().read_text(), "4242")
-
-	def test_start_allows_the_tools_of_every_sites_extensions_folder(self):
-		self.install_flow_bin()
-		lifecycle.provision_site()
-		folder = self.partition / "extensions"
-		folder.mkdir(parents=True)
-		other = self.partition.parent / "other" / "extensions"
-		other.mkdir(parents=True)
-		lifecycle._edit_tenants(
-			lambda tenants: tenants.__setitem__("other", {"extensions": [str(other), "/nowhere"]})
-		)
-		rows = [{"name": "helpdesk_ticket", "description": "Fetch a ticket.", "extension": "helpdesk"}]
-		with (
-			patch.object(lifecycle, "healthy", side_effect=[False, True]),
-			patch.object(lifecycle, "extension_tools", return_value=rows) as listing,
-			patch.object(subprocess, "Popen", return_value=FakeProcess()) as popen,
-		):
-			lifecycle.start()
-		# one listing per folder that exists, like the daemon loads them
-		self.assertCountEqual([c.args[0] for c in listing.call_args_list], [[folder], [other]])
-		command, kwargs = popen.call_args.args[0], popen.call_args.kwargs
-		self.assertNotIn("--extension", command)  # each site's folder comes from its tenants entry
-		self.assertEqual(  # the same tool in two sites is allowed once
-			kwargs["env"]["FLOW_POLICY"],
-			'{"tool_allowlist": ["read", "grep", "subagent", "helpdesk_ticket"]}',
-		)
 
 	def test_extension_tools_runs_the_harness_listing(self):
 		listed = subprocess.CompletedProcess([], 0, stdout='{"tools": [{"name": "hello"}]}', stderr="")
@@ -227,14 +197,23 @@ class TestDaemonLifecycle(UnitTestCase):
 			lifecycle.extension_tools([Path("/ext")])
 		self.assertEqual(secho.call_args.args[0], "boom")
 
-	def test_migrate_warns_when_the_tool_sync_fails(self):
-		with (
-			patch.object(lifecycle, "restart"),
-			patch.object(lifecycle, "sync_server_tools", side_effect=RuntimeError("no listing")),
-			patch.object(click, "secho") as secho,
-		):
-			lifecycle.after_migrate()
-		self.assertIn("no listing", secho.call_args_list[0].args[0])
+	def test_failing_steps_warn_without_failing_install_or_migrate(self):
+		for hook in (lifecycle.after_install, lifecycle.after_migrate):
+			with (
+				self.subTest(hook=hook.__name__),
+				patch.object(lifecycle, "supervised", self.supervised),
+				patch.object(frappe, "get_common_site_config", return_value={"flow_server_manager": "typo"}),
+				patch.object(lifecycle, "sync_server_tools", side_effect=RuntimeError("no listing")) as sync,
+				patch.object(subprocess, "Popen") as popen,
+				patch.object(click, "secho") as secho,
+			):
+				hook()
+			warnings = [call.args[0] for call in secho.call_args_list]
+			self.assertIn("flow_server_manager must be local or supervisor", warnings[0])
+			# the sync still runs, and warns too
+			self.assertTrue(any("no listing" in warning for warning in warnings[1:]))
+			popen.assert_not_called()
+			sync.assert_called_once()
 
 	def test_migrate_restarts_unless_supervised_and_the_site_has_no_extensions(self):
 		for supervised, extensions, restarts in ((False, False, 1), (True, False, 0), (True, True, 1)):
@@ -250,62 +229,15 @@ class TestDaemonLifecycle(UnitTestCase):
 			self.assertEqual(restart.call_count, restarts)
 			sync.assert_called_once()
 
-	def test_invalid_manager_warns_without_failing_install_or_migrate(self):
-		for hook in (lifecycle.after_install, lifecycle.after_migrate):
-			with (
-				self.subTest(hook=hook.__name__),
-				patch.object(lifecycle, "supervised", self.supervised),
-				patch.object(frappe, "get_common_site_config", return_value={"flow_server_manager": "typo"}),
-				patch.object(lifecycle, "sync_server_tools") as sync,
-				patch.object(subprocess, "Popen") as popen,
-				patch.object(click, "secho") as secho,
-			):
-				hook()
-			self.assertIn("flow_server_manager must be local or supervisor", secho.call_args_list[0].args[0])
-			popen.assert_not_called()
-			sync.assert_called_once()
-
-	def test_start_refuses_without_a_provisioned_site(self):
-		self.install_flow_bin()
-		with self.assertRaisesRegex(RuntimeError, "no site is provisioned"):
-			lifecycle.start()
-
-	def test_ensure_running_reports_whether_it_started_the_daemon(self):
-		with patch.object(lifecycle, "_restart") as restart:
-			with patch.object(lifecycle, "healthy", return_value=True):
-				self.assertFalse(lifecycle.ensure_running())
-			restart.assert_not_called()
-			with patch.object(lifecycle, "healthy", return_value=False):
-				self.assertTrue(lifecycle.ensure_running())
-			restart.assert_called_once()
-
-	def test_ensure_running_checks_health_inside_the_global_lock(self):
-		events = []
-
-		@contextmanager
-		def locked(name, *, is_global):
-			events.append(("enter", name, is_global))
-			yield
-			events.append(("exit", name, is_global))
-
-		def healthy():
-			events.append("healthy")
-			return True
-
-		with (
-			patch.object(lifecycle, "filelock", side_effect=locked),
-			patch.object(lifecycle, "healthy", side_effect=healthy),
+	def test_entry_points_act_inside_the_global_lock(self):
+		for entrypoint, up, steps, result in (
+			("ensure_running", True, ["healthy"], False),
+			("ensure_running", False, ["healthy", "_restart"], True),
+			("start", None, ["_start"], None),
+			("stop", None, ["_stop"], None),
+			("restart", None, ["_restart"], None),
 		):
-			lifecycle.ensure_running()
-
-		self.assertEqual(
-			events,
-			[("enter", lifecycle.LOCK, True), "healthy", ("exit", lifecycle.LOCK, True)],
-		)
-
-	def test_mutating_lifecycle_entry_points_take_the_global_lock(self):
-		for entrypoint, operation in (("start", "_start"), ("stop", "_stop"), ("restart", "_restart")):
-			with self.subTest(entrypoint=entrypoint):
+			with self.subTest(entrypoint=entrypoint, up=up):
 				events = []
 
 				@contextmanager
@@ -314,23 +246,28 @@ class TestDaemonLifecycle(UnitTestCase):
 					yield
 					events.append(("exit", name, is_global))
 
-				def run_operation():
-					events.append(operation)
+				def step(name, value=None):
+					def record():
+						events.append(name)
+						return value
+
+					return record
 
 				with (
 					patch.object(lifecycle, "filelock", side_effect=locked),
-					patch.object(lifecycle, operation, side_effect=run_operation),
+					patch.object(lifecycle, "healthy", side_effect=step("healthy", up)),
+					patch.object(lifecycle, "_start", side_effect=step("_start")),
+					patch.object(lifecycle, "_stop", side_effect=step("_stop")),
+					patch.object(lifecycle, "_restart", side_effect=step("_restart")),
 				):
-					getattr(lifecycle, entrypoint)()
+					self.assertEqual(getattr(lifecycle, entrypoint)(), result)
 
 				self.assertEqual(
-					events,
-					[("enter", lifecycle.LOCK, True), operation, ("exit", lifecycle.LOCK, True)],
+					events, [("enter", lifecycle.LOCK, True), *steps, ("exit", lifecycle.LOCK, True)]
 				)
 
 	def test_start_cleans_up_a_process_that_never_becomes_healthy(self):
 		self.install_flow_bin()
-		lifecycle.provision_site()
 		process = FakeProcess()
 		with (
 			patch.object(lifecycle, "START_TIMEOUT", 0),
@@ -378,37 +315,30 @@ class TestDaemonLifecycle(UnitTestCase):
 			):
 				self.assertEqual(self.supervised(), expected)
 
-	def test_invalid_manager_does_not_silently_allow_local_startup(self):
-		with (
-			patch.object(frappe, "get_common_site_config", return_value={"flow_server_manager": "typo"}),
-			self.assertRaisesRegex(RuntimeError, "must be local or supervisor"),
-		):
-			self.supervised()
-
-	def test_supervised_start_waits_without_holding_the_launch_lock_or_spawning(self):
-		for start in (lifecycle.start, lifecycle.ensure_running):
+	def test_a_supervised_daemon_is_waited_for_but_never_spawned(self):
+		# two calls each: once supervisor brings it up, once it never does
+		for entrypoint, stops in (("start", 0), ("ensure_running", 0), ("restart", 2)):
 			with (
-				self.subTest(start=start.__name__),
+				self.subTest(entrypoint=entrypoint),
 				patch.object(lifecycle, "supervised", return_value=True),
-				patch.object(lifecycle, "healthy", side_effect=[False, True]),
+				patch.object(lifecycle, "healthy", side_effect=[False, True]) as healthy,
 				patch.object(lifecycle.time, "sleep"),
 				patch.object(lifecycle, "filelock") as lock,
+				patch.object(lifecycle, "_stop") as stop,
+				patch.object(lifecycle, "_start") as start,
 				patch.object(subprocess, "Popen") as popen,
 			):
-				self.assertFalse(start())
-			lock.assert_not_called()
-			popen.assert_not_called()
-
-	def test_unavailable_supervisor_does_not_fall_back_to_a_local_daemon(self):
-		for start in (lifecycle.start, lifecycle.ensure_running):
-			with (
-				self.subTest(start=start.__name__),
-				patch.object(lifecycle, "supervised", return_value=True),
-				patch.object(lifecycle, "START_TIMEOUT", 0),
-				patch.object(subprocess, "Popen") as popen,
-				self.assertRaisesRegex(RuntimeError, "did not become ready under supervisor"),
-			):
-				start()
+				self.assertFalse(getattr(lifecycle, entrypoint)())
+				self.assertEqual(healthy.call_count, 2)
+				with (
+					patch.object(lifecycle, "START_TIMEOUT", 0),
+					self.assertRaisesRegex(RuntimeError, "did not become ready under supervisor"),
+				):
+					getattr(lifecycle, entrypoint)()
+			# restart stops it for supervisor to start again; only that takes the launch lock
+			self.assertEqual(stop.call_count, stops)
+			self.assertEqual(lock.call_count, stops)
+			start.assert_not_called()
 			popen.assert_not_called()
 
 	def test_install_waits_for_supervisor_before_syncing_tools(self):
@@ -425,30 +355,9 @@ class TestDaemonLifecycle(UnitTestCase):
 		self.assertEqual(events, ["ready", "sync"])
 		popen.assert_not_called()
 
-	def test_a_supervised_restart_stops_the_daemon_and_waits_for_supervisor(self):
-		with (
-			patch.object(lifecycle, "supervised", return_value=True),
-			patch.object(lifecycle, "_stop") as stop,
-			patch.object(lifecycle, "_start") as start,
-			patch.object(lifecycle, "healthy", side_effect=[False, True]) as healthy,
-			patch.object(lifecycle.time, "sleep"),
-		):
-			lifecycle.restart()
-		stop.assert_called_once()
-		start.assert_not_called()
-		self.assertEqual(healthy.call_count, 2)
-
-		with (
-			patch.object(lifecycle, "supervised", return_value=True),
-			patch.object(lifecycle, "_stop"),
-			patch.object(lifecycle, "START_TIMEOUT", 0),
-			self.assertRaisesRegex(RuntimeError, "did not become ready"),
-		):
-			lifecycle.restart()
-
 	def test_serve_becomes_the_daemon_in_the_foreground(self):
+		"""With no site to wait for: one moved onto this bench later works on its first request."""
 		self.install_flow_bin()
-		lifecycle.provision_site()
 		with (
 			patch.dict(os.environ, {"PATH": "/usr/bin", "OPENAI_API_KEY": "sk"}, clear=True),
 			patch.object(lifecycle, "_redis_url", return_value=None),
@@ -467,7 +376,7 @@ class TestDaemonLifecycle(UnitTestCase):
 			env,
 			{
 				"PATH": "/usr/bin",
-				"FLOW_TENANTS_FILE": str(self.state / "tenants.json"),
+				"FLOW_TENANTS": json.dumps(lifecycle.tenant_template()),
 				"FLOW_POLICY": '{"tool_allowlist": ["read", "grep", "subagent"]}',
 			},
 		)
@@ -475,25 +384,7 @@ class TestDaemonLifecycle(UnitTestCase):
 		umask.assert_called_once_with(0o077)
 		self.assertEqual(lifecycle.pid_file().read_text(), str(os.getpid()))
 
-	def test_serve_waits_for_a_first_site(self):
-		self.install_flow_bin()
-
-		def first_site_installed(_):
-			lifecycle.provision_site()
-
-		with (
-			patch.object(lifecycle, "supervised", return_value=True),
-			patch.object(lifecycle.time, "sleep", side_effect=first_site_installed) as sleep,
-			patch.object(lifecycle, "_redis_url", return_value=None),
-			patch.object(os, "chdir"),
-			patch.object(os, "umask"),
-			patch.object(os, "execve") as execve,
-		):
-			lifecycle.serve()
-		sleep.assert_called_once_with(lifecycle.SITE_POLL)
-		execve.assert_called_once()
-
-	def test_serve_requires_explicit_supervisor_ownership(self):
+	def test_serve_refuses_until_its_manager_claims_the_bench(self):
 		with (
 			patch.object(lifecycle, "_stop") as stop,
 			patch.object(os, "execve") as execve,
@@ -503,12 +394,27 @@ class TestDaemonLifecycle(UnitTestCase):
 		stop.assert_not_called()
 		execve.assert_not_called()
 
+		self.install_flow_bin()
+		with (
+			patch.dict(os.environ, {"FLOW_SERVER_MANAGER": "supervisor"}),
+			patch.object(lifecycle, "update_site_config") as update,
+			patch.object(lifecycle, "_redis_url", return_value=None),
+			patch.object(lifecycle, "_stop"),
+			patch.object(os, "chdir"),
+			patch.object(os, "umask"),
+			patch.object(os, "execve") as execve,
+		):
+			lifecycle.serve()
+		update.assert_called_once_with(
+			"flow_server_manager",
+			"supervisor",
+			site_config_path=str(lifecycle._sites_dir() / "common_site_config.json"),
+		)
+		execve.assert_called_once()
+
 	def install_flow_bin(self) -> None:
 		self.flow_bin.parent.mkdir(parents=True)
 		self.flow_bin.touch()
-
-	def tenants(self) -> dict:
-		return json.loads((self.state / "tenants.json").read_text())
 
 
 class FakeProcess:

@@ -108,7 +108,7 @@ class TestSyncBuiltinAssistant(IntegrationTestCase):
 		frappe.db.set_single_value("Flow Knowledge Settings", "embedding_model", self.model.name)
 		frappe.clear_document_cache("Flow Knowledge Settings", "Flow Knowledge Settings")
 		knowledge = frappe.get_doc(
-			{"doctype": "Flow Knowledge Base", "title": "Stale Assistant Knowledge"}
+			{"doctype": "Flow Knowledge Base", "title": "Assistant Knowledge"}
 		).insert()
 		doc = frappe.get_doc("Flow Agent", ASSISTANT_AGENT_TITLE)
 		doc.update(
@@ -129,7 +129,7 @@ class TestSyncBuiltinAssistant(IntegrationTestCase):
 		self.assertEqual(doc.instructions, ASSISTANT_INSTRUCTIONS)
 		self.assertEqual(doc.max_iterations, ASSISTANT_MAX_ITERATIONS)
 		self.assertEqual([row.tool for row in doc.tools], ASSISTANT_TOOLS)
-		self.assertEqual([row.knowledge_base for row in doc.knowledge_bases], [])
+		self.assertEqual([row.knowledge_base for row in doc.knowledge_bases], [knowledge.name])
 		self.assertEqual((doc.model, doc.enabled), (other_model.name, 0))
 
 	def test_sync_is_noop_for_user_owned_agent(self):
@@ -171,10 +171,21 @@ class TestSyncBuiltinAssistant(IntegrationTestCase):
 		doc = frappe.get_doc("Flow Agent", ASSISTANT_AGENT_TITLE)
 		self.assertEqual([row.skill for row in doc.skills], ["close-todos"])
 
+		# the desk may add a skill of its own
+		house = frappe.get_doc(
+			{
+				"doctype": "Flow Skill",
+				"title": "House Style",
+				"description": "Any reply.",
+				"instructions": "Be plain.",
+			}
+		).insert()
+		doc.append("skills", {"skill": house.name})
+		doc.save()
 		shutil.rmtree(folder)
 		sync_assistant_skills("myapp")
 		doc.reload()
-		self.assertEqual(doc.skills, [])
+		self.assertEqual([row.skill for row in doc.skills], [house.name])
 
 	def test_assistant_cannot_be_deleted(self):
 		with self.assertRaisesRegex(frappe.ValidationError, "system-generated"):

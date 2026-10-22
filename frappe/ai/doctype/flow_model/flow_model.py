@@ -9,6 +9,7 @@ import frappe
 import requests
 from frappe import _
 from frappe.model.document import Document
+from frappe.model.naming import validate_name
 
 MODEL_ID_PATTERN = re.compile(r"^[a-z0-9][a-z0-9_\-]*\/~?[A-Za-z0-9][A-Za-z0-9_\-:.\/\[\]]*$")
 
@@ -20,6 +21,7 @@ class FlowModel(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
+		from frappe.core.doctype.has_role.has_role import HasRole
 		from frappe.types import DF
 
 		api_key: DF.Password | None
@@ -29,6 +31,7 @@ class FlowModel(Document):
 		extra_params: DF.JSON | None
 		model_id: DF.Data
 		provider: DF.Link | None
+		roles: DF.TableMultiSelect[HasRole]
 		title: DF.Data
 	# end: auto-generated types
 
@@ -47,6 +50,13 @@ class FlowModel(Document):
 		from frappe.ai.assistant import ensure_builtin_assistant
 
 		ensure_builtin_assistant(model=self.name)
+
+	def before_rename(self, old: str, new: str, merge: bool = False) -> None:
+		# move the setting here, so Frappe's update doesn't treat the rename as a new model
+		if not merge and frappe.get_cached_doc("Flow Knowledge Settings").embedding_model == old:
+			frappe.db.set_single_value(
+				"Flow Knowledge Settings", "embedding_model", validate_name(self.doctype, new)
+			)
 
 	def _normalize(self):
 		for field in ("title", "model_id", "base_url"):

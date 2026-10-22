@@ -18,6 +18,10 @@ def render_page() -> frappe._dict:
 
 
 class TestFlowPage(IntegrationTestCase):
+	def setUp(self):
+		# the page commits its CSRF token, which would keep the test's writes too
+		self.enterContext(patch.object(frappe.db, "commit"))
+
 	def tearDown(self):
 		frappe.set_user("Administrator")
 		frappe.db.rollback()

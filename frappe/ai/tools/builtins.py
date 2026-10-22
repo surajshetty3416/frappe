@@ -9,7 +9,10 @@ from typing import Any, Literal, NoReturn
 
 import frappe
 from frappe import _
+from frappe.database.utils import DefaultOrderBy
 from frappe.model import child_table_fields, default_fields, optional_fields
+from frappe.model.base_document import get_controller
+from frappe.query_builder.functions import Count
 
 from frappe.ai import artifacts
 from frappe.ai.lib.tool import Tool, ToolContext, tool
@@ -71,11 +74,13 @@ def _summarize_values(values: dict) -> str:
 @tool
 def find_doctypes(
 	search: str | None = None, module: str | None = None, limit: int = 40, *, ctx: ToolContext
-) -> list[dict]:
+) -> dict[str, Any]:
 	"""Find exact DocType names before describe/read — never guess names.
 
-	Search by keyword (substring of the name) and/or filter by module. Returns a list
-	of {name, module} you can read. Child tables are excluded; single DocTypes are included.
+	Search by keyword (substring of the name) and/or filter by module. Returns `total`, the
+	number of matches, and up to `limit` of them as `doctypes`, each {name, module} you can read.
+	If `total` is higher, search more narrowly or raise `limit`.
+	Child tables are excluded; single DocTypes are included.
 	"""
 	limit = min(max(int(limit), 1), MAX_READ_LIMIT)
 	filters: dict[str, Any] = {"istable": 0}
@@ -90,7 +95,7 @@ def find_doctypes(
 			user.build_permissions()
 		readable = {*user.can_read, *user.all_read}
 		rows = [r for r in rows if r["name"] in readable]
-	return rows[:limit]
+	return {"total": len(rows), "doctypes": rows[:limit]}
 
 
 @tool
@@ -143,17 +148,20 @@ def read_records(
 	parent_doctype: str | None = None,
 	*,
 	ctx: ToolContext,
-) -> list[dict]:
+) -> dict[str, Any]:
 	"""Read records from a DocType, honouring the user's permissions.
 
 	`filters` is a dict like {"status": "Open"} or {"qty": [">", 5]}. `fields` defaults
-	to the record name. Returns a list of matching records (capped at 200).
+	to the record name. Returns `total`, the number of matching records, and up to `limit`
+	of them (capped at 200) as `records`. If `total` is higher, the rest exist: narrow
+	`filters` or raise `limit`.
 	A single DocType returns its one record, with every field unless `fields` is given.
 	For a child table used by more than one DocType, pass the one you mean as `parent_doctype`.
 	"""
 	_check_field_names(doctype, fields, filters)
 	if frappe.get_meta(doctype).issingle:
-		return _read_single(doctype, filters, fields)
+		records = _read_single(doctype, filters, fields)
+		return {"total": len(records), "records": records}
 	limit = min(max(int(limit), 1), MAX_READ_LIMIT)
 	if parent_doctype := _parent_doctype(doctype, parent_doctype):
 		# frappe matches child rows to parents by name only
@@ -161,14 +169,10 @@ def read_records(
 			filters = [*filters, ["parenttype", "=", parent_doctype]]
 		else:
 			filters = {**(filters or {}), "parenttype": parent_doctype}
-	return frappe.get_list(
-		doctype,
-		filters=filters,
-		fields=fields or ["name"],
-		limit=limit,
-		order_by=order_by,
-		parent_doctype=parent_doctype,
-	)
+	query = {"filters": filters, "fields": fields or ["name"], "parent_doctype": parent_doctype}
+	records = frappe.get_list(doctype, **query, limit=limit + 1, order_by=order_by or DefaultOrderBy)
+	total = _count(doctype, query) if len(records) > limit else len(records)
+	return {"total": total, "records": records[:limit]}
 
 
 def _filter_field_names(filters: Any, doctype: str) -> list[str]:
@@ -227,6 +231,14 @@ def _parent_doctype(doctype: str, given: str | None) -> str | None:
 	raise ValueError(
 		f"{doctype} is a child table; pass parent_doctype, one of: {', '.join(parents) or 'none'}"
 	)
+
+
+def _count(doctype: str, query: dict[str, Any]) -> int:
+	"""How many rows the read finds with no limit."""
+	if frappe.get_meta(doctype).is_virtual:
+		return frappe.call(get_controller(doctype).get_count, args=frappe._dict(query), **query)
+	rows = frappe.get_list(doctype, **query, order_by=None, run=False)
+	return frappe.qb.from_(rows).select(Count("*")).run()[0][0]
 
 
 @tool(

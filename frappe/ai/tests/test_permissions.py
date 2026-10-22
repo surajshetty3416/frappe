@@ -1,6 +1,8 @@
 # Copyright (c) 2026, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
+from unittest.mock import patch
+
 import frappe
 from frappe.tests import IntegrationTestCase
 
@@ -10,7 +12,7 @@ from frappe.ai.patches.grant_flow_role import ASSISTANT_USER_ROLE_PROFILE
 from frappe.ai.patches.grant_flow_role import execute as grant_flow_role
 from frappe.ai.permissions import ASSISTANT_USER_ROLE, ensure_assistant_role
 
-ROLE_DOCTYPES = ("Flow Agent", "Flow Model", "Flow Session", "Flow Run")
+ROLE_DOCTYPES = ("Flow Agent", "Flow Model", "Flow Session", "Flow Run", "Flow Skill")
 
 
 def _user(email: str, *roles: str) -> str:
@@ -57,11 +59,8 @@ class TestFlowAccess(IntegrationTestCase):
 		frappe.set_user("Administrator")
 		frappe.db.rollback()
 
-	def test_the_role_exists_with_desk_access(self):
-		ensure_assistant_role()
+	def test_flow_is_open_only_to_the_role_and_system_managers(self):
 		self.assertEqual(frappe.db.get_value("Role", ASSISTANT_USER_ROLE, "desk_access"), 1)
-
-	def test_the_doctype_rows_follow_the_role(self):
 		outsider = _user("flow-access-none@example.com")
 		member = _user("flow-access-member@example.com", ASSISTANT_USER_ROLE)
 		manager = _user("flow-access-manager@example.com", "System Manager")
@@ -70,6 +69,40 @@ class TestFlowAccess(IntegrationTestCase):
 				self.assertFalse(frappe.has_permission(doctype, "read", user=outsider))
 				self.assertTrue(frappe.has_permission(doctype, "read", user=member))
 				self.assertTrue(frappe.has_permission(doctype, "read", user=manager))
+
+		# every endpoint refuses a user without the role
+		agent = _agent()
+		session = frappe.get_doc({"doctype": "Flow Session", "agent": agent}).insert(ignore_permissions=True)
+		calls = {
+			"boot": {},
+			"create_session": {"agent": agent},
+			"session": {"session": session.name},
+			"list_sessions": {},
+			"run": {"session": session.name, "message": "hi"},
+			"resume": {"session": session.name, "answers": "{}"},
+			"abort": {"session": session.name},
+			"cancel_pending": {"session": session.name},
+			"rewind": {"session": session.name, "target_seq": 0},
+			"compact": {"session": session.name},
+			"entries": {"session": session.name},
+			"set_title": {"session": session.name, "title": "t"},
+			"set_auto_approve": {"session": session.name, "auto_approve": 1},
+			"delete_session": {"session": session.name},
+			"list_shares": {"session": session.name},
+			"share_session": {"session": session.name, "user": "Administrator"},
+			"unshare_session": {"session": session.name, "user": "Administrator"},
+			"find_users": {"query": "a"},
+			"set_general_access": {"session": session.name, "access": "Everyone"},
+			"sync_session": {"session": session.name},
+			"attach_file": {"file": "x"},
+			"cleanup_attachments": {"session": session.name},
+			"skills": {"session": session.name},
+		}
+		self.assertEqual(set(calls), set(api.__all__))
+		frappe.set_user(outsider)
+		for name, kwargs in calls.items():
+			with self.subTest(name), self.assertRaises(frappe.PermissionError):
+				getattr(api, name)(**kwargs)
 
 	def test_sessions_runs_and_personal_memories_stay_private_to_their_owner(self):
 		self.addCleanup(memory_store.drop_table)
@@ -117,6 +150,13 @@ class TestFlowAccess(IntegrationTestCase):
 						user=user,
 					)
 				)
+		# Trigger sessions are for System Managers, not every Assistant User
+		self.assertFalse(frappe.has_permission("Flow Session", "read", fired, user=member))
+		self.assertFalse(frappe.get_list("Flow Session", filters={"name": fired.name}, user=member))
+		# unless their owner opens them to every Flow user, to read
+		fired.db_set("general_access", "Everyone")
+		self.assertTrue(frappe.has_permission("Flow Session", "read", fired, user=member))
+		self.assertFalse(frappe.has_permission("Flow Session", "write", fired, user=member))
 		for doc in (chat, run, memory):
 			with self.subTest(doc.doctype):
 				self.assertFalse(frappe.get_list(doc.doctype, filters={"name": doc.name}, user=manager))
@@ -140,32 +180,75 @@ class TestFlowAccess(IntegrationTestCase):
 				with self.assertRaises(refusal):
 					doc.save()
 
-	def test_every_endpoint_refuses_a_user_without_the_role(self):
-		agent = _agent()
-		session = frappe.get_doc({"doctype": "Flow Session", "agent": agent}).insert(ignore_permissions=True)
-		calls = {
-			"boot": {},
-			"create_session": {"agent": agent},
-			"session": {"session": session.name},
-			"list_sessions": {},
-			"run": {"session": session.name, "message": "hi"},
-			"resume": {"session": session.name, "answers": "{}"},
-			"abort": {"session": session.name},
-			"cancel_pending": {"session": session.name},
-			"entries": {"session": session.name},
-			"set_title": {"session": session.name, "title": "t"},
-			"set_auto_approve": {"session": session.name, "auto_approve": 1},
-			"delete_session": {"session": session.name},
-			"sync_session": {"session": session.name},
-			"attach_file": {"file": "x"},
-			"cleanup_attachments": {"session": session.name},
-			"skills": {"session": session.name},
-		}
-		self.assertEqual(set(calls), set(api.__all__))
-		frappe.set_user(_user("flow-access-none@example.com"))
-		for name, kwargs in calls.items():
-			with self.subTest(name), self.assertRaises(frappe.PermissionError):
-				getattr(api, name)(**kwargs)
+	def test_roles_decide_who_uses_an_agent_or_model_directly_and_reads_its_skills(self):
+		tester = self._role("Flow Roles Tester")
+		member = _user("flow-roles-member@example.com", ASSISTANT_USER_ROLE)
+		holder = _user("flow-roles-holder@example.com", ASSISTANT_USER_ROLE, tester)
+		manager = _user("flow-roles-manager@example.com", "System Manager")
+		agent = frappe.get_doc("Flow Agent", _agent())
+		locked_model = frappe.get_doc(
+			{
+				"doctype": "Flow Model",
+				"title": "Flow Locked Model",
+				"model_id": "openai/gpt-4o",
+				"enabled": 1,
+				"roles": [{"role": tester}],
+			}
+		).insert()
+		locked = frappe.get_doc(
+			{
+				"doctype": "Flow Agent",
+				"title": "Flow Locked Agent",
+				"model": locked_model.name,
+				"instructions": "x",
+				"enabled": 1,
+				"roles": [{"role": tester}],
+			}
+		).insert()
+		shared, bound, hidden, off = (
+			frappe.get_doc(
+				{"doctype": "Flow Skill", "title": title, "description": "x", "instructions": "x", **fields}
+			)
+			.insert()
+			.name
+			for title, fields in (
+				("Flow Roles Global", {"enabled": 1, "is_global": 1}),
+				("Flow Roles Bound", {"enabled": 1}),
+				("Flow Roles Hidden", {"enabled": 1}),
+				("Flow Roles Off", {"enabled": 0}),
+			)
+		)
+		agent.update({"skills": [{"skill": bound}, {"skill": off}], "sub_agents": [{"agent": locked.name}]})
+		agent.save()
+		locked.append("skills", {"skill": hidden})
+		locked.save()
+
+		models = [agent.model, locked_model.name]
+		for user, agents, open_models, skills in (
+			(member, [agent.name], [agent.model], [shared, bound]),
+			(holder, [agent.name, locked.name], models, [shared, bound, hidden]),
+			(manager, [agent.name, locked.name], models, [shared, bound, hidden, off]),
+		):
+			with self.subTest(user):
+				for doctype, names, readable in (
+					("Flow Agent", [agent.name, locked.name], agents),
+					("Flow Model", models, open_models),
+					("Flow Skill", [shared, bound, hidden, off], skills),
+				):
+					listed = frappe.get_list(
+						doctype, filters={"name": ["in", names]}, pluck="name", user=user
+					)
+					self.assertEqual(sorted(listed), sorted(readable))
+					for name in names:
+						self.assertEqual(
+							frappe.has_permission(doctype, "read", name, user=user), name in readable
+						)
+				# a locked agent on a locked model still works as a sub-agent of one open to them
+				frappe.set_user(user)
+				with patch("frappe.ai.lib.model.resolve_provider_credentials", return_value={}):
+					configs = agent.subagent_configs("S1", {})
+				frappe.set_user("Administrator")
+				self.assertEqual([config["name"] for config in configs], [locked.name])
 
 	def test_the_patch_keeps_managers_on_flow(self):
 		manager = _user("flow-grant-manager@example.com", "System Manager")
@@ -186,7 +269,8 @@ class TestFlowAccess(IntegrationTestCase):
 		website_user = _user("flow-grant-website@example.com")
 		dormant_operator = _user("flow-grant-dormant@example.com", operator_role)
 
-		grant_flow_role()
+		with patch("frappe.log_error"):
+			grant_flow_role()
 
 		for name in (manager, profiled):
 			self.assertIn(ASSISTANT_USER_ROLE, frappe.get_roles(name), name)

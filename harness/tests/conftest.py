@@ -1,12 +1,20 @@
 import os
 
+import pytest
+
+from flow_harness import settings
+
 # litellm's bundled model map; the live one changes upstream without notice
 os.environ.setdefault("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-
-import pytest
 
 
 @pytest.fixture(autouse=True)
 def no_installed_provider_clis(monkeypatch):
 	"""A developer's installed `claude` must not configure a provider in tests."""
 	monkeypatch.setattr("flow_harness.model.catalog._cli_installed", lambda provider: False)
+
+
+@pytest.fixture(autouse=True)
+def _private_settings_file(tmp_path_factory, monkeypatch):
+	"""No test writes the user's ~/.flow/settings.json, even when the code it tests breaks."""
+	monkeypatch.setattr(settings, "SETTINGS_PATH", str(tmp_path_factory.mktemp("settings") / "settings.json"))

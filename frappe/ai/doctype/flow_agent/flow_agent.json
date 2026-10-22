@@ -25,7 +25,9 @@
   "section_break_skills",
   "skills",
   "section_break_knowledge",
-  "knowledge_bases"
+  "knowledge_bases",
+  "section_break_access",
+  "roles"
  ],
  "fields": [
   {
@@ -154,7 +156,7 @@
    "fieldtype": "Table MultiSelect",
    "label": "Skills",
    "options": "Flow Agent Skill",
-   "read_only_depends_on": "eval:doc.is_system_generated"
+   "read_only_depends_on": "eval:doc.is_system_generated && doc.name != 'Flow'"
   },
   {
    "fieldname": "section_break_knowledge",
@@ -162,17 +164,29 @@
    "label": "Knowledge"
   },
   {
-   "description": "Knowledge bases this agent can search. Empty means all enabled knowledge bases.",
+   "description": "Knowledge bases this agent can search. Anyone who can use the agent can read them, whatever their own access.",
    "fieldname": "knowledge_bases",
    "fieldtype": "Table MultiSelect",
    "label": "Knowledge Bases",
    "options": "Flow Agent Knowledge Base",
-   "read_only_depends_on": "eval:doc.is_system_generated"
+   "read_only_depends_on": "eval:doc.is_system_generated && doc.name != 'Flow'"
+  },
+  {
+   "fieldname": "section_break_access",
+   "fieldtype": "Section Break",
+   "label": "Access"
+  },
+  {
+   "description": "Who can use this agent directly; empty means every Assistant User. As a sub-agent it works for anyone using an agent that has it. Disabling a role also drops it here, which can leave the agent open to every Assistant User.",
+   "fieldname": "roles",
+   "fieldtype": "Table MultiSelect",
+   "label": "Roles",
+   "options": "Has Role"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-10-13 12:00:00.000000",
+ "modified": "2026-10-21 23:45:00.000000",
  "modified_by": "Administrator",
  "module": "AI",
  "name": "Flow Agent",

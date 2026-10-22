@@ -9,8 +9,10 @@ from functools import partial
 from typing import TYPE_CHECKING, Any
 
 import frappe
+import redis
 from frappe import _
 from frappe.ai.daemon.client import DaemonClient, DaemonError
+from frappe.ai.daemon.lifecycle import _redis_url
 from frappe.ai.doctype.studio_project.studio_project import add_artifact as add_project_artifact
 from frappe.ai.lib.session import (
 	ABANDONED,
@@ -29,6 +31,8 @@ from frappe.model.document import Document
 
 if TYPE_CHECKING:
 	from frappe.ai.doctype.flow_run.flow_run import FlowRun
+
+COMPACT_INPUT = "/compact"  # a compaction's run has no message of its own
 
 
 class FlowSession(Document):
@@ -71,6 +75,17 @@ class FlowSession(Document):
 		# only a committed delete drops the server's copy, so a refused one leaves the chat whole
 		frappe.db.after_commit.add(partial(_delete_server_session, self.name))
 
+	def validate_share(self, docshare):
+		"""Shared to view only: whoever writes to a session acts as its owner, and only they share it."""
+		if docshare.write or docshare.share:
+			frappe.throw(_("A chat can only be shared to view."), title=_("View Only"))
+		# Frappe's everyone reaches portal users too; General access keeps it to Flow users
+		if docshare.everyone and docshare.read:
+			frappe.throw(
+				_("To share a chat with everyone, use General access in its Share dialog."),
+				title=_("Not Allowed"),
+			)
+
 	def _validate_model_enabled(self):
 		if not self.model:
 			return
@@ -109,6 +124,14 @@ class FlowSession(Document):
 			_delete_attachment_files(batch)
 			frappe.db.delete("Flow Session Attachment", {"parent": ["in", batch]})
 			frappe.db.delete("Flow Session Artifact", {"parent": ["in", batch]})
+			frappe.db.delete("DocShare", {"share_doctype": "Flow Session", "share_name": ["in", batch]})
+			# what sharing leaves on a session: its Shared / Unshared comments and notifications
+			frappe.db.delete(
+				"Comment", {"reference_doctype": "Flow Session", "reference_name": ["in", batch]}
+			)
+			frappe.db.delete(
+				"Notification Log", {"document_type": "Flow Session", "document_name": ["in", batch]}
+			)
 			frappe.db.delete("Flow Session", {"name": ["in", batch]})
 			_purge_attachment_chunks(batch)
 
@@ -124,10 +147,10 @@ class FlowSession(Document):
 		agent = frappe.get_doc("Flow Agent", self.agent).for_project(self.project)
 		if not agent.enabled:
 			frappe.throw(_("Flow Agent {0} is disabled.").format(agent.name), title=_("Disabled Agent"))
+		# no agent name: the callback reads it from this session, which a rename keeps current
 		context = {
 			"site": frappe.local.site,
 			"user": frappe.session.user,
-			"agent": self.agent,
 			"session": self.name,
 		}
 		config = {
@@ -142,7 +165,6 @@ class FlowSession(Document):
 			"max_turns": agent.max_iterations or DEFAULT_MAX_ITERATIONS,
 			"auto_compact": True,
 			"callback_url": lifecycle.callback_url(),
-			"callback_headers": lifecycle.callback_headers(),
 			"callback_token": frappe.conf.flow_server_secret,
 			"notify_run_ended": True,
 			"user_context": context,
@@ -253,6 +275,30 @@ class FlowSession(Document):
 			sync_with_retry(self)
 			call_on_complete(self)
 		return status
+
+	def rewind(self, target_seq: int) -> str:
+		"""Branch the conversation from entry `target_seq`; refused while a run waits for approval."""
+		with flow_server() as client:
+			status = client.rewind(self.name, target_seq)["status"]
+		sync_with_retry(self)
+		return status
+
+	def compact(self) -> FlowRun:
+		"""Summarize the conversation so far into a shorter context; the summary call is a run."""
+		self._assert_can_run()
+		# the sync locks this session, so the run-end callback can't record the run before its row exists
+		sync_with_retry(self)
+		with flow_server() as client:
+			client.compact(self.name)
+		return frappe.get_doc(
+			{
+				"doctype": "Flow Run",
+				"session": self.name,
+				"source": "Manual",
+				"input": COMPACT_INPUT,
+				"status": "Running",
+			}
+		).insert(ignore_permissions=True)
 
 	def _assert_can_run(self) -> None:
 		"""Enforce current agent and model access before the daemon uses its stored config."""
@@ -388,6 +434,30 @@ class FlowSession(Document):
 		if not name:
 			frappe.throw(_("This session has no paused run."), title=_("Nothing to Resume"))
 		return frappe.get_doc("Flow Run", name)
+
+
+def on_share_removed(share, method=None):
+	"""A view of a chat taken back: the realtime relay re-checks who follows it live."""
+	if share.share_doctype == "Flow Session":
+		recheck_live_access(share.share_name, share.user)  # no user for an everyone share
+
+
+def recheck_live_access(session: str, user: str | None = None) -> None:
+	"""Once saved, have the relay ask `user` again, or with no user everyone but the owner."""
+	notice = {
+		"session": session,
+		"user": user,
+		"owner": frappe.db.get_value("Flow Session", session, "owner"),
+	}
+	frappe.db.after_commit.add(lambda: _publish_access_notice(notice))
+
+
+def _publish_access_notice(notice: dict[str, Any]) -> None:
+	if not (url := _redis_url()):
+		return
+	# with Redis down the relay isn't relaying either
+	with suppress(redis.RedisError):
+		redis.Redis.from_url(url).publish(f"flow-access:{frappe.local.site}", json.dumps(notice))
 
 
 def _delete_server_session(name: str) -> None:

@@ -46,6 +46,7 @@ class FlowAgent(Document):
 		from frappe.ai.doctype.flow_agent_skill.flow_agent_skill import FlowAgentSkill
 		from frappe.ai.doctype.flow_agent_sub_agent.flow_agent_sub_agent import FlowAgentSubAgent
 		from frappe.ai.doctype.flow_agent_tool.flow_agent_tool import FlowAgentTool
+		from frappe.core.doctype.has_role.has_role import HasRole
 		from frappe.types import DF
 
 		description: DF.SmallText | None
@@ -57,6 +58,7 @@ class FlowAgent(Document):
 		model: DF.Link
 		public: DF.Check
 		reasoning_effort: DF.Literal["", "off", "minimal", "low", "medium", "high", "xhigh", "max"]
+		roles: DF.TableMultiSelect[HasRole]
 		skills: DF.TableMultiSelect[FlowAgentSkill]
 		sub_agents: DF.TableMultiSelect[FlowAgentSubAgent]
 		title: DF.Data
@@ -82,7 +84,14 @@ class FlowAgent(Document):
 	def before_rename(self, old: str, _new: str, _merge: bool = False) -> None:
 		block_rename(self, old)
 
+	def after_rename(self, old: str, new: str, _merge: bool = False) -> None:
+		from frappe.ai.memory import store
+
+		store.rename_agent(old, new)
+
 	def validate(self):
+		from frappe.ai.assistant.assistant import ASSISTANT_AGENT_TITLE
+
 		self._validate_max_iterations()
 		self._validate_token_budget()
 		self._validate_skills()
@@ -97,8 +106,8 @@ class FlowAgent(Document):
 				"instructions",
 				"max_iterations",
 				"tools",
-				"knowledge_bases",
-				"skills",
+				# the site may add skills and knowledge to the assistant
+				*(() if self.name == ASSISTANT_AGENT_TITLE else ("knowledge_bases", "skills")),
 				"sub_agents",
 			),
 		)
@@ -237,7 +246,7 @@ class FlowAgent(Document):
 
 	def subagent_configs(self, session: str | None, user_context: dict[str, Any]) -> list[dict[str, Any]]:
 		"""The enabled sub-agents as flow server `subagents` entries: each on its own model, prompt
-		and tools, calling back as itself."""
+		and tools, calling back as itself. Their models come with this agent, like their tools."""
 		from frappe.ai.lib.model import model_config
 
 		configs = []
@@ -256,7 +265,7 @@ class FlowAgent(Document):
 				{
 					"name": child.name,
 					"description": _one_line(child.description),
-					**model_config(child.model),
+					**model_config(child.model, check_permission=False),
 					"reasoning_effort": child.reasoning_effort or None,
 					**child.session_tool_config(session),
 					"max_turns": child.max_iterations or DEFAULT_MAX_ITERATIONS,

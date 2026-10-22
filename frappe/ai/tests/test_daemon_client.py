@@ -34,7 +34,6 @@ class TestDaemonClient(UnitTestCase):
 	def test_every_verb_hits_its_route_with_the_bearer(self):
 		calls = [
 			(lambda: self.client.healthz(), "GET", "/healthz", None),
-			(lambda: self.client.reload_tenants(), "POST", "/tenants/reload", None),
 			(lambda: self.client.create_session({"model": "mock"}), "POST", "/sessions", {"model": "mock"}),
 			(lambda: self.client.get_session("s1"), "GET", "/sessions/s1", None),
 			(lambda: self.client.delete_session("s1"), "DELETE", "/sessions/s1", None),
@@ -52,6 +51,8 @@ class TestDaemonClient(UnitTestCase):
 			),
 			(lambda: self.client.abort("s1"), "POST", "/sessions/s1/abort", None),
 			(lambda: self.client.cancel_pending("s1"), "POST", "/sessions/s1/cancel_pending", None),
+			(lambda: self.client.rewind("s1", 3), "POST", "/sessions/s1/rewind", {"target_seq": 3}),
+			(lambda: self.client.compact("s1"), "POST", "/sessions/s1/compact", None),
 			(
 				lambda: self.client.set_model("s1", "openai/gpt-5", api_key="k", api_base="https://b"),
 				"POST",
@@ -106,6 +107,12 @@ class TestDaemonClient(UnitTestCase):
 				"/sessions/s1/attachments",
 				{"attachments": ["a1", "a2"]},
 			),
+			(
+				lambda: self.client.upload_attachments("s1", [("a.png", b"\x89PNG", "image/png")]),
+				"POST",
+				"/sessions/s1/attachments",
+				None,
+			),
 		]
 		for call, method, path, body in calls:
 			with self.subTest(path=path):
@@ -115,49 +122,32 @@ class TestDaemonClient(UnitTestCase):
 				self.assertEqual(request.headers["Authorization"], f"Bearer {TOKEN}")
 				if body is not None:
 					self.assertEqual(json.loads(request.content), body)
-		self.assertEqual(dict(self.requests[-2].url.params), {"since": "3", "path": "all"})
+		self.assertEqual(dict(self.requests[-3].url.params), {"since": "3", "path": "all"})
+		upload = self.requests[-1]
+		self.assertIn("multipart/form-data", upload.headers["Content-Type"])
+		self.assertIn(b'filename="a.png"', upload.content)
+		self.assertIn(b"image/png", upload.content)
 
-	def test_uploads_send_multipart_files(self):
-		self.client.upload_attachments("s1", [("a.png", b"\x89PNG", "image/png")])
-		request = self.requests[-1]
-		self.assertEqual(request.url.path, "/sessions/s1/attachments")
-		self.assertIn("multipart/form-data", request.headers["Content-Type"])
-		self.assertIn(b'filename="a.png"', request.content)
-		self.assertIn(b"image/png", request.content)
+	def test_failures_become_daemon_errors_that_never_echo_the_input_or_token(self):
+		refusal = "callback_url host 'x' is not allowed by server policy"
+		invalid = {
+			"type": "extra_forbidden",
+			"loc": ["body", "bogus"],
+			"msg": "Extra inputs are not permitted",
+			"input": {"api_key": "sk-secret", "bogus": 1},
+		}
+		for status, detail, kept in (
+			(400, refusal, refusal),
+			(422, [invalid], [{"loc": ["body", "bogus"], "msg": "Extra inputs are not permitted"}]),
+		):
+			with self.subTest(status=status):
+				self.reply = httpx.Response(status, json={"detail": detail})
+				with self.assertRaises(DaemonError) as caught:
+					self.client.create_session({"api_key": "sk-secret", "bogus": 1})
+				self.assertEqual((caught.exception.status, caught.exception.detail), (status, kept))
+				self.assertIn(str(status), str(caught.exception))
+				self.assertNotIn("sk-secret", str(caught.exception))
 
-	def test_refusals_become_daemon_errors_with_the_daemons_detail(self):
-		self.reply = httpx.Response(
-			400, json={"detail": "callback_url host 'x' is not allowed by server policy"}
-		)
-		with self.assertRaises(DaemonError) as caught:
-			self.client.create_session({})
-		self.assertEqual(caught.exception.status, 400)
-		self.assertEqual(caught.exception.detail, "callback_url host 'x' is not allowed by server policy")
-		self.assertIn("400", str(caught.exception))
-
-	def test_validation_errors_keep_the_field_and_message_but_never_the_input(self):
-		self.reply = httpx.Response(
-			422,
-			json={
-				"detail": [
-					{
-						"type": "extra_forbidden",
-						"loc": ["body", "bogus"],
-						"msg": "Extra inputs are not permitted",
-						"input": {"api_key": "sk-secret", "bogus": 1},
-					}
-				]
-			},
-		)
-		with self.assertRaises(DaemonError) as caught:
-			self.client.create_session({"api_key": "sk-secret", "bogus": 1})
-		self.assertEqual(caught.exception.status, 422)
-		self.assertEqual(
-			caught.exception.detail, [{"loc": ["body", "bogus"], "msg": "Extra inputs are not permitted"}]
-		)
-		self.assertNotIn("sk-secret", str(caught.exception))
-
-	def test_an_unreachable_daemon_is_an_error_without_a_status(self):
 		with DaemonClient("/nowhere/flow.sock", TOKEN) as client:
 			with self.assertRaises(DaemonError) as caught:
 				client.healthz()
@@ -165,17 +155,19 @@ class TestDaemonClient(UnitTestCase):
 		self.assertIn("unreachable", str(caught.exception))
 		self.assertNotIn(TOKEN, str(caught.exception))
 
-	def test_a_client_without_a_token_sends_no_authorization(self):
+	def test_a_client_sends_only_the_site_and_secret_it_has(self):
+		with patch.dict(frappe.local.conf, {"flow_server_secret": None}):
+			with self.assertRaisesRegex(DaemonError, "not provisioned"):
+				DaemonClient.for_site()
+		with patch.dict(frappe.local.conf, {"flow_server_secret": TOKEN}), DaemonClient.for_site() as client:
+			self.assertEqual(client._http.headers["X-Flow-Site"], frappe.local.site)
+			self.assertEqual(client._http.headers["Authorization"], f"Bearer {TOKEN}")
+		self.assertNotIn("X-Flow-Site", self.client._http.headers)
 		with DaemonClient(
 			"/nowhere/flow.sock", transport=httpx.MockTransport(lambda r: self.reply)
 		) as client:
 			client.healthz()
 		self.assertNotIn("Authorization", client._http.headers)
-
-	def test_for_site_needs_a_provisioned_site(self):
-		with patch.dict(frappe.local.conf, {"flow_server_secret": None}):
-			with self.assertRaisesRegex(DaemonError, "not provisioned"):
-				DaemonClient.for_site()
 
 
 class TestLiveDaemon(IntegrationTestCase):
@@ -190,21 +182,23 @@ class TestLiveDaemon(IntegrationTestCase):
 		tmp = TemporaryDirectory()
 		cls.addClassCleanup(tmp.cleanup)
 		root = Path(tmp.name)
+		sites = root / "sites"
 		cls.enterClassContext(patch.object(lifecycle, "state_dir", return_value=root / "state"))
-		cls.enterClassContext(patch.object(lifecycle, "site_data_dir", return_value=root / "site"))
+		cls.enterClassContext(patch.object(lifecycle, "_sites_dir", return_value=sites))
+		site_files = sites / frappe.local.site / "public" / "files"
+		cls.enterClassContext(patch.object(lifecycle, "session_root", return_value=site_files))
 		cls.enterClassContext(patch.object(lifecycle, "runtime_dir", return_value=root))
 		cls.enterClassContext(patch.object(lifecycle, "log_path", return_value=root / "flow-server.log"))
 		cls.enterClassContext(patch.object(lifecycle, "_redis_url", return_value=None))
+		# the real lock file lives in the bench's config folder
+		cls.enterClassContext(patch.object(lifecycle, "filelock"))
 		cls.enterClassContext(patch.dict(frappe.local.conf, {"flow_server_secret": TOKEN}))
-		lifecycle.provision_site()
-		lifecycle._edit_tenants(
-			lambda tenants: tenants.__setitem__(
-				"other.localhost", {"token": "other-token", "allowed_roots": [tmp.name], "callback_hosts": []}
-			)
-		)
+		for site, secret in ((frappe.local.site, TOKEN), ("other.localhost", "other-token")):
+			(sites / site).mkdir(parents=True)
+			(sites / site / "site_config.json").write_text(json.dumps({"flow_server_secret": secret}))
 		lifecycle.start()
 		cls.addClassCleanup(lifecycle.stop)
-		cls.other = DaemonClient(str(lifecycle.socket_path()), "other-token")
+		cls.other = DaemonClient(str(lifecycle.socket_path()), "other-token", site="other.localhost")
 		cls.addClassCleanup(cls.other.close)
 
 	def setUp(self):
@@ -243,51 +237,44 @@ class TestLiveDaemon(IntegrationTestCase):
 			config = session.server_config()
 		return {**config, "session_id": session_id, "model": "mock"}
 
-	def test_the_daemon_answers_and_serves_both_sites(self):
+	def test_each_site_reaches_only_its_own_sessions_with_its_own_secret(self):
 		self.assertEqual(self.client.healthz(), {"ok": True})
 		self.assertIn(frappe.local.site, lifecycle.status())
 		self.assertIn("other.localhost", lifecycle.status())
-
-	def test_a_wrong_token_is_401(self):
-		with DaemonClient(str(lifecycle.socket_path()), "wrong") as stranger:
-			with self.assertRaises(DaemonError) as caught:
-				stranger.get_session("nothing")
-		self.assertEqual(caught.exception.status, 401)
-
-	def test_the_daemons_own_tools_are_refused_by_policy(self):
-		for tools in (["bash"], ["write"]):
-			with self.subTest(tools=tools), self.assertRaises(DaemonError) as caught:
-				self.client.create_session({**self.config("policy-probe"), "tools": tools})
-			self.assertEqual(caught.exception.status, 400)
-			self.assertIn("not allowed by server policy", caught.exception.detail)
-
-	def test_a_foreign_callback_host_is_refused(self):
-		config = {**self.config("callback-probe"), "callback_url": "http://evil.example.com/hook"}
-		with self.assertRaises(DaemonError) as caught:
-			self.client.create_session(config)
-		self.assertEqual(caught.exception.status, 400)
-		self.assertIn("callback_url", caught.exception.detail)
-
-	def test_inline_credentials_are_accepted_and_come_back_redacted(self):
-		created = self.client.create_session(self.config("redaction"))
-		self.assertEqual(created["session_id"], "redaction")
-		self.assertEqual(created["config"]["api_key"], "***")
-		self.assertEqual(created["config"]["callback_token"], "***")
-		self.assertEqual(created["config"]["tools"], [])
-		fetched = self.client.get_session("redaction")
-		self.assertEqual(fetched["config"]["api_key"], "***")
-		self.assertNotIn("sk-live", json.dumps(fetched))
-		self.assertNotIn(TOKEN, json.dumps(fetched))
-
-	def test_sessions_are_partitioned_by_site(self):
 		self.client.create_session(self.config("partitioned"))
 		self.assertEqual(self.client.get_session("partitioned")["session_id"], "partitioned")
 		with self.assertRaises(DaemonError) as caught:
 			self.other.get_session("partitioned")
 		self.assertEqual(caught.exception.status, 404)
+		for token, site in (("wrong", frappe.local.site), (TOKEN, None), ("other-token", frappe.local.site)):
+			with self.subTest(token=token, site=site):
+				with DaemonClient(str(lifecycle.socket_path()), token, site=site) as stranger:
+					with self.assertRaises(DaemonError) as caught:
+						stranger.get_session("nothing")
+				self.assertEqual(caught.exception.status, 401)
 
-	def test_a_run_returns_immediately_and_finishes_in_the_log(self):
-		self.client.create_session(self.config("turns"))
+	def test_a_session_asking_past_the_server_policy_is_refused(self):
+		for change, detail in (
+			({"tools": ["bash"]}, "not allowed by server policy"),
+			({"tools": ["write"]}, "not allowed by server policy"),
+			({"callback_url": "http://evil.example.com/hook"}, "callback_url"),
+		):
+			with self.subTest(change=change):
+				with self.assertRaises(DaemonError) as caught:
+					self.client.create_session({**self.config("policy-probe"), **change})
+				self.assertEqual(caught.exception.status, 400)
+				self.assertIn(detail, caught.exception.detail)
+
+	def test_a_session_hides_its_credentials_and_runs_until_deleted(self):
+		created = self.client.create_session(self.config("turns"))
+		self.assertEqual(created["session_id"], "turns")
+		self.assertEqual(created["config"]["api_key"], "***")
+		self.assertEqual(created["config"]["callback_token"], "***")
+		self.assertEqual(created["config"]["tools"], [])
+		fetched = self.client.get_session("turns")
+		self.assertEqual(fetched["config"]["api_key"], "***")
+		self.assertNotIn("sk-live", json.dumps(fetched))
+		self.assertNotIn(TOKEN, json.dumps(fetched))
 		self.assertEqual(self.client.run("turns", "hello there"), {"status": "started"})
 		for _ in range(100):
 			if not self.client.get_session("turns")["running"]:

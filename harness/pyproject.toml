@@ -1,6 +1,6 @@
 [project]
 name = "frappe-flow"
-version = "0.1.16"
+version = "0.1.17"
 description = "An open-source agent harness."
 readme = "README.md"
 license = "MIT"
@@ -14,7 +14,7 @@ dependencies = [
     "uvicorn>=0.34",
     "httpx>=0.28",
     "pydantic>=2.9",
-    "litellm>=1.103.2,<2",
+    "litellm==1.103.2",
     "redis>=5.0",
     "textual>=8.2.8",
     "pillow>=11.0",
